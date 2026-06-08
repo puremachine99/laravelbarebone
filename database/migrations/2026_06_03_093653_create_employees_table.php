@@ -9,11 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('employees', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->foreignId('user_id')->unique()->constrained('users')->cascadeOnDelete();
-            $table->foreignUuid('department_id')->nullable()->constrained('departments')->nullOnDelete();
-            $table->foreignUuid('position_struktural_id')->nullable()->constrained('positions')->nullOnDelete();
-            $table->foreignUuid('position_fungsional_id')->nullable()->constrained('positions')->nullOnDelete();
+            $table->foreignId('department_id')->nullable()->constrained('departments')->nullOnDelete();
+            $table->foreignId('position_struktural_id')->nullable()->constrained('positions')->nullOnDelete();
+            $table->foreignId('position_fungsional_id')->nullable()->constrained('positions')->nullOnDelete();
             $table->string('employment_status', 100)->nullable();
             $table->boolean('is_cltp')->default(false);
             $table->date('contract_start_date')->nullable();

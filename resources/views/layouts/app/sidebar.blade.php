@@ -22,24 +22,45 @@
             </flux:sidebar.group>
 
             <flux:sidebar.group expandable heading="Data Master" icon="server">
-                <flux:sidebar.item :href="route('departments.index')" :current="request()->routeIs('departments.*')"
-                    wire:navigate>
-                    Departments
+                
+                <flux:sidebar.group expandable heading="Internal Organization" class="mt-2">
+                    <flux:sidebar.item :href="route('departments.index')" :current="request()->routeIs('departments.*')" wire:navigate>
+                        Departments
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item :href="route('positions.index')" :current="request()->routeIs('positions.*')" wire:navigate>
+                        Positions
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item :href="route('employees.index')" :current="request()->routeIs('employees.*')" wire:navigate>
+                        Employees
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <flux:sidebar.group expandable heading="Partnership" class="mt-2">
+                    <flux:sidebar.item :href="route('region.index')" :current="request()->routeIs('region.*')" wire:navigate>
+                        Region
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item :href="route('opd.index')" :current="request()->routeIs('opd.*')" wire:navigate>
+                        OPD
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item :href="route('contact.index')" :current="request()->routeIs('contact.*')" wire:navigate>
+                        Contact
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item :href="route('urusan.index')" :current="request()->routeIs('urusan.*')" wire:navigate>
+                        Urusan
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <flux:sidebar.item :href="route('products.index')" :current="request()->routeIs('products.*')" wire:navigate class="mt-2">
+                    Products
                 </flux:sidebar.item>
 
-                <flux:sidebar.item :href="route('positions.index')" :current="request()->routeIs('positions.*')"
-                    wire:navigate>
-                    Positions
-                </flux:sidebar.item>
-
-                <flux:sidebar.item :href="route('employees.index')" :current="request()->routeIs('employees.*')"
-                    wire:navigate>
-                    Employees
-                </flux:sidebar.item>
-
-                <flux:sidebar.item :href="route('region.index')" :current="request()->routeIs('region.*')"
-                    wire:navigate>
-                    Region
+                <flux:sidebar.item :href="route('investors.index')" :current="request()->routeIs('investors.*')" wire:navigate>
+                    Investors
                 </flux:sidebar.item>
 
             </flux:sidebar.group>

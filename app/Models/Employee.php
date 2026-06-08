@@ -3,12 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
 {
-    use HasUuids, SoftDeletes;
+    use SoftDeletes;
 
     protected $guarded = ['id'];
 
@@ -24,7 +23,7 @@ class Employee extends Model
     {
         return $this->belongsTo(User::class);
     }
-    
+
     public function department()
     {
         return $this->belongsTo(Department::class);

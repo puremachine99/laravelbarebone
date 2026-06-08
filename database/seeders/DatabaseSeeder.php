@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -26,15 +25,15 @@ class DatabaseSeeder extends Seeder
         );
 
         Employee::updateOrCreate(
-            ['user_id' => $superAdmin->id],
-            [
-                'id' => Str::uuid(),
-            ]
+            ['user_id' => $superAdmin->id]
         );
 
         $this->call([
             RegionProvinceRegencySeeder::class,
             EmployeesSeeder::class,
+            UrusanSeeder::class,
+            OpdSeeder::class,
+            ProductSeeder::class,
         ]);
     }
 }

@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class RegionProvinceRegencySeeder extends Seeder
 {
@@ -23,7 +22,6 @@ class RegionProvinceRegencySeeder extends Seeder
 
         foreach ($regions as $region) {
             DB::table('regions')->insertOrIgnore([
-                'id' => (string) Str::uuid(),
                 'name' => $region['name'],
                 'code' => $region['code'],
                 'created_at' => now(),
@@ -87,7 +85,6 @@ class RegionProvinceRegencySeeder extends Seeder
 
         foreach ($provinces as [$regionCode, $provCode, $name]) {
             DB::table('provinces')->insertOrIgnore([
-                'id' => (string) Str::uuid(),
                 'region_id' => $regionId($regionCode),
                 'name' => $name,
                 'code' => $provCode,
@@ -773,7 +770,6 @@ class RegionProvinceRegencySeeder extends Seeder
             }
 
             DB::table('regencies')->insertOrIgnore([
-                'id' => (string) Str::uuid(),
                 'province_id' => $provinceId($provCode),
                 'name' => $name,
                 'code' => $regCode,

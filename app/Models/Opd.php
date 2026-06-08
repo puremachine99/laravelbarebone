@@ -3,16 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Opd extends Model
 {
-    use HasUuids;
-
     protected $guarded = ['id'];
 
     public function regency()
     {
         return $this->belongsTo(Regency::class);
+    }
+
+    public function urusans()
+    {
+        return $this->belongsToMany(Urusan::class, 'opd_urusan', 'opd_id', 'urusan_id');
     }
 }
