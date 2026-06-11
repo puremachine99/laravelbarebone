@@ -21,49 +21,141 @@
                 </flux:sidebar.item>
             </flux:sidebar.group>
 
+            @can('view-executive-dashboard')
+            <flux:sidebar.group :heading="__('Executive')" class="grid mt-2">
+                <flux:sidebar.item icon="presentation-chart-bar" :href="route('executive-dashboard')" :current="request()->routeIs('executive-dashboard')" wire:navigate>
+                    Executive Dashboard
+                </flux:sidebar.item>
+            </flux:sidebar.group>
+            @endcan
+
+            @can('manage-talent-okr')
+            <flux:sidebar.group :heading="__('Talent & OKRs')" class="grid mt-2">
+                <flux:sidebar.item icon="users" :href="route('leaderboard')" :current="request()->routeIs('leaderboard')" wire:navigate>
+                    Talent Leaderboard
+                </flux:sidebar.item>
+            </flux:sidebar.group>
+            @endcan
+
+            @can('manage-pipeline')
+            <flux:sidebar.group :heading="__('Workflow')" class="grid mt-2">
+                <flux:sidebar.item icon="adjustments-horizontal" :href="route('pipeline-config')" :current="request()->routeIs('pipeline-config')" wire:navigate>
+                    Pipeline Config
+                </flux:sidebar.item>
+            </flux:sidebar.group>
+            @endcan
+
+            @if(auth()->user()->can('manage-finance-intake') || auth()->user()->can('manage-finance-reconciliation') || auth()->user()->can('manage-finance-disbursements') || auth()->user()->can('view-finance-clearance'))
+            <flux:sidebar.group expandable heading="Finance" icon="banknotes" class="mt-2">
+                @can('manage-finance-intake')
+                <flux:sidebar.item :href="route('finance.intake')" :current="request()->routeIs('finance.intake')" wire:navigate>
+                    Intake Queue
+                </flux:sidebar.item>
+                @endcan
+
+                @can('manage-finance-reconciliation')
+                <flux:sidebar.item :href="route('finance.reconciliation')" :current="request()->routeIs('finance.reconciliation')" wire:navigate>
+                    Reconciliation
+                </flux:sidebar.item>
+                @endcan
+
+                @can('manage-finance-disbursements')
+                <flux:sidebar.item :href="route('finance.disbursements')" :current="request()->routeIs('finance.disbursements')" wire:navigate>
+                    Disbursements
+                </flux:sidebar.item>
+                @endcan
+
+                @can('view-finance-clearance')
+                <flux:sidebar.item :href="route('finance.clearance-archive')" :current="request()->routeIs('finance.clearance-archive')" wire:navigate>
+                    Clearance Archive
+                </flux:sidebar.item>
+                @endcan
+            </flux:sidebar.group>
+            @endif
+
+            @if(auth()->user()->can('manage-chat') || auth()->user()->can('manage-ai-center'))
+            <flux:sidebar.group expandable heading="Nakama Hub" icon="chat-bubble-left-right" class="mt-2">
+                @can('manage-chat')
+                <flux:sidebar.item :href="route('chat')" :current="request()->routeIs('chat')" wire:navigate>
+                    Nakama Chat
+                </flux:sidebar.item>
+                @endcan
+
+                @can('manage-ai-center')
+                <flux:sidebar.item :href="route('ai-center')" :current="request()->routeIs('ai-center')" wire:navigate>
+                    AI Center
+                </flux:sidebar.item>
+                @endcan
+            </flux:sidebar.group>
+            @endif
+
+            @if(auth()->user()->can('manage-internal-org') || auth()->user()->can('manage-partnership') || auth()->user()->can('manage-products') || auth()->user()->can('manage-investors'))
             <flux:sidebar.group expandable heading="Data Master" icon="server">
-                
+
+                @can('manage-internal-org')
                 <flux:sidebar.group expandable heading="Internal Organization" class="mt-2">
-                    <flux:sidebar.item :href="route('departments.index')" :current="request()->routeIs('departments.*')" wire:navigate>
+                    <flux:sidebar.item :href="route('departments.index')" :current="request()->routeIs('departments.*')"
+                        wire:navigate>
                         Departments
                     </flux:sidebar.item>
 
-                    <flux:sidebar.item :href="route('positions.index')" :current="request()->routeIs('positions.*')" wire:navigate>
+                    <flux:sidebar.item :href="route('positions.index')" :current="request()->routeIs('positions.*')"
+                        wire:navigate>
                         Positions
                     </flux:sidebar.item>
 
-                    <flux:sidebar.item :href="route('employees.index')" :current="request()->routeIs('employees.*')" wire:navigate>
+                    <flux:sidebar.item :href="route('employees.index')" :current="request()->routeIs('employees.*')"
+                        wire:navigate>
                         Employees
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+                @endcan
 
+                @can('manage-partnership')
                 <flux:sidebar.group expandable heading="Partnership" class="mt-2">
-                    <flux:sidebar.item :href="route('region.index')" :current="request()->routeIs('region.*')" wire:navigate>
+                    <flux:sidebar.item :href="route('region.index')" :current="request()->routeIs('region.*')"
+                        wire:navigate>
                         Region
                     </flux:sidebar.item>
 
-                    <flux:sidebar.item :href="route('opd.index')" :current="request()->routeIs('opd.*')" wire:navigate>
+                    <flux:sidebar.item :href="route('opd.index')" :current="request()->routeIs('opd.*')"
+                        wire:navigate>
                         OPD
                     </flux:sidebar.item>
 
-                    <flux:sidebar.item :href="route('contact.index')" :current="request()->routeIs('contact.*')" wire:navigate>
-                        Contact
+
+                    <flux:sidebar.item :href="route('contact-positions.index')"
+                        :current="request()->routeIs('contact-positions.*')" wire:navigate>
+                        Contact Positions
                     </flux:sidebar.item>
 
-                    <flux:sidebar.item :href="route('urusan.index')" :current="request()->routeIs('urusan.*')" wire:navigate>
+                    <flux:sidebar.item :href="route('urusan.index')" :current="request()->routeIs('urusan.*')"
+                        wire:navigate>
                         Urusan
                     </flux:sidebar.item>
+                    <flux:sidebar.item :href="route('contact.index')" :current="request()->routeIs('contact.*')"
+                        wire:navigate>
+                        Contact
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
+                @endcan
 
-                <flux:sidebar.item :href="route('products.index')" :current="request()->routeIs('products.*')" wire:navigate class="mt-2">
+                @can('manage-products')
+                <flux:sidebar.item :href="route('products.index')" :current="request()->routeIs('products.*')"
+                    wire:navigate class="mt-2">
                     Products
                 </flux:sidebar.item>
+                @endcan
 
-                <flux:sidebar.item :href="route('investors.index')" :current="request()->routeIs('investors.*')" wire:navigate>
+                @can('manage-investors')
+                <flux:sidebar.item :href="route('investors.index')" :current="request()->routeIs('investors.*')"
+                    wire:navigate>
                     Investors
                 </flux:sidebar.item>
+                @endcan
 
             </flux:sidebar.group>
+            @endif
         </flux:sidebar.nav>
 
         <flux:spacer />

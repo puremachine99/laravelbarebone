@@ -52,7 +52,7 @@
         </flux:toast.group>
     @endpersist
 
-    <script src="{{ asset('flux/dist/flux.js') }}"></script>
+    @fluxScripts
 </body>
 
 </html>

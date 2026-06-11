@@ -8,9 +8,14 @@ class Contact extends Model
 {
     protected $guarded = ['id'];
 
-    public function province()
+    public function region()
     {
-        return $this->belongsTo(Province::class);
+        return $this->belongsTo(Region::class);
+    }
+
+    public function contactPosition()
+    {
+        return $this->belongsTo(ContactPosition::class);
     }
 
     public function regency()
@@ -18,8 +23,8 @@ class Contact extends Model
         return $this->belongsTo(Regency::class);
     }
 
-    public function opd()
+    public function pic()
     {
-        return $this->belongsTo(Opd::class);
+        return $this->belongsTo(Employee::class, 'pic_employee_id');
     }
 }
