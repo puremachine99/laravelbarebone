@@ -8,20 +8,28 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // 1. pipeline_stages
+        // 1. pipeline_profiles
+        Schema::create('pipeline_profiles', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('pipeline_name'); // e.g. "Pitching", "Sales"
+            $table->boolean('is_active')->default(false);
+            $table->timestamps();
+        });
+
+        // 2. pipeline_stages
         Schema::create('pipeline_stages', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->string('pipeline_name');
+            $table->id();
+            $table->foreignId('pipeline_profile_id')->constrained('pipeline_profiles')->cascadeOnDelete();
             $table->string('stage_name');
             $table->integer('order_index')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
 
-        // 2. stage_validation_rules
+        // 3. stage_validation_rules
         Schema::create('stage_validation_rules', function (Blueprint $table) {
-            $table->uuid('stage_id')->primary();
-            $table->foreign('stage_id')->references('id')->on('pipeline_stages')->cascadeOnDelete();
+            $table->foreignId('stage_id')->primary()->constrained('pipeline_stages')->cascadeOnDelete();
             $table->json('authorized_roles')->nullable();
             $table->boolean('require_notes')->default(false);
             $table->boolean('require_file')->default(false);
@@ -31,20 +39,19 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 3. cards
+        // 4. cards
         Schema::create('cards', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->uuid('stage_id');
-            $table->foreign('stage_id')->references('id')->on('pipeline_stages')->cascadeOnDelete();
+            $table->foreignId('stage_id')->constrained('pipeline_stages')->cascadeOnDelete();
             $table->foreignId('contact_id')->nullable()->constrained('contacts')->nullOnDelete();
             $table->decimal('nominal_value', 15, 2)->default(0.00);
             $table->string('s3_document_path')->nullable();
-            $table->enum('status', ['Active', 'Disputed', 'Re-Submitted', 'Completed'])->default('Active');
+            $table->enum('status', ['Active', 'Disputed', 'Re-Submitted', 'Completed', 'won', 'hot', 'warm', 'lost'])->default('Active');
             $table->timestamps();
         });
 
-        // 4. finance_transactions
+        // 5. finance_transactions
         Schema::create('finance_transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('card_id')->constrained('cards')->cascadeOnDelete();
@@ -57,7 +64,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 5. disputed_document_logs
+        // 6. disputed_document_logs
         Schema::create('disputed_document_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('card_id')->constrained('cards')->cascadeOnDelete();
@@ -68,7 +75,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 6. investor_dividends
+        // 7. investor_dividends
         Schema::create('investor_dividends', function (Blueprint $table) {
             $table->id();
             $table->string('investor_name');
@@ -80,7 +87,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 7. ai_command_logs
+        // 8. ai_command_logs
         Schema::create('ai_command_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
@@ -101,5 +108,6 @@ return new class extends Migration
         Schema::dropIfExists('cards');
         Schema::dropIfExists('stage_validation_rules');
         Schema::dropIfExists('pipeline_stages');
+        Schema::dropIfExists('pipeline_profiles');
     }
 };

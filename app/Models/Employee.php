@@ -29,6 +29,11 @@ class Employee extends Model
         return $this->belongsTo(Department::class);
     }
 
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
+
     public function positionStruktural()
     {
         return $this->belongsTo(Position::class, 'position_struktural_id');

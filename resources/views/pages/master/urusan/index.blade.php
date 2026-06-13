@@ -1,7 +1,6 @@
 <?php
 
 use function Livewire\Volt\{state, layout, computed, usesPagination};
-use Flux\Flux;
 use App\Models\Urusan;
 use Illuminate\Validation\Rule;
 
@@ -9,198 +8,196 @@ usesPagination();
 layout('layouts.app');
 
 state([
-    'urusan_id'       => null,
-    'code'            => '',
-    'urusan'          => '',
-    'isEdit'          => false,
-    'deleteTargetId'  => null,
-    'search'          => '',
+'urusan_id' => null,
+'code' =>'',
+'urusan' =>'',
+'isEdit' => false,
+'deleteTargetId' => null,
+'search' =>'',
+'showUrusanModal' => false,
+'showDeleteModal' => false,
 ]);
 
 state([
-    'sortBy'        => 'code',
-    'sortDirection' => 'asc',
+'sortBy' =>'code',
+'sortDirection' =>'asc',
 ]);
 
 $sort = function ($column) {
-    if ($this->sortBy === $column) {
-        $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-        $this->sortBy        = $column;
-        $this->sortDirection = 'asc';
-    }
+ if ($this->sortBy === $column) {
+ $this->sortDirection = $this->sortDirection ==='asc' ?'desc' :'asc';
+ } else {
+ $this->sortBy = $column;
+ $this->sortDirection ='asc';
+ }
 };
 
 $updatedSearch = function () {
-    $this->resetPage();
+ $this->resetPage();
 };
 
 $urusans = computed(function () {
-    $search = $this->search;
+ $search = $this->search;
 
-    return Urusan::query()
-        ->when($search, fn($q) => $q->whereRaw('LOWER(urusan) LIKE ?', ['%' . strtolower($search) . '%'])
-                                    ->orWhereRaw('LOWER(code) LIKE ?', ['%' . strtolower($search) . '%']))
-        ->when($this->sortBy, fn($q) => $q->orderBy($this->sortBy, $this->sortDirection))
-        ->paginate(10);
+ return Urusan::query()
+ ->when($search, fn($q) => $q->whereRaw('LOWER(urusan) LIKE ?', ['%' . strtolower($search) .'%'])
+ ->orWhereRaw('LOWER(code) LIKE ?', ['%' . strtolower($search) .'%']))
+ ->when($this->sortBy, fn($q) => $q->orderBy($this->sortBy, $this->sortDirection))
+ ->paginate(10);
 });
 
 $resetForm = function () {
-    $this->reset(['urusan_id', 'code', 'urusan', 'isEdit']);
-    $this->resetValidation();
+ $this->reset(['urusan_id','code','urusan','isEdit']);
+ $this->resetValidation();
 };
 
 $save = function () {
-    $this->validate([
-        'code' => [
-            'required',
-            'string',
-            'max:10',
-            Rule::unique('urusans', 'code')->ignore($this->urusan_id),
-        ],
-        'urusan' => ['required', 'string', 'max:255'],
-    ]);
+ $this->validate([
+'code' => [
+'required',
+'string',
+'max:10',
+ Rule::unique('urusans','code')->ignore($this->urusan_id),
+ ],
+'urusan' => ['required','string','max:255'],
+ ]);
 
-    $isNew = is_null($this->urusan_id);
+ $isNew = is_null($this->urusan_id);
 
-    Urusan::updateOrCreate(
-        ['id'   => $this->urusan_id],
-        ['code' => $this->code, 'urusan' => $this->urusan]
-    );
+ Urusan::updateOrCreate(
+ ['id' => $this->urusan_id],
+ ['code' => $this->code,'urusan' => $this->urusan]
+ );
 
-    $this->resetForm();
-    Flux::modal('urusan-modal')->close();
-    Flux::toast(
-        variant: 'success',
-        heading: $isNew ? 'Urusan ditambahkan' : 'Urusan diperbarui',
-        text:    $isNew ? 'Data baru berhasil disimpan.' : 'Perubahan berhasil disimpan.',
-    );
+ $this->resetForm();
+ $this->showUrusanModal = false;
+ session()->flash('success', $isNew ?'Urusan berhasil ditambahkan!' :'Urusan berhasil diperbarui!');
 };
 
 $edit = function (Urusan $urusanModel) {
-    $this->resetValidation();
-    $this->urusan_id = $urusanModel->id;
-    $this->code      = $urusanModel->code;
-    $this->urusan    = $urusanModel->urusan;
-    $this->isEdit    = true;
-    Flux::modal('urusan-modal')->show();
+ $this->resetValidation();
+ $this->urusan_id = $urusanModel->id;
+ $this->code = $urusanModel->code;
+ $this->urusan = $urusanModel->urusan;
+ $this->isEdit = true;
+ $this->showUrusanModal = true;
 };
 
 $confirmDelete = function (string $id) {
-    $this->deleteTargetId = $id;
-    Flux::modal('confirm-delete')->show();
+ $this->deleteTargetId = $id;
+ $this->showDeleteModal = true;
 };
 
 $delete = function () {
-    Urusan::findOrFail($this->deleteTargetId)->delete();
-    $this->deleteTargetId = null;
-    Flux::modal('confirm-delete')->close();
-    Flux::toast(variant: 'danger', text: 'Urusan berhasil dihapus.');
+ Urusan::findOrFail($this->deleteTargetId)->delete();
+ $this->deleteTargetId = null;
+ $this->showDeleteModal = false;
+ session()->flash('error','Urusan berhasil dihapus.');
 };
 
 ?>
-<div>
-    <flux:card class="space-y-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <flux:heading size="xl">Data Master: Urusan</flux:heading>
-                <flux:subheading>Kelola daftar urusan (kode dan bidang).</flux:subheading>
-            </div>
+<div class="space-y-6">
+ @if (session()->has('success'))
+ <div class="alert alert-success shadow-sm">
+ <x-icon name="o-check-circle" class="w-5 h-5 text-white" />
+ <span class="text-white">{{ session('success') }}</span>
+ </div>
+ @endif
+ @if (session()->has('error'))
+ <div class="alert alert-error shadow-sm">
+ <x-icon name="o-exclamation-triangle" class="w-5 h-5 text-white" />
+ <span class="text-white">{{ session('error') }}</span>
+ </div>
+ @endif
 
-            <flux:modal.trigger name="urusan-modal">
-                <flux:button variant="primary" icon="plus" wire:click="resetForm">Urusan</flux:button>
-            </flux:modal.trigger>
-        </div>
+ <div class="card bg-base-100 border border-base-300 p-6 space-y-6 shadow-sm rounded-2xl">
+ <div class="flex items-center justify-between">
+ <div>
+ <h2 class="text-xl font-bold text-base-content">Data Master: Urusan</h2>
+ <p class="text-sm text-base-content/50 mt-1">Kelola daftar urusan (kode dan bidang).</p>
+ </div>
 
-        <flux:input
-            wire:model.live.debounce.300ms="search"
-            placeholder="Cari kode atau nama urusan..."
-            icon="magnifying-glass"
-            clearable
-        />
+ <x-button variant="primary" icon="o-plus" size="btn-sm" label="Urusan" wire:click="resetForm(); $set('showUrusanModal', true);" />
+ </div>
 
-        <flux:separator variant="subtle" />
+ <x-input
+ wire:model.live.debounce.300ms="search"
+ placeholder="Cari kode atau nama urusan..."
+ icon="o-magnifying-glass"
+ clearable
+ />
 
-        <flux:table :paginate="$this->urusans" striped hoverable>
-            <flux:table.columns>
-                <flux:table.column sortable :sorted="$sortBy === 'code'" :direction="$sortDirection"
-                    wire:click="sort('code')">
-                    Kode Urusan
-                </flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'urusan'" :direction="$sortDirection"
-                    wire:click="sort('urusan')">
-                    Nama Bidang Urusan
-                </flux:table.column>
-                <flux:table.column align="right">Aksi</flux:table.column>
-            </flux:table.columns>
+ <div class="overflow-x-auto">
+ <table class="table table-zebra w-full text-base-content/70">
+ <thead>
+ <tr class="text-base-content/50 border-b border-base-300">
+ <th class="cursor-pointer py-3" wire:click="sort('code')">
+ <div class="flex items-center gap-1">
+ <span>Kode Urusan</span>
+ @if ($sortBy ==='code')
+ <x-icon name="{{ $sortDirection ==='asc' ?'o-chevron-up' :'o-chevron-down' }}" class="w-3 h-3" />
+ @endif
+ </div>
+ </th>
+ <th class="cursor-pointer py-3" wire:click="sort('urusan')">
+ <div class="flex items-center gap-1">
+ <span>Nama Bidang Urusan</span>
+ @if ($sortBy ==='urusan')
+ <x-icon name="{{ $sortDirection ==='asc' ?'o-chevron-up' :'o-chevron-down' }}" class="w-3 h-3" />
+ @endif
+ </div>
+ </th>
+ <th class="text-right">Aksi</th>
+ </tr>
+ </thead>
+ <tbody>
+ @forelse ($this->urusans as $item)
+ <tr class="border-b border-base-300 hover:bg-base-200">
+ <td>
+ <div class="badge badge-sm badge-info badge-outline">{{ $item->code }}</div>
+ </td>
+ <td class="font-semibold text-base-content py-3">{{ $item->urusan }}</td>
+ <td class="text-right">
+ <div class="flex gap-2 justify-end">
+ <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="edit('{{ $item->id }}')" />
+ <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete('{{ $item->id }}')" />
+ </div>
+ </td>
+ </tr>
+ @empty
+ <tr>
+ <td colspan="3" class="text-center text-base-content/50 py-8">
+ Belum ada data yang ditampilkan.
+ </td>
+ </tr>
+ @endforelse
+ </tbody>
+ </table>
+ </div>
 
-            <flux:table.rows>
-                @forelse ($this->urusans as $item)
-                    <flux:table.row :key="$item->id">
-                        <flux:table.cell>
-                            <flux:badge variant="pill" color="blue">{{ $item->code }}</flux:badge>
-                        </flux:table.cell>
+ <div class="mt-4">
+ {{ $this->urusans->links() }}
+ </div>
+ </div>
 
-                        <flux:table.cell>{{ $item->urusan }}</flux:table.cell>
+ <!-- Modal Form -->
+ <x-modal wire:model="showUrusanModal" title="{{ $isEdit ?'Edit Urusan' :'Tambah Urusan Baru' }}" subtitle="Tentukan kode unik dan nama bidang urusan.">
+ <form wire:submit.prevent="save" class="space-y-4">
+ <x-input label="Kode Urusan" wire:model="code" placeholder="Cth: 01" required />
+ <x-input label="Nama Bidang Urusan" wire:model="urusan" placeholder="Cth: Bidang Pendidikan" required />
 
-                        <flux:table.cell align="right">
-                            <flux:button variant="ghost" size="sm" icon="pencil-square" inset="top bottom"
-                                wire:click="edit('{{ $item->id }}')" />
-                            <flux:button variant="danger" size="sm" icon="trash" inset="top bottom"
-                                wire:click="confirmDelete('{{ $item->id }}')" />
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="3">
-                            <flux:text class="text-center">Belum ada data yang ditampilkan.</flux:text>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-    </flux:card>
+ <div class="flex justify-end gap-2 pt-4 border-t border-base-300">
+ <x-button label="Batal" wire:click="$set('showUrusanModal', false)" class="btn-ghost" />
+ <x-button label="Simpan Data" type="submit" class="btn-primary" />
+ </div>
+ </form>
+ </x-modal>
 
-    <flux:modal name="urusan-modal" class="md:w-96">
-        <form wire:submit="save" class="space-y-6">
-            <div>
-                <flux:heading size="lg">{{ $isEdit ? 'Edit Urusan' : 'Tambah Urusan Baru' }}</flux:heading>
-                <flux:subheading>Tentukan kode unik dan nama bidang urusan.</flux:subheading>
-            </div>
-
-            <flux:field>
-                <flux:label>Kode Urusan</flux:label>
-                <flux:input wire:model="code" placeholder="Cth: 01" required />
-                <flux:error name="code" />
-            </flux:field>
-
-            <flux:field>
-                <flux:label>Nama Bidang Urusan</flux:label>
-                <flux:input wire:model="urusan" placeholder="Cth: Bidang Pendidikan" required />
-                <flux:error name="urusan" />
-            </flux:field>
-
-            <div class="flex justify-end space-x-2">
-                <flux:modal.close>
-                    <flux:button variant="ghost">Batal</flux:button>
-                </flux:modal.close>
-                <flux:button type="submit" variant="primary">Simpan Data</flux:button>
-            </div>
-        </form>
-    </flux:modal>
-
-    <flux:modal name="confirm-delete" class="max-w-sm">
-        <div class="space-y-4">
-            <div>
-                <flux:heading size="lg">Hapus Urusan?</flux:heading>
-                <flux:text class="mt-1">Tindakan ini tidak bisa dibatalkan.</flux:text>
-            </div>
-            <div class="flex justify-end gap-2">
-                <flux:modal.close>
-                    <flux:button variant="ghost">Batal</flux:button>
-                </flux:modal.close>
-                <flux:button variant="danger" wire:click="delete">Ya, Hapus</flux:button>
-            </div>
-        </div>
-    </flux:modal>
+ <!-- Confirmation Modal -->
+ <x-modal wire:model="showDeleteModal" title="Hapus Urusan?" subtitle="Tindakan ini tidak bisa dibatalkan.">
+ <div class="flex justify-end gap-2 pt-4">
+ <x-button label="Batal" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
+ <x-button label="Ya, Hapus" wire:click="delete" class="btn-error text-white" />
+ </div>
+ </x-modal>
 </div>

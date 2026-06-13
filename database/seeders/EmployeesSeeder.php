@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -11,125 +12,107 @@ class EmployeesSeeder extends Seeder
 {
     public function run(): void
     {
-        $departmentNames = [
-            'BoD/BoA/C-Level',
-            'Corporate Secretariat',
-            'Finance',
-            'People Culture and Strategy',
-            'Product and RDI',
-            'Revenue and Growth',
-            'Technology',
-        ];
+        $superAdmin = DB::table('users')->where('email', 'supernakama@smartid.co.id')->first();
+        $superAdminId = $superAdmin ? $superAdmin->id : null;
 
-        foreach ($departmentNames as $name) {
-            DB::table('departments')->insertOrIgnore([
-                'name' => $name,
+        // Clear existing data in correct order to avoid foreign key errors
+        if ($superAdminId) {
+            DB::table('employees')->where('user_id', '!=', $superAdminId)->delete();
+            DB::table('users')->where('id', '!=', $superAdminId)->delete();
+        } else {
+            DB::table('employees')->delete();
+            DB::table('users')->delete();
+        }
+        DB::table('departments')->delete();
+        DB::table('positions')->delete();
+
+        // 1. Load employees.json for extra data merging (NIK, NPWP, Usia/Birthdate, Gender, Marital, Phone, Education)
+        $jsonPath = database_path('seeders/jsonlawas/employees.json');
+        $jsonEmployees = [];
+
+        $normalizeName = function (string $str) {
+            $baseName = explode(',', $str)[0];
+
+            return strtolower(preg_replace('/[^a-zA-Z]/', '', $baseName));
+        };
+
+        if (File::exists($jsonPath)) {
+            $jsonList = json_decode(File::get($jsonPath), true);
+            if (is_array($jsonList)) {
+                foreach ($jsonList as $jEmp) {
+                    if (isset($jEmp['name'])) {
+                        $key = $normalizeName($jEmp['name']);
+                        $jsonEmployees[$key] = $jEmp;
+                    }
+                }
+            }
+        }
+
+        // 2. Read sdm.csv as the main data source
+        $csvPath = database_path('seeders/jsonlawas/sdm.csv');
+        if (! File::exists($csvPath)) {
+            $this->command->warn('File sdm.csv tidak ditemukan!');
+
+            return;
+        }
+
+        $file = fopen($csvPath, 'r');
+        $header = fgetcsv($file);
+
+        $rows = [];
+        $departments = [];
+        $positions = []; // name => type
+
+        while (($row = fgetcsv($file)) !== false) {
+            if (empty($row) || ! isset($row[2]) || trim($row[2]) === '') {
+                continue;
+            }
+            $rows[] = $row;
+
+            $deptName = trim($row[3] ?? '');
+            if ($deptName !== '') {
+                $departments[$deptName] = true;
+            }
+
+            $struktural = trim($row[4] ?? '');
+            if ($struktural !== '') {
+                $cleanStruktural = str_replace(["\r", "\n"], ' ', $struktural);
+                $positions[$cleanStruktural] = 'Struktural';
+            }
+
+            $fungsional = trim($row[5] ?? '');
+            if ($fungsional !== '') {
+                $cleanFungsional = str_replace(["\r", "\n"], ' ', $fungsional);
+                $positions[$cleanFungsional] = 'Fungsional';
+            }
+        }
+        fclose($file);
+
+        $departmentsMap = [];
+        $positionsMap = [];
+
+        // Insert Departments
+        foreach (array_keys($departments) as $deptName) {
+            $deptId = DB::table('departments')->insertGetId([
+                'name' => $deptName,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            $departmentsMap[$deptName] = $deptId;
         }
 
-        $positionData = [
-            ['Chief Executive Officer', 'Struktural'],
-            ['Chief Business Officer', 'Struktural'],
-            ['Chief Operating Officer', 'Struktural'],
-            ['Direksi', 'Struktural'],
-            ['Komisaris Utama', 'Struktural'],
-            ['Komisaris Bidang Riset dan Kerjasama', 'Struktural'],
-            ['Komisaris Bidang IT, HC, QA. Keuangan dan Umum', 'Struktural'],
-            ['Dewan Penasihat', 'Struktural'],
-            ['Corporate Secretary', 'Struktural'],
-            ['Plt. Manager of Corporate Legal', 'Struktural'],
-            ['Manager of Disbursement', 'Struktural'],
-            ['Manager of Funding', 'Struktural'],
-            ['SPV Iman, Imun, dan Aman', 'Struktural'],
-            ['Head of Finance', 'Struktural'],
-            ['Plt. Manager of Finance', 'Struktural'],
-            ['Plt. Manager of Asset and General Affairs', 'Struktural'],
-            ['Manager of Corporate Strategy and Performance Management and Plt. Manager of People and Culture', 'Struktural'],
-            ['Head of People, Culture & Strategy', 'Struktural'],
-            ['Manager of Executive Education', 'Struktural'],
-            ['Manager of Online Course', 'Struktural'],
-            ['Manager of Saas and AI', 'Struktural'],
-            ['Manager of Consulting Service', 'Struktural'],
-            ['Head of Product and RDI', 'Struktural'],
-            ['Manager of Global Expansion', 'Struktural'],
-            ['Vice President of Revenue and Growth', 'Struktural'],
-            ['Manager of Digital Revenue and Marketing', 'Struktural'],
-            ['Coordinator of Digital Creative', 'Struktural'],
-            ['Manager of Technology', 'Struktural'],
-
-            ['Product Consultant Ahli', 'Fungsional'],
-            ['Product Consultant Madya', 'Fungsional'],
-            ['Product Consultant Muda', 'Fungsional'],
-            ['Product Consultant Pratama', 'Fungsional'],
-            ['CEO Assistant Junior', 'Fungsional'],
-            ['CEO Driver', 'Fungsional'],
-            ['Legal Counsel Staff Junior', 'Fungsional'],
-            ['Public Relation Senior', 'Fungsional'],
-            ['Technical Secretary Officer Senior', 'Fungsional'],
-            ['Technical Secretary Officer Junior', 'Fungsional'],
-            ['Office Boy', 'Fungsional'],
-            ['Project Administration Officer Pratama', 'Fungsional'],
-            ['Project Administration Officer Madya', 'Fungsional'],
-            ['Accounting Specialist Junior', 'Fungsional'],
-            ['Tax Specialist Junior', 'Fungsional'],
-            ['Financial Analyst Junior', 'Fungsional'],
-            ['Funding Officer Senior', 'Fungsional'],
-            ['Asset and General Affairs Officer Junior', 'Fungsional'],
-            ['Administrative Officer Junior', 'Fungsional'],
-            ['Payment Specialist Junior', 'Fungsional'],
-            ['Security', 'Fungsional'],
-            ['Chef', 'Fungsional'],
-            ['People and Culture Officer Senior', 'Fungsional'],
-            ['People and Culture Officer Junior', 'Fungsional'],
-            ['Corporate Strategy and Performance Management Analyst Junior', 'Fungsional'],
-            ['Consultant Relation Officer Junior', 'Fungsional'],
-            ['Consultant Relation Officer Senior', 'Fungsional'],
-            ['Online Course Officer Junior', 'Fungsional'],
-            ['SaaS and AI Product Research Junior', 'Fungsional'],
-            ['SaaS and AI Product Research Senior', 'Fungsional'],
-            ['QA Specialist and Product Research Muda', 'Fungsional'],
-            ['Graphic Designer Senior', 'Fungsional'],
-            ['Graphic Designer Junior', 'Fungsional'],
-            ['Production Specialist Junior', 'Fungsional'],
-            ['Production Specialist Senior', 'Fungsional'],
-            ['Executive Education Officer Junior', 'Fungsional'],
-            ['Global Expert Specialist Junior', 'Fungsional'],
-            ['Department Secretary', 'Fungsional'],
-            ['Partnership Management Officer Pratama', 'Fungsional'],
-            ['Partnership Management Officer Ahli', 'Fungsional'],
-            ['Event and Program Specialist Senior', 'Fungsional'],
-            ['Content Creator Senior', 'Fungsional'],
-            ['Copywriter Senior', 'Fungsional'],
-            ['Copywriter Junior', 'Fungsional'],
-            ['Videographer and Editor Senior', 'Fungsional'],
-            ['Digital Revenue and Marketing Officer Junior', 'Fungsional'],
-            ['Performance Marketing Specialist Senior', 'Fungsional'],
-            ['AI Engineer Senior', 'Fungsional'],
-            ['AI Engineer Junior', 'Fungsional'],
-            ['Programmer Senior', 'Fungsional'],
-            ['Programmer Junior', 'Fungsional'],
-            ['Development and Operations Engineer Senior', 'Fungsional'],
-            ['Project Manager Junior', 'Fungsional'],
-            ['System Analyst Senior', 'Fungsional'],
-            ['Quality Assurance Specialist Junior', 'Fungsional'],
-            ['User Interface/Experience Designer Junior', 'Fungsional'],
-            ['Advisor Pengembangan', 'Fungsional'],
-        ];
-
-        foreach ($positionData as [$name, $type]) {
-            DB::table('positions')->insertOrIgnore([
-                'name' => $name,
-                'type' => $type,
+        // Insert Positions
+        foreach ($positions as $posName => $posType) {
+            $posId = DB::table('positions')->insertGetId([
+                'name' => $posName,
+                'type' => $posType,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            $positionsMap[$posName] = $posId;
         }
 
-        $deptId = fn (string $name) => DB::table('departments')->where('name', $name)->value('id');
-        $posId = fn (string $name) => DB::table('positions')->where('name', $name)->value('id');
-
+        // Helper functions
         $parseStatus = function (string $raw): array {
             $parts = array_map('trim', explode(',', $raw));
             $status = $parts[0] ?? null;
@@ -146,9 +129,41 @@ class EmployeesSeeder extends Seeder
             if (! $d) {
                 return null;
             }
-            $dt = \DateTime::createFromFormat('d/m/Y', trim($d));
+            $d = trim($d);
+            if ($d === '' || $d === '-' || strtolower($d) === 'null') {
+                return null;
+            }
 
-            return $dt ? $dt->format('Y-m-d') : null;
+            $monthsIndo = [
+                'januari' => 'January',
+                'februari' => 'February',
+                'maret' => 'March',
+                'april' => 'April',
+                'mei' => 'May',
+                'juni' => 'June',
+                'juli' => 'July',
+                'agustus' => 'August',
+                'september' => 'September',
+                'oktober' => 'October',
+                'november' => 'November',
+                'desember' => 'December',
+            ];
+
+            $lowerDate = strtolower($d);
+            foreach ($monthsIndo as $indo => $eng) {
+                if (str_contains($lowerDate, $indo)) {
+                    $d = str_ireplace($indo, $eng, $d);
+                    break;
+                }
+            }
+
+            try {
+                $dt = new \DateTime($d);
+
+                return $dt->format('Y-m-d');
+            } catch (\Exception $e) {
+                return null;
+            }
         };
 
         $parseMarital = function (string $raw): string {
@@ -158,82 +173,76 @@ class EmployeesSeeder extends Seeder
             };
         };
 
-        $filePath = database_path('seeders/jsonlawas/employees.json');
-        if (! File::exists($filePath)) {
-            $this->command->warn('File employees.json tidak ditemukan!');
+        // Seed Employees & Users
+        foreach ($rows as $row) {
+            $name = trim($row[2]);
+            $deptName = trim($row[3] ?? '');
+            $struktural = str_replace(["\r", "\n"], ' ', trim($row[4] ?? ''));
+            $fungsional = str_replace(["\r", "\n"], ' ', trim($row[5] ?? ''));
 
-            return;
-        }
+            $joinDate = trim($row[6] ?? '');
+            $statusRaw = trim($row[9] ?? '');
 
-        $employees = json_decode(File::get($filePath), true);
+            $contractStart = trim($row[10] ?? '');
+            if ($contractStart === '') {
+                $contractStart = $joinDate;
+            }
+            $contractEnd = trim($row[11] ?? '');
+            $nis = trim($row[12] ?? '');
 
-        foreach ($employees as $emp) {
-            $name = $emp['name'];
-            $dept = $emp['department'];
-            $jabStruktural = $emp['position_struktural'];
-            $jabFungsional = $emp['position_fungsional'];
-            $joinDate = $emp['join_date'];
-            $statusRaw = $emp['status_raw'];
-            $contractStart = $emp['contract_start'];
-            $contractEnd = $emp['contract_end'];
-            $nis = $emp['nis'];
-            $nik = $emp['nik'];
-            $npwp = $emp['npwp'];
-            $edu = $emp['education_level'];
-            $birthDate = $emp['birth_date'];
-            $gender = $emp['gender'];
-            $phone = $emp['phone'];
-            $email = $emp['email'];
-            $marital = $emp['marital'];
+            [$empStatus, $isCltp] = $parseStatus($statusRaw);
 
-            $statusRawString = $statusRaw ?? '';
-            [$empStatus, $isCltp] = $parseStatus($statusRawString);
+            // Match with json for extra fields
+            $normName = $normalizeName($name);
+            $matchedJson = $jsonEmployees[$normName] ?? null;
 
-            $cleanEmail = strtolower(trim(explode('/', $email ?? '')[0]));
-            if (! $cleanEmail) {
-                $cleanEmail = Str::slug($name).'@placeholder.invalid';
+            $nik = $matchedJson['nik'] ?? null;
+            $npwp = $matchedJson['npwp'] ?? null;
+            $education = $matchedJson['education_level'] ?? null;
+            $birthDate = isset($matchedJson['birth_date']) ? $parseDate($matchedJson['birth_date']) : null;
+            $gender = $matchedJson['gender'] ?? null;
+            $phone = $matchedJson['phone'] ?? null;
+            $maritalStatus = isset($matchedJson['marital']) ? $parseMarital($matchedJson['marital']) : 'Lajang';
+
+            // Generate clean email from name
+            $emailName = Str::slug(explode(',', $name)[0], '.');
+            $email = $emailName.'@smartid.co.id';
+
+            // Avoid duplicate email address
+            $emailCounter = 1;
+            while (DB::table('users')->where('email', $email)->exists()) {
+                $email = $emailName.$emailCounter.'@smartid.co.id';
+                $emailCounter++;
             }
 
-            if (DB::table('users')->where('email', $cleanEmail)->exists()) {
-                continue;
-            }
-
-            $cleanNik = $nik ?: null;
-            $cleanNpwp = $npwp ?: null;
-
-            if ($cleanNik && DB::table('employees')->where('nik', $cleanNik)->exists()) {
-                $cleanNik = null;
-            }
-            if ($cleanNpwp && DB::table('employees')->where('npwp', $cleanNpwp)->exists()) {
-                $cleanNpwp = null;
-            }
-
+            // Create user
             $userId = DB::table('users')->insertGetId([
                 'name' => $name,
-                'email' => $cleanEmail,
+                'email' => $email,
                 'password' => bcrypt('qQ123!@#'),
                 'email_verified_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
+            // Create employee
             DB::table('employees')->insert([
                 'user_id' => $userId,
-                'department_id' => $dept ? $deptId($dept) : null,
-                'position_struktural_id' => $jabStruktural ? $posId($jabStruktural) : null,
-                'position_fungsional_id' => $jabFungsional ? $posId($jabFungsional) : null,
+                'department_id' => ($deptName !== '' && isset($departmentsMap[$deptName])) ? $departmentsMap[$deptName] : null,
+                'position_struktural_id' => ($struktural !== '' && isset($positionsMap[$struktural])) ? $positionsMap[$struktural] : null,
+                'position_fungsional_id' => ($fungsional !== '' && isset($positionsMap[$fungsional])) ? $positionsMap[$fungsional] : null,
                 'employment_status' => $empStatus,
                 'is_cltp' => $isCltp,
                 'contract_start_date' => $parseDate($contractStart),
                 'contract_end_date' => $parseDate($contractEnd),
                 'nis' => $nis ?: null,
-                'nik' => $cleanNik,
-                'npwp' => $cleanNpwp,
-                'education_level' => $edu ?: null,
-                'birth_date' => $parseDate($birthDate),
+                'nik' => $nik,
+                'npwp' => $npwp,
+                'education_level' => $education ?: null,
+                'birth_date' => $birthDate,
                 'gender' => $gender ?: null,
                 'phone_number' => $phone ?: null,
-                'marital_status' => $parseMarital($marital ?? ''),
+                'marital_status' => $maritalStatus,
                 'target_okr' => null,
                 'pipeline_permissions' => null,
                 'kpi_achieved_m1' => 0.00,
@@ -241,6 +250,113 @@ class EmployeesSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            // Assign role & permissions for "Revenue and Growth" department employees
+            $isRevenueAndGrowth = (
+                strtolower($deptName) === 'departemen revenue and growth' ||
+                strtolower($deptName) === 'revenue and growth'
+            );
+
+            if ($isRevenueAndGrowth) {
+                $userModel = User::find($userId);
+                if ($userModel) {
+                    $userModel->assignRole('Partnership Admin');
+                    $userModel->givePermissionTo([
+                        'manage-partnership',
+                        'manage-pipeline',
+                        'manage-products',
+                        'manage-investors',
+                    ]);
+                }
+            }
+        }
+
+        // Seed specific regional PMO employees
+        $pmoKaryawans = [
+            [
+                'name' => 'Andre Dwi Prasaja, S.I.P., M.Sc.',
+                'email' => 'andre@smartid.co.id',
+                'region_name' => 'Region 1',
+            ],
+            [
+                'name' => 'Chausar Yahya Ramadhanto, S.E.',
+                'email' => 'chausar@smartid.co.id',
+                'region_name' => 'Region 2',
+            ],
+            [
+                'name' => 'Arif Susianto, A.Md.Kom.',
+                'email' => 'arif@smartid.co.id',
+                'region_name' => 'Region 3',
+            ],
+            [
+                'name' => 'Ariq Dhamas Salsabil, S.I.P.',
+                'email' => 'ariq@smartid.co.id',
+                'region_name' => 'Region 4',
+            ],
+            [
+                'name' => 'Toriqul Mujahidi Ashshobrul Karim, S.AP.',
+                'email' => 'toriq@smartid.co.id',
+                'region_name' => 'Region 5',
+            ],
+        ];
+
+        $dept = DB::table('departments')->where('name', 'Departemen Revenue and Growth')->first();
+        $deptId = $dept ? $dept->id : null;
+
+        foreach ($pmoKaryawans as $pmo) {
+            $region = DB::table('regions')->where('name', $pmo['region_name'])->first();
+            $regionId = $region ? $region->id : null;
+
+            // Find existing user by name
+            $userModel = User::where('name', $pmo['name'])->first();
+
+            if ($userModel) {
+                $userId = $userModel->id;
+                // Update existing employee region
+                DB::table('employees')->where('user_id', $userId)->update([
+                    'region_id' => $regionId,
+                    'updated_at' => now(),
+                ]);
+
+                $employee = DB::table('employees')->where('user_id', $userId)->first();
+                $employeeId = $employee ? $employee->id : null;
+            } else {
+                // If not found, create new user and employee
+                $userId = DB::table('users')->insertGetId([
+                    'name' => $pmo['name'],
+                    'email' => $pmo['email'],
+                    'password' => bcrypt('qQ123!@#'),
+                    'email_verified_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                $employeeId = DB::table('employees')->insertGetId([
+                    'user_id' => $userId,
+                    'department_id' => $deptId,
+                    'region_id' => $regionId,
+                    'employment_status' => 'PKWTT',
+                    'is_cltp' => false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                $userModel = User::find($userId);
+            }
+
+            // Assign region to employee_regions pivot table
+            if ($employeeId && $regionId) {
+                DB::table('employee_regions')->insertOrIgnore([
+                    'employee_id' => $employeeId,
+                    'region_id' => $regionId,
+                ]);
+            }
+
+            // Assign Spatie Role 'PMO' and permission 'verify-manager'
+            if ($userModel) {
+                $userModel->assignRole('PMO');
+                $userModel->givePermissionTo(['manage-pipeline', 'verify-manager']);
+            }
         }
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 use function Livewire\Volt\{state, layout, computed, usesPagination};
-use Flux\Flux;
 use App\Models\Department;
 use Illuminate\Validation\Rule;
 
@@ -10,155 +9,173 @@ usesPagination();
 layout('layouts.app');
 
 state([
-    'dept_id' => null,
-    'name' => '',
-    'isEdit' => false,
-    'deleteTargetId' => null,
+'dept_id' => null,
+'name' =>'',
+'isEdit' => false,
+'deleteTargetId' => null,
+'showDeptModal' => false,
+'showDeleteModal' => false,
 ]);
 
 state([
-    'sortBy' => 'name',
-    'sortDirection' => 'asc',
+'sortBy' =>'name',
+'sortDirection' =>'asc',
 ]);
 
 $sort = function ($column) {
-    if ($this->sortBy === $column) {
-        $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-        $this->sortBy = $column;
-        $this->sortDirection = 'asc';
-    }
+ if ($this->sortBy === $column) {
+ $this->sortDirection = $this->sortDirection ==='asc' ?'desc' :'asc';
+ } else {
+ $this->sortBy = $column;
+ $this->sortDirection ='asc';
+ }
 };
 
+$isSuperAdmin = computed(fn() => auth()->user()?->can('modify-master-data'));
+
 $departments = computed(function () {
-    return Department::query()->when($this->sortBy, fn($query) => $query->orderBy($this->sortBy, $this->sortDirection))->paginate(10);
+ return Department::query()->when($this->sortBy, fn($query) => $query->orderBy($this->sortBy, $this->sortDirection))->paginate(10);
 });
+
 $resetForm = function () {
-    $this->reset(['dept_id', 'name', 'isEdit']);
-    $this->resetValidation();
+ $this->reset(['dept_id','name','isEdit']);
+ $this->resetValidation();
 };
 
 $save = function () {
-    $this->validate([
-        'name' => ['required', 'string', 'max:100', Rule::unique('departments', 'name')->ignore($this->dept_id)],
-    ]);
+ if (!$this->isSuperAdmin) {
+ abort(403,'Unauthorized action.');
+ }
+ $this->validate([
+'name' => ['required','string','max:100', Rule::unique('departments','name')->ignore($this->dept_id)],
+ ]);
 
-    $isNew = is_null($this->dept_id);
+ $isNew = is_null($this->dept_id);
 
-    Department::updateOrCreate(['id' => $this->dept_id], ['name' => $this->name]);
+ Department::updateOrCreate(['id' => $this->dept_id], ['name' => $this->name]);
 
-    $this->resetForm();
-    Flux::modal('dept-modal')->close();
+ $this->resetForm();
+ $this->showDeptModal = false;
 
-    Flux::toast(variant: 'success', heading: $isNew ? 'Departemen ditambahkan' : 'Departemen diperbarui', text: $isNew ? 'Data baru berhasil disimpan.' : 'Perubahan berhasil disimpan.');
+ session()->flash('success', $isNew ?'Departemen berhasil ditambahkan!' :'Departemen berhasil diperbarui!');
 };
 
 $edit = function (Department $department) {
-    $this->resetValidation();
-    $this->dept_id = $department->id;
-    $this->name = $department->name;
-    $this->isEdit = true;
-    Flux::modal('dept-modal')->show();
+ if (!$this->isSuperAdmin) {
+ abort(403,'Unauthorized action.');
+ }
+ $this->resetValidation();
+ $this->dept_id = $department->id;
+ $this->name = $department->name;
+ $this->isEdit = true;
+ $this->showDeptModal = true;
 };
 
 $confirmDelete = function (string $id) {
-    $this->deleteTargetId = $id;
-    Flux::modal('confirm-delete')->show();
+ if (!$this->isSuperAdmin) {
+ abort(403,'Unauthorized action.');
+ }
+ $this->deleteTargetId = $id;
+ $this->showDeleteModal = true;
 };
 
 $delete = function () {
-    Department::findOrFail($this->deleteTargetId)->delete();
-    $this->deleteTargetId = null;
-    Flux::modal('confirm-delete')->close();
-    Flux::toast(variant: 'danger', text: 'Departemen berhasil dihapus.');
+ if (!$this->isSuperAdmin) {
+ abort(403,'Unauthorized action.');
+ }
+ Department::findOrFail($this->deleteTargetId)->delete();
+ $this->deleteTargetId = null;
+ $this->showDeleteModal = false;
+ session()->flash('error','Departemen berhasil dihapus.');
 };
 
 ?>
-<div>
-    <flux:card class="space-y-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <flux:heading size="xl">Data Master: Departments</flux:heading>
-                <flux:subheading>Kelola daftar departemen di dalam organisasi.</flux:subheading>
-            </div>
+<div class="space-y-6">
+ @if (session()->has('success'))
+ <div class="alert alert-success shadow-sm">
+ <x-icon name="o-check-circle" class="w-5 h-5 text-white" />
+ <span class="text-white">{{ session('success') }}</span>
+ </div>
+ @endif
+ @if (session()->has('error'))
+ <div class="alert alert-error shadow-sm">
+ <x-icon name="o-exclamation-triangle" class="w-5 h-5 text-white" />
+ <span class="text-white">{{ session('error') }}</span>
+ </div>
+ @endif
 
-            <flux:modal.trigger name="dept-modal">
-                <flux:button variant="primary" icon="plus" wire:click="resetForm">Departemen</flux:button>
-            </flux:modal.trigger>
-        </div>
+ <div class="card bg-base-100 border border-base-300 p-6 space-y-6 shadow-sm rounded-2xl">
+ <div class="flex items-center justify-between">
+ <div>
+ <h2 class="text-xl font-bold text-base-content">Data Master: Departments</h2>
+ <p class="text-sm text-base-content/50 mt-1">Kelola daftar departemen di dalam organisasi.</p>
+ </div>
 
-        <flux:separator variant="subtle" />
+ @if ($this->isSuperAdmin)
+ <x-button variant="primary" icon="o-plus" size="btn-sm" label="Departemen" wire:click="resetForm(); $set('showDeptModal', true);" />
+ @endif
+ </div>
 
-        <flux:table :paginate="$this->departments" striped hoverable>
-            <flux:table.columns>
-                <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDirection"
-                    wire:click="sort('name')">
-                    Nama Departemen
-                </flux:table.column>
-                <flux:table.column align="right">Aksi</flux:table.column>
-            </flux:table.columns>
+ <div class="overflow-x-auto">
+ <table class="table table-zebra w-full text-base-content/70">
+ <thead>
+ <tr class="text-base-content/50 border-b border-base-300">
+ <th class="cursor-pointer py-3" wire:click="sort('name')">
+ <div class="flex items-center gap-1">
+ <span>Nama Departemen</span>
+ @if ($sortBy ==='name')
+ <x-icon name="{{ $sortDirection ==='asc' ?'o-chevron-up' :'o-chevron-down' }}" class="w-3 h-3" />
+ @endif
+ </div>
+ </th>
+ <th class="text-right">Aksi</th>
+ </tr>
+ </thead>
+ <tbody>
+ @forelse ($this->departments as $dept)
+ <tr class="border-b border-base-300 hover:bg-base-200">
+ <td class="font-semibold text-base-content py-3">{{ $dept->name }}</td>
+ <td class="text-right">
+ <div class="flex gap-2 justify-end">
+ @if ($this->isSuperAdmin)
+ <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="edit('{{ $dept->id }}')" />
+ <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete('{{ $dept->id }}')" />
+ @endif
+ </div>
+ </td>
+ </tr>
+ @empty
+ <tr>
+ <td colspan="2" class="text-center text-base-content/50 py-8">
+ Belum ada data yang ditampilkan.
+ </td>
+ </tr>
+ @endforelse
+ </tbody>
+ </table>
+ </div>
 
-            <flux:table.rows>
-                @forelse ($this->departments as $dept)
-                    <flux:table.row :key="$dept->id">
-                        <flux:table.cell>{{ $dept->name }}</flux:table.cell>
+ <div class="mt-4">
+ {{ $this->departments->links() }}
+ </div>
+ </div>
 
-                        <flux:table.cell align="right">
-                            <flux:button variant="ghost" size="sm" icon="pencil-square" inset="top bottom"
-                                wire:click="edit('{{ $dept->id }}')" />
+ <!-- Modal Form -->
+ <x-modal wire:model="showDeptModal" title="{{ $isEdit ?'Edit Departemen' :'Tambah Departemen Baru' }}" subtitle="Pastikan nama departemen sesuai dengan struktur organisasi.">
+ <form wire:submit.prevent="save" class="space-y-4">
+ <x-input label="Nama Departemen" wire:model="name" placeholder="Cth: Finance" required />
+ <div class="flex justify-end gap-2 pt-4 border-t border-base-300">
+ <x-button label="Batal" wire:click="$set('showDeptModal', false)" class="btn-ghost" />
+ <x-button label="Simpan Data" type="submit" class="btn-primary" />
+ </div>
+ </form>
+ </x-modal>
 
-                            <flux:button variant="danger" size="sm" icon="trash" inset="top bottom"
-                                wire:click="confirmDelete('{{ $dept->id }}')" />
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="2">
-                            <flux:text class="text-center">Belum ada data yang ditampilkan.</flux:text>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-    </flux:card>
-
-    <flux:modal name="dept-modal" class="md:w-96">
-        <form wire:submit="save" class="space-y-6">
-            <div>
-                <flux:heading size="lg">{{ $isEdit ? 'Edit Departemen' : 'Tambah Departemen Baru' }}</flux:heading>
-                <flux:subheading>Pastikan nama departemen sesuai dengan struktur organisasi.</flux:subheading>
-            </div>
-
-            <flux:field>
-                <flux:label>Nama Departemen</flux:label>
-                <flux:input wire:model="name" placeholder="Cth: Finance" required />
-                <flux:error name="name" />
-            </flux:field>
-
-            <div class="flex justify-end space-x-2">
-                <flux:modal.close>
-                    <flux:button variant="ghost">Batal</flux:button>
-                </flux:modal.close>
-                <flux:button type="submit" variant="primary">Simpan Data</flux:button>
-            </div>
-        </form>
-    </flux:modal>
-
-    <flux:modal name="confirm-delete" class="max-w-sm">
-        <div class="space-y-4">
-            <div>
-                <flux:heading size="lg">Hapus Departemen?</flux:heading>
-                <flux:text class="mt-1">Tindakan ini tidak bisa dibatalkan.</flux:text>
-            </div>
-
-            <div class="flex justify-end gap-2">
-                <flux:modal.close>
-                    <flux:button variant="ghost">Batal</flux:button>
-                </flux:modal.close>
-                <flux:button variant="danger" wire:click="delete">
-                    Ya, Hapus
-                </flux:button>
-            </div>
-        </div>
-    </flux:modal>
+ <!-- Confirmation Modal -->
+ <x-modal wire:model="showDeleteModal" title="Hapus Departemen?" subtitle="Tindakan ini tidak bisa dibatalkan.">
+ <div class="flex justify-end gap-2 pt-4">
+ <x-button label="Batal" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
+ <x-button label="Ya, Hapus" wire:click="delete" class="btn-error text-white" />
+ </div>
+ </x-modal>
 </div>

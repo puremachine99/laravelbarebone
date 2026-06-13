@@ -277,6 +277,12 @@ class ContactPositionSeeder extends Seeder
                 'name' => 'Kepala Subseksi / Kepala Urusan / Sekretaris Lurah (sebagian besar dialihkan ke JF)',
                 'tingkat' => 'Daerah',
             ],
+            [
+                'kelompok_jabatan' => 'Jabatan Fungsional (JF)',
+                'eselon' => 'Fungsional',
+                'name' => 'Fungsional',
+                'tingkat' => 'Pusat/Daerah',
+            ],
         ];
 
         foreach ($positions as $pos) {

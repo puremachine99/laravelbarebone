@@ -1,15 +1,22 @@
 <?php
 
 use App\Models\Contact;
+use App\Models\ContactPosition;
 use App\Models\Employee;
 use App\Models\Province;
 use App\Models\Regency;
 use App\Models\Region;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
+use Spatie\Permission\Models\Permission;
+
+uses(RefreshDatabase::class);
 
 test('contact page is rendered for authenticated users', function () {
     $user = User::factory()->create();
+    $permission = Permission::findOrCreate('manage-pipeline');
+    $user->givePermissionTo($permission);
     $this->actingAs($user);
 
     $response = $this->get(route('contact.index'));
@@ -23,18 +30,22 @@ test('can create contact via livewire volt component', function () {
     ]);
 
     $region = Region::create(['name' => 'Region Test', 'code' => 'RT-1']);
-    $province = Province::create(['name' => 'Provinsi Test', 'region_id' => $region->id]);
-    $regency = Regency::create(['name' => 'Kabupaten Test', 'province_id' => $province->id, 'type' => 'Kabupaten']);
+    $province = Province::create(['name' => 'Provinsi Test']);
+    $regency = Regency::create(['name' => 'Kabupaten Test', 'province_id' => $province->id, 'region_id' => $region->id, 'type' => 'Kabupaten']);
+    $position = ContactPosition::create(['name' => 'Staff', 'kelompok_jabatan' => 'JA', 'eselon' => 'IV.a', 'tingkat' => 'Pusat']);
 
+    $permission = Permission::findOrCreate('manage-pipeline');
+    $user->givePermissionTo($permission);
     $this->actingAs($user);
 
-    Volt::test('master.contact.index')
+    Volt::test('partnership.contact-index')
         ->set('name', 'John Doe')
         ->set('sumber', 'SDS Umum')
         ->set('region_id', $region->id)
         ->set('category', 'Pemerintah Daerah')
+        ->set('province_id', $province->id)
         ->set('regency_id', $regency->id)
-        ->set('jabatan', 'Staff')
+        ->set('contact_position_id', $position->id)
         ->set('phone', '08123456789')
         ->set('email', 'johndoe@example.com')
         ->call('saveContact')
@@ -47,7 +58,7 @@ test('can create contact via livewire volt component', function () {
         'pic_employee_id' => $employee->id,
         'category' => 'Pemerintah Daerah',
         'regency_id' => $regency->id,
-        'jabatan' => 'Staff',
+        'contact_position_id' => $position->id,
         'phone' => '08123456789',
         'email' => 'johndoe@example.com',
     ]);
@@ -60,8 +71,9 @@ test('can edit existing contact', function () {
     ]);
 
     $region = Region::create(['name' => 'Region Test', 'code' => 'RT-1']);
-    $province = Province::create(['name' => 'Provinsi Test', 'region_id' => $region->id]);
-    $regency = Regency::create(['name' => 'Kabupaten Test', 'province_id' => $province->id, 'type' => 'Kabupaten']);
+    $province = Province::create(['name' => 'Provinsi Test']);
+    $regency = Regency::create(['name' => 'Kabupaten Test', 'province_id' => $province->id, 'region_id' => $region->id, 'type' => 'Kabupaten']);
+    $position = ContactPosition::create(['name' => 'Direktur', 'kelompok_jabatan' => 'JPT', 'eselon' => 'II.a', 'tingkat' => 'Pusat']);
 
     $contact = Contact::create([
         'name' => 'Jane Doe',
@@ -70,17 +82,20 @@ test('can edit existing contact', function () {
         'pic_employee_id' => $employee->id,
         'category' => 'Kementerian / Lembaga',
         'regency_id' => $regency->id,
-        'jabatan' => 'Direktur',
-        'phone' => '08211111111',
+        'contact_position_id' => $position->id,
+        'phone' => '0821111111',
         'email' => 'janedoe@example.com',
     ]);
 
+    $permission = Permission::findOrCreate('manage-pipeline');
+    $user->givePermissionTo($permission);
     $this->actingAs($user);
 
-    Volt::test('master.contact.index')
+    Volt::test('partnership.contact-index')
         ->call('editContact', $contact->id)
         ->assertSet('contact_id', $contact->id)
         ->assertSet('name', 'Jane Doe')
+        ->assertSet('province_id', $province->id)
         ->set('name', 'Jane Smith')
         ->call('saveContact')
         ->assertHasNoErrors();
@@ -98,8 +113,9 @@ test('can delete contact', function () {
     ]);
 
     $region = Region::create(['name' => 'Region Test', 'code' => 'RT-1']);
-    $province = Province::create(['name' => 'Provinsi Test', 'region_id' => $region->id]);
-    $regency = Regency::create(['name' => 'Kabupaten Test', 'province_id' => $province->id, 'type' => 'Kabupaten']);
+    $province = Province::create(['name' => 'Provinsi Test']);
+    $regency = Regency::create(['name' => 'Kabupaten Test', 'province_id' => $province->id, 'region_id' => $region->id, 'type' => 'Kabupaten']);
+    $position = ContactPosition::create(['name' => 'Staf', 'kelompok_jabatan' => 'JA', 'eselon' => 'IV.b', 'tingkat' => 'Pusat']);
 
     $contact = Contact::create([
         'name' => 'Delete Me',
@@ -108,14 +124,16 @@ test('can delete contact', function () {
         'pic_employee_id' => $employee->id,
         'category' => 'Kementerian / Lembaga',
         'regency_id' => $regency->id,
-        'jabatan' => 'Staf',
+        'contact_position_id' => $position->id,
         'phone' => '08211111112',
         'email' => 'deleteme@example.com',
     ]);
 
+    $permission = Permission::findOrCreate('manage-pipeline');
+    $user->givePermissionTo($permission);
     $this->actingAs($user);
 
-    Volt::test('master.contact.index')
+    Volt::test('partnership.contact-index')
         ->call('deleteContact', $contact->id);
 
     $this->assertDatabaseMissing('contacts', [

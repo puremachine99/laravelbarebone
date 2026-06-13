@@ -1,9 +1,21 @@
 @import "tailwindcss";
+@plugin "daisyui";
+
+@plugin "daisyui/theme" {
+  name: "dark";
+  --color-base-100: #09090b; /* zinc-950 */
+  --color-base-200: #18181b; /* zinc-900 */
+  --color-base-300: #27272a; /* zinc-800 */
+  --color-base-content: #f4f4f5; /* zinc-100 */
+  --color-neutral: #18181b; /* zinc-900 */
+  --color-neutral-content: #f4f4f5; /* zinc-100 */
+}
+
 @import "../../vendor/livewire/flux/dist/flux.css";
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+@source '../../vendor/robsontenorio/mary/src/View/Components/**/*.php';
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -76,3 +88,46 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* ─── Nexus-style Sidebar Menu ─────────────────────────────── */
+
+.sidebar-menu .menu-label {
+    @apply text-base-content/40 text-[11px] font-semibold uppercase tracking-widest;
+}
+
+.sidebar-menu .menu-item {
+    @apply flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium
+           text-base-content/70 transition-all duration-200 cursor-pointer
+           hover:bg-base-200/80 hover:text-base-content;
+}
+
+.sidebar-menu .menu-item.active {
+    @apply bg-primary/10 text-primary font-semibold;
+}
+
+.sidebar-menu .collapse {
+    @apply visible rounded-lg;
+}
+
+.sidebar-menu .collapse .collapse-title {
+    @apply flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium
+           text-base-content/70 transition-all duration-200 cursor-pointer min-h-0
+           hover:bg-base-200/80 hover:text-base-content
+           after:content-none;
+}
+
+.sidebar-menu .collapse-title .arrow-icon {
+    @apply text-base-content/40 transition-transform duration-200;
+}
+
+.sidebar-menu .collapse:has(> input:checked) .collapse-title .arrow-icon {
+    @apply rotate-90;
+}
+
+.sidebar-menu .collapse .collapse-content {
+    @apply transition-all duration-200;
+}
+
+.sidebar-menu .collapse > input {
+    @apply min-h-0;
+}

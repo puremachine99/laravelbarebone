@@ -1,7 +1,6 @@
 <?php
 
 use function Livewire\Volt\{state, layout, computed, usesPagination};
-use Flux\Flux;
 use App\Models\Division;
 use App\Models\ServiceCenter;
 use App\Models\ProductCategory;
@@ -12,373 +11,333 @@ usesPagination();
 layout('layouts.app');
 
 state([
-    'search' => '',
-    'filterDivision' => '',
-    'filterServiceCenter' => '',
+'search' =>'',
+'filterDivision' =>'',
+'filterServiceCenter' =>'',
 ]);
 
 state([
-    'sortBy' => 'generated_code',
-    'sortDirection' => 'asc',
+'sortBy' =>'generated_code',
+'sortDirection' =>'asc',
 ]);
 
 state([
-    'product_id' => null,
-    'division_id' => '',
-    'service_center_id' => '',
-    'category_code' => '',
-    'output_name' => '',
-    'pelaksana' => '',
-    'status' => true,
-    'isEdit' => false,
-    'deleteTargetId' => null,
+'product_id' => null,
+'division_id' =>'',
+'service_center_id' =>'',
+'category_code' =>'',
+'output_name' =>'',
+'pelaksana' =>'',
+'status' => true,
+'isEdit' => false,
+'deleteTargetId' => null,
+'showProductModal' => false,
+'showDeleteModal' => false,
 ]);
 
 $divisions = computed(fn() => Division::orderBy('name')->get());
 
 $filterServiceCenterOptions = computed(function () {
-    return ServiceCenter::when($this->filterDivision, fn($q) => $q->where('division_id', $this->filterDivision))
-        ->orderBy('name')
-        ->get();
+ return ServiceCenter::when($this->filterDivision, fn($q) => $q->where('division_id', $this->filterDivision))
+ ->orderBy('name')
+ ->get();
 });
 
 $formServiceCenterOptions = computed(function () {
-    if (!$this->division_id) {
-        return collect();
-    }
-    return ServiceCenter::where('division_id', $this->division_id)
-        ->orderBy('name')
-        ->get();
+ if (!$this->division_id) {
+ return collect();
+ }
+ return ServiceCenter::where('division_id', $this->division_id)
+ ->orderBy('name')
+ ->get();
 });
 
-$categories = computed(fn() => ProductCategory::orderBy('code')->get());
+$categories = computed(fn() => 
+ ProductCategory::orderBy('code')
+ ->get()
+ ->map(fn($cat) => [
+'id' => $cat->code,
+'name' => $cat->code .' -' . $cat->name
+ ])
+);
 
 $products = computed(function () {
-    $search = $this->search;
-    $filterDivision = $this->filterDivision;
-    $filterServiceCenter = $this->filterServiceCenter;
+ $search = $this->search;
+ $filterDivision = $this->filterDivision;
+ $filterServiceCenter = $this->filterServiceCenter;
 
-    return Output::query()
-        ->with(['division', 'serviceCenter'])
-        ->when($search, fn($q) => $q->whereRaw('LOWER(output_name) LIKE ?', ['%' . strtolower($search) . '%'])
-                                    ->orWhereRaw('LOWER(generated_code) LIKE ?', ['%' . strtolower($search) . '%']))
-        ->when($filterDivision, fn($q) => $q->where('division_id', $filterDivision))
-        ->when($filterServiceCenter, fn($q) => $q->where('service_center_id', $filterServiceCenter))
-        ->orderBy($this->sortBy, $this->sortDirection)
-        ->paginate(10);
+ return Output::query()
+ ->with(['division','serviceCenter'])
+ ->when($search, fn($q) => $q->whereRaw('LOWER(output_name) LIKE ?', ['%' . strtolower($search) .'%'])
+ ->orWhereRaw('LOWER(generated_code) LIKE ?', ['%' . strtolower($search) .'%']))
+ ->when($filterDivision, fn($q) => $q->where('division_id', $filterDivision))
+ ->when($filterServiceCenter, fn($q) => $q->where('service_center_id', $filterServiceCenter))
+ ->orderBy($this->sortBy, $this->sortDirection)
+ ->paginate(10);
 });
 
 $previewCode = computed(function () {
-    if (!$this->division_id || !$this->service_center_id || !$this->category_code) {
-        return 'Akan di-generate otomatis';
-    }
+ if (!$this->division_id || !$this->service_center_id || !$this->category_code) {
+ return'Akan di-generate otomatis';
+ }
 
-    $div = Division::find($this->division_id);
-    $sc = ServiceCenter::find($this->service_center_id);
+ $div = Division::find($this->division_id);
+ $sc = ServiceCenter::find($this->service_center_id);
 
-    if (!$div || !$sc) {
-        return 'Akan di-generate otomatis';
-    }
+ if (!$div || !$sc) {
+ return'Akan di-generate otomatis';
+ }
 
-    $existing = Output::where('division_id', $this->division_id)
-        ->where('service_center_id', $this->service_center_id)
-        ->where('category_code', $this->category_code)
-        ->when($this->product_id, fn($q) => $q->where('id', '!=', $this->product_id))
-        ->pluck('sequence')
-        ->toArray();
+ $existing = Output::where('division_id', $this->division_id)
+ ->where('service_center_id', $this->service_center_id)
+ ->where('category_code', $this->category_code)
+ ->when($this->product_id, fn($q) => $q->where('id','!=', $this->product_id))
+ ->pluck('sequence')
+ ->toArray();
 
-    $seq = 1;
-    while (in_array($seq, $existing)) {
-        $seq++;
-    }
+ $seq = 1;
+ while (in_array($seq, $existing)) {
+ $seq++;
+ }
 
-    return sprintf('%s.%s.%s.%d', $div->code, $sc->code, $this->category_code, $seq);
+ return sprintf('%s.%s.%s.%d', $div->code, $sc->code, $this->category_code, $seq);
 });
 
 $sort = function ($column) {
-    if ($this->sortBy === $column) {
-        $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-        $this->sortBy = $column;
-        $this->sortDirection = 'asc';
-    }
+ if ($this->sortBy === $column) {
+ $this->sortDirection = $this->sortDirection ==='asc' ?'desc' :'asc';
+ } else {
+ $this->sortBy = $column;
+ $this->sortDirection ='asc';
+ }
 };
 
 $updatedSearch = function () {
-    $this->resetPage();
+ $this->resetPage();
 };
 
 $updatedFilterDivision = function () {
-    $this->filterServiceCenter = '';
-    $this->resetPage();
+ $this->filterServiceCenter ='';
+ $this->resetPage();
 };
 
 $updatedFilterServiceCenter = function () {
-    $this->resetPage();
+ $this->resetPage();
 };
 
 $updatedDivisionId = function () {
-    $this->service_center_id = '';
+ $this->service_center_id ='';
 };
 
 $resetForm = function () {
-    $this->reset(['product_id', 'division_id', 'service_center_id', 'category_code', 'output_name', 'pelaksana', 'status', 'isEdit']);
-    $this->resetValidation();
+ $this->reset(['product_id','division_id','service_center_id','category_code','output_name','pelaksana','status','isEdit']);
+ $this->resetValidation();
 };
 
 $save = function () {
-    $this->validate([
-        'division_id' => ['required', 'exists:divisions,id'],
-        'service_center_id' => ['required', 'exists:service_centers,id'],
-        'category_code' => ['required', 'exists:product_categories,code'],
-        'output_name' => ['required', 'string', 'max:255'],
-        'pelaksana' => ['required', 'string', 'max:255'],
-        'status' => ['required', 'boolean'],
-    ]);
+ $this->validate([
+'division_id' => ['required','exists:divisions,id'],
+'service_center_id' => ['required','exists:service_centers,id'],
+'category_code' => ['required','exists:product_categories,code'],
+'output_name' => ['required','string','max:255'],
+'pelaksana' => ['required','string','max:255'],
+'status' => ['required','boolean'],
+ ]);
 
-    $isNew = is_null($this->product_id);
+ $isNew = is_null($this->product_id);
 
-    Output::updateOrCreate(
-        ['id' => $this->product_id],
-        [
-            'division_id' => $this->division_id,
-            'service_center_id' => $this->service_center_id,
-            'category_code' => $this->category_code,
-            'output_name' => $this->output_name,
-            'pelaksana' => $this->pelaksana,
-            'status' => $this->status,
-        ]
-    );
+ Output::updateOrCreate(
+ ['id' => $this->product_id],
+ [
+'division_id' => $this->division_id,
+'service_center_id' => $this->service_center_id,
+'category_code' => $this->category_code,
+'output_name' => $this->output_name,
+'pelaksana' => $this->pelaksana,
+'status' => $this->status,
+ ]
+ );
 
-    $this->resetForm();
-    Flux::modal('product-modal')->close();
-    Flux::toast(
-        variant: 'success',
-        heading: $isNew ? 'Output ditambahkan' : 'Output diperbarui',
-        text: $isNew ? 'Data output baru berhasil disimpan.' : 'Perubahan data output berhasil disimpan.',
-    );
+ $this->resetForm();
+ $this->showProductModal = false;
+ session()->flash('success', $isNew ?'Output berhasil ditambahkan!' :'Output berhasil diperbarui!');
 };
 
 $edit = function (Output $output) {
-    $this->resetValidation();
-    $this->product_id = $output->id;
-    $this->division_id = $output->division_id;
-    $this->service_center_id = $output->service_center_id;
-    $this->category_code = $output->category_code;
-    $this->output_name = $output->output_name;
-    $this->pelaksana = $output->pelaksana;
-    $this->status = $output->status;
-    $this->isEdit = true;
-    Flux::modal('product-modal')->show();
+ $this->resetValidation();
+ $this->product_id = $output->id;
+ $this->division_id = $output->division_id;
+ $this->service_center_id = $output->service_center_id;
+ $this->category_code = $output->category_code;
+ $this->output_name = $output->output_name;
+ $this->pelaksana = $output->pelaksana;
+ $this->status = $output->status;
+ $this->isEdit = true;
+ $this->showProductModal = true;
 };
 
 $confirmDelete = function (string $id) {
-    $this->deleteTargetId = $id;
-    Flux::modal('confirm-delete')->show();
+ $this->deleteTargetId = $id;
+ $this->showDeleteModal = true;
 };
 
 $delete = function () {
-    Output::findOrFail($this->deleteTargetId)->delete();
-    $this->deleteTargetId = null;
-    Flux::modal('confirm-delete')->close();
-    Flux::toast(variant: 'danger', text: 'Output berhasil dihapus.');
+ Output::findOrFail($this->deleteTargetId)->delete();
+ $this->deleteTargetId = null;
+ $this->showDeleteModal = false;
+ session()->flash('error','Output berhasil dihapus.');
 };
 
 ?>
-<div>
-    <flux:card class="space-y-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <flux:heading size="xl">Data Master: Output / Produk</flux:heading>
-                <flux:subheading>Kelola daftar output divisi, pusat layanan, kategori produk, dan kode output otomatis.</flux:subheading>
-            </div>
+<div class="space-y-6">
+ @if (session()->has('success'))
+ <div class="alert alert-success shadow-sm">
+ <x-icon name="o-check-circle" class="w-5 h-5 text-white" />
+ <span class="text-white">{{ session('success') }}</span>
+ </div>
+ @endif
+ @if (session()->has('error'))
+ <div class="alert alert-error shadow-sm">
+ <x-icon name="o-exclamation-triangle" class="w-5 h-5 text-white" />
+ <span class="text-white">{{ session('error') }}</span>
+ </div>
+ @endif
 
-            <flux:modal.trigger name="product-modal">
-                <flux:button variant="primary" icon="plus" wire:click="resetForm">Output</flux:button>
-            </flux:modal.trigger>
-        </div>
+ <div class="card bg-base-100 border border-base-300 p-6 space-y-6 shadow-sm rounded-2xl">
+ <div class="flex items-center justify-between">
+ <div>
+ <h2 class="text-xl font-bold text-base-content">Data Master: Output / Produk</h2>
+ <p class="text-sm text-base-content/50 mt-1">Kelola daftar output divisi, pusat layanan, kategori produk, dan kode output otomatis.</p>
+ </div>
 
-        <div class="flex gap-3 flex-wrap md:flex-nowrap">
-            <div class="flex-1 min-w-[200px]">
-                <flux:input
-                    wire:model.live.debounce.300ms="search"
-                    placeholder="Cari kode atau nama output..."
-                    icon="magnifying-glass"
-                    clearable
-                />
-            </div>
-            <div class="w-64">
-                <flux:select wire:model.live="filterDivision" variant="listbox" searchable placeholder="Semua Divisi...">
-                    <flux:select.option value="">Semua Divisi</flux:select.option>
-                    @foreach ($this->divisions as $div)
-                        <flux:select.option value="{{ $div->id }}">{{ $div->name }}</flux:select.option>
-                    @endforeach
-                </flux:select>
-            </div>
-            <div class="w-64">
-                <flux:select wire:model.live="filterServiceCenter" variant="listbox" searchable placeholder="Semua Pusat Layanan...">
-                    <flux:select.option value="">Semua Pusat Layanan</flux:select.option>
-                    @foreach ($this->filterServiceCenterOptions as $sc)
-                        <flux:select.option value="{{ $sc->id }}">{{ $sc->name }}</flux:select.option>
-                    @endforeach
-                </flux:select>
-            </div>
-        </div>
+ <x-button variant="primary" icon="o-plus" size="btn-sm" label="Output" wire:click="resetForm(); $set('showProductModal', true);" />
+ </div>
 
-        <flux:separator variant="subtle" />
+ <div class="flex gap-3 flex-wrap md:flex-nowrap">
+ <div class="flex-1 min-w-[200px]">
+ <x-input
+ wire:model.live.debounce.300ms="search"
+ placeholder="Cari kode atau nama output..."
+ icon="o-magnifying-glass"
+ clearable
+ />
+ </div>
+ <div class="w-64">
+ <x-select wire:model.live="filterDivision" :options="$this->divisions" placeholder="Semua Divisi" placeholder-value="" />
+ </div>
+ <div class="w-64">
+ <x-select wire:model.live="filterServiceCenter" :options="$this->filterServiceCenterOptions" placeholder="Semua Pusat Layanan" placeholder-value="" />
+ </div>
+ </div>
 
-        <flux:table :paginate="$this->products" striped hoverable>
-            <flux:table.columns>
-                <flux:table.column sortable :sorted="$sortBy === 'generated_code'" :direction="$sortDirection"
-                    wire:click="sort('generated_code')">
-                    Kode Output
-                </flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'output_name'" :direction="$sortDirection"
-                    wire:click="sort('output_name')">
-                    Nama Output / Produk
-                </flux:table.column>
-                <flux:table.column>
-                    Divisi & Pusat Layanan
-                </flux:table.column>
-                <flux:table.column>
-                    Pelaksana
-                </flux:table.column>
-                <flux:table.column>
-                    Status
-                </flux:table.column>
-                <flux:table.column align="right">Aksi</flux:table.column>
-            </flux:table.columns>
+ <div class="overflow-x-auto">
+ <table class="table table-zebra w-full text-base-content/70">
+ <thead>
+ <tr class="text-base-content/50 border-b border-base-300">
+ <th class="cursor-pointer py-3" wire:click="sort('generated_code')">
+ <div class="flex items-center gap-1">
+ <span>Kode Output</span>
+ @if ($sortBy ==='generated_code')
+ <x-icon name="{{ $sortDirection ==='asc' ?'o-chevron-up' :'o-chevron-down' }}" class="w-3 h-3" />
+ @endif
+ </div>
+ </th>
+ <th class="cursor-pointer py-3" wire:click="sort('output_name')">
+ <div class="flex items-center gap-1">
+ <span>Nama Output / Produk</span>
+ @if ($sortBy ==='output_name')
+ <x-icon name="{{ $sortDirection ==='asc' ?'o-chevron-up' :'o-chevron-down' }}" class="w-3 h-3" />
+ @endif
+ </div>
+ </th>
+ <th>Divisi & Pusat Layanan</th>
+ <th>Pelaksana</th>
+ <th>Status</th>
+ <th class="text-right">Aksi</th>
+ </tr>
+ </thead>
+ <tbody>
+ @forelse ($this->products as $item)
+ <tr class="border-b border-base-300 hover:bg-base-200">
+ <td>
+ <div class="badge badge-sm badge-info badge-outline">{{ $item->generated_code }}</div>
+ </td>
+ <td class="font-semibold text-base-content py-3">{{ $item->output_name }}</td>
+ <td>
+ <div>{{ $item->division?->name }}</div>
+ <span class="text-xs text-base-content/40 block mt-0.5">{{ $item->serviceCenter?->name }}</span>
+ </td>
+ <td>{{ $item->pelaksana ??'-' }}</td>
+ <td>
+ <div class="badge badge-sm badge-outline {{ $item->status ?'badge-success' :'badge-error' }}">
+ {{ $item->status ?'Aktif' :'Non Aktif' }}
+ </div>
+ </td>
+ <td class="text-right">
+ <div class="flex gap-2 justify-end">
+ <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="edit('{{ $item->id }}')" />
+ <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete('{{ $item->id }}')" />
+ </div>
+ </td>
+ </tr>
+ @empty
+ <tr>
+ <td colspan="6" class="text-center text-base-content/50 py-8">
+ Belum ada data yang ditampilkan.
+ </td>
+ </tr>
+ @endforelse
+ </tbody>
+ </table>
+ </div>
 
-            <flux:table.rows>
-                @forelse ($this->products as $item)
-                    <flux:table.row :key="$item->id">
-                        <flux:table.cell>
-                            <flux:badge color="blue" variant="pill">{{ $item->generated_code }}</flux:badge>
-                        </flux:table.cell>
+ <div class="mt-4">
+ {{ $this->products->links() }}
+ </div>
+ </div>
 
-                        <flux:table.cell class="font-medium">{{ $item->output_name }}</flux:table.cell>
+ <!-- Modal Form -->
+ <x-modal wire:model="showProductModal" title="{{ $isEdit ?'Edit Data Output' :'Tambah Output Baru' }}" subtitle="Masukkan informasi divisi, pusat layanan, kategori, dan detail output." class="md:w-[750px]">
+ <form wire:submit.prevent="save" class="space-y-4">
+ <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <x-select label="Divisi" wire:model.live="division_id" :options="$this->divisions" placeholder="Pilih Divisi..." placeholder-value="" required />
+ <x-select label="Pusat Layanan" wire:model.live="service_center_id" :options="$this->formServiceCenterOptions" placeholder="Pilih Layanan..." placeholder-value="" required />
+ </div>
 
-                        <flux:table.cell>
-                            {{ $item->division?->name }}
-                            <flux:text size="sm" class="text-zinc-400 block">{{ $item->serviceCenter?->name }}</flux:text>
-                        </flux:table.cell>
+ <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <x-select label="Kode Produk / Kategori" wire:model.live="category_code" :options="$this->categories" placeholder="Pilih Kategori..." placeholder-value="" required />
+ 
+ @php
+ $statusOpts = [
+ ['id' =>'1','name' =>'Aktif'],
+ ['id' =>'0','name' =>'Non Aktif'],
+ ];
+ @endphp
+ <x-select label="Status Output" wire:model="status" :options="$statusOpts" required />
+ </div>
 
-                        <flux:table.cell>{{ $item->pelaksana ?? '-' }}</flux:table.cell>
+ <x-input label="Output" wire:model="output_name" placeholder="Insert Output Name" required />
 
-                        <flux:table.cell>
-                            <flux:badge size="sm" variant="pill" color="{{ $item->status ? 'green' : 'red' }}">
-                                {{ $item->status ? 'Aktif' : 'Non Aktif' }}
-                            </flux:badge>
-                        </flux:table.cell>
+ <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <x-input label="Pelaksana" wire:model="pelaksana" placeholder="Insert Pelaksana" required />
+ <div>
+ <label class="label"><span class="label-text font-semibold">Kode Output (Pratinjau)</span></label>
+ <input type="text" readonly value="{{ $this->previewCode }}" class="input input-bordered w-full bg-base-200 font-mono text-blue-600 dark:text-blue-400" />
+ </div>
+ </div>
 
-                        <flux:table.cell align="right">
-                            <flux:button variant="ghost" size="sm" icon="pencil-square" inset="top bottom"
-                                wire:click="edit('{{ $item->id }}')" />
-                            <flux:button variant="danger" size="sm" icon="trash" inset="top bottom"
-                                wire:click="confirmDelete('{{ $item->id }}')" />
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="6">
-                            <flux:text class="text-center">Belum ada data yang ditampilkan.</flux:text>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-    </flux:card>
+ <div class="flex justify-end gap-2 pt-4 border-t border-base-300">
+ <x-button label="Batal" wire:click="$set('showProductModal', false)" class="btn-ghost" />
+ <x-button label="Simpan Data" type="submit" class="btn-primary" />
+ </div>
+ </form>
+ </x-modal>
 
-    <flux:modal name="product-modal" class="md:w-[750px]">
-        <form wire:submit="save" class="space-y-6">
-            <div>
-                <flux:heading size="lg">{{ $isEdit ? 'Edit Data Output' : 'Tambah Output Baru' }}</flux:heading>
-                <flux:subheading>Masukkan informasi divisi, pusat layanan, kategori, dan detail output.</flux:subheading>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <flux:field>
-                    <flux:label>Divisi</flux:label>
-                    <flux:select wire:model.live="division_id" variant="listbox" searchable placeholder="Pilih Divisi...">
-                        @foreach ($this->divisions as $div)
-                            <flux:select.option value="{{ $div->id }}">{{ $div->name }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                    <flux:error name="division_id" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Pusat Layanan</flux:label>
-                    <flux:select wire:model.live="service_center_id" variant="listbox" searchable placeholder="Pilih Layanan...">
-                        @foreach ($this->formServiceCenterOptions as $sc)
-                            <flux:select.option value="{{ $sc->id }}">{{ $sc->name }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                    <flux:error name="service_center_id" />
-                </flux:field>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <flux:field>
-                    <flux:label>Kode Produk / Kategori</flux:label>
-                    <flux:select wire:model.live="category_code" variant="listbox" searchable placeholder="Pilih Produk...">
-                        @foreach ($this->categories as $cat)
-                            <flux:select.option value="{{ $cat->code }}">{{ $cat->code }} - {{ $cat->name }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                    <flux:error name="category_code" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Status Output</flux:label>
-                    <flux:select wire:model="status">
-                        <flux:select.option value="1">Aktif</flux:select.option>
-                        <flux:select.option value="0">Non Aktif</flux:select.option>
-                    </flux:select>
-                    <flux:error name="status" />
-                </flux:field>
-            </div>
-
-            <flux:field>
-                <flux:label>Output</flux:label>
-                <flux:input wire:model="output_name" placeholder="Insert Output Name" required />
-                <flux:error name="output_name" />
-            </flux:field>
-
-            <div class="grid grid-cols-2 gap-4">
-                <flux:field>
-                    <flux:label>Pelaksana</flux:label>
-                    <flux:input wire:model="pelaksana" placeholder="Insert Pelaksana" required />
-                    <flux:error name="pelaksana" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Kode Output (Pratinjau)</flux:label>
-                    <flux:input readonly value="{{ $this->previewCode }}" class="bg-zinc-50 dark:bg-zinc-800 font-mono text-blue-600 dark:text-blue-400" />
-                </flux:field>
-            </div>
-
-            <div class="flex justify-end space-x-2 pt-2">
-                <flux:modal.close>
-                    <flux:button variant="ghost">Batal</flux:button>
-                </flux:modal.close>
-                <flux:button type="submit" variant="primary">Simpan Data</flux:button>
-            </div>
-        </form>
-    </flux:modal>
-
-    <flux:modal name="confirm-delete" class="max-w-sm">
-        <div class="space-y-4">
-            <div>
-                <flux:heading size="lg">Hapus Output?</flux:heading>
-                <flux:text class="mt-1">Tindakan ini tidak bisa dibatalkan.</flux:text>
-            </div>
-            <div class="flex justify-end gap-2">
-                <flux:modal.close>
-                    <flux:button variant="ghost">Batal</flux:button>
-                </flux:modal.close>
-                <flux:button variant="danger" wire:click="delete">Ya, Hapus</flux:button>
-            </div>
-        </div>
-    </flux:modal>
+ <!-- Confirmation Modal -->
+ <x-modal wire:model="showDeleteModal" title="Hapus Output?" subtitle="Tindakan ini tidak bisa dibatalkan.">
+ <div class="flex justify-end gap-2 pt-4">
+ <x-button label="Batal" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
+ <x-button label="Ya, Hapus" wire:click="delete" class="btn-error text-white" />
+ </div>
+ </x-modal>
 </div>

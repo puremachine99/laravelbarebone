@@ -23,8 +23,28 @@ class Contact extends Model
         return $this->belongsTo(Regency::class);
     }
 
+    public function opd()
+    {
+        return $this->belongsTo(Opd::class);
+    }
+
     public function pic()
     {
         return $this->belongsTo(Employee::class, 'pic_employee_id');
+    }
+
+    public function cards()
+    {
+        return $this->hasMany(Card::class);
+    }
+
+    public function getIsQlAttribute(): bool
+    {
+        return $this->cards()
+            ->whereHas('stage.profile', function ($q) {
+                $q->where('pipeline_name', 'Pitching');
+            })
+            ->where('nominal_value', '>', 0)
+            ->exists();
     }
 }

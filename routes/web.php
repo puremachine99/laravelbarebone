@@ -1,5 +1,7 @@
 <?php
 
+use App\Livewire\Admin\RoleManagement;
+use App\Livewire\Admin\UserManagement;
 use App\Livewire\Ai\AiCenter;
 use App\Livewire\Chat\ChatIndex;
 use App\Livewire\Dashboard\ExecutiveIndex;
@@ -7,12 +9,11 @@ use App\Livewire\Finance\ClearanceArchive;
 use App\Livewire\Finance\Disbursements;
 use App\Livewire\Finance\FinanceIntakeIndex;
 use App\Livewire\Finance\Reconciliation;
-use App\Livewire\Pipeline\Config;
 use App\Livewire\Talent\Leaderboard;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-Route::view('/', 'welcome')->name('home');
+Route::redirect('/', '/login')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
@@ -26,21 +27,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::middleware('can:manage-pipeline')->group(function () {
-        Route::get('/pipeline-config', Config::class)->name('pipeline-config');
+        Volt::route('/partnership/contact', 'partnership.contact-index')->name('contact.index');
+        Volt::route('/partnership/pitching', 'partnership.pitching-index')->name('partnership.pitching');
+        Volt::route('/partnership/realisasi', 'partnership.realisasi-index')->name('partnership.realisasi');
     });
 
     Route::middleware('can:manage-internal-org')->group(function () {
         Volt::route('/departments', 'master.departments.index')->name('departments.index');
         Volt::route('/positions', 'master.positions.index')->name('positions.index');
         Volt::route('/employees', 'master.employees.index')->name('employees.index');
+        Route::get('/admin/users', UserManagement::class)->name('admin.users');
+        Route::get('/admin/roles', RoleManagement::class)->name('admin.roles');
     });
 
     Route::middleware('can:manage-partnership')->group(function () {
         Volt::route('/region', 'master.region.index')->name('region.index');
         Volt::route('/opd', 'master.opd.index')->name('opd.index');
         Volt::route('/urusan', 'master.urusan.index')->name('urusan.index');
-        Volt::route('/contact', 'master.contact.index')->name('contact.index');
         Volt::route('/contact-positions', 'master.contact-positions.index')->name('contact-positions.index');
+        Volt::route('/partnership/pmo', 'partnership.pmo-index')->name('partnership-employees.index');
     });
 
     Route::middleware('can:manage-finance-intake')->group(function () {

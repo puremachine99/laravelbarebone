@@ -13,6 +13,11 @@ class Regency extends Model
         return $this->belongsTo(Province::class);
     }
 
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
+
     public function opds()
     {
         return $this->hasMany(Opd::class);

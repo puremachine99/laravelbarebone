@@ -1,0 +1,6592 @@
+[
+  {
+    "id": 1,
+    "kode_provinsi": "01",
+    "kode": "01.01",
+    "kabupaten": "Prov. Aceh",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:57:30"
+  },
+  {
+    "id": 2,
+    "kode_provinsi": "01",
+    "kode": "01.02",
+    "kabupaten": "Kab. Aceh Barat",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:57:38"
+  },
+  {
+    "id": 3,
+    "kode_provinsi": "01",
+    "kode": "01.03",
+    "kabupaten": "Kab. Aceh Barat Daya",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:57:43"
+  },
+  {
+    "id": 4,
+    "kode_provinsi": "01",
+    "kode": "01.04",
+    "kabupaten": "Kab. Aceh Besar",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:57:47"
+  },
+  {
+    "id": 5,
+    "kode_provinsi": "01",
+    "kode": "01.05",
+    "kabupaten": "Kab. Aceh Jaya",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:57:52"
+  },
+  {
+    "id": 6,
+    "kode_provinsi": "01",
+    "kode": "01.06",
+    "kabupaten": "Kab. Aceh Selatan",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:57:58"
+  },
+  {
+    "id": 7,
+    "kode_provinsi": "01",
+    "kode": "01.07",
+    "kabupaten": "Kab. Aceh Singkil",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:58:02"
+  },
+  {
+    "id": 8,
+    "kode_provinsi": "01",
+    "kode": "01.08",
+    "kabupaten": "Kab. Aceh Tamiang",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:58:07"
+  },
+  {
+    "id": 9,
+    "kode_provinsi": "01",
+    "kode": "01.09",
+    "kabupaten": "Kab. Aceh Tengah",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:58:11"
+  },
+  {
+    "id": 10,
+    "kode_provinsi": "01",
+    "kode": "01.10",
+    "kabupaten": "Kab. Aceh Tenggara",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:58:16"
+  },
+  {
+    "id": 11,
+    "kode_provinsi": "01",
+    "kode": "01.11",
+    "kabupaten": "Kab. Aceh Timur",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:58:20"
+  },
+  {
+    "id": 12,
+    "kode_provinsi": "01",
+    "kode": "01.12",
+    "kabupaten": "Kab. Aceh Utara",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:58:24"
+  },
+  {
+    "id": 13,
+    "kode_provinsi": "01",
+    "kode": "01.13",
+    "kabupaten": "Kab. Bener Meriah",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:58:29"
+  },
+  {
+    "id": 14,
+    "kode_provinsi": "01",
+    "kode": "01.14",
+    "kabupaten": "Kab. Bireuen",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:58:34"
+  },
+  {
+    "id": 15,
+    "kode_provinsi": "01",
+    "kode": "01.15",
+    "kabupaten": "Kab. Gayo Lues",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:58:39"
+  },
+  {
+    "id": 16,
+    "kode_provinsi": "01",
+    "kode": "01.16",
+    "kabupaten": "Kab. Nagan Raya",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:58:43"
+  },
+  {
+    "id": 17,
+    "kode_provinsi": "01",
+    "kode": "01.17",
+    "kabupaten": "Kab. Pidie",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:58:52"
+  },
+  {
+    "id": 18,
+    "kode_provinsi": "01",
+    "kode": "01.18",
+    "kabupaten": "Kab. Pidie Jaya",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:58:56"
+  },
+  {
+    "id": 19,
+    "kode_provinsi": "01",
+    "kode": "01.19",
+    "kabupaten": "Kab. Simeulue",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:59:01"
+  },
+  {
+    "id": 20,
+    "kode_provinsi": "01",
+    "kode": "01.20",
+    "kabupaten": "Kota Banda Aceh",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:59:05"
+  },
+  {
+    "id": 21,
+    "kode_provinsi": "01",
+    "kode": "01.21",
+    "kabupaten": "Kota Langsa",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:59:10"
+  },
+  {
+    "id": 22,
+    "kode_provinsi": "01",
+    "kode": "01.22",
+    "kabupaten": "Kota Lhokseumawe",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:59:14"
+  },
+  {
+    "id": 23,
+    "kode_provinsi": "01",
+    "kode": "01.23",
+    "kabupaten": "Kota Sabang",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:59:19"
+  },
+  {
+    "id": 24,
+    "kode_provinsi": "01",
+    "kode": "01.24",
+    "kabupaten": "Kota Subulussalam",
+    "ukw": 2,
+    "pic": 182,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 13:59:25"
+  },
+  {
+    "id": 25,
+    "kode_provinsi": "02",
+    "kode": "02.01",
+    "kabupaten": "Prov. Sumatera Utara",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-16 19:57:08"
+  },
+  {
+    "id": 26,
+    "kode_provinsi": "02",
+    "kode": "02.02",
+    "kabupaten": "Kab. Asahan",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:05:31"
+  },
+  {
+    "id": 27,
+    "kode_provinsi": "02",
+    "kode": "02.03",
+    "kabupaten": "Kab. Batubara",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:05:46"
+  },
+  {
+    "id": 28,
+    "kode_provinsi": "02",
+    "kode": "02.04",
+    "kabupaten": "Kab. Dairi",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:05:53"
+  },
+  {
+    "id": 29,
+    "kode_provinsi": "02",
+    "kode": "02.05",
+    "kabupaten": "Kab. Deli Serdang",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 15:55:18"
+  },
+  {
+    "id": 30,
+    "kode_provinsi": "02",
+    "kode": "02.06",
+    "kabupaten": "Kab. Humbang Hasundutan",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:06:08"
+  },
+  {
+    "id": 31,
+    "kode_provinsi": "02",
+    "kode": "02.07",
+    "kabupaten": "Kab. Karo",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:06:24"
+  },
+  {
+    "id": 32,
+    "kode_provinsi": "02",
+    "kode": "02.08",
+    "kabupaten": "Kab. Labuhanbatu",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:06:30"
+  },
+  {
+    "id": 33,
+    "kode_provinsi": "02",
+    "kode": "02.09",
+    "kabupaten": "Kab. Labuhanbatu Selatan",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:06:57"
+  },
+  {
+    "id": 34,
+    "kode_provinsi": "02",
+    "kode": "02.10",
+    "kabupaten": "Kab. Labuhanbatu Utara",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:07:06"
+  },
+  {
+    "id": 35,
+    "kode_provinsi": "02",
+    "kode": "02.11",
+    "kabupaten": "Kab. Langkat",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 15:53:32"
+  },
+  {
+    "id": 36,
+    "kode_provinsi": "02",
+    "kode": "02.12",
+    "kabupaten": "Kab. Mandailing Natal",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-16 19:55:12"
+  },
+  {
+    "id": 37,
+    "kode_provinsi": "02",
+    "kode": "02.13",
+    "kabupaten": "Kab. Nias",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:07:19"
+  },
+  {
+    "id": 38,
+    "kode_provinsi": "02",
+    "kode": "02.14",
+    "kabupaten": "Kab. Nias Barat",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:07:28"
+  },
+  {
+    "id": 39,
+    "kode_provinsi": "02",
+    "kode": "02.15",
+    "kabupaten": "Kab. Nias Selatan",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:07:34"
+  },
+  {
+    "id": 40,
+    "kode_provinsi": "02",
+    "kode": "02.16",
+    "kabupaten": "Kab. Nias Utara",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:07:40"
+  },
+  {
+    "id": 41,
+    "kode_provinsi": "02",
+    "kode": "02.17",
+    "kabupaten": "Kab. Padang Lawas",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 15:54:23"
+  },
+  {
+    "id": 42,
+    "kode_provinsi": "02",
+    "kode": "02.18",
+    "kabupaten": "Kab. Padang Lawas Utara",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 15:54:28"
+  },
+  {
+    "id": 43,
+    "kode_provinsi": "02",
+    "kode": "02.19",
+    "kabupaten": "Kab. Pakpak Bharat",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:07:48"
+  },
+  {
+    "id": 44,
+    "kode_provinsi": "02",
+    "kode": "02.20",
+    "kabupaten": "Kab. Samosir",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:07:54"
+  },
+  {
+    "id": 45,
+    "kode_provinsi": "02",
+    "kode": "02.21",
+    "kabupaten": "Kab. Serdang Bedagai",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:07:59"
+  },
+  {
+    "id": 46,
+    "kode_provinsi": "02",
+    "kode": "02.22",
+    "kabupaten": "Kab. Simalungun",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:08:04"
+  },
+  {
+    "id": 47,
+    "kode_provinsi": "02",
+    "kode": "02.23",
+    "kabupaten": "Kab. Tapanuli Selatan",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:08:10"
+  },
+  {
+    "id": 48,
+    "kode_provinsi": "02",
+    "kode": "02.24",
+    "kabupaten": "Kab. Tapanuli Tengah",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 15:54:05"
+  },
+  {
+    "id": 49,
+    "kode_provinsi": "02",
+    "kode": "02.25",
+    "kabupaten": "Kab. Tapanuli Utara",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:08:15"
+  },
+  {
+    "id": 50,
+    "kode_provinsi": "02",
+    "kode": "02.26",
+    "kabupaten": "Kab. Toba",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:08:20"
+  },
+  {
+    "id": 51,
+    "kode_provinsi": "02",
+    "kode": "02.27",
+    "kabupaten": "Kota Binjai",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:08:25"
+  },
+  {
+    "id": 52,
+    "kode_provinsi": "02",
+    "kode": "02.28",
+    "kabupaten": "Kota Gunungsitoli",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 07:08:31"
+  },
+  {
+    "id": 53,
+    "kode_provinsi": "02",
+    "kode": "02.29",
+    "kabupaten": "Kota Medan",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-16 19:56:45"
+  },
+  {
+    "id": 54,
+    "kode_provinsi": "02",
+    "kode": "02.30",
+    "kabupaten": "Kota Padangsidempuan",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 15:46:14"
+  },
+  {
+    "id": 55,
+    "kode_provinsi": "02",
+    "kode": "02.31",
+    "kabupaten": "Kota Pematangsiantar",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 15:55:47"
+  },
+  {
+    "id": 56,
+    "kode_provinsi": "02",
+    "kode": "02.32",
+    "kabupaten": "Kota Sibolga",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 15:55:57"
+  },
+  {
+    "id": 57,
+    "kode_provinsi": "02",
+    "kode": "02.33",
+    "kabupaten": "Kota Tanjungbalai",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 15:56:07"
+  },
+  {
+    "id": 58,
+    "kode_provinsi": "02",
+    "kode": "02.34",
+    "kabupaten": "Kota Tebing Tinggi",
+    "ukw": 1,
+    "pic": 147,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 15:54:51"
+  },
+  {
+    "id": 59,
+    "kode_provinsi": "03",
+    "kode": "03.01",
+    "kabupaten": "Prov. Sumatera Selatan",
+    "ukw": 1,
+    "pic": 184,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-07 19:14:54"
+  },
+  {
+    "id": 60,
+    "kode_provinsi": "03",
+    "kode": "03.02",
+    "kabupaten": "Kab. Banyuasin",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-09 09:38:55"
+  },
+  {
+    "id": 61,
+    "kode_provinsi": "03",
+    "kode": "03.03",
+    "kabupaten": "Kab. Empat Lawang",
+    "ukw": 1,
+    "pic": 184,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 10:57:42"
+  },
+  {
+    "id": 62,
+    "kode_provinsi": "03",
+    "kode": "03.04",
+    "kabupaten": "Kab. Lahat",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 16:03:21"
+  },
+  {
+    "id": 63,
+    "kode_provinsi": "03",
+    "kode": "03.05",
+    "kabupaten": "Kab. Muara Enim",
+    "ukw": 1,
+    "pic": 184,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 10:57:33"
+  },
+  {
+    "id": 64,
+    "kode_provinsi": "03",
+    "kode": "03.06",
+    "kabupaten": "Kab. Musi Banyuasin",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-09 09:40:02"
+  },
+  {
+    "id": 65,
+    "kode_provinsi": "03",
+    "kode": "03.07",
+    "kabupaten": "Kab. Musi Rawas",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-09 09:40:09"
+  },
+  {
+    "id": 66,
+    "kode_provinsi": "03",
+    "kode": "03.08",
+    "kabupaten": "Kab. Musi Rawas Utara",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-09 09:40:15"
+  },
+  {
+    "id": 67,
+    "kode_provinsi": "03",
+    "kode": "03.09",
+    "kabupaten": "Kab. Ogan Ilir",
+    "ukw": 1,
+    "pic": 184,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 10:57:54"
+  },
+  {
+    "id": 68,
+    "kode_provinsi": "03",
+    "kode": "03.10",
+    "kabupaten": "Kab. Ogan Komering Ilir",
+    "ukw": 1,
+    "pic": 184,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 10:58:04"
+  },
+  {
+    "id": 69,
+    "kode_provinsi": "03",
+    "kode": "03.11",
+    "kabupaten": "Kab. Ogan Komering Ulu",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 16:03:52"
+  },
+  {
+    "id": 70,
+    "kode_provinsi": "03",
+    "kode": "03.12",
+    "kabupaten": "Kab. Ogan Komering Ulu Selatan",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-09 09:40:57"
+  },
+  {
+    "id": 71,
+    "kode_provinsi": "03",
+    "kode": "03.13",
+    "kabupaten": "Kab. Ogan Komering Ulu Timur",
+    "ukw": 1,
+    "pic": 184,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 10:58:17"
+  },
+  {
+    "id": 72,
+    "kode_provinsi": "03",
+    "kode": "03.14",
+    "kabupaten": "Kab. Penukal Abab Lematang Ilir",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-09 09:41:37"
+  },
+  {
+    "id": 73,
+    "kode_provinsi": "03",
+    "kode": "03.15",
+    "kabupaten": "Kota Lubuklinggau",
+    "ukw": 1,
+    "pic": 184,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 10:58:45"
+  },
+  {
+    "id": 74,
+    "kode_provinsi": "03",
+    "kode": "03.16",
+    "kabupaten": "Kota Pagar Alam",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-09 09:42:08"
+  },
+  {
+    "id": 75,
+    "kode_provinsi": "03",
+    "kode": "03.17",
+    "kabupaten": "Kota Palembang",
+    "ukw": 1,
+    "pic": 184,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-07 19:15:05"
+  },
+  {
+    "id": 76,
+    "kode_provinsi": "03",
+    "kode": "03.18",
+    "kabupaten": "Kota Prabumulih",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 16:04:23"
+  },
+  {
+    "id": 77,
+    "kode_provinsi": "04",
+    "kode": "04.01",
+    "kabupaten": "Prov. Sumatera Barat",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 78,
+    "kode_provinsi": "04",
+    "kode": "04.02",
+    "kabupaten": "Kab. Agam",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 79,
+    "kode_provinsi": "04",
+    "kode": "04.03",
+    "kabupaten": "Kab. Dharmasraya",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 80,
+    "kode_provinsi": "04",
+    "kode": "04.04",
+    "kabupaten": "Kab. Kepulauan Mentawai",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 81,
+    "kode_provinsi": "04",
+    "kode": "04.05",
+    "kabupaten": "Kab. Lima Puluh Kota",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 82,
+    "kode_provinsi": "04",
+    "kode": "04.06",
+    "kabupaten": "Kab. Padang Pariaman",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 83,
+    "kode_provinsi": "04",
+    "kode": "04.07",
+    "kabupaten": "Kota Pariaman",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 84,
+    "kode_provinsi": "04",
+    "kode": "04.08",
+    "kabupaten": "Kab. Pasaman",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 85,
+    "kode_provinsi": "04",
+    "kode": "04.09",
+    "kabupaten": "Kab. Pasaman Barat",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 86,
+    "kode_provinsi": "04",
+    "kode": "04.10",
+    "kabupaten": "Kab. Pesisir Selatan",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 87,
+    "kode_provinsi": "04",
+    "kode": "04.11",
+    "kabupaten": "Kab. Sijunjung",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 88,
+    "kode_provinsi": "04",
+    "kode": "04.12",
+    "kabupaten": "Kab. Solok",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 89,
+    "kode_provinsi": "04",
+    "kode": "04.13",
+    "kabupaten": "Kab. Solok Selatan",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 90,
+    "kode_provinsi": "04",
+    "kode": "04.14",
+    "kabupaten": "Kab. Tanah Datar",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 91,
+    "kode_provinsi": "04",
+    "kode": "04.15",
+    "kabupaten": "Kota Bukittinggi",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 92,
+    "kode_provinsi": "04",
+    "kode": "04.16",
+    "kabupaten": "Kota Padang",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 93,
+    "kode_provinsi": "04",
+    "kode": "04.17",
+    "kabupaten": "Kota Padang Panjang",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 94,
+    "kode_provinsi": "04",
+    "kode": "04.18",
+    "kabupaten": "Kota Payakumbuh",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 95,
+    "kode_provinsi": "04",
+    "kode": "04.19",
+    "kabupaten": "Kota Sawahlunto",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 96,
+    "kode_provinsi": "04",
+    "kode": "04.20",
+    "kabupaten": "Kota Solok",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:55"
+  },
+  {
+    "id": 97,
+    "kode_provinsi": "05",
+    "kode": "05.01",
+    "kabupaten": "Prov. Bengkulu",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:26:38"
+  },
+  {
+    "id": 98,
+    "kode_provinsi": "05",
+    "kode": "05.02",
+    "kabupaten": "Kab. Bengkulu Selatan",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:26:43"
+  },
+  {
+    "id": 99,
+    "kode_provinsi": "05",
+    "kode": "05.03",
+    "kabupaten": "Kab. Bengkulu Tengah",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:26:47"
+  },
+  {
+    "id": 100,
+    "kode_provinsi": "05",
+    "kode": "05.04",
+    "kabupaten": "Kab. Bengkulu Utara",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:26:51"
+  },
+  {
+    "id": 101,
+    "kode_provinsi": "05",
+    "kode": "05.05",
+    "kabupaten": "Kab. Kaur",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:26:56"
+  },
+  {
+    "id": 102,
+    "kode_provinsi": "05",
+    "kode": "05.06",
+    "kabupaten": "Kab. Kepahiang",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:01"
+  },
+  {
+    "id": 103,
+    "kode_provinsi": "05",
+    "kode": "05.07",
+    "kabupaten": "Kab. Lebong",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:07"
+  },
+  {
+    "id": 104,
+    "kode_provinsi": "05",
+    "kode": "05.08",
+    "kabupaten": "Kab. Mukomuko",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:12"
+  },
+  {
+    "id": 105,
+    "kode_provinsi": "05",
+    "kode": "05.09",
+    "kabupaten": "Kab. Rejang Lebong",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:17"
+  },
+  {
+    "id": 106,
+    "kode_provinsi": "05",
+    "kode": "05.10",
+    "kabupaten": "Kab. Seluma",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:22"
+  },
+  {
+    "id": 107,
+    "kode_provinsi": "05",
+    "kode": "05.11",
+    "kabupaten": "Kota Bengkulu",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:26"
+  },
+  {
+    "id": 108,
+    "kode_provinsi": "06",
+    "kode": "06.01",
+    "kabupaten": "Prov. Riau",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:20:46"
+  },
+  {
+    "id": 109,
+    "kode_provinsi": "06",
+    "kode": "06.02",
+    "kabupaten": "Kab. Bengkalis",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:20:54"
+  },
+  {
+    "id": 110,
+    "kode_provinsi": "06",
+    "kode": "06.03",
+    "kabupaten": "Kab. Indragiri Hilir",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:21:03"
+  },
+  {
+    "id": 111,
+    "kode_provinsi": "06",
+    "kode": "06.04",
+    "kabupaten": "Kab. Indragiri Hulu",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:21:14"
+  },
+  {
+    "id": 112,
+    "kode_provinsi": "06",
+    "kode": "06.05",
+    "kabupaten": "Kab. Kampar",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:21:22"
+  },
+  {
+    "id": 113,
+    "kode_provinsi": "06",
+    "kode": "06.06",
+    "kabupaten": "Kab. Kepulauan Meranti",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:21:30"
+  },
+  {
+    "id": 114,
+    "kode_provinsi": "06",
+    "kode": "06.07",
+    "kabupaten": "Kab. Kuantan Singingi",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:21:36"
+  },
+  {
+    "id": 115,
+    "kode_provinsi": "06",
+    "kode": "06.08",
+    "kabupaten": "Kab. Pelalawan",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:21:48"
+  },
+  {
+    "id": 116,
+    "kode_provinsi": "06",
+    "kode": "06.09",
+    "kabupaten": "Kab. Rokan Hilir",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:21:57"
+  },
+  {
+    "id": 117,
+    "kode_provinsi": "06",
+    "kode": "06.10",
+    "kabupaten": "Kab. Rokan Hulu",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:22:05"
+  },
+  {
+    "id": 118,
+    "kode_provinsi": "06",
+    "kode": "06.11",
+    "kabupaten": "Kab. Siak",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:22:19"
+  },
+  {
+    "id": 119,
+    "kode_provinsi": "06",
+    "kode": "06.12",
+    "kabupaten": "Kota Dumai",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:22:25"
+  },
+  {
+    "id": 120,
+    "kode_provinsi": "06",
+    "kode": "06.13",
+    "kabupaten": "Kota Pekanbaru",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:22:33"
+  },
+  {
+    "id": 122,
+    "kode_provinsi": "07",
+    "kode": "07.02",
+    "kabupaten": "Kab. Kepulauan Anambas",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:22:50"
+  },
+  {
+    "id": 123,
+    "kode_provinsi": "07",
+    "kode": "07.03",
+    "kabupaten": "Kab. Bintan",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:22:58"
+  },
+  {
+    "id": 124,
+    "kode_provinsi": "07",
+    "kode": "07.04",
+    "kabupaten": "Kab. Karimun",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:23:05"
+  },
+  {
+    "id": 125,
+    "kode_provinsi": "07",
+    "kode": "07.05",
+    "kabupaten": "Kab. Lingga",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:23:12"
+  },
+  {
+    "id": 126,
+    "kode_provinsi": "07",
+    "kode": "07.06",
+    "kabupaten": "Kab. Natuna",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:23:19"
+  },
+  {
+    "id": 127,
+    "kode_provinsi": "07",
+    "kode": "07.07",
+    "kabupaten": "Kota Batam",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:23:33"
+  },
+  {
+    "id": 128,
+    "kode_provinsi": "07",
+    "kode": "07.08",
+    "kabupaten": "Kota Tanjung Pinang",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-10 11:23:41"
+  },
+  {
+    "id": 129,
+    "kode_provinsi": "08",
+    "kode": "08.01",
+    "kabupaten": "Prov. Jambi",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-20 09:59:13"
+  },
+  {
+    "id": 130,
+    "kode_provinsi": "08",
+    "kode": "08.02",
+    "kabupaten": "Kab. Batanghari",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-20 10:00:44"
+  },
+  {
+    "id": 131,
+    "kode_provinsi": "08",
+    "kode": "08.03",
+    "kabupaten": "Kab. Bungo",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-20 10:00:51"
+  },
+  {
+    "id": 132,
+    "kode_provinsi": "08",
+    "kode": "08.04",
+    "kabupaten": "Kab. Kerinci",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-20 10:00:59"
+  },
+  {
+    "id": 133,
+    "kode_provinsi": "08",
+    "kode": "08.05",
+    "kabupaten": "Kab. Merangin",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 15:44:21"
+  },
+  {
+    "id": 134,
+    "kode_provinsi": "08",
+    "kode": "08.06",
+    "kabupaten": "Kab. Muaro Jambi",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-20 09:59:27"
+  },
+  {
+    "id": 135,
+    "kode_provinsi": "08",
+    "kode": "08.07",
+    "kabupaten": "Kab. Sarolangun",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-20 10:01:06"
+  },
+  {
+    "id": 136,
+    "kode_provinsi": "08",
+    "kode": "08.08",
+    "kabupaten": "Kab. Tanjung Jabung Barat",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-20 10:01:13"
+  },
+  {
+    "id": 137,
+    "kode_provinsi": "08",
+    "kode": "08.09",
+    "kabupaten": "Kab. Tanjung Jabung Timur",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-20 10:01:20"
+  },
+  {
+    "id": 138,
+    "kode_provinsi": "08",
+    "kode": "08.10",
+    "kabupaten": "Kab. Tebo",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-20 10:01:27"
+  },
+  {
+    "id": 139,
+    "kode_provinsi": "08",
+    "kode": "08.11",
+    "kabupaten": "Kota Jambi",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-20 09:59:35"
+  },
+  {
+    "id": 140,
+    "kode_provinsi": "08",
+    "kode": "08.12",
+    "kabupaten": "Kota Sungai Penuh",
+    "ukw": 1,
+    "pic": 7,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-20 10:01:36"
+  },
+  {
+    "id": 141,
+    "kode_provinsi": "09",
+    "kode": "09.01",
+    "kabupaten": "Prov. Lampung",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:30"
+  },
+  {
+    "id": 142,
+    "kode_provinsi": "09",
+    "kode": "09.02",
+    "kabupaten": "Kab. Lampung Tengah",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:35"
+  },
+  {
+    "id": 143,
+    "kode_provinsi": "09",
+    "kode": "09.03",
+    "kabupaten": "Kab. Lampung Utara",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:39"
+  },
+  {
+    "id": 144,
+    "kode_provinsi": "09",
+    "kode": "09.04",
+    "kabupaten": "Kab. Lampung Selatan",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:43"
+  },
+  {
+    "id": 145,
+    "kode_provinsi": "09",
+    "kode": "09.05",
+    "kabupaten": "Kab. Lampung Barat",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:48"
+  },
+  {
+    "id": 146,
+    "kode_provinsi": "09",
+    "kode": "09.06",
+    "kabupaten": "Kab. Lampung Timur",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:52"
+  },
+  {
+    "id": 147,
+    "kode_provinsi": "09",
+    "kode": "09.07",
+    "kabupaten": "Kab. Mesuji",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:27:56"
+  },
+  {
+    "id": 148,
+    "kode_provinsi": "09",
+    "kode": "09.08",
+    "kabupaten": "Kab. Pesawaran",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:28:01"
+  },
+  {
+    "id": 149,
+    "kode_provinsi": "09",
+    "kode": "09.09",
+    "kabupaten": "Kab. Pesisir Barat",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:28:05"
+  },
+  {
+    "id": 150,
+    "kode_provinsi": "09",
+    "kode": "09.10",
+    "kabupaten": "Kab. Pringsewu",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:28:10"
+  },
+  {
+    "id": 151,
+    "kode_provinsi": "09",
+    "kode": "09.11",
+    "kabupaten": "Kab. Tulang Bawang",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:28:14"
+  },
+  {
+    "id": 152,
+    "kode_provinsi": "09",
+    "kode": "09.12",
+    "kabupaten": "Kab. Tulang Bawang Barat",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:28:20"
+  },
+  {
+    "id": 153,
+    "kode_provinsi": "09",
+    "kode": "09.13",
+    "kabupaten": "Kab. Tanggamus",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:28:24"
+  },
+  {
+    "id": 154,
+    "kode_provinsi": "09",
+    "kode": "09.14",
+    "kabupaten": "Kab. Way Kanan",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:28:31"
+  },
+  {
+    "id": 155,
+    "kode_provinsi": "09",
+    "kode": "09.15",
+    "kabupaten": "Kota Bandar Lampung",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:28:35"
+  },
+  {
+    "id": 156,
+    "kode_provinsi": "09",
+    "kode": "09.16",
+    "kabupaten": "Kota Metro",
+    "ukw": 1,
+    "pic": 154,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:28:41"
+  },
+  {
+    "id": 157,
+    "kode_provinsi": "10",
+    "kode": "10.01",
+    "kabupaten": "Prov. Kepulauan Bangka Belitung",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-09 09:44:02"
+  },
+  {
+    "id": 158,
+    "kode_provinsi": "10",
+    "kode": "10.02",
+    "kabupaten": "Kab. Bangka",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-09 09:44:44"
+  },
+  {
+    "id": 159,
+    "kode_provinsi": "10",
+    "kode": "10.03",
+    "kabupaten": "Kab. Bangka Barat",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-09 09:44:52"
+  },
+  {
+    "id": 160,
+    "kode_provinsi": "10",
+    "kode": "10.04",
+    "kabupaten": "Kab. Bangka Selatan",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 16:02:27"
+  },
+  {
+    "id": 161,
+    "kode_provinsi": "10",
+    "kode": "10.05",
+    "kabupaten": "Kab. Bangka Tengah",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-17 16:02:36"
+  },
+  {
+    "id": 162,
+    "kode_provinsi": "10",
+    "kode": "10.06",
+    "kabupaten": "Kab. Belitung",
+    "ukw": 1,
+    "pic": 184,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 10:58:56"
+  },
+  {
+    "id": 163,
+    "kode_provinsi": "10",
+    "kode": "10.07",
+    "kabupaten": "Kab. Belitung Timur",
+    "ukw": 1,
+    "pic": 184,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 10:59:25"
+  },
+  {
+    "id": 164,
+    "kode_provinsi": "10",
+    "kode": "10.08",
+    "kabupaten": "Kota Pangkal Pinang",
+    "ukw": 1,
+    "pic": 69,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-09 09:46:33"
+  },
+  {
+    "id": 165,
+    "kode_provinsi": "11",
+    "kode": "11.01",
+    "kabupaten": "Prov. Kalimantan Barat",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:17:46"
+  },
+  {
+    "id": 166,
+    "kode_provinsi": "11",
+    "kode": "11.02",
+    "kabupaten": "Kab. Bengkayang",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:17:52"
+  },
+  {
+    "id": 167,
+    "kode_provinsi": "11",
+    "kode": "11.03",
+    "kabupaten": "Kab. Kapuas Hulu",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:17:56"
+  },
+  {
+    "id": 168,
+    "kode_provinsi": "11",
+    "kode": "11.04",
+    "kabupaten": "Kab. Kayong Utara",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:18:00"
+  },
+  {
+    "id": 169,
+    "kode_provinsi": "11",
+    "kode": "11.05",
+    "kabupaten": "Kab. Ketapang",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:18:04"
+  },
+  {
+    "id": 170,
+    "kode_provinsi": "11",
+    "kode": "11.06",
+    "kabupaten": "Kab. Kubu Raya",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:18:08"
+  },
+  {
+    "id": 171,
+    "kode_provinsi": "11",
+    "kode": "11.07",
+    "kabupaten": "Kab. Landak",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:18:11"
+  },
+  {
+    "id": 172,
+    "kode_provinsi": "11",
+    "kode": "11.08",
+    "kabupaten": "Kab. Melawi",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:18:15"
+  },
+  {
+    "id": 173,
+    "kode_provinsi": "11",
+    "kode": "11.09",
+    "kabupaten": "Kab. Mempawah",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:18:18"
+  },
+  {
+    "id": 174,
+    "kode_provinsi": "11",
+    "kode": "11.10",
+    "kabupaten": "Kab. Sambas",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:18:22"
+  },
+  {
+    "id": 175,
+    "kode_provinsi": "11",
+    "kode": "11.11",
+    "kabupaten": "Kab. Sanggau",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:18:26"
+  },
+  {
+    "id": 176,
+    "kode_provinsi": "11",
+    "kode": "11.12",
+    "kabupaten": "Kab. Sekadau",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:18:29"
+  },
+  {
+    "id": 177,
+    "kode_provinsi": "11",
+    "kode": "11.13",
+    "kabupaten": "Kab. Sintang",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:18:32"
+  },
+  {
+    "id": 178,
+    "kode_provinsi": "11",
+    "kode": "11.14",
+    "kabupaten": "Kota Pontianak",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:18:35"
+  },
+  {
+    "id": 179,
+    "kode_provinsi": "11",
+    "kode": "11.15",
+    "kabupaten": "Kota Singkawang",
+    "ukw": 2,
+    "pic": 168,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-22 08:18:39"
+  },
+  {
+    "id": 180,
+    "kode_provinsi": "12",
+    "kode": "12.01",
+    "kabupaten": "Prov. Kalimantan Timur",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 181,
+    "kode_provinsi": "12",
+    "kode": "12.02",
+    "kabupaten": "Kab. Berau",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-11 15:28:12"
+  },
+  {
+    "id": 182,
+    "kode_provinsi": "12",
+    "kode": "12.03",
+    "kabupaten": "Kab. Kutai Barat",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 183,
+    "kode_provinsi": "12",
+    "kode": "12.04",
+    "kabupaten": "Kab. Kutai Kartanegara",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 184,
+    "kode_provinsi": "12",
+    "kode": "12.05",
+    "kabupaten": "Kab. Kutai Timur",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 185,
+    "kode_provinsi": "12",
+    "kode": "12.06",
+    "kabupaten": "Kab. Mahakam Ulu",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 186,
+    "kode_provinsi": "12",
+    "kode": "12.07",
+    "kabupaten": "Kab. Paser",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 187,
+    "kode_provinsi": "12",
+    "kode": "12.08",
+    "kabupaten": "Kab. Penajam Paser Utara",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 188,
+    "kode_provinsi": "12",
+    "kode": "12.09",
+    "kabupaten": "Kota Balikpapan",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 189,
+    "kode_provinsi": "12",
+    "kode": "12.10",
+    "kabupaten": "Kota Bontang",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 190,
+    "kode_provinsi": "12",
+    "kode": "12.11",
+    "kabupaten": "Kota Samarinda",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 191,
+    "kode_provinsi": "13",
+    "kode": "13.01",
+    "kabupaten": "Prov. Kalimantan Selatan",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 192,
+    "kode_provinsi": "13",
+    "kode": "13.02",
+    "kabupaten": "Kab. Balangan",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 193,
+    "kode_provinsi": "13",
+    "kode": "13.03",
+    "kabupaten": "Kab. Banjar",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:58"
+  },
+  {
+    "id": 194,
+    "kode_provinsi": "13",
+    "kode": "13.04",
+    "kabupaten": "Kab. Barito Kuala",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:59"
+  },
+  {
+    "id": 195,
+    "kode_provinsi": "13",
+    "kode": "13.05",
+    "kabupaten": "Kab. Hulu Sungai Selatan",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:59"
+  },
+  {
+    "id": 196,
+    "kode_provinsi": "13",
+    "kode": "13.06",
+    "kabupaten": "Kab. Hulu Sungai Tengah",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:59"
+  },
+  {
+    "id": 197,
+    "kode_provinsi": "13",
+    "kode": "13.07",
+    "kabupaten": "Kab. Hulu Sungai Utara",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:59"
+  },
+  {
+    "id": 198,
+    "kode_provinsi": "13",
+    "kode": "13.08",
+    "kabupaten": "Kab. Kotabaru",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:59"
+  },
+  {
+    "id": 199,
+    "kode_provinsi": "13",
+    "kode": "13.09",
+    "kabupaten": "Kab. Tabalong",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:59"
+  },
+  {
+    "id": 200,
+    "kode_provinsi": "13",
+    "kode": "13.10",
+    "kabupaten": "Kab. Tanah Bumbu",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:59"
+  },
+  {
+    "id": 201,
+    "kode_provinsi": "13",
+    "kode": "13.11",
+    "kabupaten": "Kab. Tanah Laut",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:59"
+  },
+  {
+    "id": 202,
+    "kode_provinsi": "13",
+    "kode": "13.12",
+    "kabupaten": "Kab. Tapin",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:59"
+  },
+  {
+    "id": 203,
+    "kode_provinsi": "13",
+    "kode": "13.13",
+    "kabupaten": "Kota Banjarbaru",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:59"
+  },
+  {
+    "id": 204,
+    "kode_provinsi": "13",
+    "kode": "13.14",
+    "kabupaten": "Kota Banjarmasin",
+    "ukw": 2,
+    "pic": 43,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-08-06 16:57:59"
+  },
+  {
+    "id": 205,
+    "kode_provinsi": "14",
+    "kode": "14.01",
+    "kabupaten": "Prov. Kalimantan Tengah",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:34:06"
+  },
+  {
+    "id": 206,
+    "kode_provinsi": "14",
+    "kode": "14.02",
+    "kabupaten": "Kab. Barito Selatan",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:34:12"
+  },
+  {
+    "id": 207,
+    "kode_provinsi": "14",
+    "kode": "14.03",
+    "kabupaten": "Kab. Barito Timur",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:34:17"
+  },
+  {
+    "id": 208,
+    "kode_provinsi": "14",
+    "kode": "14.04",
+    "kabupaten": "Kab. Barito Utara",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:34:27"
+  },
+  {
+    "id": 209,
+    "kode_provinsi": "14",
+    "kode": "14.05",
+    "kabupaten": "Kab. Gunung Mas",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:34:32"
+  },
+  {
+    "id": 210,
+    "kode_provinsi": "14",
+    "kode": "14.06",
+    "kabupaten": "Kab. Kapuas",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:34:37"
+  },
+  {
+    "id": 211,
+    "kode_provinsi": "14",
+    "kode": "14.07",
+    "kabupaten": "Kab. Katingan",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:34:42"
+  },
+  {
+    "id": 212,
+    "kode_provinsi": "14",
+    "kode": "14.08",
+    "kabupaten": "Kab. Kotawaringin Barat",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:34:53"
+  },
+  {
+    "id": 213,
+    "kode_provinsi": "14",
+    "kode": "14.09",
+    "kabupaten": "Kab. Kotawaringin Timur",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:35:00"
+  },
+  {
+    "id": 214,
+    "kode_provinsi": "14",
+    "kode": "14.10",
+    "kabupaten": "Kab. Lamandau",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:35:06"
+  },
+  {
+    "id": 215,
+    "kode_provinsi": "14",
+    "kode": "14.11",
+    "kabupaten": "Kab. Murung Raya",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:35:12"
+  },
+  {
+    "id": 216,
+    "kode_provinsi": "14",
+    "kode": "14.12",
+    "kabupaten": "Kab. Pulang Pisau",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:35:23"
+  },
+  {
+    "id": 217,
+    "kode_provinsi": "14",
+    "kode": "14.13",
+    "kabupaten": "Kab. Sukamara",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:35:30"
+  },
+  {
+    "id": 218,
+    "kode_provinsi": "14",
+    "kode": "14.14",
+    "kabupaten": "Kab. Seruyan",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:35:36"
+  },
+  {
+    "id": 219,
+    "kode_provinsi": "14",
+    "kode": "14.15",
+    "kabupaten": "Kota Palangka Raya",
+    "ukw": 2,
+    "pic": 178,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-08 09:35:42"
+  },
+  {
+    "id": 220,
+    "kode_provinsi": "15",
+    "kode": "15.01",
+    "kabupaten": "Prov. Kalimantan Utara",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-20 07:40:04"
+  },
+  {
+    "id": 221,
+    "kode_provinsi": "15",
+    "kode": "15.02",
+    "kabupaten": "Kab. Bulungan",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-20 07:40:14"
+  },
+  {
+    "id": 222,
+    "kode_provinsi": "15",
+    "kode": "15.03",
+    "kabupaten": "Kab. Malinau",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-20 07:40:25"
+  },
+  {
+    "id": 223,
+    "kode_provinsi": "15",
+    "kode": "15.04",
+    "kabupaten": "Kab. Nunukan",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-12-20 07:40:33"
+  },
+  {
+    "id": 224,
+    "kode_provinsi": "15",
+    "kode": "15.05",
+    "kabupaten": "Kab. Tana Tidung",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-28 12:25:11"
+  },
+  {
+    "id": 225,
+    "kode_provinsi": "15",
+    "kode": "15.06",
+    "kabupaten": "Kota Tarakan",
+    "ukw": 2,
+    "pic": 27,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2025-11-28 12:25:29"
+  },
+  {
+    "id": 226,
+    "kode_provinsi": "16",
+    "kode": "16.01",
+    "kabupaten": "Prov. Banten",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:17:59"
+  },
+  {
+    "id": 227,
+    "kode_provinsi": "16",
+    "kode": "16.02",
+    "kabupaten": "Kab. Lebak",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:18:03"
+  },
+  {
+    "id": 228,
+    "kode_provinsi": "16",
+    "kode": "16.03",
+    "kabupaten": "Kab. Pandeglang",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:17:30"
+  },
+  {
+    "id": 229,
+    "kode_provinsi": "16",
+    "kode": "16.04",
+    "kabupaten": "Kab. Serang",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:18:07"
+  },
+  {
+    "id": 230,
+    "kode_provinsi": "16",
+    "kode": "16.05",
+    "kabupaten": "Kab. Tangerang",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:18:50"
+  },
+  {
+    "id": 231,
+    "kode_provinsi": "16",
+    "kode": "16.06",
+    "kabupaten": "Kota Cilegon",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:18:54"
+  },
+  {
+    "id": 232,
+    "kode_provinsi": "16",
+    "kode": "16.07",
+    "kabupaten": "Kota Serang",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:18:59"
+  },
+  {
+    "id": 233,
+    "kode_provinsi": "16",
+    "kode": "16.08",
+    "kabupaten": "Kota Tangerang",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:19:03"
+  },
+  {
+    "id": 234,
+    "kode_provinsi": "16",
+    "kode": "16.09",
+    "kabupaten": "Kota Tangerang Selatan",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:19:12"
+  },
+  {
+    "id": 235,
+    "kode_provinsi": "17",
+    "kode": "17.07",
+    "kabupaten": "Kab. Kepulauan Seribu",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:55:03"
+  },
+  {
+    "id": 242,
+    "kode_provinsi": "18",
+    "kode": "18.01",
+    "kabupaten": "Prov. Jawa Barat",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:55:18"
+  },
+  {
+    "id": 243,
+    "kode_provinsi": "18",
+    "kode": "18.02",
+    "kabupaten": "Kab. Bogor",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:55:24"
+  },
+  {
+    "id": 244,
+    "kode_provinsi": "18",
+    "kode": "18.03",
+    "kabupaten": "Kab. Cianjur",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:55:33"
+  },
+  {
+    "id": 245,
+    "kode_provinsi": "18",
+    "kode": "18.04",
+    "kabupaten": "Kab. Garut",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:55:39"
+  },
+  {
+    "id": 246,
+    "kode_provinsi": "18",
+    "kode": "18.05",
+    "kabupaten": "Kab. Ciamis",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:55:45"
+  },
+  {
+    "id": 247,
+    "kode_provinsi": "18",
+    "kode": "18.06",
+    "kabupaten": "Kota Tasikmalaya",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:55:49"
+  },
+  {
+    "id": 248,
+    "kode_provinsi": "18",
+    "kode": "18.07",
+    "kabupaten": "Kota Cimahi",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:55:54"
+  },
+  {
+    "id": 249,
+    "kode_provinsi": "18",
+    "kode": "18.08",
+    "kabupaten": "Kota Bekasi",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:56:06"
+  },
+  {
+    "id": 250,
+    "kode_provinsi": "18",
+    "kode": "18.09",
+    "kabupaten": "Kab. Karawang",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:56:14"
+  },
+  {
+    "id": 251,
+    "kode_provinsi": "18",
+    "kode": "18.10",
+    "kabupaten": "Kab. Sumedang",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:56:21"
+  },
+  {
+    "id": 252,
+    "kode_provinsi": "18",
+    "kode": "18.11",
+    "kabupaten": "Kab. Tasikmalaya",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:56:32"
+  },
+  {
+    "id": 253,
+    "kode_provinsi": "18",
+    "kode": "18.12",
+    "kabupaten": "Kota Banjar",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:56:39"
+  },
+  {
+    "id": 254,
+    "kode_provinsi": "18",
+    "kode": "18.13",
+    "kabupaten": "Kota Bogor",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:56:45"
+  },
+  {
+    "id": 255,
+    "kode_provinsi": "18",
+    "kode": "18.14",
+    "kabupaten": "Kota Cirebon",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:56:51"
+  },
+  {
+    "id": 256,
+    "kode_provinsi": "18",
+    "kode": "18.15",
+    "kabupaten": "Kota Depok",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:56:57"
+  },
+  {
+    "id": 257,
+    "kode_provinsi": "18",
+    "kode": "18.16",
+    "kabupaten": "Kota Sukabumi",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:57:05"
+  },
+  {
+    "id": 258,
+    "kode_provinsi": "18",
+    "kode": "18.17",
+    "kabupaten": "Kota Bandung",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:57:12"
+  },
+  {
+    "id": 259,
+    "kode_provinsi": "18",
+    "kode": "18.18",
+    "kabupaten": "Kab. Bandung",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:57:19"
+  },
+  {
+    "id": 260,
+    "kode_provinsi": "18",
+    "kode": "18.19",
+    "kabupaten": "Kab. Bandung Barat",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:57:24"
+  },
+  {
+    "id": 261,
+    "kode_provinsi": "18",
+    "kode": "18.20",
+    "kabupaten": "Kab. Bekasi",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:57:30"
+  },
+  {
+    "id": 262,
+    "kode_provinsi": "18",
+    "kode": "18.21",
+    "kabupaten": "Kab. Cirebon",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:58:37"
+  },
+  {
+    "id": 263,
+    "kode_provinsi": "18",
+    "kode": "18.22",
+    "kabupaten": "Kab. Indramayu",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:58:44"
+  },
+  {
+    "id": 264,
+    "kode_provinsi": "18",
+    "kode": "18.23",
+    "kabupaten": "Kab. Kuningan",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:58:51"
+  },
+  {
+    "id": 265,
+    "kode_provinsi": "18",
+    "kode": "18.24",
+    "kabupaten": "Kab. Majalengka",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:58:56"
+  },
+  {
+    "id": 266,
+    "kode_provinsi": "18",
+    "kode": "18.25",
+    "kabupaten": "Kab. Purwakarta",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 11:50:27"
+  },
+  {
+    "id": 267,
+    "kode_provinsi": "18",
+    "kode": "18.26",
+    "kabupaten": "Kab. Subang",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:59:10"
+  },
+  {
+    "id": 268,
+    "kode_provinsi": "18",
+    "kode": "18.27",
+    "kabupaten": "Kab. Sukabumi",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:59:15"
+  },
+  {
+    "id": 269,
+    "kode_provinsi": "18",
+    "kode": "18.28",
+    "kabupaten": "Kab. Pangandaran",
+    "ukw": 3,
+    "pic": 54,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 18:59:26"
+  },
+  {
+    "id": 270,
+    "kode_provinsi": "19",
+    "kode": "19.01",
+    "kabupaten": "Prov. Jawa Tengah",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:26:17"
+  },
+  {
+    "id": 271,
+    "kode_provinsi": "19",
+    "kode": "19.02",
+    "kabupaten": "Kota Magelang",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:56:28"
+  },
+  {
+    "id": 272,
+    "kode_provinsi": "19",
+    "kode": "19.03",
+    "kabupaten": "Kab. Karanganyar",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:27:40"
+  },
+  {
+    "id": 273,
+    "kode_provinsi": "19",
+    "kode": "19.04",
+    "kabupaten": "Kab. Boyolali",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:26:46"
+  },
+  {
+    "id": 274,
+    "kode_provinsi": "19",
+    "kode": "19.05",
+    "kabupaten": "Kab. Klaten",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:27:52"
+  },
+  {
+    "id": 275,
+    "kode_provinsi": "19",
+    "kode": "19.06",
+    "kabupaten": "Kab. Sragen",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:30:09"
+  },
+  {
+    "id": 276,
+    "kode_provinsi": "19",
+    "kode": "19.07",
+    "kabupaten": "Kab. Sukoharjo",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:30:19"
+  },
+  {
+    "id": 277,
+    "kode_provinsi": "19",
+    "kode": "19.08",
+    "kabupaten": "Kab. Wonogiri",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:30:31"
+  },
+  {
+    "id": 278,
+    "kode_provinsi": "19",
+    "kode": "19.09",
+    "kabupaten": "Kota Surakarta",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:31:34"
+  },
+  {
+    "id": 279,
+    "kode_provinsi": "19",
+    "kode": "19.10",
+    "kabupaten": "Kab. Magelang",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:28:32"
+  },
+  {
+    "id": 280,
+    "kode_provinsi": "19",
+    "kode": "19.11",
+    "kabupaten": "Kab. Pati",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:28:40"
+  },
+  {
+    "id": 281,
+    "kode_provinsi": "19",
+    "kode": "19.12",
+    "kabupaten": "Kota Pekalongan",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:57:13"
+  },
+  {
+    "id": 282,
+    "kode_provinsi": "19",
+    "kode": "19.13",
+    "kabupaten": "Kab. Kebumen",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:57:17"
+  },
+  {
+    "id": 283,
+    "kode_provinsi": "19",
+    "kode": "19.14",
+    "kabupaten": "Kab. Kendal",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:57:21"
+  },
+  {
+    "id": 284,
+    "kode_provinsi": "19",
+    "kode": "19.15",
+    "kabupaten": "Kab. Kudus",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:28:02"
+  },
+  {
+    "id": 285,
+    "kode_provinsi": "19",
+    "kode": "19.16",
+    "kabupaten": "Kab. Purbalingga",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:57:29"
+  },
+  {
+    "id": 286,
+    "kode_provinsi": "19",
+    "kode": "19.17",
+    "kabupaten": "Kab. Purworejo",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:29:25"
+  },
+  {
+    "id": 287,
+    "kode_provinsi": "19",
+    "kode": "19.18",
+    "kabupaten": "Kab. Rembang",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:29:42"
+  },
+  {
+    "id": 288,
+    "kode_provinsi": "19",
+    "kode": "19.19",
+    "kabupaten": "Kab. Semarang",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:29:53"
+  },
+  {
+    "id": 289,
+    "kode_provinsi": "19",
+    "kode": "19.20",
+    "kabupaten": "Kota Salatiga",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:30:51"
+  },
+  {
+    "id": 290,
+    "kode_provinsi": "19",
+    "kode": "19.21",
+    "kabupaten": "Kota Semarang",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:31:11"
+  },
+  {
+    "id": 291,
+    "kode_provinsi": "19",
+    "kode": "19.22",
+    "kabupaten": "Kab. Wonosobo",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:57:56"
+  },
+  {
+    "id": 292,
+    "kode_provinsi": "19",
+    "kode": "19.23",
+    "kabupaten": "Kab. Temanggung",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:57:59"
+  },
+  {
+    "id": 293,
+    "kode_provinsi": "19",
+    "kode": "19.24",
+    "kabupaten": "Kab. Banjarnegara",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:58:03"
+  },
+  {
+    "id": 294,
+    "kode_provinsi": "19",
+    "kode": "19.25",
+    "kabupaten": "Kab. Banyumas",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:58:07"
+  },
+  {
+    "id": 295,
+    "kode_provinsi": "19",
+    "kode": "19.26",
+    "kabupaten": "Kab. Batang",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:58:14"
+  },
+  {
+    "id": 296,
+    "kode_provinsi": "19",
+    "kode": "19.27",
+    "kabupaten": "Kab. Blora",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:26:31"
+  },
+  {
+    "id": 297,
+    "kode_provinsi": "19",
+    "kode": "19.28",
+    "kabupaten": "Kab. Pemalang",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:58:21"
+  },
+  {
+    "id": 298,
+    "kode_provinsi": "19",
+    "kode": "19.29",
+    "kabupaten": "Kab. Brebes",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:58:25"
+  },
+  {
+    "id": 299,
+    "kode_provinsi": "19",
+    "kode": "19.30",
+    "kabupaten": "Kota Tegal",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:58:29"
+  },
+  {
+    "id": 300,
+    "kode_provinsi": "19",
+    "kode": "19.31",
+    "kabupaten": "Kab. Tegal",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:58:33"
+  },
+  {
+    "id": 301,
+    "kode_provinsi": "19",
+    "kode": "19.32",
+    "kabupaten": "Kab. Pekalongan",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:29:03"
+  },
+  {
+    "id": 302,
+    "kode_provinsi": "19",
+    "kode": "19.33",
+    "kabupaten": "Kab. Cilacap",
+    "ukw": 3,
+    "pic": 180,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-05-21 11:58:40"
+  },
+  {
+    "id": 303,
+    "kode_provinsi": "19",
+    "kode": "19.34",
+    "kabupaten": "Kab. Demak",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:27:04"
+  },
+  {
+    "id": 304,
+    "kode_provinsi": "19",
+    "kode": "19.35",
+    "kabupaten": "Kab. Grobogan",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:27:13"
+  },
+  {
+    "id": 305,
+    "kode_provinsi": "19",
+    "kode": "19.36",
+    "kabupaten": "Kab. Jepara",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:27:22"
+  },
+  {
+    "id": 306,
+    "kode_provinsi": "20",
+    "kode": "20.01",
+    "kabupaten": "Prov. DIY",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:31:51"
+  },
+  {
+    "id": 307,
+    "kode_provinsi": "20",
+    "kode": "20.02",
+    "kabupaten": "Kab. Bantul",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:32:03"
+  },
+  {
+    "id": 308,
+    "kode_provinsi": "20",
+    "kode": "20.03",
+    "kabupaten": "Kab. Gunung Kidul",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:32:14"
+  },
+  {
+    "id": 309,
+    "kode_provinsi": "20",
+    "kode": "20.04",
+    "kabupaten": "Kab. Kulon Progo",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:32:21"
+  },
+  {
+    "id": 310,
+    "kode_provinsi": "20",
+    "kode": "20.05",
+    "kabupaten": "Kab. Sleman",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:32:32"
+  },
+  {
+    "id": 311,
+    "kode_provinsi": "20",
+    "kode": "20.06",
+    "kabupaten": "Kota Yogyakarta",
+    "ukw": 3,
+    "pic": 183,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-04 13:32:44"
+  },
+  {
+    "id": 312,
+    "kode_provinsi": "21",
+    "kode": "21.01",
+    "kabupaten": "Prov. Jawa Timur",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:22:17"
+  },
+  {
+    "id": 313,
+    "kode_provinsi": "21",
+    "kode": "21.02",
+    "kabupaten": "Kota Blitar",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:22:22"
+  },
+  {
+    "id": 314,
+    "kode_provinsi": "21",
+    "kode": "21.03",
+    "kabupaten": "Kab. Blitar",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:22:26"
+  },
+  {
+    "id": 315,
+    "kode_provinsi": "21",
+    "kode": "21.04",
+    "kabupaten": "Kab. Malang",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:22:31"
+  },
+  {
+    "id": 316,
+    "kode_provinsi": "21",
+    "kode": "21.05",
+    "kabupaten": "Kab. Mojokerto",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:22:36"
+  },
+  {
+    "id": 317,
+    "kode_provinsi": "21",
+    "kode": "21.06",
+    "kabupaten": "Kab. Situbondo",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:22:48"
+  },
+  {
+    "id": 318,
+    "kode_provinsi": "21",
+    "kode": "21.07",
+    "kabupaten": "Kota Madiun",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:22:52"
+  },
+  {
+    "id": 319,
+    "kode_provinsi": "21",
+    "kode": "21.08",
+    "kabupaten": "Kab. Pasuruan",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:22:56"
+  },
+  {
+    "id": 320,
+    "kode_provinsi": "21",
+    "kode": "21.09",
+    "kabupaten": "Kota Kediri",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:23:01"
+  },
+  {
+    "id": 321,
+    "kode_provinsi": "21",
+    "kode": "21.10",
+    "kabupaten": "Kota Batu",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:23:05"
+  },
+  {
+    "id": 322,
+    "kode_provinsi": "21",
+    "kode": "21.11",
+    "kabupaten": "Kab. Trenggalek",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:23:54"
+  },
+  {
+    "id": 323,
+    "kode_provinsi": "21",
+    "kode": "21.12",
+    "kabupaten": "Kab. Lamongan",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:23:58"
+  },
+  {
+    "id": 324,
+    "kode_provinsi": "21",
+    "kode": "21.13",
+    "kabupaten": "Kab. Nganjuk",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:24:04"
+  },
+  {
+    "id": 325,
+    "kode_provinsi": "21",
+    "kode": "21.14",
+    "kabupaten": "Kab. Kediri",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:24:09"
+  },
+  {
+    "id": 326,
+    "kode_provinsi": "21",
+    "kode": "21.15",
+    "kabupaten": "Kab. Jember",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 17:24:13"
+  },
+  {
+    "id": 327,
+    "kode_provinsi": "21",
+    "kode": "21.16",
+    "kabupaten": "Kab. Ngawi",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:09:21"
+  },
+  {
+    "id": 328,
+    "kode_provinsi": "21",
+    "kode": "21.17",
+    "kabupaten": "Kab. Sumenep",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:09:25"
+  },
+  {
+    "id": 329,
+    "kode_provinsi": "21",
+    "kode": "21.18",
+    "kabupaten": "Kab. Madiun",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:09:30"
+  },
+  {
+    "id": 330,
+    "kode_provinsi": "21",
+    "kode": "21.19",
+    "kabupaten": "Kab. Tuban",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:09:36"
+  },
+  {
+    "id": 331,
+    "kode_provinsi": "21",
+    "kode": "21.20",
+    "kabupaten": "Kota Pasuruan",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:09:40"
+  },
+  {
+    "id": 332,
+    "kode_provinsi": "21",
+    "kode": "21.21",
+    "kabupaten": "Kab. Jombang",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:09:48"
+  },
+  {
+    "id": 333,
+    "kode_provinsi": "21",
+    "kode": "21.22",
+    "kabupaten": "Kab. Gresik",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:09:52"
+  },
+  {
+    "id": 334,
+    "kode_provinsi": "21",
+    "kode": "21.23",
+    "kabupaten": "Kota Malang",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:09:56"
+  },
+  {
+    "id": 335,
+    "kode_provinsi": "21",
+    "kode": "21.24",
+    "kabupaten": "Kota Mojokerto",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:09:59"
+  },
+  {
+    "id": 336,
+    "kode_provinsi": "21",
+    "kode": "21.25",
+    "kabupaten": "Kab. Probolinggo",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:03"
+  },
+  {
+    "id": 337,
+    "kode_provinsi": "21",
+    "kode": "21.26",
+    "kabupaten": "Kota Probolinggo",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:06"
+  },
+  {
+    "id": 338,
+    "kode_provinsi": "21",
+    "kode": "21.27",
+    "kabupaten": "Kab. Tulungagung",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:10"
+  },
+  {
+    "id": 339,
+    "kode_provinsi": "21",
+    "kode": "21.28",
+    "kabupaten": "Kab. Magetan",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:14"
+  },
+  {
+    "id": 340,
+    "kode_provinsi": "21",
+    "kode": "21.29",
+    "kabupaten": "Kab. Pacitan",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:19"
+  },
+  {
+    "id": 341,
+    "kode_provinsi": "21",
+    "kode": "21.30",
+    "kabupaten": "Kab. Banyuwangi",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:22"
+  },
+  {
+    "id": 342,
+    "kode_provinsi": "21",
+    "kode": "21.31",
+    "kabupaten": "Kab. Bondowoso",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:34"
+  },
+  {
+    "id": 343,
+    "kode_provinsi": "21",
+    "kode": "21.32",
+    "kabupaten": "Kab. Pamekasan",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:38"
+  },
+  {
+    "id": 344,
+    "kode_provinsi": "21",
+    "kode": "21.33",
+    "kabupaten": "Kota Surabaya",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:42"
+  },
+  {
+    "id": 345,
+    "kode_provinsi": "21",
+    "kode": "21.34",
+    "kabupaten": "Kab. Sidoarjo",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:47"
+  },
+  {
+    "id": 346,
+    "kode_provinsi": "21",
+    "kode": "21.35",
+    "kabupaten": "Kab. Bojonegoro",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:52"
+  },
+  {
+    "id": 347,
+    "kode_provinsi": "21",
+    "kode": "21.36",
+    "kabupaten": "Kab. Lumajang",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:55"
+  },
+  {
+    "id": 348,
+    "kode_provinsi": "21",
+    "kode": "21.37",
+    "kabupaten": "Kab. Ponorogo",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:10:58"
+  },
+  {
+    "id": 349,
+    "kode_provinsi": "21",
+    "kode": "21.38",
+    "kabupaten": "Kab. Sampang",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:11:02"
+  },
+  {
+    "id": 350,
+    "kode_provinsi": "21",
+    "kode": "21.39",
+    "kabupaten": "Kab. Bangkalan",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-05 19:11:05"
+  },
+  {
+    "id": 351,
+    "kode_provinsi": "22",
+    "kode": "22.01",
+    "kabupaten": "Prov. Bali",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:05:55"
+  },
+  {
+    "id": 352,
+    "kode_provinsi": "22",
+    "kode": "22.02",
+    "kabupaten": "Kab. Badung",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:03"
+  },
+  {
+    "id": 353,
+    "kode_provinsi": "22",
+    "kode": "22.03",
+    "kabupaten": "Kab. Bangli",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:07"
+  },
+  {
+    "id": 354,
+    "kode_provinsi": "22",
+    "kode": "22.04",
+    "kabupaten": "Kab. Buleleng",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:11"
+  },
+  {
+    "id": 355,
+    "kode_provinsi": "22",
+    "kode": "22.05",
+    "kabupaten": "Kab. Gianyar",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:15"
+  },
+  {
+    "id": 356,
+    "kode_provinsi": "22",
+    "kode": "22.06",
+    "kabupaten": "Kab. Jembrana",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:19"
+  },
+  {
+    "id": 357,
+    "kode_provinsi": "22",
+    "kode": "22.07",
+    "kabupaten": "Kab. Karangasem",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:23"
+  },
+  {
+    "id": 358,
+    "kode_provinsi": "22",
+    "kode": "22.08",
+    "kabupaten": "Kab. Klungkung",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:27"
+  },
+  {
+    "id": 359,
+    "kode_provinsi": "22",
+    "kode": "22.09",
+    "kabupaten": "Kab. Tabanan",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:31"
+  },
+  {
+    "id": 360,
+    "kode_provinsi": "22",
+    "kode": "22.10",
+    "kabupaten": "Kota Denpasar",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:36"
+  },
+  {
+    "id": 361,
+    "kode_provinsi": "23",
+    "kode": "23.01",
+    "kabupaten": "Prov. Nusa Tenggara Timur",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:38:41"
+  },
+  {
+    "id": 362,
+    "kode_provinsi": "23",
+    "kode": "23.02",
+    "kabupaten": "Kab. Alor",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:38:47"
+  },
+  {
+    "id": 363,
+    "kode_provinsi": "23",
+    "kode": "23.03",
+    "kabupaten": "Kab. Belu",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:38:54"
+  },
+  {
+    "id": 364,
+    "kode_provinsi": "23",
+    "kode": "23.04",
+    "kabupaten": "Kab. Ende",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:38:59"
+  },
+  {
+    "id": 365,
+    "kode_provinsi": "23",
+    "kode": "23.05",
+    "kabupaten": "Kab. Flores Timur",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:39:05"
+  },
+  {
+    "id": 366,
+    "kode_provinsi": "23",
+    "kode": "23.06",
+    "kabupaten": "Kab. Kupang",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:39:11"
+  },
+  {
+    "id": 367,
+    "kode_provinsi": "23",
+    "kode": "23.07",
+    "kabupaten": "Kab. Lembata",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:39:16"
+  },
+  {
+    "id": 368,
+    "kode_provinsi": "23",
+    "kode": "23.08",
+    "kabupaten": "Kab. Malaka",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:39:22"
+  },
+  {
+    "id": 369,
+    "kode_provinsi": "23",
+    "kode": "23.09",
+    "kabupaten": "Kab. Manggarai",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:39:27"
+  },
+  {
+    "id": 370,
+    "kode_provinsi": "23",
+    "kode": "23.10",
+    "kabupaten": "Kab. Manggarai Barat",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:39:35"
+  },
+  {
+    "id": 371,
+    "kode_provinsi": "23",
+    "kode": "23.11",
+    "kabupaten": "Kab. Manggarai Timur",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:39:46"
+  },
+  {
+    "id": 372,
+    "kode_provinsi": "23",
+    "kode": "23.12",
+    "kabupaten": "Kab. Ngada",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:39:52"
+  },
+  {
+    "id": 373,
+    "kode_provinsi": "23",
+    "kode": "23.13",
+    "kabupaten": "Kab. Nagekeo",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:39:58"
+  },
+  {
+    "id": 374,
+    "kode_provinsi": "23",
+    "kode": "23.14",
+    "kabupaten": "Kab. Rote Ndao",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:40:04"
+  },
+  {
+    "id": 375,
+    "kode_provinsi": "23",
+    "kode": "23.15",
+    "kabupaten": "Kab. Sabu Raijua",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:40:10"
+  },
+  {
+    "id": 376,
+    "kode_provinsi": "23",
+    "kode": "23.16",
+    "kabupaten": "Kab. Sikka",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:40:16"
+  },
+  {
+    "id": 377,
+    "kode_provinsi": "23",
+    "kode": "23.17",
+    "kabupaten": "Kab. Sumba Barat",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:40:22"
+  },
+  {
+    "id": 378,
+    "kode_provinsi": "23",
+    "kode": "23.18",
+    "kabupaten": "Kab. Sumba Barat Daya",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:40:28"
+  },
+  {
+    "id": 379,
+    "kode_provinsi": "23",
+    "kode": "23.19",
+    "kabupaten": "Kab. Sumba Tengah",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:40:36"
+  },
+  {
+    "id": 380,
+    "kode_provinsi": "23",
+    "kode": "23.20",
+    "kabupaten": "Kab. Sumba Timur",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:40:43"
+  },
+  {
+    "id": 381,
+    "kode_provinsi": "23",
+    "kode": "23.21",
+    "kabupaten": "Kab. Timor Tengah Selatan",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:40:49"
+  },
+  {
+    "id": 382,
+    "kode_provinsi": "23",
+    "kode": "23.22",
+    "kabupaten": "Kab. Timor Tengah Utara",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:40:54"
+  },
+  {
+    "id": 383,
+    "kode_provinsi": "23",
+    "kode": "23.23",
+    "kabupaten": "Kota Kupang",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-04-29 11:41:00"
+  },
+  {
+    "id": 384,
+    "kode_provinsi": "24",
+    "kode": "24.01",
+    "kabupaten": "Prov. Nusa Tenggara Barat",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:40"
+  },
+  {
+    "id": 385,
+    "kode_provinsi": "24",
+    "kode": "24.02",
+    "kabupaten": "Kab. Bima",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:44"
+  },
+  {
+    "id": 386,
+    "kode_provinsi": "24",
+    "kode": "24.03",
+    "kabupaten": "Kab. Dompu",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:48"
+  },
+  {
+    "id": 387,
+    "kode_provinsi": "24",
+    "kode": "24.04",
+    "kabupaten": "Kab. Lombok Barat",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:52"
+  },
+  {
+    "id": 388,
+    "kode_provinsi": "24",
+    "kode": "24.05",
+    "kabupaten": "Kab. Lombok Tengah",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:06:56"
+  },
+  {
+    "id": 389,
+    "kode_provinsi": "24",
+    "kode": "24.06",
+    "kabupaten": "Kab. Lombok Timur",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:07:00"
+  },
+  {
+    "id": 390,
+    "kode_provinsi": "24",
+    "kode": "24.07",
+    "kabupaten": "Kab. Lombok Utara",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:07:04"
+  },
+  {
+    "id": 391,
+    "kode_provinsi": "24",
+    "kode": "24.08",
+    "kabupaten": "Kab. Sumbawa",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:07:08"
+  },
+  {
+    "id": 392,
+    "kode_provinsi": "24",
+    "kode": "24.09",
+    "kabupaten": "Kab. Sumbawa Barat",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:07:12"
+  },
+  {
+    "id": 393,
+    "kode_provinsi": "24",
+    "kode": "24.10",
+    "kabupaten": "Kota Bima",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:07:15"
+  },
+  {
+    "id": 394,
+    "kode_provinsi": "24",
+    "kode": "24.11",
+    "kabupaten": "Kota Mataram",
+    "ukw": 4,
+    "pic": 167,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-01 20:07:20"
+  },
+  {
+    "id": 395,
+    "kode_provinsi": "25",
+    "kode": "25.01",
+    "kabupaten": "Prov. Gorontalo",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 12:05:28"
+  },
+  {
+    "id": 396,
+    "kode_provinsi": "25",
+    "kode": "25.02",
+    "kabupaten": "Kab. Boalemo",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 12:06:15"
+  },
+  {
+    "id": 397,
+    "kode_provinsi": "25",
+    "kode": "25.03",
+    "kabupaten": "Kab. Bone Bolango",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 12:06:22"
+  },
+  {
+    "id": 398,
+    "kode_provinsi": "25",
+    "kode": "25.04",
+    "kabupaten": "Kab. Gorontalo",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 12:05:36"
+  },
+  {
+    "id": 399,
+    "kode_provinsi": "25",
+    "kode": "25.05",
+    "kabupaten": "Kab. Gorontalo Utara",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 12:05:43"
+  },
+  {
+    "id": 400,
+    "kode_provinsi": "25",
+    "kode": "25.06",
+    "kabupaten": "Kab. Pohuwato",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 12:06:28"
+  },
+  {
+    "id": 401,
+    "kode_provinsi": "25",
+    "kode": "25.07",
+    "kabupaten": "Kota Gorontalo",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 12:05:52"
+  },
+  {
+    "id": 402,
+    "kode_provinsi": "26",
+    "kode": "26.01",
+    "kabupaten": "Prov. Sulawesi Barat",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-06 11:06:24"
+  },
+  {
+    "id": 403,
+    "kode_provinsi": "26",
+    "kode": "26.02",
+    "kabupaten": "Kab. Majene",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-06 11:06:31"
+  },
+  {
+    "id": 404,
+    "kode_provinsi": "26",
+    "kode": "26.03",
+    "kabupaten": "Kab. Mamasa",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-06 11:06:36"
+  },
+  {
+    "id": 405,
+    "kode_provinsi": "26",
+    "kode": "26.04",
+    "kabupaten": "Kab. Mamuju",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-06 11:06:42"
+  },
+  {
+    "id": 406,
+    "kode_provinsi": "26",
+    "kode": "26.05",
+    "kabupaten": "Kab. Mamuju Tengah",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-06 11:06:47"
+  },
+  {
+    "id": 407,
+    "kode_provinsi": "26",
+    "kode": "26.06",
+    "kabupaten": "Kab. Pasangkayu",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-06 11:06:51"
+  },
+  {
+    "id": 408,
+    "kode_provinsi": "26",
+    "kode": "26.07",
+    "kabupaten": "Kab. Polewali Mandar",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-06 11:06:57"
+  },
+  {
+    "id": 409,
+    "kode_provinsi": "27",
+    "kode": "27.01",
+    "kabupaten": "Prov. Sulawesi Tengah",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:47:38"
+  },
+  {
+    "id": 410,
+    "kode_provinsi": "27",
+    "kode": "27.02",
+    "kabupaten": "Kab. Banggai",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:46:36"
+  },
+  {
+    "id": 411,
+    "kode_provinsi": "27",
+    "kode": "27.03",
+    "kabupaten": "Kab. Banggai Kepulauan",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:46:42"
+  },
+  {
+    "id": 412,
+    "kode_provinsi": "27",
+    "kode": "27.04",
+    "kabupaten": "Kab. Banggai Laut",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:46:48"
+  },
+  {
+    "id": 413,
+    "kode_provinsi": "27",
+    "kode": "27.05",
+    "kabupaten": "Kab. Buol",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:46:53"
+  },
+  {
+    "id": 414,
+    "kode_provinsi": "27",
+    "kode": "27.06",
+    "kabupaten": "Kab. Donggala",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:46:58"
+  },
+  {
+    "id": 415,
+    "kode_provinsi": "27",
+    "kode": "27.07",
+    "kabupaten": "Kab. Morowali",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:45:36"
+  },
+  {
+    "id": 416,
+    "kode_provinsi": "27",
+    "kode": "27.08",
+    "kabupaten": "Kab. Morowali Utara",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:45:40"
+  },
+  {
+    "id": 417,
+    "kode_provinsi": "27",
+    "kode": "27.09",
+    "kabupaten": "Kab. Parigi Moutong",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:47:03"
+  },
+  {
+    "id": 418,
+    "kode_provinsi": "27",
+    "kode": "27.10",
+    "kabupaten": "Kab. Poso",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:47:10"
+  },
+  {
+    "id": 419,
+    "kode_provinsi": "27",
+    "kode": "27.11",
+    "kabupaten": "Kab. Sigi",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:47:14"
+  },
+  {
+    "id": 420,
+    "kode_provinsi": "27",
+    "kode": "27.12",
+    "kabupaten": "Kab. Tojo Una-Una",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:47:20"
+  },
+  {
+    "id": 421,
+    "kode_provinsi": "27",
+    "kode": "27.13",
+    "kabupaten": "Kab. Toli-Toli",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:47:25"
+  },
+  {
+    "id": 422,
+    "kode_provinsi": "27",
+    "kode": "27.14",
+    "kabupaten": "Kota Palu",
+    "ukw": 5,
+    "pic": 15,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-01-20 09:47:31"
+  },
+  {
+    "id": 423,
+    "kode_provinsi": "28",
+    "kode": "28.01",
+    "kabupaten": "Prov. Sulawesi Utara",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:14:36"
+  },
+  {
+    "id": 424,
+    "kode_provinsi": "28",
+    "kode": "28.02",
+    "kabupaten": "Kab. Bolaang Mongondow",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:14:41"
+  },
+  {
+    "id": 425,
+    "kode_provinsi": "28",
+    "kode": "28.03",
+    "kabupaten": "Kab. Bolaang Mongondow Selatan",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:14:45"
+  },
+  {
+    "id": 426,
+    "kode_provinsi": "28",
+    "kode": "28.04",
+    "kabupaten": "Kab. Bolaang Mongondow Timur",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:14:49"
+  },
+  {
+    "id": 427,
+    "kode_provinsi": "28",
+    "kode": "28.05",
+    "kabupaten": "Kab. Bolaang Mongondow Utara",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:14:53"
+  },
+  {
+    "id": 428,
+    "kode_provinsi": "28",
+    "kode": "28.06",
+    "kabupaten": "Kab. Kepulauan Sangihe",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:14:57"
+  },
+  {
+    "id": 429,
+    "kode_provinsi": "28",
+    "kode": "28.07",
+    "kabupaten": "Kab. Kepulauan Siau Tagulandang Biaro",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:15:00"
+  },
+  {
+    "id": 430,
+    "kode_provinsi": "28",
+    "kode": "28.08",
+    "kabupaten": "Kab. Kepulauan Talaud",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:15:04"
+  },
+  {
+    "id": 431,
+    "kode_provinsi": "28",
+    "kode": "28.09",
+    "kabupaten": "Kab. Minahasa",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:15:06"
+  },
+  {
+    "id": 432,
+    "kode_provinsi": "28",
+    "kode": "28.10",
+    "kabupaten": "Kab. Minahasa Selatan",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:15:10"
+  },
+  {
+    "id": 433,
+    "kode_provinsi": "28",
+    "kode": "28.11",
+    "kabupaten": "Kab. Minahasa Tenggara",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:15:16"
+  },
+  {
+    "id": 434,
+    "kode_provinsi": "28",
+    "kode": "28.12",
+    "kabupaten": "Kab. Minahasa Utara",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:15:19"
+  },
+  {
+    "id": 435,
+    "kode_provinsi": "28",
+    "kode": "28.13",
+    "kabupaten": "Kota Bitung",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:15:23"
+  },
+  {
+    "id": 436,
+    "kode_provinsi": "28",
+    "kode": "28.14",
+    "kabupaten": "Kota Kotamobagu",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:15:26"
+  },
+  {
+    "id": 437,
+    "kode_provinsi": "28",
+    "kode": "28.15",
+    "kabupaten": "Kota Manado",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:15:29"
+  },
+  {
+    "id": 438,
+    "kode_provinsi": "28",
+    "kode": "28.16",
+    "kabupaten": "Kota Tomohon",
+    "ukw": 5,
+    "pic": 145,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-02-02 14:15:32"
+  },
+  {
+    "id": 439,
+    "kode_provinsi": "29",
+    "kode": "29.01",
+    "kabupaten": "Prov. Sulawesi Tenggara",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:24:23"
+  },
+  {
+    "id": 440,
+    "kode_provinsi": "29",
+    "kode": "29.02",
+    "kabupaten": "Kab. Bombana",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:24:29"
+  },
+  {
+    "id": 441,
+    "kode_provinsi": "29",
+    "kode": "29.03",
+    "kabupaten": "Kab. Buton",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:24:35"
+  },
+  {
+    "id": 442,
+    "kode_provinsi": "29",
+    "kode": "29.04",
+    "kabupaten": "Kab. Buton Selatan",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:24:40"
+  },
+  {
+    "id": 443,
+    "kode_provinsi": "29",
+    "kode": "29.05",
+    "kabupaten": "Kab. Buton Tengah",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:24:45"
+  },
+  {
+    "id": 444,
+    "kode_provinsi": "29",
+    "kode": "29.06",
+    "kabupaten": "Kab. Buton Utara",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:24:52"
+  },
+  {
+    "id": 445,
+    "kode_provinsi": "29",
+    "kode": "29.07",
+    "kabupaten": "Kab. Kolaka",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:24:56"
+  },
+  {
+    "id": 446,
+    "kode_provinsi": "29",
+    "kode": "29.08",
+    "kabupaten": "Kab. Kolaka Timur",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:32",
+    "updated_at": "2026-06-02 10:25:00"
+  },
+  {
+    "id": 447,
+    "kode_provinsi": "29",
+    "kode": "29.09",
+    "kabupaten": "Kab. Kolaka Utara",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-06-02 10:25:04"
+  },
+  {
+    "id": 448,
+    "kode_provinsi": "29",
+    "kode": "29.10",
+    "kabupaten": "Kab. Konawe",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-06-02 10:25:08"
+  },
+  {
+    "id": 449,
+    "kode_provinsi": "29",
+    "kode": "29.11",
+    "kabupaten": "Kab. Konawe Kepulauan",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-06-02 10:25:12"
+  },
+  {
+    "id": 450,
+    "kode_provinsi": "29",
+    "kode": "29.12",
+    "kabupaten": "Kab. Konawe Selatan",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-06-02 10:25:17"
+  },
+  {
+    "id": 451,
+    "kode_provinsi": "29",
+    "kode": "29.13",
+    "kabupaten": "Kab. Konawe Utara",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-06-02 10:25:21"
+  },
+  {
+    "id": 452,
+    "kode_provinsi": "29",
+    "kode": "29.14",
+    "kabupaten": "Kab. Muna",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-06-02 10:25:25"
+  },
+  {
+    "id": 453,
+    "kode_provinsi": "29",
+    "kode": "29.15",
+    "kabupaten": "Kab. Muna Barat",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-06-02 10:25:30"
+  },
+  {
+    "id": 454,
+    "kode_provinsi": "29",
+    "kode": "29.16",
+    "kabupaten": "Kab. Wakatobi",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-06-02 10:25:34"
+  },
+  {
+    "id": 455,
+    "kode_provinsi": "29",
+    "kode": "29.17",
+    "kabupaten": "Kota Baubau",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-06-02 10:25:39"
+  },
+  {
+    "id": 456,
+    "kode_provinsi": "29",
+    "kode": "29.18",
+    "kabupaten": "Kota Kendari",
+    "ukw": 5,
+    "pic": 155,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-06-02 10:25:43"
+  },
+  {
+    "id": 457,
+    "kode_provinsi": "30",
+    "kode": "30.01",
+    "kabupaten": "Prov. Sulawesi Selatan",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:10:00"
+  },
+  {
+    "id": 458,
+    "kode_provinsi": "30",
+    "kode": "30.02",
+    "kabupaten": "Kab. Bantaeng",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:10:06"
+  },
+  {
+    "id": 459,
+    "kode_provinsi": "30",
+    "kode": "30.03",
+    "kabupaten": "Kab. Barru",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:10:09"
+  },
+  {
+    "id": 460,
+    "kode_provinsi": "30",
+    "kode": "30.04",
+    "kabupaten": "Kab. Bone",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:10:12"
+  },
+  {
+    "id": 461,
+    "kode_provinsi": "30",
+    "kode": "30.05",
+    "kabupaten": "Kab. Bulukumba",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:10:16"
+  },
+  {
+    "id": 462,
+    "kode_provinsi": "30",
+    "kode": "30.06",
+    "kabupaten": "Kab. Enrekang",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:10:31"
+  },
+  {
+    "id": 463,
+    "kode_provinsi": "30",
+    "kode": "30.07",
+    "kabupaten": "Kab. Gowa",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:10:36"
+  },
+  {
+    "id": 464,
+    "kode_provinsi": "30",
+    "kode": "30.08",
+    "kabupaten": "Kab. Jeneponto",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:10:39"
+  },
+  {
+    "id": 465,
+    "kode_provinsi": "30",
+    "kode": "30.09",
+    "kabupaten": "Kab. Kepulauan Selayar",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:10:44"
+  },
+  {
+    "id": 466,
+    "kode_provinsi": "30",
+    "kode": "30.10",
+    "kabupaten": "Kab. Luwu",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:10:47"
+  },
+  {
+    "id": 467,
+    "kode_provinsi": "30",
+    "kode": "30.11",
+    "kabupaten": "Kab. Luwu Timur",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:10:54"
+  },
+  {
+    "id": 468,
+    "kode_provinsi": "30",
+    "kode": "30.12",
+    "kabupaten": "Kab. Luwu Utara",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:10:57"
+  },
+  {
+    "id": 469,
+    "kode_provinsi": "30",
+    "kode": "30.13",
+    "kabupaten": "Kab. Maros",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:01"
+  },
+  {
+    "id": 470,
+    "kode_provinsi": "30",
+    "kode": "30.14",
+    "kabupaten": "Kab. Pangkajene Dan Kepulauan",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:05"
+  },
+  {
+    "id": 471,
+    "kode_provinsi": "30",
+    "kode": "30.15",
+    "kabupaten": "Kab. Pinrang",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:09"
+  },
+  {
+    "id": 472,
+    "kode_provinsi": "30",
+    "kode": "30.16",
+    "kabupaten": "Kab. Sidenreng Rappang",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:13"
+  },
+  {
+    "id": 473,
+    "kode_provinsi": "30",
+    "kode": "30.17",
+    "kabupaten": "Kab. Sinjai",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:15"
+  },
+  {
+    "id": 474,
+    "kode_provinsi": "30",
+    "kode": "30.18",
+    "kabupaten": "Kab. Soppeng",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:19"
+  },
+  {
+    "id": 475,
+    "kode_provinsi": "30",
+    "kode": "30.19",
+    "kabupaten": "Kab. Takalar",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:22"
+  },
+  {
+    "id": 476,
+    "kode_provinsi": "30",
+    "kode": "30.20",
+    "kabupaten": "Kab. Tana Toraja",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:25"
+  },
+  {
+    "id": 477,
+    "kode_provinsi": "30",
+    "kode": "30.21",
+    "kabupaten": "Kab. Toraja Utara",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:30"
+  },
+  {
+    "id": 478,
+    "kode_provinsi": "30",
+    "kode": "30.22",
+    "kabupaten": "Kab. Wajo",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:33"
+  },
+  {
+    "id": 479,
+    "kode_provinsi": "30",
+    "kode": "30.23",
+    "kabupaten": "Kota Makassar",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:35"
+  },
+  {
+    "id": 480,
+    "kode_provinsi": "30",
+    "kode": "30.24",
+    "kabupaten": "Kota Palopo",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:39"
+  },
+  {
+    "id": 481,
+    "kode_provinsi": "30",
+    "kode": "30.25",
+    "kabupaten": "Kota Pare-Pare",
+    "ukw": 5,
+    "pic": 46,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:11:42"
+  },
+  {
+    "id": 482,
+    "kode_provinsi": "31",
+    "kode": "31.01",
+    "kabupaten": "Prov. Maluku Utara",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:05"
+  },
+  {
+    "id": 483,
+    "kode_provinsi": "31",
+    "kode": "31.02",
+    "kabupaten": "Kab. Halmahera Barat",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:10"
+  },
+  {
+    "id": 484,
+    "kode_provinsi": "31",
+    "kode": "31.03",
+    "kabupaten": "Kab. Halmahera Tengah",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:14"
+  },
+  {
+    "id": 485,
+    "kode_provinsi": "31",
+    "kode": "31.04",
+    "kabupaten": "Kab. Halmahera Utara",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:19"
+  },
+  {
+    "id": 486,
+    "kode_provinsi": "31",
+    "kode": "31.05",
+    "kabupaten": "Kab. Halmahera Selatan",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:23"
+  },
+  {
+    "id": 487,
+    "kode_provinsi": "31",
+    "kode": "31.06",
+    "kabupaten": "Kab. Kepulauan Sula",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:27"
+  },
+  {
+    "id": 488,
+    "kode_provinsi": "31",
+    "kode": "31.07",
+    "kabupaten": "Kab. Halmahera Timur",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:33"
+  },
+  {
+    "id": 489,
+    "kode_provinsi": "31",
+    "kode": "31.08",
+    "kabupaten": "Kab. Pulau Morotai",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:37"
+  },
+  {
+    "id": 490,
+    "kode_provinsi": "31",
+    "kode": "31.09",
+    "kabupaten": "Kab. Pulau Taliabu",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:42"
+  },
+  {
+    "id": 491,
+    "kode_provinsi": "31",
+    "kode": "31.10",
+    "kabupaten": "Kota Ternate",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:46"
+  },
+  {
+    "id": 492,
+    "kode_provinsi": "31",
+    "kode": "31.11",
+    "kabupaten": "Kota Tidore Kepulauan",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:50"
+  },
+  {
+    "id": 493,
+    "kode_provinsi": "32",
+    "kode": "32.01",
+    "kabupaten": "Prov. Maluku",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:53"
+  },
+  {
+    "id": 494,
+    "kode_provinsi": "32",
+    "kode": "32.02",
+    "kabupaten": "Kab. Buru",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:11:57"
+  },
+  {
+    "id": 495,
+    "kode_provinsi": "32",
+    "kode": "32.03",
+    "kabupaten": "Kab. Buru Selatan",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:12:01"
+  },
+  {
+    "id": 496,
+    "kode_provinsi": "32",
+    "kode": "32.04",
+    "kabupaten": "Kab. Kepulauan Aru",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:12:05"
+  },
+  {
+    "id": 497,
+    "kode_provinsi": "32",
+    "kode": "32.05",
+    "kabupaten": "Kab. Maluku Barat Daya",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:12:08"
+  },
+  {
+    "id": 498,
+    "kode_provinsi": "32",
+    "kode": "32.06",
+    "kabupaten": "Kab. Maluku Tengah",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:12:12"
+  },
+  {
+    "id": 499,
+    "kode_provinsi": "32",
+    "kode": "32.07",
+    "kabupaten": "Kab. Maluku Tenggara",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:12:16"
+  },
+  {
+    "id": 501,
+    "kode_provinsi": "32",
+    "kode": "32.09",
+    "kabupaten": "Kab. Seram Bagian Barat",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:12:25"
+  },
+  {
+    "id": 502,
+    "kode_provinsi": "32",
+    "kode": "32.10",
+    "kabupaten": "Kab. Seram Bagian Timur",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:12:30"
+  },
+  {
+    "id": 503,
+    "kode_provinsi": "32",
+    "kode": "32.11",
+    "kabupaten": "Kota Ambon",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:12:34"
+  },
+  {
+    "id": 504,
+    "kode_provinsi": "32",
+    "kode": "32.12",
+    "kabupaten": "Kota Tual",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-01 20:12:38"
+  },
+  {
+    "id": 505,
+    "kode_provinsi": "33",
+    "kode": "33.01",
+    "kabupaten": "Prov. Papua Barat",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:14:44"
+  },
+  {
+    "id": 506,
+    "kode_provinsi": "33",
+    "kode": "33.02",
+    "kabupaten": "Kab. Fakfak",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:14:54"
+  },
+  {
+    "id": 507,
+    "kode_provinsi": "33",
+    "kode": "33.03",
+    "kabupaten": "Kab. Kaimana",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:14:59"
+  },
+  {
+    "id": 508,
+    "kode_provinsi": "33",
+    "kode": "33.04",
+    "kabupaten": "Kab. Manokwari",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:15:02"
+  },
+  {
+    "id": 509,
+    "kode_provinsi": "33",
+    "kode": "33.05",
+    "kabupaten": "Kab. Manokwari Selatan",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:15:06"
+  },
+  {
+    "id": 510,
+    "kode_provinsi": "33",
+    "kode": "33.06",
+    "kabupaten": "Kab. Pegunungan Arfak",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:15:10"
+  },
+  {
+    "id": 511,
+    "kode_provinsi": "33",
+    "kode": "33.07",
+    "kabupaten": "Kab. Teluk Bintuni",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:15:18"
+  },
+  {
+    "id": 512,
+    "kode_provinsi": "33",
+    "kode": "33.08",
+    "kabupaten": "Kab. Teluk Wondama",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:15:22"
+  },
+  {
+    "id": 513,
+    "kode_provinsi": "34",
+    "kode": "34.01",
+    "kabupaten": "Prov. Papua",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:04:53"
+  },
+  {
+    "id": 514,
+    "kode_provinsi": "34",
+    "kode": "34.02",
+    "kabupaten": "Kab. Biak Numfor",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:05:06"
+  },
+  {
+    "id": 515,
+    "kode_provinsi": "34",
+    "kode": "34.03",
+    "kabupaten": "Kab. Jayapura",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:05:18"
+  },
+  {
+    "id": 516,
+    "kode_provinsi": "34",
+    "kode": "34.04",
+    "kabupaten": "Kab. Keerom",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:05:29"
+  },
+  {
+    "id": 517,
+    "kode_provinsi": "34",
+    "kode": "34.05",
+    "kabupaten": "Kab. Kepulauan Yapen",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:05:45"
+  },
+  {
+    "id": 518,
+    "kode_provinsi": "34",
+    "kode": "34.06",
+    "kabupaten": "Kab. Mamberamo Raya",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:05:55"
+  },
+  {
+    "id": 519,
+    "kode_provinsi": "34",
+    "kode": "34.07",
+    "kabupaten": "Kab. Sarmi",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:06:04"
+  },
+  {
+    "id": 520,
+    "kode_provinsi": "34",
+    "kode": "34.08",
+    "kabupaten": "Kab. Supiori",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:06:13"
+  },
+  {
+    "id": 521,
+    "kode_provinsi": "34",
+    "kode": "34.09",
+    "kabupaten": "Kab. Waropen",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:06:24"
+  },
+  {
+    "id": 522,
+    "kode_provinsi": "34",
+    "kode": "34.10",
+    "kabupaten": "Kota Jayapura",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:06:34"
+  },
+  {
+    "id": 523,
+    "kode_provinsi": "35",
+    "kode": "35.01",
+    "kabupaten": "Prov. Papua Barat Daya",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:16:05"
+  },
+  {
+    "id": 524,
+    "kode_provinsi": "35",
+    "kode": "35.02",
+    "kabupaten": "Kab. Maybrat",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:16:09"
+  },
+  {
+    "id": 525,
+    "kode_provinsi": "35",
+    "kode": "35.03",
+    "kabupaten": "Kab. Raja Ampat",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:16:13"
+  },
+  {
+    "id": 526,
+    "kode_provinsi": "35",
+    "kode": "35.04",
+    "kabupaten": "Kab. Sorong",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:16:18"
+  },
+  {
+    "id": 527,
+    "kode_provinsi": "35",
+    "kode": "35.05",
+    "kabupaten": "Kab. Sorong Selatan",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:16:22"
+  },
+  {
+    "id": 528,
+    "kode_provinsi": "35",
+    "kode": "35.06",
+    "kabupaten": "Kota Sorong",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:16:26"
+  },
+  {
+    "id": 529,
+    "kode_provinsi": "35",
+    "kode": "35.07",
+    "kabupaten": "Kab. Tambrauw",
+    "ukw": 4,
+    "pic": 37,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:16:31"
+  },
+  {
+    "id": 530,
+    "kode_provinsi": "36",
+    "kode": "36.01",
+    "kabupaten": "Prov. Papua Tengah",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:07:00"
+  },
+  {
+    "id": 531,
+    "kode_provinsi": "36",
+    "kode": "36.02",
+    "kabupaten": "Kab. Deiyai",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:07:06"
+  },
+  {
+    "id": 532,
+    "kode_provinsi": "36",
+    "kode": "36.03",
+    "kabupaten": "Kab. Dogiyai",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:07:16"
+  },
+  {
+    "id": 533,
+    "kode_provinsi": "36",
+    "kode": "36.04",
+    "kabupaten": "Kab. Intan Jaya",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:07:26"
+  },
+  {
+    "id": 534,
+    "kode_provinsi": "36",
+    "kode": "36.05",
+    "kabupaten": "Kab. Mimika",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:07:35"
+  },
+  {
+    "id": 535,
+    "kode_provinsi": "36",
+    "kode": "36.06",
+    "kabupaten": "Kab. Nabire",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:07:45"
+  },
+  {
+    "id": 536,
+    "kode_provinsi": "36",
+    "kode": "36.07",
+    "kabupaten": "Kab. Paniai",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:07:59"
+  },
+  {
+    "id": 537,
+    "kode_provinsi": "36",
+    "kode": "36.08",
+    "kabupaten": "Kab. Puncak",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:08:59"
+  },
+  {
+    "id": 538,
+    "kode_provinsi": "36",
+    "kode": "36.09",
+    "kabupaten": "Kab. Puncak Jaya",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:09:06"
+  },
+  {
+    "id": 539,
+    "kode_provinsi": "37",
+    "kode": "37.01",
+    "kabupaten": "Prov. Papua Pegunungan",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:09:52"
+  },
+  {
+    "id": 540,
+    "kode_provinsi": "37",
+    "kode": "37.02",
+    "kabupaten": "Kab. Jayawijaya",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:09:56"
+  },
+  {
+    "id": 541,
+    "kode_provinsi": "37",
+    "kode": "37.03",
+    "kabupaten": "Kab. Lanny Jaya",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:10:02"
+  },
+  {
+    "id": 542,
+    "kode_provinsi": "37",
+    "kode": "37.04",
+    "kabupaten": "Kab. Mamberamo Tengah",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:10:06"
+  },
+  {
+    "id": 543,
+    "kode_provinsi": "37",
+    "kode": "37.05",
+    "kabupaten": "Kab. Nduga",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:10:11"
+  },
+  {
+    "id": 544,
+    "kode_provinsi": "37",
+    "kode": "37.06",
+    "kabupaten": "Kab. Pegunungan Bintang",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:10:16"
+  },
+  {
+    "id": 545,
+    "kode_provinsi": "37",
+    "kode": "37.07",
+    "kabupaten": "Kab. Tolikara",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:10:20"
+  },
+  {
+    "id": 546,
+    "kode_provinsi": "37",
+    "kode": "37.08",
+    "kabupaten": "Kab. Yalimo",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:10:28"
+  },
+  {
+    "id": 547,
+    "kode_provinsi": "37",
+    "kode": "37.09",
+    "kabupaten": "Kab. Yahukimo",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:10:33"
+  },
+  {
+    "id": 548,
+    "kode_provinsi": "38",
+    "kode": "38.01",
+    "kabupaten": "Prov. Papua Selatan",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:10:39"
+  },
+  {
+    "id": 549,
+    "kode_provinsi": "38",
+    "kode": "38.02",
+    "kabupaten": "Kab. Asmat",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:10:45"
+  },
+  {
+    "id": 550,
+    "kode_provinsi": "38",
+    "kode": "38.03",
+    "kabupaten": "Kab. Boven Digoel",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:10:50"
+  },
+  {
+    "id": 551,
+    "kode_provinsi": "38",
+    "kode": "38.04",
+    "kabupaten": "Kab. Mappi",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:10:56"
+  },
+  {
+    "id": 552,
+    "kode_provinsi": "38",
+    "kode": "38.05",
+    "kabupaten": "Kab. Merauke",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-05-21 12:11:19"
+  },
+  {
+    "id": 553,
+    "kode_provinsi": "39",
+    "kode": "39.01",
+    "kabupaten": "Kementerian Agraria Dan Tata Ruang/Badan Pertanahan Nasional",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-07 08:19:56"
+  },
+  {
+    "id": 554,
+    "kode_provinsi": "39",
+    "kode": "39.02",
+    "kabupaten": "Kementerian Perdagangan",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-29 11:29:19"
+  },
+  {
+    "id": 555,
+    "kode_provinsi": "39",
+    "kode": "39.03",
+    "kabupaten": "Kementerian Sekretariat Negara",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:18:36"
+  },
+  {
+    "id": 556,
+    "kode_provinsi": "39",
+    "kode": "39.04",
+    "kabupaten": "Kementerian Dalam Negeri",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:18:42"
+  },
+  {
+    "id": 557,
+    "kode_provinsi": "39",
+    "kode": "39.05",
+    "kabupaten": "Kementerian Pendayagunaan Aparatur Negara Dan Reformasi Birokrasi",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-29 11:34:53"
+  },
+  {
+    "id": 558,
+    "kode_provinsi": "39",
+    "kode": "39.06",
+    "kabupaten": "Kementerian Pekerjaan Umum",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:15:07"
+  },
+  {
+    "id": 560,
+    "kode_provinsi": "39",
+    "kode": "39.08",
+    "kabupaten": "Kementerian Agama",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-27 11:29:40"
+  },
+  {
+    "id": 561,
+    "kode_provinsi": "39",
+    "kode": "39.09",
+    "kabupaten": "Kementerian Komunikasi Dan Digital",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:18:57"
+  },
+  {
+    "id": 562,
+    "kode_provinsi": "39",
+    "kode": "39.10",
+    "kabupaten": "Badan Kepegawaian Negara",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:19:03"
+  },
+  {
+    "id": 563,
+    "kode_provinsi": "39",
+    "kode": "39.11",
+    "kabupaten": "Badan Informasi Geospasial",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:19:07"
+  },
+  {
+    "id": 564,
+    "kode_provinsi": "39",
+    "kode": "39.12",
+    "kabupaten": "Badan Meteorologi, Klimatologi Dan Geofisika",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-02-03 11:25:59"
+  },
+  {
+    "id": 565,
+    "kode_provinsi": "39",
+    "kode": "39.13",
+    "kabupaten": "Badan Pengawas Obat Dan Makanan",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-29 11:31:38"
+  },
+  {
+    "id": 567,
+    "kode_provinsi": "39",
+    "kode": "39.15",
+    "kabupaten": "Lembaga Kebijakan Pengadaan Barang/Jasa Pemerintah",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-29 11:28:56"
+  },
+  {
+    "id": 568,
+    "kode_provinsi": "39",
+    "kode": "39.16",
+    "kabupaten": "DPR RI",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:19:24"
+  },
+  {
+    "id": 569,
+    "kode_provinsi": "39",
+    "kode": "39.17",
+    "kabupaten": "Komisi Pemilihan Umum",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:19:27"
+  },
+  {
+    "id": 570,
+    "kode_provinsi": "39",
+    "kode": "39.18",
+    "kabupaten": "Kementerian Lingkungan Hidup/Badan Pengendalian Lingkungan Hidup",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:19:32"
+  },
+  {
+    "id": 571,
+    "kode_provinsi": "39",
+    "kode": "39.19",
+    "kabupaten": "Kementerian Perhubungan",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:19:36"
+  },
+  {
+    "id": 572,
+    "kode_provinsi": "39",
+    "kode": "39.20",
+    "kabupaten": "Kementerian Kesehatan",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:13:16"
+  },
+  {
+    "id": 573,
+    "kode_provinsi": "39",
+    "kode": "39.21",
+    "kabupaten": "Kementerian Sosial",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:13:56"
+  },
+  {
+    "id": 574,
+    "kode_provinsi": "39",
+    "kode": "39.22",
+    "kabupaten": "Kementerian Pendidikan Dasar Dan Menengah",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:19:56"
+  },
+  {
+    "id": 575,
+    "kode_provinsi": "39",
+    "kode": "39.23",
+    "kabupaten": "Kementerian Perencanaan Pembangunan Nasional/Bappenas",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:20:00"
+  },
+  {
+    "id": 576,
+    "kode_provinsi": "39",
+    "kode": "39.24",
+    "kabupaten": "Badan Narkotika Nasional",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-29 11:30:58"
+  },
+  {
+    "id": 577,
+    "kode_provinsi": "39",
+    "kode": "39.25",
+    "kabupaten": "Badan Nasional Penanggulangan Bencana",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:20:07"
+  },
+  {
+    "id": 579,
+    "kode_provinsi": "39",
+    "kode": "39.27",
+    "kabupaten": "Badan Pusat Statistik",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:20:10"
+  },
+  {
+    "id": 580,
+    "kode_provinsi": "39",
+    "kode": "39.28",
+    "kabupaten": "Badan SAR Nasional",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:20:15"
+  },
+  {
+    "id": 581,
+    "kode_provinsi": "39",
+    "kode": "39.29",
+    "kabupaten": "Lembaga Ilmu Pengetahuan Indonesia",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:20:19"
+  },
+  {
+    "id": 582,
+    "kode_provinsi": "39",
+    "kode": "39.30",
+    "kabupaten": "Lembaga Penerbangan Dan Antariksa Nasional",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:20:23"
+  },
+  {
+    "id": 583,
+    "kode_provinsi": "39",
+    "kode": "39.31",
+    "kabupaten": "Komisi Nasional Hak Asasi Manusia",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-04-29 13:22:56"
+  },
+  {
+    "id": 584,
+    "kode_provinsi": "39",
+    "kode": "39.32",
+    "kabupaten": "Kementerian Pertahanan",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:20:35"
+  },
+  {
+    "id": 585,
+    "kode_provinsi": "39",
+    "kode": "39.33",
+    "kabupaten": "Kementerian Koordinator Bidang Hukum, Hak Asasi Manusia, Imigrasi Dan Permasyarakatan",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-29 11:30:45"
+  },
+  {
+    "id": 586,
+    "kode_provinsi": "39",
+    "kode": "39.34",
+    "kabupaten": "Kementerian Desa Dan Pembangunan Daerah Tertinggal",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:20:45"
+  },
+  {
+    "id": 587,
+    "kode_provinsi": "39",
+    "kode": "39.35",
+    "kabupaten": "Kementerian Pemberdayaan Perempuan Dan Perlindungan Anak",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:13:39"
+  },
+  {
+    "id": 588,
+    "kode_provinsi": "39",
+    "kode": "39.36",
+    "kabupaten": "Kementerian Pemuda Dan Olahraga",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-07 08:20:45"
+  },
+  {
+    "id": 589,
+    "kode_provinsi": "39",
+    "kode": "39.37",
+    "kabupaten": "Arsip Nasional Republik Indonesia",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-07 08:20:49"
+  },
+  {
+    "id": 590,
+    "kode_provinsi": "39",
+    "kode": "39.38",
+    "kabupaten": "Badan Intelijen Negara",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:21:04"
+  },
+  {
+    "id": 591,
+    "kode_provinsi": "39",
+    "kode": "39.39",
+    "kabupaten": "Kementerian Kependudukan Dan Pembangunan Keluarga/Badan Kependudukan Dan Keluarga Berencana Nasional",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-29 11:29:48"
+  },
+  {
+    "id": 592,
+    "kode_provinsi": "39",
+    "kode": "39.40",
+    "kabupaten": "Badan Nasional Penanggulangan Terorisme",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-07 08:20:59"
+  },
+  {
+    "id": 593,
+    "kode_provinsi": "39",
+    "kode": "39.41",
+    "kabupaten": "Badan Pengawas Tenaga Nuklir",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:21:15"
+  },
+  {
+    "id": 594,
+    "kode_provinsi": "39",
+    "kode": "39.42",
+    "kabupaten": "Badan Pertahanan Nasional",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:21:21"
+  },
+  {
+    "id": 595,
+    "kode_provinsi": "39",
+    "kode": "39.43",
+    "kabupaten": "Badan Tenaga Nuklir Nasional",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:21:25"
+  },
+  {
+    "id": 596,
+    "kode_provinsi": "39",
+    "kode": "39.44",
+    "kabupaten": "Lembaga Administrasi Nasional",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-29 11:30:03"
+  },
+  {
+    "id": 597,
+    "kode_provinsi": "39",
+    "kode": "39.45",
+    "kabupaten": "Lembaga Ketahanan Nasional",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:21:35"
+  },
+  {
+    "id": 598,
+    "kode_provinsi": "39",
+    "kode": "39.46",
+    "kabupaten": "Badan Siber Dan Sandi Negara",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-05 17:15:19"
+  },
+  {
+    "id": 599,
+    "kode_provinsi": "39",
+    "kode": "39.47",
+    "kabupaten": "Perpustakaan Nasional Republik Indonesia",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:21:43"
+  },
+  {
+    "id": 600,
+    "kode_provinsi": "39",
+    "kode": "39.48",
+    "kabupaten": "Komisi Ombudsman",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-07 08:21:04"
+  },
+  {
+    "id": 601,
+    "kode_provinsi": "39",
+    "kode": "39.49",
+    "kabupaten": "Komisi Perlindungan Anak",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:21:57"
+  },
+  {
+    "id": 602,
+    "kode_provinsi": "39",
+    "kode": "39.50",
+    "kabupaten": "Kementerian Keuangan",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-07 08:21:08"
+  },
+  {
+    "id": 603,
+    "kode_provinsi": "39",
+    "kode": "39.51",
+    "kabupaten": "Kementerian Luar Negeri",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-04-29 13:15:25"
+  },
+  {
+    "id": 604,
+    "kode_provinsi": "39",
+    "kode": "39.52",
+    "kabupaten": "Kementerian Energi Dan Sumber Daya Mineral",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-04-06 08:26:17"
+  },
+  {
+    "id": 605,
+    "kode_provinsi": "39",
+    "kode": "39.53",
+    "kabupaten": "Kementerian Perindustrian",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:22:16"
+  },
+  {
+    "id": 606,
+    "kode_provinsi": "39",
+    "kode": "39.54",
+    "kabupaten": "Kementerian Pertanian",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-29 11:34:34"
+  },
+  {
+    "id": 607,
+    "kode_provinsi": "39",
+    "kode": "39.55",
+    "kabupaten": "Kementerian Kelautan Dan Perikanan",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:22:24"
+  },
+  {
+    "id": 608,
+    "kode_provinsi": "39",
+    "kode": "39.56",
+    "kabupaten": "Kementerian Ketenagakerjaan",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:22:29"
+  },
+  {
+    "id": 609,
+    "kode_provinsi": "39",
+    "kode": "39.57",
+    "kabupaten": "Kementerian Pariwisata",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-04-29 13:14:58"
+  },
+  {
+    "id": 610,
+    "kode_provinsi": "39",
+    "kode": "39.58",
+    "kabupaten": "Kementerian Koperasi",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:22:36"
+  },
+  {
+    "id": 611,
+    "kode_provinsi": "39",
+    "kode": "39.59",
+    "kabupaten": "Kementerian Badan Usaha Milik Negara",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-29 11:33:46"
+  },
+  {
+    "id": 612,
+    "kode_provinsi": "39",
+    "kode": "39.60",
+    "kabupaten": "Badan Koordinasi Penanaman Modal",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:22:45"
+  },
+  {
+    "id": 613,
+    "kode_provinsi": "39",
+    "kode": "39.61",
+    "kabupaten": "Badan Nasional Penempatan Dan Perlindungan Tenaga Kerja Indonesia",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:22:56"
+  },
+  {
+    "id": 614,
+    "kode_provinsi": "39",
+    "kode": "39.62",
+    "kabupaten": "Badan Pengawasan Keuangan Dan Pembangunan",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:23:02"
+  },
+  {
+    "id": 615,
+    "kode_provinsi": "39",
+    "kode": "39.63",
+    "kabupaten": "Badan Standarisasi Nasional",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:23:07"
+  },
+  {
+    "id": 616,
+    "kode_provinsi": "39",
+    "kode": "39.64",
+    "kabupaten": "Komisi Pengawasan Persaingan Usaha",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-04-29 13:13:59"
+  },
+  {
+    "id": 617,
+    "kode_provinsi": "39",
+    "kode": "39.65",
+    "kabupaten": "LPP TVRI",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:23:17"
+  },
+  {
+    "id": 618,
+    "kode_provinsi": "39",
+    "kode": "39.66",
+    "kabupaten": "LPP RRI",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:23:21"
+  },
+  {
+    "id": 619,
+    "kode_provinsi": "39",
+    "kode": "39.67",
+    "kabupaten": "Universitas",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:23:26"
+  },
+  {
+    "id": 620,
+    "kode_provinsi": "39",
+    "kode": "39.68",
+    "kabupaten": "Badan Riset Dan Inovasi Nasional (BRIN)",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:23:30"
+  },
+  {
+    "id": 621,
+    "kode_provinsi": "39",
+    "kode": "39.69",
+    "kabupaten": "Badan Perlindungan Pekerja Migran Indonesia (BP2MI)",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:23:34"
+  },
+  {
+    "id": 622,
+    "kode_provinsi": "39",
+    "kode": "39.70",
+    "kabupaten": "Badan Pengawasan MA RI",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-10-19 15:06:33",
+    "updated_at": "2026-01-06 11:23:37"
+  },
+  {
+    "id": 625,
+    "kode_provinsi": "39",
+    "kode": "39.73",
+    "kabupaten": "Kementerian Perumahan Dan Kawasan Permukiman",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-12-05 11:23:27",
+    "updated_at": "2026-01-29 11:34:02"
+  },
+  {
+    "id": 626,
+    "kode_provinsi": "39",
+    "kode": "39.74",
+    "kabupaten": "Kementerian Pendidikan Tinggi, Sains, Dan Teknologi",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-12-05 11:31:47",
+    "updated_at": "2026-01-06 11:23:58"
+  },
+  {
+    "id": 628,
+    "kode_provinsi": "39",
+    "kode": "39.75",
+    "kabupaten": "Kementerian Ekonomi Kreatif",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2024-12-05 14:02:45",
+    "updated_at": "2026-01-06 11:24:07"
+  },
+  {
+    "id": 629,
+    "kode_provinsi": "39",
+    "kode": "39.76",
+    "kabupaten": "Kementerian Usaha Mikro, Kecil, Dan Menengah",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2024-12-05 14:04:26",
+    "updated_at": "2026-04-29 13:15:13"
+  },
+  {
+    "id": 630,
+    "kode_provinsi": "32",
+    "kode": "32.08",
+    "kabupaten": "Kab. Kepulauan Tanimbar",
+    "ukw": 5,
+    "pic": 169,
+    "created_at": "2025-02-19 17:06:46",
+    "updated_at": "2026-02-01 20:12:20"
+  },
+  {
+    "id": 631,
+    "kode_provinsi": "17",
+    "kode": "17.01",
+    "kabupaten": "Prov. Daerah Khusus Jakarta 1",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-02-19 17:21:16",
+    "updated_at": "2026-01-05 18:54:23"
+  },
+  {
+    "id": 632,
+    "kode_provinsi": "17",
+    "kode": "17.02",
+    "kabupaten": "Prov. Daerah Khusus Jakarta 2",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-02-19 17:21:44",
+    "updated_at": "2026-01-05 18:54:28"
+  },
+  {
+    "id": 634,
+    "kode_provinsi": "17",
+    "kode": "17.03",
+    "kabupaten": "Prov. Daerah Khusus Jakarta 3",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-02-19 17:23:33",
+    "updated_at": "2026-01-05 18:54:31"
+  },
+  {
+    "id": 635,
+    "kode_provinsi": "17",
+    "kode": "17.04",
+    "kabupaten": "Prov. Daerah Khusus Jakarta 4",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-02-19 17:23:53",
+    "updated_at": "2026-01-05 18:54:39"
+  },
+  {
+    "id": 636,
+    "kode_provinsi": "17",
+    "kode": "17.05",
+    "kabupaten": "Kota Jakarta Utara",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-02-19 17:24:07",
+    "updated_at": "2026-01-05 18:54:54"
+  },
+  {
+    "id": 637,
+    "kode_provinsi": "17",
+    "kode": "17.06",
+    "kabupaten": "Kota Jakarta Pusat",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-02-19 17:29:45",
+    "updated_at": "2026-01-05 18:54:59"
+  },
+  {
+    "id": 639,
+    "kode_provinsi": "39",
+    "kode": "39.77",
+    "kabupaten": "Kementerian Kehutanan",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-03-05 18:42:40",
+    "updated_at": "2026-01-06 11:24:14"
+  },
+  {
+    "id": 640,
+    "kode_provinsi": "39",
+    "kode": "39.78",
+    "kabupaten": "Kementerian Koordinator Bidang Infrastruktur Dan Pembangunan Kewilayahan",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-03-05 18:44:23",
+    "updated_at": "2026-01-07 08:21:34"
+  },
+  {
+    "id": 641,
+    "kode_provinsi": "39",
+    "kode": "39.79",
+    "kabupaten": "Mahkamah Agung",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-03-05 18:44:42",
+    "updated_at": "2026-01-07 08:22:32"
+  },
+  {
+    "id": 642,
+    "kode_provinsi": "39",
+    "kode": "39.80",
+    "kabupaten": "Sekretariat Kabinet Republik Indonesia",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2025-03-05 18:45:43",
+    "updated_at": "2026-01-29 11:32:01"
+  },
+  {
+    "id": 643,
+    "kode_provinsi": "39",
+    "kode": "39.81",
+    "kabupaten": "Badan Gizi Nasional",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2025-03-05 18:47:59",
+    "updated_at": "2026-01-29 11:32:22"
+  },
+  {
+    "id": 644,
+    "kode_provinsi": "40",
+    "kode": "40.01",
+    "kabupaten": "Kamar Dagang Indonesia (DKW 1)",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-03-11 14:12:13",
+    "updated_at": "2026-02-27 13:33:09"
+  },
+  {
+    "id": 645,
+    "kode_provinsi": "39",
+    "kode": "39.82",
+    "kabupaten": "Badan Pengawas Pemilu",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-03-12 12:00:17",
+    "updated_at": "2026-01-07 08:21:48"
+  },
+  {
+    "id": 646,
+    "kode_provinsi": "39",
+    "kode": "39.83",
+    "kabupaten": "Kejaksaan Agung",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-03-13 12:59:25",
+    "updated_at": "2026-01-07 08:21:52"
+  },
+  {
+    "id": 647,
+    "kode_provinsi": "39",
+    "kode": "39.84",
+    "kabupaten": "Kementerian Koordinator Bidang Perekonomian",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2025-03-13 13:43:38",
+    "updated_at": "2026-01-29 11:30:31"
+  },
+  {
+    "id": 648,
+    "kode_provinsi": "39",
+    "kode": "39.85",
+    "kabupaten": "Badan Amil Zakat Nasional",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-03-13 13:44:41",
+    "updated_at": "2026-01-06 11:24:49"
+  },
+  {
+    "id": 649,
+    "kode_provinsi": "39",
+    "kode": "39.86",
+    "kabupaten": "Komisi Pemberantasan Korupsi",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2025-03-13 13:45:52",
+    "updated_at": "2026-04-29 13:13:10"
+  },
+  {
+    "id": 650,
+    "kode_provinsi": "39",
+    "kode": "39.87",
+    "kabupaten": "Dewan Ekonomi Nasional",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-03-13 13:46:29",
+    "updated_at": "2026-01-06 11:25:00"
+  },
+  {
+    "id": 651,
+    "kode_provinsi": "40",
+    "kode": "40.02",
+    "kabupaten": "Universitas Jember",
+    "ukw": 2,
+    "pic": 38,
+    "created_at": "2025-03-15 11:41:22",
+    "updated_at": "2025-08-06 16:58:13"
+  },
+  {
+    "id": 652,
+    "kode_provinsi": "39",
+    "kode": "39.88",
+    "kabupaten": "Badan Nasional Pengelola Perbatasan",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2025-03-18 10:33:55",
+    "updated_at": "2026-01-29 11:31:23"
+  },
+  {
+    "id": 655,
+    "kode_provinsi": "39",
+    "kode": "39.89",
+    "kabupaten": "Badan Urusan Logistik",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-04-15 14:17:07",
+    "updated_at": "2026-01-07 08:22:08"
+  },
+  {
+    "id": 656,
+    "kode_provinsi": "39",
+    "kode": "39.90",
+    "kabupaten": "Lembaga Perlindungan Saksi Dan Korban",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2025-04-15 14:17:48",
+    "updated_at": "2026-04-29 13:13:40"
+  },
+  {
+    "id": 657,
+    "kode_provinsi": "39",
+    "kode": "39.91",
+    "kabupaten": "Kementerian Koordinator Bidang Pembangunan Manusia Dan Kebudayaan",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-04-28 14:36:37",
+    "updated_at": "2026-01-06 11:25:26"
+  },
+  {
+    "id": 658,
+    "kode_provinsi": "39",
+    "kode": "39.92",
+    "kabupaten": "Kementerian Kebudayaan",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-04-30 10:55:58",
+    "updated_at": "2026-01-06 11:25:31"
+  },
+  {
+    "id": 659,
+    "kode_provinsi": "21",
+    "kode": "21.40",
+    "kabupaten": "Kota Surabaya (DKW 4)",
+    "ukw": 3,
+    "pic": 38,
+    "created_at": "2025-05-02 06:49:51",
+    "updated_at": "2026-01-05 19:11:10"
+  },
+  {
+    "id": 661,
+    "kode_provinsi": "39",
+    "kode": "39.93",
+    "kabupaten": "Kementerian Imigrasi Dan Pemasyarakatan RI",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2025-09-03 11:41:59",
+    "updated_at": "2026-01-05 17:14:57"
+  },
+  {
+    "id": 662,
+    "kode_provinsi": "39",
+    "kode": "39.94",
+    "kabupaten": "Kementerian Transmigrasi Republik Indonesia",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2025-09-03 11:42:27",
+    "updated_at": "2026-04-29 13:14:47"
+  },
+  {
+    "id": 663,
+    "kode_provinsi": "39",
+    "kode": "39.95",
+    "kabupaten": "Badan Pemeriksa Keuangan",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-09-03 11:42:50",
+    "updated_at": "2026-01-07 08:22:38"
+  },
+  {
+    "id": 664,
+    "kode_provinsi": "39",
+    "kode": "39.96",
+    "kabupaten": "Kementerian Investasi Dan Hilirisasi /BKPM",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2025-09-11 14:03:28",
+    "updated_at": "2026-01-06 11:26:08"
+  },
+  {
+    "id": 665,
+    "kode_provinsi": "39",
+    "kode": "39.97",
+    "kabupaten": "Kementerian Koordinator Bidang Pangan",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2025-10-06 15:23:45",
+    "updated_at": "2026-01-29 11:34:17"
+  },
+  {
+    "id": 666,
+    "kode_provinsi": "07",
+    "kode": "07.01",
+    "kabupaten": "Prov. Kepulauan Riau",
+    "ukw": 1,
+    "pic": 163,
+    "created_at": "2026-01-07 10:29:04",
+    "updated_at": "2026-01-10 11:22:41"
+  },
+  {
+    "id": 667,
+    "kode_provinsi": "39",
+    "kode": "39.98",
+    "kabupaten": "Dewan Perwakilan Daerah",
+    "ukw": 3,
+    "pic": 58,
+    "created_at": "2026-01-07 10:40:37",
+    "updated_at": "2026-01-07 10:40:37"
+  },
+  {
+    "id": 668,
+    "kode_provinsi": "39",
+    "kode": "39.99",
+    "kabupaten": "Kementerian Hak Asasi Manusia",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2026-02-09 13:28:51",
+    "updated_at": "2026-02-09 13:28:51"
+  },
+  {
+    "id": 669,
+    "kode_provinsi": "39",
+    "kode": "39.100",
+    "kabupaten": "Kementerian Hukum",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2026-02-09 13:53:40",
+    "updated_at": "2026-02-09 14:02:07"
+  },
+  {
+    "id": 670,
+    "kode_provinsi": "39",
+    "kode": "39.101",
+    "kabupaten": "Kementerian Imigrasi Dan Pemasyarakatan",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2026-02-09 14:04:10",
+    "updated_at": "2026-02-09 14:04:10"
+  },
+  {
+    "id": 671,
+    "kode_provinsi": "40",
+    "kode": "40.04",
+    "kabupaten": "Universitas Muhammadiyah Papua",
+    "ukw": 4,
+    "pic": 63,
+    "created_at": "2026-02-09 15:46:00",
+    "updated_at": "2026-04-09 14:46:03"
+  },
+  {
+    "id": 672,
+    "kode_provinsi": "40",
+    "kode": "40.05",
+    "kabupaten": "Kementerian Koordinator Bidang Pemberdayaan Masyarakat",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2026-04-29 13:23:58",
+    "updated_at": "2026-04-29 13:23:58"
+  },
+  {
+    "id": 673,
+    "kode_provinsi": "40",
+    "kode": "40.06",
+    "kabupaten": "Badan Pangan Nasional",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2026-04-29 13:24:19",
+    "updated_at": "2026-04-29 13:24:19"
+  },
+  {
+    "id": 674,
+    "kode_provinsi": "40",
+    "kode": "40.07",
+    "kabupaten": "Bank Indonesia",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2026-04-29 13:24:30",
+    "updated_at": "2026-04-29 13:24:30"
+  },
+  {
+    "id": 675,
+    "kode_provinsi": "40",
+    "kode": "40.08",
+    "kabupaten": "Otoritas Jasa Keuangan",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2026-04-29 13:24:50",
+    "updated_at": "2026-04-29 13:24:50"
+  },
+  {
+    "id": 676,
+    "kode_provinsi": "40",
+    "kode": "40.09",
+    "kabupaten": "Komisi Informasi Pusat",
+    "ukw": 3,
+    "pic": 45,
+    "created_at": "2026-04-29 13:25:34",
+    "updated_at": "2026-04-29 13:25:34"
+  },
+  {
+    "id": 677,
+    "kode_provinsi": "40",
+    "kode": "40.10",
+    "kabupaten": "Yayasan SIT Qurrota Ayun",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2026-05-29 08:23:05",
+    "updated_at": "2026-05-29 08:23:05"
+  },
+  {
+    "id": 678,
+    "kode_provinsi": "40",
+    "kode": "39.102",
+    "kabupaten": "Balai Pemantapan Kawasan Hutan dan Tata Lingkungan Wilayah X Jayapura",
+    "ukw": 4,
+    "pic": 179,
+    "created_at": "2026-05-29 08:23:05",
+    "updated_at": "2026-05-29 08:23:05"
+  }
+]

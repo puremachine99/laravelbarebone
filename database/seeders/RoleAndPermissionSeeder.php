@@ -33,6 +33,8 @@ class RoleAndPermissionSeeder extends Seeder
             'view-finance-clearance',
             'manage-chat',
             'manage-ai-center',
+            'modify-master-data',
+            'verify-manager',
         ];
 
         foreach ($permissions as $permission) {
@@ -48,6 +50,9 @@ class RoleAndPermissionSeeder extends Seeder
 
         $partnershipAdminRole = Role::findOrCreate('Partnership Admin');
         $partnershipAdminRole->givePermissionTo('manage-partnership');
+
+        $pmoRole = Role::findOrCreate('PMO');
+        $pmoRole->givePermissionTo('manage-pipeline');
 
         $productAdminRole = Role::findOrCreate('Product Admin');
         $productAdminRole->givePermissionTo('manage-products');

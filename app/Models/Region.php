@@ -8,8 +8,8 @@ class Region extends Model
 {
     protected $guarded = ['id'];
 
-    public function provinces()
+    public function regencies()
     {
-        return $this->hasMany(Province::class);
+        return $this->hasMany(Regency::class);
     }
 }

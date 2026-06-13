@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
             OpdSeeder::class,
             ProductSeeder::class,
             ContactPositionSeeder::class,
+            PipelineSeeder::class,
         ]);
     }
 }

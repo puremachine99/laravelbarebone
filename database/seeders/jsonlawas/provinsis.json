@@ -1,0 +1,282 @@
+[
+  {
+    "id": 1,
+    "kode": "01",
+    "provinsi": "Prov. Aceh",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 2,
+    "kode": "02",
+    "provinsi": "Prov. Sumatera Utara",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 3,
+    "kode": "03",
+    "provinsi": "Prov. Sumatera Selatan",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 4,
+    "kode": "04",
+    "provinsi": "Prov. Sumatera Barat",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 5,
+    "kode": "05",
+    "provinsi": "Prov. Bengkulu",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 6,
+    "kode": "06",
+    "provinsi": "Prov. Riau",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 7,
+    "kode": "07",
+    "provinsi": "Prov. Kepulauan Riau",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 8,
+    "kode": "08",
+    "provinsi": "Prov. Jambi",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 9,
+    "kode": "09",
+    "provinsi": "Prov. Lampung",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-09-11 11:29:30"
+  },
+  {
+    "id": 10,
+    "kode": "10",
+    "provinsi": "Prov. Bangka Belitung",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 11,
+    "kode": "11",
+    "provinsi": "Prov. Kalimantan Barat",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:25:05"
+  },
+  {
+    "id": 12,
+    "kode": "12",
+    "provinsi": "Prov. Kalimantan Timur",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:25:15"
+  },
+  {
+    "id": 13,
+    "kode": "13",
+    "provinsi": "Prov. Kalimantan Selatan",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:25:21"
+  },
+  {
+    "id": 14,
+    "kode": "14",
+    "provinsi": "Prov. Kalimantan Tengah",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:25:26"
+  },
+  {
+    "id": 15,
+    "kode": "15",
+    "provinsi": "Prov. Kalimantan Utara",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:25:32"
+  },
+  {
+    "id": 16,
+    "kode": "16",
+    "provinsi": "Prov. Banten",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:25:37"
+  },
+  {
+    "id": 17,
+    "kode": "17",
+    "provinsi": "Prov. Daerah Khusus Jakarta",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-02-19 17:00:34"
+  },
+  {
+    "id": 18,
+    "kode": "18",
+    "provinsi": "Prov. Jawa Barat",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:25:45"
+  },
+  {
+    "id": 19,
+    "kode": "19",
+    "provinsi": "Prov. Jawa Tengah",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:25:54"
+  },
+  {
+    "id": 20,
+    "kode": "20",
+    "provinsi": "Prov. Daerah Istimewa Yogyakarta",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:25:59"
+  },
+  {
+    "id": 21,
+    "kode": "21",
+    "provinsi": "Prov. Jawa Timur",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:26:06"
+  },
+  {
+    "id": 22,
+    "kode": "22",
+    "provinsi": "Prov. Bali",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:26:11"
+  },
+  {
+    "id": 23,
+    "kode": "23",
+    "provinsi": "Prov. Nusa Tenggara Timur",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:26:16"
+  },
+  {
+    "id": 24,
+    "kode": "24",
+    "provinsi": "Prov. Nusa Tenggara Barat",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:26:20"
+  },
+  {
+    "id": 25,
+    "kode": "25",
+    "provinsi": "Prov. Gorontalo",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:26:28"
+  },
+  {
+    "id": 26,
+    "kode": "26",
+    "provinsi": "Prov. Sulawesi Barat",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:26:33"
+  },
+  {
+    "id": 27,
+    "kode": "27",
+    "provinsi": "Prov. Sulawesi Tengah",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:26:40"
+  },
+  {
+    "id": 28,
+    "kode": "28",
+    "provinsi": "Prov. Sulawesi Utara",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:26:46"
+  },
+  {
+    "id": 29,
+    "kode": "29",
+    "provinsi": "Prov. Sulawesi Tenggara",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:26:53"
+  },
+  {
+    "id": 30,
+    "kode": "30",
+    "provinsi": "Prov. Sulawesi Selatan",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:26:58"
+  },
+  {
+    "id": 31,
+    "kode": "31",
+    "provinsi": "Prov. Maluku Utara",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:27:03"
+  },
+  {
+    "id": 32,
+    "kode": "32",
+    "provinsi": "Prov. Maluku",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:27:07"
+  },
+  {
+    "id": 33,
+    "kode": "33",
+    "provinsi": "Prov. Papua Barat",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:27:16"
+  },
+  {
+    "id": 34,
+    "kode": "34",
+    "provinsi": "Prov. Papua",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2025-08-21 12:27:21"
+  },
+  {
+    "id": 35,
+    "kode": "35",
+    "provinsi": "Prov. Papua Barat Daya",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 36,
+    "kode": "36",
+    "provinsi": "Prov. Papua Tengah",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 37,
+    "kode": "37",
+    "provinsi": "Prov. Papua Pegunungan",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 38,
+    "kode": "38",
+    "provinsi": "Prov. Papua Selatan",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-10-16 17:18:45"
+  },
+  {
+    "id": 39,
+    "kode": "39",
+    "provinsi": "Kementerian/Lembaga",
+    "created_at": "2024-06-23 10:32:23",
+    "updated_at": "2024-07-16 14:36:45"
+  },
+  {
+    "id": 41,
+    "kode": "40",
+    "provinsi": "Non Pemerintahan",
+    "created_at": "2025-03-11 14:09:31",
+    "updated_at": "2025-03-11 14:09:31"
+  }
+]

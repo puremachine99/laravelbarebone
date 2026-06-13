@@ -17,7 +17,8 @@ test('super admin can access everything', function () {
     $this->get(route('products.index'))->assertOk();
     $this->get(route('executive-dashboard'))->assertOk();
     $this->get(route('leaderboard'))->assertOk();
-    $this->get(route('pipeline-config'))->assertOk();
+    $this->get(route('partnership.pitching'))->assertOk();
+    $this->get(route('partnership.realisasi'))->assertOk();
     $this->get(route('finance.intake'))->assertOk();
     $this->get(route('finance.reconciliation'))->assertOk();
     $this->get(route('finance.disbursements'))->assertOk();
@@ -33,7 +34,8 @@ test('user without proper role cannot access internal organization or new module
     $this->get(route('departments.index'))->assertStatus(403);
     $this->get(route('executive-dashboard'))->assertStatus(403);
     $this->get(route('leaderboard'))->assertStatus(403);
-    $this->get(route('pipeline-config'))->assertStatus(403);
+    $this->get(route('partnership.pitching'))->assertStatus(403);
+    $this->get(route('partnership.realisasi'))->assertStatus(403);
     $this->get(route('finance.intake'))->assertStatus(403);
     $this->get(route('chat'))->assertStatus(403);
 });
