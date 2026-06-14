@@ -219,7 +219,7 @@ class EmployeesSeeder extends Seeder
             $userId = DB::table('users')->insertGetId([
                 'name' => $name,
                 'email' => $email,
-                'password' => bcrypt('qQ123!@#'),
+                'password' => bcrypt('smartid2026'),
                 'email_verified_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),
