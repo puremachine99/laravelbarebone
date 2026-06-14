@@ -10,6 +10,8 @@ state([
     'filterFiscalYear' => (string) date('Y'),
     'filterSumberProyeksi' => '',
     'search' => '',
+    'filterStatus' => '',
+    'filterManagerVerified' => '',
 
     // Detail Drawer State
     'showDetailDrawer' => false,
@@ -56,38 +58,53 @@ $cards = computed(function () {
     return \App\Models\Card::forRealisasi()
         ->where('fiscal_year', (int) $this->filterFiscalYear)
         ->when($this->filterSumberProyeksi, fn($q) => $q->where('sumber_proyeksi', $this->filterSumberProyeksi))
+        ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
+        ->when($this->filterManagerVerified !== '', fn($q) => $q->where('manager_verified', $this->filterManagerVerified === '1'))
         ->when($this->search, function ($q) {
             $q->where(function ($sub) {
-                $sub->where('title', 'like', '%' . $this->search . '%')
+                $sub->where('title', 'ilike', '%' . $this->search . '%')
                     ->orWhereHas('contact', function ($c) {
-                        $c->where('name', 'like', '%' . $this->search . '%')
+                        $c->where('name', 'ilike', '%' . $this->search . '%')
                             ->orWhereHas('opd', function ($o) {
-                                $o->where('name', 'like', '%' . $this->search . '%');
+                                $o->where('name', 'ilike', '%' . $this->search . '%');
                             });
                     });
             });
         })
-        ->with(['contact.regency.province', 'contact.opd', 'contact.region'])
+        ->with(['contact.regency.province', 'contact.opd', 'contact.region', 'employee.user'])
         ->orderBy('updated_at', 'desc')
         ->paginate(10);
 });
 
 $realisasiStats = computed(function () {
-    $baseQuery = \App\Models\Card::where('fiscal_year', (int) $this->filterFiscalYear)
+    $baseQuery = \App\Models\Card::forRealisasi()
+        ->where('fiscal_year', (int) $this->filterFiscalYear)
         ->when($this->filterSumberProyeksi, fn($q) => $q->where('sumber_proyeksi', $this->filterSumberProyeksi))
-        ->whereNull('archived_at');
+        ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
+        ->when($this->filterManagerVerified !== '', fn($q) => $q->where('manager_verified', $this->filterManagerVerified === '1'))
+        ->when($this->search, function ($q) {
+            $q->where(function ($sub) {
+                $sub->where('title', 'ilike', '%' . $this->search . '%')
+                    ->orWhereHas('contact', function ($c) {
+                        $c->where('name', 'ilike', '%' . $this->search . '%')
+                            ->orWhereHas('opd', function ($o) {
+                                $o->where('name', 'ilike', '%' . $this->search . '%');
+                            });
+                    });
+            });
+        });
 
     $allCards = $baseQuery->with('stage')->get();
     
     $totalCount = $allCards->count();
-    $realisasiCount = $allCards->filter(fn($c) => $c->stage?->stage_name === 'Terlaksana' && $c->manager_verified && in_array($c->status, ['won', 'hot']))->count();
-    $totalBudget = $allCards->filter(fn($c) => $c->stage?->stage_name === 'Terlaksana' && $c->manager_verified && in_array($c->status, ['won', 'hot']))->sum('nominal_value');
+    $realisasiCount = $allCards->count();
+    $totalBudget = $allCards->sum('nominal_value');
 
-    $wonCount = $allCards->filter(fn($c) => $c->stage?->stage_name === 'Terlaksana' && $c->manager_verified && $c->status === 'won')->count();
-    $hotCount = $allCards->filter(fn($c) => $c->stage?->stage_name === 'Terlaksana' && $c->manager_verified && $c->status === 'hot')->count();
+    $wonCount = $allCards->filter(fn($c) => $c->status === 'won')->count();
+    $hotCount = $allCards->filter(fn($c) => $c->status === 'hot')->count();
 
-    $optimisCount = $allCards->filter(fn($c) => $c->stage?->stage_name === 'Terlaksana' && $c->manager_verified && in_array($c->status, ['won', 'hot']) && $c->projection_status === 'Optimis')->count();
-    $moderateCount = $allCards->filter(fn($c) => $c->stage?->stage_name === 'Terlaksana' && $c->manager_verified && in_array($c->status, ['won', 'hot']) && $c->projection_status === 'Moderate')->count();
+    $verifiedCount = $allCards->filter(fn($c) => $c->manager_verified)->count();
+    $pendingCount = $allCards->filter(fn($c) => !$c->manager_verified)->count();
 
     return [
         'total_count' => $totalCount,
@@ -95,10 +112,18 @@ $realisasiStats = computed(function () {
         'total_budget' => $totalBudget,
         'won_count' => $wonCount,
         'hot_count' => $hotCount,
-        'optimis_count' => $optimisCount,
-        'moderate_count' => $moderateCount,
+        'verified_count' => $verifiedCount,
+        'pending_count' => $pendingCount,
     ];
 });
+
+$resetFilters = function () {
+    $this->filterFiscalYear = (string) date('Y');
+    $this->filterSumberProyeksi = '';
+    $this->filterStatus = '';
+    $this->filterManagerVerified = '';
+    $this->search = '';
+};
 
 $canVerify = computed(fn() => 
     auth()->user()->hasRole('Super Admin') || 
@@ -129,7 +154,7 @@ $toggleVerification = function (int $cardId) {
 };
 
 $viewCard = function (int $cardId) {
-    $this->selectedCardForDetail = \App\Models\Card::with(['stage', 'contact.regency.province', 'contact.opd', 'contact.region'])->findOrFail($cardId);
+    $this->selectedCardForDetail = \App\Models\Card::with(['stage', 'contact.regency.province', 'contact.opd', 'contact.region', 'employee.user'])->findOrFail($cardId);
     $this->showDetailDrawer = true;
 };
 
@@ -170,8 +195,8 @@ $openHotUpdate = function (int $cardId) {
         'contact_name' => $card->contact ? $card->contact->name : $card->title,
     ];
     $this->decisionType = $card->status;
-    $this->projectionMonth = $card->projection_month ?: date('Y-m');
-    $this->projectionWeek = $card->projection_week ?: 'Pekan 1';
+    $this->projectionMonth = $card->projection_month ? (\strlen($card->projection_month) <= 7 ? $card->projection_month : \Carbon\Carbon::parse($card->projection_month)->format('Y-m')) : date('Y-m');
+    $this->projectionWeek = $card->projection_week ?: '1';
     $this->driveLink = $card->drive_link ?: '';
     $this->terlaksanaModalTitle = 'Tindak Lanjut Prospek Hot';
     $this->showTerlaksanaModal = true;
@@ -263,8 +288,8 @@ $editCard = function (int $cardId) {
     $this->editMethod = $card->communication_method ?: 'Online';
     $this->editSumber = $card->sumber_proyeksi ?: 'SIRUP';
     $this->editStatus = $card->status;
-    $this->editProjectionMonth = $card->projection_month ?: date('Y-m');
-    $this->editProjectionWeek = $card->projection_week ?: 'Pekan 1';
+    $this->editProjectionMonth = $card->projection_month ? (\strlen($card->projection_month) <= 7 ? $card->projection_month : \Carbon\Carbon::parse($card->projection_month)->format('Y-m')) : date('Y-m');
+    $this->editProjectionWeek = $card->projection_week ?: '1';
     $this->editProjectionStatus = $card->projection_status ?: 'Optimis';
     $this->editDriveLink = $card->drive_link ?: '';
     $this->editNegativeReason = $card->negative_reason ?: 'No Budget';
@@ -433,37 +458,37 @@ new class {};
             </div>
         </div>
 
-        <!-- Card 3: Status Proyeksi -->
+        <!-- Card 3: Verifikasi Manager -->
         <div class="card bg-base-100 border border-base-300 p-6 space-y-4 shadow-sm rounded-2xl">
             <div>
-                <h3 class="text-xs text-base-content/50 font-bold uppercase tracking-wider">STATUS PROYEKSI CLOSING</h3>
+                <h3 class="text-xs text-base-content/50 font-bold uppercase tracking-wider">VERIFIKASI MANAGER</h3>
                 <h2 class="text-2xl mt-1 font-extrabold text-base-content">
-                    {{ $this->realisasiStats['optimis_count'] }} Optimis
+                    {{ $this->realisasiStats['pending_count'] }} Menunggu
                 </h2>
                 <div class="text-xs text-base-content/50 mt-1">
-                    Moderate: {{ $this->realisasiStats['moderate_count'] }}
+                    Terverifikasi: {{ $this->realisasiStats['verified_count'] }}
                 </div>
             </div>
 
-            <!-- Stacked Horizontal Bar Chart: Proyeksi -->
+            <!-- Stacked Horizontal Bar Chart: Verifikasi -->
             @php
-                $projTotal = max($this->realisasiStats['optimis_count'] + $this->realisasiStats['moderate_count'], 1);
-                $optPercent = ($this->realisasiStats['optimis_count'] / $projTotal) * 100;
-                $modPercent = ($this->realisasiStats['moderate_count'] / $projTotal) * 100;
+                $verifTotal = max($this->realisasiStats['verified_count'] + $this->realisasiStats['pending_count'], 1);
+                $vPercent = ($this->realisasiStats['verified_count'] / $verifTotal) * 100;
+                $pPercent = ($this->realisasiStats['pending_count'] / $verifTotal) * 100;
             @endphp
             <div class="h-4 w-full bg-base-200 rounded-full overflow-hidden flex">
-                <div class="h-full bg-emerald-500" style="width: {{ $optPercent }}%" title="Optimis: {{ $this->realisasiStats['optimis_count'] }}"></div>
-                <div class="h-full bg-warning" style="width: {{ $modPercent }}%" title="Moderate: {{ $this->realisasiStats['moderate_count'] }}"></div>
+                <div class="h-full bg-emerald-500" style="width: {{ $vPercent }}%" title="Terverifikasi: {{ $this->realisasiStats['verified_count'] }}"></div>
+                <div class="h-full bg-amber-500" style="width: {{ $pPercent }}%" title="Menunggu: {{ $this->realisasiStats['pending_count'] }}"></div>
             </div>
 
             <div class="grid grid-cols-2 gap-1 text-[11px] text-base-content/70">
                 <div class="flex items-center gap-1">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-                    <span class="truncate">Optimis ({{ $this->realisasiStats['optimis_count'] }})</span>
+                    <span class="truncate">Terverifikasi ({{ $this->realisasiStats['verified_count'] }})</span>
                 </div>
                 <div class="flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full bg-warning inline-block"></span>
-                    <span class="truncate">Moderate ({{ $this->realisasiStats['moderate_count'] }})</span>
+                    <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
+                    <span class="truncate">Menunggu ({{ $this->realisasiStats['pending_count'] }})</span>
                 </div>
             </div>
         </div>
@@ -478,37 +503,50 @@ new class {};
                     Kelola dan pantau prospek yang telah disetujui (Deal / Positif) dan terverifikasi.
                 </p>
             </div>
-            <div>
+            <div class="flex items-center gap-3">
+                <x-button wire:click="resetFilters" label="Reset Filter" icon="o-arrow-path" class="btn-ghost btn-sm" />
                 <x-button label="Kembali ke Pitching" link="{{ route('partnership.pitching') }}" icon="o-arrow-left" class="btn-ghost btn-sm" />
             </div>
         </div>
 
-        <div class="flex flex-wrap gap-4 items-end">
-            <div class="w-48">
-                @php
-                    $yearOptions = [
-                        ['id' => '2026', 'name' => '2026'],
-                        ['id' => '2025', 'name' => '2025'],
-                        ['id' => '2024', 'name' => '2024'],
-                    ];
-                @endphp
-                <x-select label="Tahun Anggaran" wire:model.live="filterFiscalYear" :options="$yearOptions" />
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div class="flex flex-wrap gap-4 items-end">
+                <div class="w-48">
+                    @php
+                        $sumberFilters = [
+                            ['id' => '', 'name' => 'Semua Sumber'],
+                            ['id' => 'SIRUP', 'name' => 'SIRUP'],
+                            ['id' => 'SIPD', 'name' => 'SIPD'],
+                            ['id' => 'INAPROC', 'name' => 'INAPROC'],
+                            ['id' => 'ANALISIS PS', 'name' => 'ANALISIS PS'],
+                            ['id' => 'PERMINTAAN MITRA', 'name' => 'PERMINTAAN MITRA'],
+                        ];
+                    @endphp
+                    <x-select label="Sumber Proyeksi" wire:model.live="filterSumberProyeksi" :options="$sumberFilters" />
+                </div>
+                <div class="w-44">
+                    @php
+                        $statusFilters = [
+                            ['id' => '', 'name' => 'Semua Hasil'],
+                            ['id' => 'hot', 'name' => 'HOT'],
+                            ['id' => 'won', 'name' => 'WON'],
+                        ];
+                    @endphp
+                    <x-select label="Hasil / Keputusan" wire:model.live="filterStatus" :options="$statusFilters" />
+                </div>
+                <div class="w-44">
+                    @php
+                        $verifFilters = [
+                            ['id' => '', 'name' => 'Semua Verifikasi'],
+                            ['id' => '1', 'name' => 'Terverifikasi'],
+                            ['id' => '0', 'name' => 'Belum Diverifikasi'],
+                        ];
+                    @endphp
+                    <x-select label="Verif Manager" wire:model.live="filterManagerVerified" :options="$verifFilters" />
+                </div>
             </div>
             <div class="w-64">
-                @php
-                    $sumberFilters = [
-                        ['id' => '', 'name' => 'Semua Sumber Proyeksi'],
-                        ['id' => 'SIRUP', 'name' => 'SIRUP'],
-                        ['id' => 'SIPD', 'name' => 'SIPD'],
-                        ['id' => 'INAPROC', 'name' => 'INAPROC'],
-                        ['id' => 'ANALISIS PS', 'name' => 'ANALISIS PS'],
-                        ['id' => 'PERMINTAAN MITRA', 'name' => 'PERMINTAAN MITRA'],
-                    ];
-                @endphp
-                <x-select label="Sumber Proyeksi" wire:model.live="filterSumberProyeksi" :options="$sumberFilters" />
-            </div>
-            <div class="flex-1 min-w-[250px]">
-                <x-input label="Cari Prospek" wire:model.live.debounce.300ms="search" placeholder="Cari kontak, instansi, atau produk..." icon="o-magnifying-glass" clearable />
+                <x-input label="Cari Prospek" wire:model.live.debounce.300ms="search" placeholder="Cari..." icon="o-magnifying-glass" clearable />
             </div>
         </div>
 
@@ -530,19 +568,27 @@ new class {};
                     </tr>
                 </thead>
                 <tbody>
+                    @php
+                        $hl = function (?string $text, string $search): string {
+                            $safe = e($text ?? '');
+                            if ($search === '' || $safe === '') return $safe;
+                            $pattern = '/(' . preg_quote(e($search), '/') . ')/iu';
+                            return preg_replace($pattern, '<mark class="bg-yellow-200 dark:bg-yellow-700 rounded-sm px-0.5 not-italic">$1</mark>', $safe) ?? $safe;
+                        };
+                    @endphp
                     @forelse ($this->cards as $card)
                         <tr :key="$card->id" class="border-base-300 hover:bg-base-200/50">
                             <!-- Instansi / Kontak -->
                             <td>
                                 <div class="space-y-1">
                                     <div class="font-semibold text-sm text-base-content">
-                                        {{ $card->contact?->name ?? $card->title }}
+                                        {!! $hl($card->contact?->name ?? $card->title, $this->search) !!}
                                         @if ($card->contact?->is_ql)
                                             <span class="badge badge-success badge-xs font-bold ml-1 text-white text-[9px] rounded">QL</span>
                                         @endif
                                     </div>
                                     <div class="text-xs text-base-content/50">
-                                        {{ $card->contact?->opd?->name ?? '-' }}
+                                        {!! $hl($card->contact?->opd?->name ?? '-', $this->search) !!}
                                     </div>
                                     <div class="flex items-center gap-1 text-[11px] text-base-content/40">
                                         <x-icon name="o-map-pin" class="w-3.5 h-3.5" />
@@ -550,13 +596,19 @@ new class {};
                                             {{ $card->contact?->regency?->province?->name ?? '-' }}
                                             ({{ $card->contact?->region?->name ?? '-' }})</span>
                                     </div>
+                                    @if ($card->employee?->user)
+                                        <div class="flex items-center gap-1 text-[11px] text-indigo-500/70">
+                                            <x-icon name="o-user-circle" class="w-3.5 h-3.5" />
+                                            <span>PMO: {{ $card->employee->user->name }}</span>
+                                        </div>
+                                    @endif
                                 </div>
                             </td>
 
                             <!-- Potensi Produk -->
                             <td>
                                 <span class="text-xs font-medium text-base-content/90">
-                                    {{ $card->title }}
+                                    {!! $hl($card->title, $this->search) !!}
                                 </span>
                             </td>
 
@@ -588,7 +640,7 @@ new class {};
                             <!-- Proyeksi Closing -->
                             <td>
                                 <div class="space-y-0.5 text-xs text-base-content/80">
-                                    <div class="font-medium">{{ $card->projection_month ? Carbon\Carbon::parse($card->projection_month . '-01')->translatedFormat('F Y') : '-' }}</div>
+                                    <div class="font-medium">{{ $card->projection_month ? Carbon\Carbon::parse(\strlen($card->projection_month) <= 7 ? $card->projection_month . '-01' : $card->projection_month)->translatedFormat('F Y') : '-' }}</div>
                                     <div class="text-[10px] text-base-content/50 font-mono">{{ $card->projection_week }}</div>
                                 </div>
                             </td>
@@ -778,12 +830,16 @@ new class {};
                                 <span class="font-medium text-base-content/90">{{ $selectedCardForDetail->contact?->regency?->name ?? '-' }}, {{ $selectedCardForDetail->contact?->regency?->province?->name ?? '-' }} ({{ $selectedCardForDetail->contact?->region?->name ?? '-' }})</span>
                             </div>
                             <div>
-                                <span class="text-base-content/40 block text-xs">Nama Kontak PIC</span>
+                                <span class="text-base-content/40 block text-xs">Nama Kontak</span>
                                 <span class="font-semibold text-base-content">{{ $selectedCardForDetail->contact?->name ?? '-' }}</span>
                             </div>
                             <div>
                                 <span class="text-base-content/40 block text-xs">Jabatan & Telepon</span>
                                 <span class="font-medium text-base-content/90">{{ $selectedCardForDetail->contact?->contactPosition?->name ?? 'Staf' }} ({{ $selectedCardForDetail->contact?->phone ?? '-' }})</span>
+                            </div>
+                            <div>
+                                <span class="text-base-content/40 block text-xs">Staff PMO</span>
+                                <span class="font-medium text-indigo-600 dark:text-indigo-400">{{ $selectedCardForDetail->employee?->user?->name ?? '-' }}</span>
                             </div>
                         </div>
 
@@ -828,7 +884,7 @@ new class {};
                             </div>
                             <div>
                                 <span class="text-base-content/40 block text-xs">Bulan Proyeksi Realisasi</span>
-                                <span class="font-medium text-base-content/90">{{ $selectedCardForDetail->projection_month ? Carbon\Carbon::parse($selectedCardForDetail->projection_month . '-01')->translatedFormat('F Y') : '-' }}</span>
+                                <span class="font-medium text-base-content/90">{{ $selectedCardForDetail->projection_month ? Carbon\Carbon::parse(\strlen($selectedCardForDetail->projection_month) <= 7 ? $selectedCardForDetail->projection_month . '-01' : $selectedCardForDetail->projection_month)->translatedFormat('F Y') : '-' }}</span>
                             </div>
                             <div>
                                 <span class="text-base-content/40 block text-xs">Pekan Proyeksi</span>
@@ -877,7 +933,7 @@ new class {};
                                     <div class="p-3 rounded-xl bg-base-200 border border-base-300 space-y-1.5">
                                         <div class="flex items-center justify-between text-xs text-base-content/50">
                                             <span class="font-bold text-base-content/80">{{ $fu['user'] ?? 'System' }}</span>
-                                            <span>{{ \Carbon\Carbon::parse($fu['timestamp'])->translatedFormat('d M Y H:i') }}</span>
+                                            <span>{{ ($fu['timestamp'] ?? $fu['date'] ?? null) ? \Carbon\Carbon::parse($fu['timestamp'] ?? $fu['date'])->translatedFormat('d M Y H:i') : '-' }}</span>
                                         </div>
                                         <div>
                                             <span class="badge badge-info badge-sm font-semibold rounded text-[10px] text-white">{{ $fu['tujuan'] }}</span>
@@ -928,7 +984,7 @@ new class {};
                                         
                                         <div class="flex items-center justify-between text-xs text-base-content/50">
                                             <span class="font-semibold text-base-content">{{ $log['user'] ?? 'System' }}</span>
-                                            <span>{{ \Carbon\Carbon::parse($log['timestamp'])->translatedFormat('d M Y H:i') }}</span>
+                                            <span>{{ ($log['timestamp'] ?? $log['date'] ?? null) ? \Carbon\Carbon::parse($log['timestamp'] ?? $log['date'])->translatedFormat('d M Y H:i') : '-' }}</span>
                                         </div>
                                         <div class="text-xs font-medium text-base-content/90 mt-0.5">
                                             {{ ucwords(str_replace('_', ' ', $log['action'] ?? 'action')) }}
@@ -1049,10 +1105,25 @@ new class {};
         document.addEventListener('livewire:init', () => {
             Livewire.on('show-confetti', () => {
                 if (typeof confetti === 'function') {
+                    // Center blast
                     confetti({
                         particleCount: 150,
                         spread: 80,
                         origin: { y: 0.6 }
+                    });
+                    // Left cannon
+                    confetti({
+                        particleCount: 80,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0, y: 0.8 }
+                    });
+                    // Right cannon
+                    confetti({
+                        particleCount: 80,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1, y: 0.8 }
                     });
                 }
             });

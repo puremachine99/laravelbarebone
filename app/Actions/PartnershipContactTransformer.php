@@ -203,7 +203,7 @@ class PartnershipContactTransformer
     }
 
     /**
-     * MAP PIC
+     * MAP PIC (Berdasarkan Nama Lengkap, case-insensitive)
      */
     public function mapPic(?string $picName): ?int
     {
@@ -211,18 +211,22 @@ class PartnershipContactTransformer
             return null;
         }
 
-        $picName = trim($picName);
+        $cleanName = strtolower(trim($picName));
 
-        $employee = Employee::whereHas('user', function ($query) use ($picName) {
-            $query->where('name', $picName);
+        if (\strlen($cleanName) < 3) {
+            return null;
+        }
+
+        $employee = Employee::whereHas('user', function ($query) use ($cleanName) {
+            $query->whereRaw('LOWER(name) = ?', [$cleanName]);
         })->first();
 
         if ($employee) {
             return $employee->id;
         }
 
-        $employeeFuzzy = Employee::whereHas('user', function ($query) use ($picName) {
-            $query->where('name', 'like', '%'.$picName.'%');
+        $employeeFuzzy = Employee::whereHas('user', function ($query) use ($cleanName) {
+            $query->whereRaw('LOWER(name) LIKE ?', ["%{$cleanName}%"]);
         })->first();
 
         return $employeeFuzzy ? $employeeFuzzy->id : null;

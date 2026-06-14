@@ -26,7 +26,11 @@ state([
     // Filters
     'filterFiscalYear' => (string) date('Y'),
     'filterSumberProyeksi' => '',
+    'filterStageId' => '',
+    'filterStatus' => '',
+    'filterManagerVerified' => '',
     'showRescheduled' => false,
+    'search' => '',
 
     // Edit Modal State
     'editingCard' => null,
@@ -69,15 +73,68 @@ $cards = computed(function () {
     return \App\Models\Card::forPitching()
         ->where('fiscal_year', (int) $this->filterFiscalYear)
         ->when($this->filterSumberProyeksi, fn($q) => $q->where('sumber_proyeksi', $this->filterSumberProyeksi))
+        ->when($this->filterStageId, fn($q) => $q->where('stage_id', $this->filterStageId))
+        ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
+        ->when($this->filterManagerVerified !== '', fn($q) => $q->where('manager_verified', $this->filterManagerVerified === '1'))
         ->when(!$this->showRescheduled, function ($q) {
             $q->where(function ($sub) {
                 $sub->whereNull('negative_reason')->orWhere('negative_reason', 'not like', 'reschedule%');
             });
         })
-        ->with(['stage', 'contact.regency.province', 'contact.opd', 'contact.region'])
+        ->when($this->search, function ($q) {
+            $q->where(function ($sub) {
+                $sub->where('title', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('contact', function ($c) {
+                        $c->where('name', 'like', '%' . $this->search . '%')
+                            ->orWhereHas('opd', function ($o) {
+                                $o->where('name', 'like', '%' . $this->search . '%');
+                            });
+                    });
+            });
+        })
+        ->where(function ($q) {
+            $q->where('status', '!=', 'won')
+              ->orWhere('manager_verified', false);
+        })
+        ->with(['stage', 'contact.regency.province', 'contact.opd', 'contact.region', 'employee.user'])
         ->orderBy('created_at', 'desc')
         ->paginate(10);
 });
+
+$resetFilters = function () {
+    $this->filterFiscalYear = (string) date('Y');
+    $this->filterSumberProyeksi = '';
+    $this->filterStageId = '';
+    $this->filterStatus = '';
+    $this->filterManagerVerified = '';
+    $this->showRescheduled = false;
+    $this->search = '';
+    $this->resetPage();
+};
+
+$updatedSearch = function () {
+    $this->resetPage();
+};
+
+$updatedFilterSumberProyeksi = function () {
+    $this->resetPage();
+};
+
+$updatedFilterStageId = function () {
+    $this->resetPage();
+};
+
+$updatedFilterStatus = function () {
+    $this->resetPage();
+};
+
+$updatedFilterManagerVerified = function () {
+    $this->resetPage();
+};
+
+$updatedShowRescheduled = function () {
+    $this->resetPage();
+};
 
 $moveCard = function (int $cardId, string $newStageName) {
     $activeProfile = \App\Models\PipelineProfile::where('pipeline_name', 'Pitching')->where('is_active', true)->first();
@@ -265,14 +322,35 @@ $saveTidakTerlaksanaDecision = function () {
 };
 
 $pitchingStats = computed(function () {
-    $baseQuery = \App\Models\Card::where('fiscal_year', (int) $this->filterFiscalYear)
+    $baseQuery = \App\Models\Card::forPitching()
+        ->where('fiscal_year', (int) $this->filterFiscalYear)
         ->when($this->filterSumberProyeksi, fn($q) => $q->where('sumber_proyeksi', $this->filterSumberProyeksi))
-        ->whereNull('archived_at')
-        ->where(function ($sub) {
-            $sub->whereNull('negative_reason')->orWhere('negative_reason', 'not like', 'reschedule%');
-        });
+        ->when($this->filterStageId, fn($q) => $q->where('stage_id', $this->filterStageId))
+        ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
+        ->when($this->filterManagerVerified !== '', fn($q) => $q->where('manager_verified', $this->filterManagerVerified === '1'))
+        ->when(!$this->showRescheduled, function ($q) {
+            $q->where(function ($sub) {
+                $sub->whereNull('negative_reason')->orWhere('negative_reason', 'not like', 'reschedule%');
+            });
+        })
+        ->when($this->search, function ($q) {
+            $q->where(function ($sub) {
+                $sub->where('title', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('contact', function ($c) {
+                        $c->where('name', 'like', '%' . $this->search . '%')
+                            ->orWhereHas('opd', function ($o) {
+                                $o->where('name', 'like', '%' . $this->search . '%');
+                            });
+                    });
+            });
+        })
+        ->where(function ($q) {
+            $q->where('status', '!=', 'won')
+              ->orWhere('manager_verified', false);
+        })
+        ->with('stage');
 
-    $allCards = $baseQuery->with('stage')->get();
+    $allCards = $baseQuery->get();
     
     $totalCount = $allCards->count();
     $rencanaCount = $allCards->filter(fn($c) => $c->stage?->stage_name === 'Rencana')->count();
@@ -337,7 +415,7 @@ $toggleVerification = function (int $cardId) {
 };
 
 $viewCard = function (int $cardId) {
-    $this->selectedCardForDetail = \App\Models\Card::with(['stage', 'contact.regency.province', 'contact.opd', 'contact.region'])->findOrFail($cardId);
+    $this->selectedCardForDetail = \App\Models\Card::with(['stage', 'contact.regency.province', 'contact.opd', 'contact.region', 'employee.user'])->findOrFail($cardId);
     $this->showDetailDrawer = true;
 };
 
@@ -385,8 +463,8 @@ $openHotUpdate = function (int $cardId) {
         'contact_name' => $card->contact ? $card->contact->name : $card->title,
     ];
     $this->decisionType = $card->status;
-    $this->projectionMonth = $card->projection_month ?: date('Y-m');
-    $this->projectionWeek = $card->projection_week ?: 'Pekan 1';
+    $this->projectionMonth = $card->projection_month ? (\strlen($card->projection_month) <= 7 ? $card->projection_month : \Carbon\Carbon::parse($card->projection_month)->format('Y-m')) : date('Y-m');
+    $this->projectionWeek = $card->projection_week ?: '1';
     $this->driveLink = $card->drive_link ?: '';
     
     $statusTitle = match($card->status) {
@@ -409,8 +487,8 @@ $editCard = function (int $cardId) {
     $this->editMethod = $card->communication_method ?: 'Online';
     $this->editSumber = $card->sumber_proyeksi ?: 'SIRUP';
     $this->editStatus = $card->status;
-    $this->editProjectionMonth = $card->projection_month ?: date('Y-m');
-    $this->editProjectionWeek = $card->projection_week ?: 'Pekan 1';
+    $this->editProjectionMonth = $card->projection_month ? (\strlen($card->projection_month) <= 7 ? $card->projection_month : \Carbon\Carbon::parse($card->projection_month)->format('Y-m')) : date('Y-m');
+    $this->editProjectionWeek = $card->projection_week ?: '1';
     $this->editDriveLink = $card->drive_link ?: '';
     $this->showEditModal = true;
 };
@@ -620,38 +698,64 @@ new class {};
                     instansi dalam bentuk tabel.</p>
             </div>
             <div class="flex items-center gap-3">
-                <x-button wire:click="resetSimulation" label="Reset Data" icon="o-arrow-path" class="btn-ghost btn-sm" />
+                <x-button wire:click="resetFilters" label="Reset Filter" icon="o-arrow-path" class="btn-ghost btn-sm" />
                 <livewire:partnership.pitching-create-modal />
             </div>
         </div>
 
-        <div class="flex flex-wrap gap-4 items-end">
-            <div class="w-48">
-                @php
-                    $yearOptions = [
-                        ['id' => '2026', 'name' => '2026'],
-                        ['id' => '2025', 'name' => '2025'],
-                        ['id' => '2024', 'name' => '2024'],
-                    ];
-                @endphp
-                <x-select label="Tahun Anggaran" wire:model.live="filterFiscalYear" :options="$yearOptions" />
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div class="flex flex-wrap gap-4 items-end">
+                <div class="w-48">
+                    @php
+                        $sumberFilters = [
+                            ['id' => '', 'name' => 'Semua Sumber'],
+                            ['id' => 'SIRUP', 'name' => 'SIRUP'],
+                            ['id' => 'SIPD', 'name' => 'SIPD'],
+                            ['id' => 'INAPROC', 'name' => 'INAPROC'],
+                            ['id' => 'ANALISIS PS', 'name' => 'ANALISIS PS'],
+                            ['id' => 'PERMINTAAN MITRA', 'name' => 'PERMINTAAN MITRA'],
+                        ];
+                    @endphp
+                    <x-select label="Sumber Proyeksi" wire:model.live="filterSumberProyeksi" :options="$sumberFilters" />
+                </div>
+                <div class="w-44">
+                    @php
+                        $stageFilters = [['id' => '', 'name' => 'Semua Tahap']];
+                        foreach ($this->stageOptions as $stg) {
+                            $stageFilters[] = ['id' => $stg->id, 'name' => $stg->stage_name];
+                        }
+                    @endphp
+                    <x-select label="Status / Tahap" wire:model.live="filterStageId" :options="$stageFilters" />
+                </div>
+                <div class="w-44">
+                    @php
+                        $statusFilters = [
+                            ['id' => '', 'name' => 'Semua Hasil'],
+                            ['id' => 'hot', 'name' => 'HOT'],
+                            ['id' => 'warm', 'name' => 'WARM'],
+                            ['id' => 'lost', 'name' => 'LOST'],
+                            ['id' => 'won', 'name' => 'WON (PENDING)'],
+                        ];
+                    @endphp
+                    <x-select label="Hasil / Keputusan" wire:model.live="filterStatus" :options="$statusFilters" />
+                </div>
+                <div class="w-44">
+                    @php
+                        $verifFilters = [
+                            ['id' => '', 'name' => 'Semua Verifikasi'],
+                            ['id' => '1', 'name' => 'Terverifikasi'],
+                            ['id' => '0', 'name' => 'Belum Diverifikasi'],
+                        ];
+                    @endphp
+                    <x-select label="Verif Manager" wire:model.live="filterManagerVerified" :options="$verifFilters" />
+                </div>
+                <div class="flex items-center h-12 pb-1.5">
+                    <x-checkbox label="Tampilkan Semua Rencana" wire:model.live="showRescheduled"
+                        class="checkbox-primary checkbox-sm" />
+                </div>
             </div>
             <div class="w-64">
-                @php
-                    $sumberFilters = [
-                        ['id' => '', 'name' => 'Semua Sumber Proyeksi'],
-                        ['id' => 'SIRUP', 'name' => 'SIRUP'],
-                        ['id' => 'SIPD', 'name' => 'SIPD'],
-                        ['id' => 'INAPROC', 'name' => 'INAPROC'],
-                        ['id' => 'ANALISIS PS', 'name' => 'ANALISIS PS'],
-                        ['id' => 'PERMINTAAN MITRA', 'name' => 'PERMINTAAN MITRA'],
-                    ];
-                @endphp
-                <x-select label="Sumber Proyeksi" wire:model.live="filterSumberProyeksi" :options="$sumberFilters" />
-            </div>
-            <div class="flex items-center h-12 pb-1.5">
-                <x-checkbox label="tampilkan semua rencana pitching" wire:model.live="showRescheduled"
-                    class="checkbox-primary checkbox-sm" />
+                <x-input label="Cari Instansi / Kontak / Produk" wire:model.live.debounce.300ms="search" placeholder="Cari..." icon="o-magnifying-glass" />
             </div>
         </div>
 
@@ -695,6 +799,12 @@ new class {};
                                             {{ $card->contact?->regency?->province?->name ?? '-' }}
                                             ({{ $card->contact?->region?->name ?? '-' }})</span>
                                     </div>
+                                    @if ($card->employee?->user)
+                                        <div class="flex items-center gap-1 text-[11px] text-indigo-500/70">
+                                            <x-icon name="o-user-circle" class="w-3.5 h-3.5" />
+                                            <span>PMO: {{ $card->employee->user->name }}</span>
+                                        </div>
+                                    @endif
                                 </div>
                             </td>
 
@@ -1063,12 +1173,16 @@ new class {};
                                 <span class="font-medium text-base-content/90">{{ $selectedCardForDetail->contact?->regency?->name ?? '-' }}, {{ $selectedCardForDetail->contact?->regency?->province?->name ?? '-' }} ({{ $selectedCardForDetail->contact?->region?->name ?? '-' }})</span>
                             </div>
                             <div>
-                                <span class="text-base-content/40 block text-xs">Nama Kontak PIC</span>
+                                <span class="text-base-content/40 block text-xs">Nama Kontak</span>
                                 <span class="font-semibold text-base-content">{{ $selectedCardForDetail->contact?->name ?? '-' }}</span>
                             </div>
                             <div>
                                 <span class="text-base-content/40 block text-xs">Jabatan & Telepon</span>
                                 <span class="font-medium text-base-content/90">{{ $selectedCardForDetail->contact?->contactPosition?->name ?? 'Staf' }} ({{ $selectedCardForDetail->contact?->phone ?? '-' }})</span>
+                            </div>
+                            <div>
+                                <span class="text-base-content/40 block text-xs">Staff PMO</span>
+                                <span class="font-medium text-indigo-600 dark:text-indigo-400">{{ $selectedCardForDetail->employee?->user?->name ?? '-' }}</span>
                             </div>
                         </div>
 
@@ -1170,7 +1284,7 @@ new class {};
                                     <div class="p-3 rounded-xl bg-base-200 border border-base-300 space-y-1.5">
                                         <div class="flex items-center justify-between text-xs text-base-content/50">
                                             <span class="font-bold text-base-content/80">{{ $fu['user'] ?? 'System' }}</span>
-                                            <span>{{ \Carbon\Carbon::parse($fu['timestamp'])->translatedFormat('d M Y H:i') }}</span>
+                                            <span>{{ ($fu['timestamp'] ?? $fu['date'] ?? null) ? \Carbon\Carbon::parse($fu['timestamp'] ?? $fu['date'])->translatedFormat('d M Y H:i') : '-' }}</span>
                                         </div>
                                         <div>
                                             <span class="badge badge-info badge-sm font-semibold rounded text-[10px] text-white">{{ $fu['tujuan'] }}</span>
@@ -1221,7 +1335,7 @@ new class {};
                                         
                                         <div class="flex items-center justify-between text-xs text-base-content/50">
                                             <span class="font-semibold text-base-content">{{ $log['user'] ?? 'System' }}</span>
-                                            <span>{{ \Carbon\Carbon::parse($log['timestamp'])->translatedFormat('d M Y H:i') }}</span>
+                                            <span>{{ ($log['timestamp'] ?? $log['date'] ?? null) ? \Carbon\Carbon::parse($log['timestamp'] ?? $log['date'])->translatedFormat('d M Y H:i') : '-' }}</span>
                                         </div>
                                         <div class="text-xs font-medium text-base-content/90 mt-0.5">
                                             {{ ucwords(str_replace('_', ' ', $log['action'] ?? 'action')) }}
@@ -1266,10 +1380,25 @@ new class {};
         document.addEventListener('livewire:init', () => {
             Livewire.on('show-confetti', () => {
                 if (typeof confetti === 'function') {
+                    // Center blast
                     confetti({
                         particleCount: 150,
                         spread: 80,
                         origin: { y: 0.6 }
+                    });
+                    // Left cannon
+                    confetti({
+                        particleCount: 80,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0, y: 0.8 }
+                    });
+                    // Right cannon
+                    confetti({
+                        particleCount: 80,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1, y: 0.8 }
                     });
                 }
             });

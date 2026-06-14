@@ -32,6 +32,16 @@ class Output extends Model
         return $this->belongsTo(ServiceCenter::class);
     }
 
+    public function category()
+    {
+        return $this->belongsTo(ProductCategory::class, 'category_code', 'code');
+    }
+
+    public function cards()
+    {
+        return $this->hasMany(Card::class);
+    }
+
     protected static function boot()
     {
         parent::boot();

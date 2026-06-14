@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-#[Signature('app:sync-partnership-contacts')]
+#[Signature('sync:contacts')]
 #[Description('Sync and sanitize contacts from the external Partnership App database')]
 class SyncPartnershipContacts extends Command
 {

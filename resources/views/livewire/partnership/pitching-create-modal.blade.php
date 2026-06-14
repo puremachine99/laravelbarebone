@@ -141,6 +141,7 @@ $addCard = function () {
 
     $card = \App\Models\Card::create([
         'title' => $productName,
+        'output_id' => (int) $this->newProduct,
         'stage_id' => $stage->id,
         'contact_id' => $this->selectedContactId,
         'nominal_value' => (float) $this->newBudget,

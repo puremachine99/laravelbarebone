@@ -5,6 +5,7 @@ use App\Models\Contact;
 use App\Models\Division;
 use App\Models\Opd;
 use App\Models\Output;
+use App\Models\PipelineProfile;
 use App\Models\PipelineStage;
 use App\Models\ProductCategory;
 use App\Models\Province;
@@ -117,4 +118,65 @@ test('realisasi page renders completed cards only', function () {
         ->assertSet('filterFiscalYear', (string) date('Y'))
         ->assertSee('PIC Budi')
         ->assertDontSee('Rp 30.000.000');
+});
+
+test('realisasi page filter and search functionality works', function () {
+    (new PipelineSeeder)->run();
+    $user = User::factory()->create();
+    $user->givePermissionTo(['manage-pipeline']);
+
+    $region = Region::first() ?: Region::create(['name' => 'Region Jawa', 'code' => 'REG-JAWA']);
+    $contact1 = Contact::create(['name' => 'Instansi Alpha', 'sumber' => 'SIRUP', 'region_id' => $region->id, 'category' => 'Pemerintah Daerah']);
+    $contact2 = Contact::create(['name' => 'Instansi Beta', 'sumber' => 'SIPD', 'region_id' => $region->id, 'category' => 'Pemerintah Daerah']);
+
+    $pitchingProfile = PipelineProfile::where('pipeline_name', 'Pitching')->first();
+    $stageTerlaksana = $pitchingProfile->stages()->where('stage_name', 'Terlaksana')->first();
+
+    $card1 = Card::create([
+        'title' => 'Product Alpha',
+        'stage_id' => $stageTerlaksana->id,
+        'contact_id' => $contact1->id,
+        'nominal_value' => 10000000,
+        'status' => 'won',
+        'sumber_proyeksi' => 'SIRUP',
+        'manager_verified' => false,
+    ]);
+
+    $card2 = Card::create([
+        'title' => 'Product Beta',
+        'stage_id' => $stageTerlaksana->id,
+        'contact_id' => $contact2->id,
+        'nominal_value' => 20000000,
+        'status' => 'hot',
+        'sumber_proyeksi' => 'SIPD',
+        'manager_verified' => true,
+    ]);
+
+    // Test search filter
+    Livewire::actingAs($user)
+        ->test('partnership.realisasi-index')
+        ->set('search', 'Alpha')
+        ->assertSee('Instansi Alpha')
+        ->assertDontSee('Instansi Beta')
+        // Test sumber filter
+        ->set('search', '')
+        ->set('filterSumberProyeksi', 'SIRUP')
+        ->assertSee('Instansi Alpha')
+        ->assertDontSee('Instansi Beta')
+        // Test status filter
+        ->set('filterSumberProyeksi', '')
+        ->set('filterStatus', 'hot')
+        ->assertDontSee('Instansi Alpha')
+        ->assertSee('Instansi Beta')
+        // Test manager verified filter
+        ->set('filterStatus', '')
+        ->set('filterManagerVerified', '1')
+        ->assertDontSee('Instansi Alpha')
+        ->assertSee('Instansi Beta')
+        // Test reset filters
+        ->call('resetFilters')
+        ->assertSet('search', '')
+        ->assertSet('filterSumberProyeksi', '')
+        ->assertSet('filterStatus', '')
+        ->assertSet('filterManagerVerified', '');
 });

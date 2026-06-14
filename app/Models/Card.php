@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class Card extends Model
 {
@@ -21,9 +22,19 @@ class Card extends Model
         return $this->belongsTo(PipelineStage::class, 'stage_id');
     }
 
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
     public function contact()
     {
         return $this->belongsTo(Contact::class);
+    }
+
+    public function output()
+    {
+        return $this->belongsTo(Output::class);
     }
 
     public function addHistoryLog(string $action, string $details): void
@@ -38,18 +49,18 @@ class Card extends Model
         $this->update(['history_logs' => $logs]);
     }
 
-    public function scopeForPitching($query)
+    public function scopeForPitching(Builder $query): Builder
     {
         return $query->whereNull('archived_at')
-            ->where(function ($q) {
+            ->where(function (Builder $q) {
                 $q->whereNotIn('status', ['won', 'lost'])
                     ->orWhere('updated_at', '>=', now()->subDays(30));
             });
     }
 
-    public function scopeForRealisasi($query)
+    public function scopeForRealisasi(Builder $query): Builder
     {
-        return $query->whereHas('stage', function ($q) {
+        return $query->whereHas('stage', function (Builder $q) {
             $q->where('stage_name', 'Terlaksana');
         })->whereIn('status', ['won', 'hot']);
     }

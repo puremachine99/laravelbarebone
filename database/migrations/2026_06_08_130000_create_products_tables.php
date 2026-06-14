@@ -38,7 +38,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('division_id')->constrained('divisions')->cascadeOnDelete();
             $table->foreignId('service_center_id')->constrained('service_centers')->cascadeOnDelete();
-            $table->string('category_code', 50)->constrained('product_categories', 'code');
+            $table->string('category_code', 50);
+            $table->foreign('category_code')->references('code')->on('product_categories')->cascadeOnDelete();
             $table->string('output_name', 255);
             $table->string('pelaksana', 255)->nullable();
             $table->boolean('status')->default(true);
