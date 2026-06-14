@@ -70,8 +70,12 @@ $stageOptions = computed(function () {
 });
 
 $cards = computed(function () {
+    $user = auth()->user();
+    $employeeId = $user->employee?->id;
+
     return \App\Models\Card::forPitching()
         ->where('fiscal_year', (int) $this->filterFiscalYear)
+        ->when(!$this->canVerify && $employeeId, fn($q) => $q->where('employee_id', $employeeId))
         ->when($this->filterSumberProyeksi, fn($q) => $q->where('sumber_proyeksi', $this->filterSumberProyeksi))
         ->when($this->filterStageId, fn($q) => $q->where('stage_id', $this->filterStageId))
         ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
@@ -322,8 +326,12 @@ $saveTidakTerlaksanaDecision = function () {
 };
 
 $pitchingStats = computed(function () {
+    $user = auth()->user();
+    $employeeId = $user->employee?->id;
+
     $baseQuery = \App\Models\Card::forPitching()
         ->where('fiscal_year', (int) $this->filterFiscalYear)
+        ->when(!$this->canVerify && $employeeId, fn($q) => $q->where('employee_id', $employeeId))
         ->when($this->filterSumberProyeksi, fn($q) => $q->where('sumber_proyeksi', $this->filterSumberProyeksi))
         ->when($this->filterStageId, fn($q) => $q->where('stage_id', $this->filterStageId))
         ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
