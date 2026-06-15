@@ -51,10 +51,10 @@ $dashboardData = computed(function () {
     }
 
     // ── Chart 1: Monthly pitching count ────────────────────────
+    // Use COALESCE so Rencana cards (no pitching_date) fall back to created_at
     $monthlyRaw = (clone $base)
-        ->selectRaw('EXTRACT(MONTH FROM pitching_date)::int AS month, COUNT(*) AS cnt')
-        ->whereNotNull('pitching_date')
-        ->groupByRaw('EXTRACT(MONTH FROM pitching_date)')
+        ->selectRaw('EXTRACT(MONTH FROM COALESCE(pitching_date, created_at))::int AS month, COUNT(*) AS cnt')
+        ->groupByRaw('EXTRACT(MONTH FROM COALESCE(pitching_date, created_at))')
         ->pluck('cnt', 'month')
         ->toArray();
 
@@ -265,7 +265,7 @@ new class {};
     {{-- ── Chart 1: Monthly Pitching ───────────────────────────── --}}
     <div class="card bg-base-100 border border-base-300 p-6 rounded-2xl shadow-xs">
         <h2 class="text-base font-bold text-base-content mb-1">Jumlah Pitching per Bulan</h2>
-        <p class="text-xs text-base-content/40 mb-4">Distribusi kegiatan pitching sepanjang tahun {{ $filterFiscalYear }}</p>
+        <p class="text-xs text-base-content/40 mb-4">Semua card (rencana & terlaksana) berdasarkan tanggal pitching atau tanggal dibuat &mdash; tahun {{ $filterFiscalYear }}</p>
         <div wire:ignore id="chart-monthly" style="min-height:220px;"></div>
     </div>
 

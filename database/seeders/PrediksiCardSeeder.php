@@ -8,37 +8,34 @@ use Illuminate\Support\Facades\DB;
 /**
  * Seeds cards table from proyeksi.csv (partnership export).
  *
- * CSV columns (0-based):
+ * CSV columns (0-based) — updated structure:
  *  0   ID                 → history_logs.partnership_prediksi_id
  *  1   Tahun              → fiscal_year
- *  2   Jenis              → communication_method
- *  3   UKW                → (region context)
- *  4   PMO                → employee_id
- *  5   Provinsi           → (geo context)
- *  6   Kabupaten          → (geo context)
+ *  2   Jenis              → communication_method / history_logs.jenis
+ *  3   UKW                → history_logs.id_ukw
+ *  4   PMO                → employee_id (name lookup)
+ *  5   Provinsi           → (ignored)
+ *  6   Kabupaten          → (ignored)
  *  7   Instansi           → title fallback
  *  8   Nama Kontak        → contact_id (name lookup)
  *  9   Jabatan Kontak     → (ignored)
  * 10   Bidang             → (ignored)
  * 11   Proyeksi Kegiatan  → title + output_id (name lookup)
- * 12   Kategori Kegiatan  → (category_code hint, e.g. "A")
- * 13   Bulan              → projection_month
+ * 12   Kategori Kegiatan  → history_logs.kategori_kegiatan
+ * 13   Bulan Proyeksi     → projection_month
  * 14   Pekan              → projection_week
- * 15   Status             → status (Closing/Deal/Optimis/Moderate/Proyeksi/Lost)
+ * 15   Status             → status text (Warm/Hot/Optimis/Moderate/Closing/Deal/Lost)
  * 16   Nominal            → nominal_value
- * 17   Closing            → (status confirm)
- * 18   Deal               → (status confirm)
- * 19   Optimis            → (status confirm)
- * 20   Moderate           → (status confirm)
- * 21   Proyeksi           → (status confirm)
- * 22   Lost               → (status confirm)
- * 23   BANT Budget        → history_logs.bant
- * 24   BANT Authority     → history_logs.bant
- * 25   BANT Needs         → history_logs.bant
- * 26   BANT Timeline      → history_logs.bant
- * 27   Verifikasi Manager → manager_verified
- * 28   Tanggal Closing    → archived_at (if lost) / created_at
- * 29   Link BA            → drive_link
+ * 17   Tgl Won            → (ignored)
+ * 18   BANT Budget        → history_logs.bant.budget
+ * 19   BANT Authority     → history_logs.bant.authority
+ * 20   BANT Needs         → history_logs.bant.needs
+ * 21   BANT Timeline      → history_logs.bant.timeline
+ * 22   Verifikasi Manager → manager_verified
+ * 23   Tanggal Closing    → archived_at (if lost) / created_at
+ * 24   Link BA            → drive_link
+ * 25   Tanggal Pitching   → pitching_date
+ * 26   Follow Up          → follow_ups (JSON array from CSV)
  */
 class PrediksiCardSeeder extends Seeder
 {
@@ -171,13 +168,16 @@ class PrediksiCardSeeder extends Seeder
             ?? ($instansi  !== '' ? $instansi  : null)
             ?? $kontak;
 
-        $tanggalClosing = trim($r[28] ?? '');
+        // col 23: Tanggal Closing, col 25: Tanggal Pitching
+        $tanggalClosing  = $this->parseDate(trim($r[23] ?? ''));
+        $tanggalPitching = $this->parseDate(trim($r[25] ?? ''));
 
+        // col 18–21: BANT
         $bant = array_filter([
-            'budget'    => trim($r[23] ?? '') ?: null,
-            'authority' => trim($r[24] ?? '') ?: null,
-            'needs'     => trim($r[25] ?? '') ?: null,
-            'timeline'  => trim($r[26] ?? '') ?: null,
+            'budget'    => trim($r[18] ?? '') ?: null,
+            'authority' => trim($r[19] ?? '') ?: null,
+            'needs'     => trim($r[20] ?? '') ?: null,
+            'timeline'  => trim($r[21] ?? '') ?: null,
         ]);
 
         $historyLogs = array_filter([
@@ -187,6 +187,15 @@ class PrediksiCardSeeder extends Seeder
             'kategori_kegiatan'       => trim($r[12] ?? '') ?: null,
             'bant'                    => empty($bant) ? null : $bant,
         ]);
+
+        // col 26: Follow Up — JSON array encoded with "" doubling (RFC 4180), fgetcsv handles it
+        $followUpRaw = trim($r[26] ?? '');
+        if ($followUpRaw !== '') {
+            $decoded = json_decode($followUpRaw, true);
+            $followUps = is_array($decoded) ? $decoded : [['note' => $followUpRaw, 'created_at' => $tanggalClosing ?? $now]];
+        } else {
+            $followUps = [];
+        }
 
         return [
             'title'                  => $title,
@@ -202,12 +211,13 @@ class PrediksiCardSeeder extends Seeder
             'projection_month'       => $this->buildProjectionDate(trim($r[1] ?? ''), trim($r[13] ?? ''), trim($r[14] ?? '')),
             'projection_week'        => trim($r[14] ?? '') ?: null,
             'projection_status'      => trim($r[15] ?? '') ?: 'Proyeksi',
-            'drive_link'             => trim($r[29] ?? '') ?: null,
-            'manager_verified'       => strtolower(trim($r[27] ?? '')) === 'ya',
-            'archived_at'            => $status === 'lost' ? ($tanggalClosing ?: $now) : null,
+            'pitching_date'          => $tanggalPitching,
+            'drive_link'             => trim($r[24] ?? '') ?: null,
+            'manager_verified'       => strtolower(trim($r[22] ?? '')) === 'ya',
+            'archived_at'            => $status === 'lost' ? ($tanggalClosing ?? $now) : null,
             'history_logs'           => json_encode($historyLogs),
-            'follow_ups'             => json_encode([]),
-            'created_at'             => $tanggalClosing ?: $now,
+            'follow_ups'             => json_encode($followUps),
+            'created_at'             => $tanggalClosing ?? $now,
             'updated_at'             => $now,
         ];
     }
@@ -275,19 +285,13 @@ class PrediksiCardSeeder extends Seeder
 
     private function resolveStatus(array $r): string
     {
-        // Check status columns first (17-22), fallback to Status text (15)
-        if (trim($r[17] ?? '') !== '') return 'won';     // Closing
-        if (trim($r[18] ?? '') !== '') return 'won';     // Deal
-        if (trim($r[19] ?? '') !== '') return 'hot';     // Optimis
-        if (trim($r[20] ?? '') !== '') return 'warm';    // Moderate
-        if (trim($r[22] ?? '') !== '') return 'lost';    // Lost
-
+        // Status is now purely col 15 text (confirmation columns removed in updated CSV)
         return match (strtolower(trim($r[15] ?? ''))) {
-            'closing', 'deal' => 'won',
-            'optimis'         => 'hot',
-            'moderate'        => 'warm',
-            'lost'            => 'lost',
-            default           => 'Active',
+            'closing', 'deal', 'won' => 'won',
+            'optimis', 'hot'         => 'hot',
+            'moderate', 'warm'       => 'warm',
+            'lost'                   => 'lost',
+            default                  => 'Active',
         };
     }
 
@@ -303,13 +307,48 @@ class PrediksiCardSeeder extends Seeder
     private function buildProjectionDate(string $year, string $month, string $week): ?string
     {
         if ($month === '') return null;
-        $y   = (int) ($year ?: 2026);
-        $m   = (int) $month;
-        $w   = max(1, (int) ($week ?: 1));
-        $day = ($w - 1) * 7 + 1;
+        $y = (int) ($year ?: 2026);
+
+        $monthMap = [
+            'januari' => 1, 'februari' => 2, 'maret' => 3, 'april' => 4,
+            'mei' => 5, 'juni' => 6, 'juli' => 7, 'agustus' => 8,
+            'september' => 9, 'oktober' => 10, 'november' => 11, 'desember' => 12,
+            'january' => 1, 'february' => 2, 'march' => 3, 'may' => 5,
+            'june' => 6, 'july' => 7, 'august' => 8, 'october' => 10, 'december' => 12,
+        ];
+
+        $mLower = strtolower(trim($month));
+        $m = isset($monthMap[$mLower]) ? $monthMap[$mLower] : (int) $month;
+
+        if ($m < 1 || $m > 12) return null;
+
+        $w       = max(1, (int) ($week ?: 1));
+        $day     = ($w - 1) * 7 + 1;
         $lastDay = (int) date('t', mktime(0, 0, 0, $m, 1, $y));
-        $day = min($day, $lastDay);
-        return sprintf('%04d-%02d-%02d 07:00:00', $y, $m, $day);
+        $day     = min($day, $lastDay);
+        return \sprintf('%04d-%02d-%02d 07:00:00', $y, $m, $day);
+    }
+
+    private function parseDate(string $raw): ?string
+    {
+        if ($raw === '') return null;
+
+        // Already Y-m-d or Y-m-d H:i:s
+        if (preg_match('/^\d{4}-\d{2}-\d{2}/', $raw)) {
+            return $raw;
+        }
+
+        // d-m-Y or d/m/Y
+        if (preg_match('/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/', $raw, $m)) {
+            return sprintf('%04d-%02d-%02d 07:00:00', (int)$m[3], (int)$m[2], (int)$m[1]);
+        }
+
+        // d-m-Y H:i:s
+        if (preg_match('/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})\s+\d{2}:\d{2}/', $raw, $m)) {
+            return sprintf('%04d-%02d-%02d 07:00:00', (int)$m[3], (int)$m[2], (int)$m[1]);
+        }
+
+        return null;
     }
 
     private function resolveNominal(string $raw): float
