@@ -27,6 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::middleware('can:manage-pipeline')->group(function () {
+        Volt::route('/partnership/dashboard', 'partnership.dashboard-index')->name('partnership.dashboard');
         Volt::route('/partnership/contact', 'partnership.contact-index')->name('contact.index');
         Volt::route('/partnership/pitching', 'partnership.pitching-index')->name('partnership.pitching');
         Volt::route('/partnership/realisasi', 'partnership.realisasi-index')->name('partnership.realisasi');

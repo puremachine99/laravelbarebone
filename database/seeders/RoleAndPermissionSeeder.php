@@ -49,7 +49,7 @@ class RoleAndPermissionSeeder extends Seeder
         $internalOrgAdminRole->givePermissionTo('manage-internal-org');
 
         $partnershipAdminRole = Role::findOrCreate('Partnership Admin');
-        $partnershipAdminRole->givePermissionTo('manage-partnership');
+        $partnershipAdminRole->givePermissionTo(['manage-partnership', 'manage-pipeline']);
 
         $pmoRole = Role::findOrCreate('PMO');
         $pmoRole->givePermissionTo('manage-pipeline');

@@ -121,6 +121,9 @@
                                 </div>
                                 <div class="collapse-content ms-6.5 !p-0">
                                     <div class="mt-0.5 space-y-0.5">
+                                        <a @class(['menu-item', 'active' => request()->routeIs('partnership.dashboard')]) href="{{ route('partnership.dashboard') }}" wire:navigate>
+                                            <span class="grow">Dashboard</span>
+                                        </a>
                                         <a @class(['menu-item', 'active' => request()->routeIs('contact.*')]) href="{{ route('contact.index') }}" wire:navigate>
                                             <span class="grow">Contact</span>
                                         </a>

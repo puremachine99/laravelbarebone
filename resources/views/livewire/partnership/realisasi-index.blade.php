@@ -12,6 +12,7 @@ state([
     'search' => '',
     'filterStatus' => '',
     'filterManagerVerified' => '',
+    'filterEmployee' => '',
 
     // Detail Drawer State
     'showDetailDrawer' => false,
@@ -60,6 +61,13 @@ $cards = computed(function () {
         ->when($this->filterSumberProyeksi, fn($q) => $q->where('sumber_proyeksi', $this->filterSumberProyeksi))
         ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
         ->when($this->filterManagerVerified !== '', fn($q) => $q->where('manager_verified', $this->filterManagerVerified === '1'))
+        ->when(auth()->user()->hasRole('Partnership Admin'), function ($q) {
+            $regionId = \App\Models\Employee::where('user_id', auth()->id())->value('region_id');
+            if ($regionId) {
+                $q->whereHas('employee', fn($e) => $e->where('region_id', $regionId));
+            }
+        })
+        ->when($this->filterEmployee, fn($q) => $q->where('employee_id', (int) $this->filterEmployee))
         ->when($this->search, function ($q) {
             $q->where(function ($sub) {
                 $sub->where('title', 'ilike', '%' . $this->search . '%')
@@ -82,6 +90,13 @@ $realisasiStats = computed(function () {
         ->when($this->filterSumberProyeksi, fn($q) => $q->where('sumber_proyeksi', $this->filterSumberProyeksi))
         ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
         ->when($this->filterManagerVerified !== '', fn($q) => $q->where('manager_verified', $this->filterManagerVerified === '1'))
+        ->when(auth()->user()->hasRole('Partnership Admin'), function ($q) {
+            $regionId = \App\Models\Employee::where('user_id', auth()->id())->value('region_id');
+            if ($regionId) {
+                $q->whereHas('employee', fn($e) => $e->where('region_id', $regionId));
+            }
+        })
+        ->when($this->filterEmployee, fn($q) => $q->where('employee_id', (int) $this->filterEmployee))
         ->when($this->search, function ($q) {
             $q->where(function ($sub) {
                 $sub->where('title', 'ilike', '%' . $this->search . '%')
@@ -122,8 +137,26 @@ $resetFilters = function () {
     $this->filterSumberProyeksi = '';
     $this->filterStatus = '';
     $this->filterManagerVerified = '';
+    $this->filterEmployee = '';
     $this->search = '';
 };
+
+$employeeOptions = computed(function () {
+    $query = \App\Models\Employee::join('users', 'users.id', '=', 'employees.user_id')
+        ->select('employees.id', 'users.name');
+
+    if (auth()->user()->hasRole('Partnership Admin')) {
+        $regionId = \App\Models\Employee::where('user_id', auth()->id())->value('region_id');
+        if ($regionId) {
+            $query->where('employees.region_id', $regionId);
+        }
+    }
+
+    return $query->orderBy('users.name')->get()
+        ->map(fn($e) => ['id' => (string) $e->id, 'name' => $e->name])
+        ->prepend(['id' => '', 'name' => 'Semua PMO'])
+        ->toArray();
+});
 
 $canVerify = computed(fn() => 
     auth()->user()->hasRole('Super Admin') || 
@@ -544,6 +577,11 @@ new class {};
                     @endphp
                     <x-select label="Verif Manager" wire:model.live="filterManagerVerified" :options="$verifFilters" />
                 </div>
+                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('Partnership Admin'))
+                <div class="w-52">
+                    <x-select label="Nama PMO" wire:model.live="filterEmployee" :options="$this->employeeOptions" />
+                </div>
+                @endif
             </div>
             <div class="w-64">
                 <x-input label="Cari Prospek" wire:model.live.debounce.300ms="search" placeholder="Cari..." icon="o-magnifying-glass" clearable />
