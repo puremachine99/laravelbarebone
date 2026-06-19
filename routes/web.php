@@ -15,6 +15,8 @@ use Livewire\Volt\Volt;
 
 Route::redirect('/', '/login')->name('home');
 
+Route::view('/tech', 'pages.tech')->name('tech');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 

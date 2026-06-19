@@ -24,6 +24,7 @@
                         Smart ID Dashboard
                     </a>
                 </div>
+                @auth
                 <div class="dropdown dropdown-end">
                     <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm avatar placeholder">
                         <div class="bg-base-300 text-base-content rounded-full size-8 flex items-center justify-center text-xs font-bold">
@@ -45,6 +46,7 @@
                         </li>
                     </ul>
                 </div>
+                @endauth
             </div>
 
             {{-- Page Content --}}
@@ -145,7 +147,7 @@
                     @endcan
 
                     {{-- Finance --}}
-                    @if(auth()->user()->can('manage-finance-intake') || auth()->user()->can('manage-finance-reconciliation') || auth()->user()->can('manage-finance-disbursements') || auth()->user()->can('view-finance-clearance'))
+                    @if(auth()->check() && (auth()->user()->can('manage-finance-intake') || auth()->user()->can('manage-finance-reconciliation') || auth()->user()->can('manage-finance-disbursements') || auth()->user()->can('view-finance-clearance')))
                         <p class="menu-label px-2.5 pt-4 pb-1.5">Finance</p>
                         <div class="space-y-0.5">
                             <div class="group collapse">
@@ -185,7 +187,7 @@
                     @endif
 
                     {{-- Nakama Hub --}}
-                    @if(auth()->user()->can('manage-chat') || auth()->user()->can('manage-ai-center'))
+                    @if(auth()->check() && (auth()->user()->can('manage-chat') || auth()->user()->can('manage-ai-center')))
                         <p class="menu-label px-2.5 pt-4 pb-1.5">Nakama Hub</p>
                         <div class="space-y-0.5">
                             @can('manage-chat')
@@ -204,7 +206,7 @@
                     @endif
 
                     {{-- Data Master --}}
-                    @if(auth()->user()->can('manage-internal-org') || auth()->user()->can('manage-partnership') || auth()->user()->can('manage-products') || auth()->user()->can('manage-investors'))
+                    @if(auth()->check() && (auth()->user()->can('manage-internal-org') || auth()->user()->can('manage-partnership') || auth()->user()->can('manage-products') || auth()->user()->can('manage-investors')))
                         <p class="menu-label px-2.5 pt-4 pb-1.5">Data Master</p>
                         <div class="space-y-0.5">
 
@@ -267,6 +269,7 @@
                 </div>
 
                 {{-- User Profile Footer --}}
+                @auth
                 <div class="border-base-300 shrink-0 border-t border-dashed">
                     <div class="dropdown dropdown-top w-full">
                         <div tabindex="0" role="button"
@@ -310,14 +313,24 @@
                         </div>
                     </div>
                 </div>
+                @else
+                <div class="border-base-300 shrink-0 border-t border-dashed px-4 py-3">
+                    <a href="{{ route('login') }}" class="btn btn-sm btn-primary w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
+                        Login ke Dashboard
+                    </a>
+                </div>
+                @endauth
 
             </aside>
         </div>
     </div>
 
+    @auth
     <form id="logout-form" method="POST" action="{{ route('logout') }}" class="hidden">
         @csrf
     </form>
+    @endauth
 
     <x-toast />
 </body>
