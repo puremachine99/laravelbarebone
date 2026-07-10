@@ -87,12 +87,15 @@ $cards = computed(function () {
         })
         ->when($this->search, function ($q) {
             $q->where(function ($sub) {
-                $sub->where('title', 'like', '%' . $this->search . '%')
+                $sub->where('title', 'ilike', '%' . $this->search . '%')
                     ->orWhereHas('contact', function ($c) {
-                        $c->where('name', 'like', '%' . $this->search . '%')
+                        $c->where('name', 'ilike', '%' . $this->search . '%')
                             ->orWhereHas('opd', function ($o) {
-                                $o->where('name', 'like', '%' . $this->search . '%');
+                                $o->where('name', 'ilike', '%' . $this->search . '%');
                             });
+                    })
+                    ->orWhereHas('employee.user', function ($u) {
+                        $u->where('name', 'ilike', '%' . $this->search . '%');
                     });
             });
         })
@@ -343,12 +346,15 @@ $pitchingStats = computed(function () {
         })
         ->when($this->search, function ($q) {
             $q->where(function ($sub) {
-                $sub->where('title', 'like', '%' . $this->search . '%')
+                $sub->where('title', 'ilike', '%' . $this->search . '%')
                     ->orWhereHas('contact', function ($c) {
-                        $c->where('name', 'like', '%' . $this->search . '%')
+                        $c->where('name', 'ilike', '%' . $this->search . '%')
                             ->orWhereHas('opd', function ($o) {
-                                $o->where('name', 'like', '%' . $this->search . '%');
+                                $o->where('name', 'ilike', '%' . $this->search . '%');
                             });
+                    })
+                    ->orWhereHas('employee.user', function ($u) {
+                        $u->where('name', 'ilike', '%' . $this->search . '%');
                     });
             });
         })

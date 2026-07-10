@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Contact extends Model
 {
+    protected $table = 'pmo_contacts';
+
     protected $guarded = ['id'];
 
     public function region()

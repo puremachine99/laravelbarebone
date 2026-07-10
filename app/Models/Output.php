@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Output extends Model
 {
+    protected $table = 'pmo_outputs';
+
     protected $fillable = [
         'division_id',
         'service_center_id',

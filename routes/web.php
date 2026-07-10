@@ -75,6 +75,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/ai-center', AiCenter::class)->name('ai-center');
     });
 
+    Volt::route('/partnership/test/pitching', 'partnership.test-pitching-compare')->name('partnership.test.pitching');
+
     Volt::route('/products', 'master.products.index')->name('products.index')->middleware('can:manage-products');
     Route::view('/investors', 'pages.master.investors.index')->name('investors.index')->middleware('can:manage-investors');
 });

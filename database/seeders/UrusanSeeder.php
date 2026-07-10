@@ -81,6 +81,6 @@ class UrusanSeeder extends Seeder
             ]);
         }, $data);
 
-        DB::table('urusans')->insert($insertData);
+        DB::table('pmo_urusans')->insert($insertData);
     }
 }

@@ -44,9 +44,9 @@ $contactPositions = computed(function () {
 
  return ContactPosition::query()
  ->addSelect([
-'contacts_count' => DB::table('contacts')
+'contacts_count' => DB::table('pmo_contacts')
  ->selectRaw('count(*)')
- ->whereColumn('contact_position_id','contact_positions.id'),
+ ->whereColumn('contact_position_id','pmo_contact_positions.id'),
  ])
  ->when($search, function ($q) use ($search) {
  $q->where(function ($query) use ($search) {

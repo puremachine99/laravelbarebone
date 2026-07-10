@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ContactPosition extends Model
 {
+    protected $table = 'pmo_contact_positions';
+
     protected $guarded = ['id'];
 
     public function contacts()

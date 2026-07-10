@@ -136,9 +136,9 @@ $resetForm = function () {
 
 $save = function () {
  $this->validate([
-'division_id' => ['required','exists:divisions,id'],
-'service_center_id' => ['required','exists:service_centers,id'],
-'category_code' => ['required','exists:product_categories,code'],
+'division_id' => ['required','exists:pmo_divisions,id'],
+'service_center_id' => ['required','exists:pmo_service_centers,id'],
+'category_code' => ['required','exists:pmo_product_categories,code'],
 'output_name' => ['required','string','max:255'],
 'pelaksana' => ['required','string','max:255'],
 'status' => ['required','boolean'],

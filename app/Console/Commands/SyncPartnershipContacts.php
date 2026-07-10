@@ -91,7 +91,7 @@ class SyncPartnershipContacts extends Command
                             $regionExists = DB::table('regions')->where('id', $ukw)->exists();
                             if ($regionExists) {
                                 // Update/insert into employee_regions pivot table
-                                DB::table('employee_regions')->updateOrInsert(
+                                DB::table('pmo_employee_regions')->updateOrInsert(
                                     ['employee_id' => $picEmployeeId, 'region_id' => $ukw],
                                     []
                                 );

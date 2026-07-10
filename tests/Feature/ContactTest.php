@@ -51,7 +51,7 @@ test('can create contact via livewire volt component', function () {
         ->call('saveContact')
         ->assertHasNoErrors();
 
-    $this->assertDatabaseHas('contacts', [
+    $this->assertDatabaseHas('pmo_contacts', [
         'name' => 'John Doe',
         'sumber' => 'SDS Umum',
         'region_id' => $region->id,
@@ -100,7 +100,7 @@ test('can edit existing contact', function () {
         ->call('saveContact')
         ->assertHasNoErrors();
 
-    $this->assertDatabaseHas('contacts', [
+    $this->assertDatabaseHas('pmo_contacts', [
         'id' => $contact->id,
         'name' => 'Jane Smith',
     ]);
@@ -136,7 +136,7 @@ test('can delete contact', function () {
     Volt::test('partnership.contact-index')
         ->call('deleteContact', $contact->id);
 
-    $this->assertDatabaseMissing('contacts', [
+    $this->assertDatabaseMissing('pmo_contacts', [
         'id' => $contact->id,
     ]);
 });

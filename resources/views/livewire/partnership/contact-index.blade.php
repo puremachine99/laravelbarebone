@@ -94,10 +94,10 @@ $contacts = computed(function () {
 
     return Contact::query()
         ->with(['region', 'regency.province', 'opd', 'pic.user', 'contactPosition'])
-        ->when(!$isSuper && $employee, fn($q) => $q->where('contacts.pic_employee_id', $employee->id))
-        ->when($search, fn($q) => $q->whereRaw('LOWER(contacts.name) LIKE ?', ['%' . strtolower($search) . '%']))
-        ->when($filterRegion, fn($q) => $q->where('contacts.region_id', $filterRegion))
-        ->when($filterCategory, fn($q) => $q->where('contacts.category', $filterCategory))
+        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+        ->when($search, fn($q) => $q->whereRaw('LOWER(pmo_contacts.name) LIKE ?', ['%' . strtolower($search) . '%']))
+        ->when($filterRegion, fn($q) => $q->where('pmo_contacts.region_id', $filterRegion))
+        ->when($filterCategory, fn($q) => $q->where('pmo_contacts.category', $filterCategory))
         ->when($filterKelompok, function ($q) use ($filterKelompok) {
             $q->whereHas('contactPosition', fn($qp) => $qp->where('kelompok_jabatan', $filterKelompok));
         })
@@ -140,7 +140,7 @@ $showCreate = function () {
     $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
     $isSuper = auth()->user()?->email === 'supernakama@smartid.co.id' || auth()->user()->hasRole('Super Admin');
     if (!$isSuper && $employee) {
-        $assignedRegionId = DB::table('employee_regions')->where('employee_id', $employee->id)->value('region_id');
+        $assignedRegionId = DB::table('pmo_employee_regions')->where('employee_id', $employee->id)->value('region_id');
         if ($assignedRegionId) {
             $this->region_id = $assignedRegionId;
         }
@@ -158,7 +158,7 @@ $editContact = function ($id) {
     $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
     $isSuper = auth()->user()?->email === 'supernakama@smartid.co.id' || auth()->user()->hasRole('Super Admin');
     if (!$isSuper && $employee) {
-        $assignedRegionId = DB::table('employee_regions')->where('employee_id', $employee->id)->value('region_id');
+        $assignedRegionId = DB::table('pmo_employee_regions')->where('employee_id', $employee->id)->value('region_id');
         $this->region_id = $assignedRegionId ?: $contact->region_id;
     } else {
         $this->region_id = $contact->region_id;
@@ -186,8 +186,8 @@ $saveContact = function () {
         'category' => ['required', 'in:' . implode(',', $this->categoryOptions)],
         'province_id' => ['required', 'exists:provinces,id'],
         'regency_id' => ['required', 'exists:regencies,id'],
-        'opd_id' => ['nullable', 'exists:opds,id'],
-        'contact_position_id' => ['nullable', 'exists:contact_positions,id'],
+        'opd_id' => ['nullable', 'exists:pmo_opds,id'],
+        'contact_position_id' => ['nullable', 'exists:pmo_contact_positions,id'],
         'phone' => ['nullable', 'string', 'max:30'],
         'email' => ['nullable', 'email', 'max:150'],
     ];
@@ -247,12 +247,12 @@ $statsCategory = computed(function () {
 
     $total =
         Contact::query()
-            ->when(!$isSuper && $employee, fn($q) => $q->where('contacts.pic_employee_id', $employee->id))
+            ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
             ->count() ?:
         1;
 
     $categories = Contact::query()
-        ->when(!$isSuper && $employee, fn($q) => $q->where('contacts.pic_employee_id', $employee->id))
+        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
         ->selectRaw('category, count(*) as count')
         ->groupBy('category')
         ->get();
@@ -280,13 +280,13 @@ $statsRegion = computed(function () {
 
     $total =
         Contact::query()
-            ->when(!$isSuper && $employee, fn($q) => $q->where('contacts.pic_employee_id', $employee->id))
+            ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
             ->whereNotNull('region_id')
             ->count() ?:
         1;
 
     $regions = Contact::query()
-        ->when(!$isSuper && $employee, fn($q) => $q->where('contacts.pic_employee_id', $employee->id))
+        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
         ->whereNotNull('region_id')
         ->selectRaw('region_id, count(*) as count')
         ->groupBy('region_id')
@@ -308,14 +308,14 @@ $statsProvince = computed(function () {
     $isSuper = auth()->user()?->email === 'supernakama@smartid.co.id';
 
     $total = Contact::query()
-        ->when(!$isSuper && $employee, fn($q) => $q->where('contacts.pic_employee_id', $employee->id))
-        ->join('regencies', 'contacts.regency_id', '=', 'regencies.id')
+        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+        ->join('regencies', 'pmo_contacts.regency_id', '=', 'regencies.id')
         ->join('provinces', 'regencies.province_id', '=', 'provinces.id')
         ->count() ?: 1;
 
     $provinces = Contact::query()
-        ->when(!$isSuper && $employee, fn($q) => $q->where('contacts.pic_employee_id', $employee->id))
-        ->join('regencies', 'contacts.regency_id', '=', 'regencies.id')
+        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+        ->join('regencies', 'pmo_contacts.regency_id', '=', 'regencies.id')
         ->join('provinces', 'regencies.province_id', '=', 'provinces.id')
         ->selectRaw('provinces.name as province_name, count(*) as count')
         ->groupBy('provinces.name')
@@ -334,13 +334,13 @@ $statsPosition = computed(function () {
 
     $total =
         Contact::query()
-            ->when(!$isSuper && $employee, fn($q) => $q->where('contacts.pic_employee_id', $employee->id))
+            ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
             ->whereNotNull('contact_position_id')
             ->count() ?:
         1;
 
     $positions = Contact::query()
-        ->when(!$isSuper && $employee, fn($q) => $q->where('contacts.pic_employee_id', $employee->id))
+        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
         ->whereNotNull('contact_position_id')
         ->selectRaw('contact_position_id, count(*) as count')
         ->groupBy('contact_position_id')
@@ -362,7 +362,7 @@ $contactsCount = computed(function () {
     $isSuper = auth()->user()?->email === 'supernakama@smartid.co.id';
 
     return Contact::query()
-        ->when(!$isSuper && $employee, fn($q) => $q->where('contacts.pic_employee_id', $employee->id))
+        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
         ->count();
 });
 

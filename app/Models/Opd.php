@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Opd extends Model
 {
+    protected $table = 'pmo_opds';
+
     protected $guarded = ['id'];
 
     public function regency()
@@ -15,6 +17,6 @@ class Opd extends Model
 
     public function urusans()
     {
-        return $this->belongsToMany(Urusan::class, 'opd_urusan', 'opd_id', 'urusan_id');
+        return $this->belongsToMany(Urusan::class, 'pmo_opd_urusan', 'opd_id', 'urusan_id');
     }
 }

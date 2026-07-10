@@ -39,16 +39,20 @@ use Illuminate\Support\Facades\DB;
  */
 class RencanaPitchingCardSeeder extends Seeder
 {
-    private array $stages    = [];  // stage_name → stage_id
-    private array $contacts  = [];  // lowercase_name → contact_id
+    private array $stages = [];  // stage_name → stage_id
+
+    private array $contacts = [];  // lowercase_name → contact_id
+
     private array $employees = [];  // lowercase_name → employee_id
-    private array $outputs   = [];  // lowercase_output_name → object{id, output_name}
+
+    private array $outputs = [];  // lowercase_output_name → object{id, output_name}
 
     public function run(): void
     {
         $csvPath = database_path('seeders/jsonlawas/rencanapitching.csv');
         if (! file_exists($csvPath)) {
             $this->command->error("CSV not found: {$csvPath}");
+
             return;
         }
 
@@ -57,38 +61,40 @@ class RencanaPitchingCardSeeder extends Seeder
 
         if (empty($this->stages)) {
             $this->command->error('No Pitching pipeline stages found. Run PipelineSeeder first.');
+
             return;
         }
 
         $this->command->info('Processing rencanapitching.csv...');
 
-        $file     = fopen($csvPath, 'r');
+        $file = fopen($csvPath, 'r');
         fgetcsv($file, 0, ',', '"', '\\'); // skip header
 
-        $batch    = [];
+        $batch = [];
         $inserted = 0;
-        $skipped  = 0;
-        $now      = now()->toDateTimeString();
+        $skipped = 0;
+        $now = now()->toDateTimeString();
 
         while (($row = fgetcsv($file, 0, ',', '"', '\\')) !== false) {
             $record = $this->transform($row, $now);
 
             if ($record === null) {
                 $skipped++;
+
                 continue;
             }
 
             $batch[] = $record;
 
             if (\count($batch) >= 200) {
-                DB::table('cards')->insert($batch);
+                DB::table('pmo_cards')->insert($batch);
                 $inserted += \count($batch);
                 $batch = [];
             }
         }
 
         if (! empty($batch)) {
-            DB::table('cards')->insert($batch);
+            DB::table('pmo_cards')->insert($batch);
             $inserted += \count($batch);
         }
 
@@ -102,20 +108,20 @@ class RencanaPitchingCardSeeder extends Seeder
 
     private function preloadLookups(): void
     {
-        $profile = DB::table('pipeline_profiles')
+        $profile = DB::table('pmo_pipeline_profiles')
             ->where('pipeline_name', 'Pitching')
             ->where('is_active', true)
             ->first();
 
         if ($profile) {
-            $this->stages = DB::table('pipeline_stages')
+            $this->stages = DB::table('pmo_pipeline_stages')
                 ->where('pipeline_profile_id', $profile->id)
                 ->pluck('id', 'stage_name')
                 ->toArray();
-            $this->command->line('Stages: ' . implode(', ', array_keys($this->stages)));
+            $this->command->line('Stages: '.implode(', ', array_keys($this->stages)));
         }
 
-        DB::table('contacts')
+        DB::table('pmo_contacts')
             ->select('id', 'name')
             ->orderBy('id')
             ->each(function ($c) {
@@ -130,7 +136,7 @@ class RencanaPitchingCardSeeder extends Seeder
                 $this->employees[strtolower(trim($e->uname))] = $e->emp_id;
             });
 
-        DB::table('outputs')
+        DB::table('pmo_outputs')
             ->select('id', 'output_name', 'generated_code')
             ->orderBy('id')
             ->each(function ($o) {
@@ -148,23 +154,27 @@ class RencanaPitchingCardSeeder extends Seeder
     private function transform(array $r, string $now): ?array
     {
         $rencanaId = isset($r[0]) ? (int) trim($r[0]) : 0;
-        if ($rencanaId === 0) return null;
+        if ($rencanaId === 0) {
+            return null;
+        }
 
-        $opd     = trim($r[4]  ?? '');
-        $kontak  = trim($r[5]  ?? '');
-        $produk  = trim($r[8]  ?? '');
+        $opd = trim($r[4] ?? '');
+        $kontak = trim($r[5] ?? '');
+        $produk = trim($r[8] ?? '');
 
-        if ($opd === '' && $kontak === '' && $produk === '') return null;
+        if ($opd === '' && $kontak === '' && $produk === '') {
+            return null;
+        }
 
-        $output    = $this->resolveOutput($produk);
+        $output = $this->resolveOutput($produk);
         $contactId = $this->resolveContact($kontak);
-        $empId     = $this->resolveEmployee(trim($r[7] ?? ''));
-        $status    = $this->resolveStatus($r);
-        $stageId   = $this->resolveStageId($r);
+        $empId = $this->resolveEmployee(trim($r[7] ?? ''));
+        $status = $this->resolveStatus($r);
+        $stageId = $this->resolveStageId($r);
 
         $title = $output?->output_name
             ?? ($produk !== '' ? $produk : null)
-            ?? ($opd    !== '' ? $opd    : null)
+            ?? ($opd !== '' ? $opd : null)
             ?? $kontak;
 
         $tanggalPitching = trim($r[12] ?? '');
@@ -173,40 +183,40 @@ class RencanaPitchingCardSeeder extends Seeder
             : null;
 
         $historyLogs = array_filter([
-            'rencana_pitching_id'     => (string) $rencanaId,
-            'kategori_produk'         => trim($r[9]  ?? '') ?: null,
+            'rencana_pitching_id' => (string) $rencanaId,
+            'kategori_produk' => trim($r[9] ?? '') ?: null,
             'anggaran_pitching_total' => trim($r[15] ?? '') ?: null,
-            'detail_anggaran'         => trim($r[16] ?? '') ?: null,
-            'catatan'                 => trim($r[25] ?? '') ?: null,
+            'detail_anggaran' => trim($r[16] ?? '') ?: null,
+            'catatan' => trim($r[25] ?? '') ?: null,
         ]);
 
         $createdAt = trim($r[26] ?? '') ?: $now;
 
         return [
-            'title'                  => $title,
-            'status'                 => $status,
-            'stage_id'               => $stageId,
-            'employee_id'            => $empId,
-            'contact_id'             => $contactId,
-            'output_id'              => $output?->id,
-            'nominal_value'          => $this->resolveNominal(trim($r[11] ?? '')),
-            'fiscal_year'            => (int) (trim($r[1] ?? '') ?: date('Y')),
-            'sumber_proyeksi'        => trim($r[10] ?? '') ?: null,
+            'title' => $title,
+            'status' => $status,
+            'stage_id' => $stageId,
+            'employee_id' => $empId,
+            'contact_id' => $contactId,
+            'output_id' => $output?->id,
+            'nominal_value' => $this->resolveNominal(trim($r[11] ?? '')),
+            'fiscal_year' => (int) (trim($r[1] ?? '') ?: date('Y')),
+            'sumber_proyeksi' => trim($r[10] ?? '') ?: null,
             'detail_sumber_proyeksi' => null,
-            'pitching_date'          => $tanggalPitching ?: null,
-            'communication_method'   => trim($r[14] ?? '') ?: null,
-            'projection_month'       => $projectionMonth,
-            'projection_week'        => trim($r[13] ?? '') ?: null,
-            'projection_status'      => trim($r[23] ?? '') ?: (trim($r[17] ?? '') ?: null),
-            'drive_link'             => trim($r[24] ?? '') ?: null,
-            'negative_reason'        => trim($r[20] ?? '') ?: null,
-            'manager_verified'       => strtolower(trim($r[18] ?? '')) === 'ya',
-            's3_document_path'       => null,
-            'history_logs'           => json_encode($historyLogs ?: new \stdClass()),
-            'follow_ups'             => json_encode([]),
-            'archived_at'            => $status === 'lost' ? $createdAt : null,
-            'created_at'             => $createdAt,
-            'updated_at'             => $now,
+            'pitching_date' => $tanggalPitching ?: null,
+            'communication_method' => trim($r[14] ?? '') ?: null,
+            'projection_month' => $projectionMonth,
+            'projection_week' => trim($r[13] ?? '') ?: null,
+            'projection_status' => trim($r[23] ?? '') ?: (trim($r[17] ?? '') ?: null),
+            'drive_link' => trim($r[24] ?? '') ?: null,
+            'negative_reason' => trim($r[20] ?? '') ?: null,
+            'manager_verified' => strtolower(trim($r[18] ?? '')) === 'ya',
+            's3_document_path' => null,
+            'history_logs' => json_encode($historyLogs ?: new \stdClass),
+            'follow_ups' => json_encode([]),
+            'archived_at' => $status === 'lost' ? $createdAt : null,
+            'created_at' => $createdAt,
+            'updated_at' => $now,
         ];
     }
 
@@ -216,7 +226,9 @@ class RencanaPitchingCardSeeder extends Seeder
 
     private function resolveOutput(string $produk): ?object
     {
-        if ($produk === '') return null;
+        if ($produk === '') {
+            return null;
+        }
 
         $lower = strtolower($produk);
 
@@ -235,13 +247,19 @@ class RencanaPitchingCardSeeder extends Seeder
 
     private function resolveContact(string $name): ?int
     {
-        if ($name === '') return null;
+        if ($name === '') {
+            return null;
+        }
 
         $lower = strtolower($name);
-        if (isset($this->contacts[$lower])) return $this->contacts[$lower];
+        if (isset($this->contacts[$lower])) {
+            return $this->contacts[$lower];
+        }
 
         $base = preg_replace('/,?\s+[Ss]\..+$/', '', $lower);
-        if (isset($this->contacts[$base])) return $this->contacts[$base];
+        if (isset($this->contacts[$base])) {
+            return $this->contacts[$base];
+        }
 
         foreach ($this->contacts as $cName => $cId) {
             if (str_contains($cName, $lower) || str_contains($lower, $cName)) {
@@ -254,13 +272,19 @@ class RencanaPitchingCardSeeder extends Seeder
 
     private function resolveEmployee(string $pmoName): ?int
     {
-        if ($pmoName === '') return null;
+        if ($pmoName === '') {
+            return null;
+        }
 
         $lower = strtolower($pmoName);
-        if (isset($this->employees[$lower])) return $this->employees[$lower];
+        if (isset($this->employees[$lower])) {
+            return $this->employees[$lower];
+        }
 
         $base = preg_replace('/,?\s+[Ss]\..+$/', '', $lower);
-        if (isset($this->employees[$base])) return $this->employees[$base];
+        if (isset($this->employees[$base])) {
+            return $this->employees[$base];
+        }
 
         foreach ($this->employees as $eName => $eId) {
             if (str_starts_with($eName, $base) || str_starts_with($base, $eName)) {
@@ -276,17 +300,25 @@ class RencanaPitchingCardSeeder extends Seeder
         $statusClosing = strtolower(trim($r[23] ?? ''));
         $hasilPitching = strtolower(trim($r[19] ?? ''));
 
-        if (str_contains($statusClosing, 'won'))     return 'won';
-        if (str_contains($statusClosing, 'optimis')) return 'hot';
-        if (str_contains($statusClosing, 'moderate')) return 'warm';
-        if ($hasilPitching === 'negative')           return 'lost';
+        if (str_contains($statusClosing, 'won')) {
+            return 'won';
+        }
+        if (str_contains($statusClosing, 'optimis')) {
+            return 'hot';
+        }
+        if (str_contains($statusClosing, 'moderate')) {
+            return 'warm';
+        }
+        if ($hasilPitching === 'negative') {
+            return 'lost';
+        }
 
         return 'Active';
     }
 
     private function resolveStageId(array $r): int
     {
-        $statusCsv     = strtolower(trim($r[17] ?? ''));  // Terlaksana / Rencana
+        $statusCsv = strtolower(trim($r[17] ?? ''));  // Terlaksana / Rencana
         $hasilPitching = strtolower(trim($r[19] ?? ''));  // Positif / Negative
 
         if ($statusCsv === 'terlaksana' && $hasilPitching === 'negative') {
@@ -302,8 +334,11 @@ class RencanaPitchingCardSeeder extends Seeder
 
     private function resolveNominal(string $raw): float
     {
-        if ($raw === '') return 0.0;
+        if ($raw === '') {
+            return 0.0;
+        }
         $cleaned = preg_replace('/[^\d]/', '', $raw);
+
         return ($cleaned !== '' && $cleaned !== '0') ? (float) $cleaned : 0.0;
     }
 }

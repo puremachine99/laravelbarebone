@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PipelineProfile extends Model
 {
+    protected $table = 'pmo_pipeline_profiles';
+
     protected $guarded = ['id'];
 
     protected $casts = [

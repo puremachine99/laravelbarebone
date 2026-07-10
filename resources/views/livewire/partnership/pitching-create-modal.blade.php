@@ -81,8 +81,8 @@ $updatedSelectedOpdId = function ($value) {
 
 $addCard = function () {
     $rules = [
-        'selectedContactId' => ['required', 'exists:contacts,id'],
-        'newProduct' => ['required', 'exists:outputs,id'],
+        'selectedContactId' => ['required', 'exists:pmo_contacts,id'],
+        'newProduct' => ['required', 'exists:pmo_outputs,id'],
         'sumberPotensi' => ['required', 'in:SIRUP,SIPD,INAPROC,ANALISIS PS,PERMINTAAN MITRA'],
         'newBudget' => ['required', 'numeric', 'min:1'],
         'newDate' => ['required', 'date'],

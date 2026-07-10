@@ -56,14 +56,14 @@ $opds = computed(function () {
 
  return Opd::query()
  ->with(['regency.province','urusans'])
- ->when($search, fn($q) => $q->whereRaw('LOWER(opds.name) LIKE ?', ['%' . strtolower($search) .'%']))
- ->when($filterRegency, fn($q) => $q->where('opds.regency_id', $filterRegency))
+ ->when($search, fn($q) => $q->whereRaw('LOWER(pmo_opds.name) LIKE ?', ['%' . strtolower($search) .'%']))
+ ->when($filterRegency, fn($q) => $q->where('pmo_opds.regency_id', $filterRegency))
  ->when($this->sortBy ==='regency', function ($q) {
- $q->join('regencies','regencies.id','=','opds.regency_id')
- ->select('opds.*')
+ $q->join('regencies','regencies.id','=','pmo_opds.regency_id')
+ ->select('pmo_opds.*')
  ->orderBy('regencies.name', $this->sortDirection);
  }, function ($q) {
- $q->orderBy('opds.' . $this->sortBy, $this->sortDirection);
+ $q->orderBy('pmo_opds.' . $this->sortBy, $this->sortDirection);
  })
  ->paginate(10);
 });
@@ -95,7 +95,7 @@ $save = function () {
 'name' => ['required','string','max:255'],
 'regency_id' => ['required','exists:regencies,id'],
 'selectedUrusans' => ['nullable','array'],
-'selectedUrusans.*' => ['exists:urusans,id'],
+'selectedUrusans.*' => ['exists:pmo_urusans,id'],
  ]);
 
  $isNew = is_null($this->opd_id);

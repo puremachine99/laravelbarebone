@@ -7,12 +7,17 @@ use Illuminate\Support\Facades\DB;
 
 class ContactSeeder extends Seeder
 {
-    private array $regions        = [];
-    private array $regencies      = [];
-    private array $employees      = [];
-    private array $positions      = [];
-    private array $opds           = [];
-    private array $jabatanMap     = [];
+    private array $regions = [];
+
+    private array $regencies = [];
+
+    private array $employees = [];
+
+    private array $positions = [];
+
+    private array $opds = [];
+
+    private array $jabatanMap = [];
 
     public function run(): void
     {
@@ -22,34 +27,36 @@ class ContactSeeder extends Seeder
         $csvPath = database_path('seeders/jsonlawas/contact.csv');
         if (! file_exists($csvPath)) {
             $this->command->error("CSV not found: {$csvPath}");
+
             return;
         }
 
         $this->command->info('Processing contact.csv (~22k rows)...');
-        $file       = fopen($csvPath, 'r');
+        $file = fopen($csvPath, 'r');
         fgetcsv($file); // skip header
 
-        $batch      = [];
-        $inserted   = 0;
-        $skipped    = 0;
-        $now        = now()->toDateTimeString();
+        $batch = [];
+        $inserted = 0;
+        $skipped = 0;
+        $now = now()->toDateTimeString();
 
         while (($row = fgetcsv($file)) !== false) {
             $record = $this->transform($row, $now);
             if ($record === null) {
                 $skipped++;
+
                 continue;
             }
 
             $batch[] = $record;
 
             if (\count($batch) >= 200) {
-                DB::table('contacts')->upsert(
+                DB::table('pmo_contacts')->upsert(
                     $batch,
                     ['partnership_contact_id'],
                     ['name', 'sumber', 'category', 'region_id', 'pic_employee_id',
-                     'regency_id', 'contact_position_id', 'opd_id', 'phone', 'email',
-                     'created_at', 'updated_at']
+                        'regency_id', 'contact_position_id', 'opd_id', 'phone', 'email',
+                        'created_at', 'updated_at']
                 );
                 $inserted += \count($batch);
                 $batch = [];
@@ -57,12 +64,12 @@ class ContactSeeder extends Seeder
         }
 
         if (! empty($batch)) {
-            DB::table('contacts')->upsert(
+            DB::table('pmo_contacts')->upsert(
                 $batch,
                 ['partnership_contact_id'],
                 ['name', 'sumber', 'category', 'region_id', 'pic_employee_id',
-                 'regency_id', 'contact_position_id', 'opd_id', 'phone', 'email',
-                 'created_at', 'updated_at']
+                    'regency_id', 'contact_position_id', 'opd_id', 'phone', 'email',
+                    'created_at', 'updated_at']
             );
             $inserted += \count($batch);
         }
@@ -96,13 +103,13 @@ class ContactSeeder extends Seeder
             });
 
         // contact positions: lowercase name → id
-        DB::table('contact_positions')->select('id', 'name')->orderBy('id')->each(function ($p) {
+        DB::table('pmo_contact_positions')->select('id', 'name')->orderBy('id')->each(function ($p) {
             $this->positions[strtolower(trim($p->name))] = $p->id;
         });
 
         // opds: "regency_id|lowercase_name" → id
-        DB::table('opds')->select('id', 'regency_id', 'name')->orderBy('id')->each(function ($o) {
-            $key = $o->regency_id . '|' . strtolower(trim($o->name));
+        DB::table('pmo_opds')->select('id', 'regency_id', 'name')->orderBy('id')->each(function ($o) {
+            $key = $o->regency_id.'|'.strtolower(trim($o->name));
             $this->opds[$key] = $o->id;
         });
 
@@ -145,32 +152,32 @@ class ContactSeeder extends Seeder
      */
     private function transform(array $r, string $now): ?array
     {
-        $id   = isset($r[0]) ? (int) trim($r[0]) : 0;
+        $id = isset($r[0]) ? (int) trim($r[0]) : 0;
         $name = isset($r[1]) ? trim($r[1]) : '';
 
         if ($id === 0 || $name === '') {
             return null;
         }
 
-        $regencyId  = $this->resolveRegency(trim($r[7] ?? ''));
-        $opdId      = $this->resolveOpd(trim($r[10] ?? ''), $regencyId);
-        $posId      = $this->resolvePosition(trim($r[9] ?? ''), trim($r[8] ?? ''));
-        $createdAt  = $this->parseDate(trim($r[18] ?? ''), $now);
+        $regencyId = $this->resolveRegency(trim($r[7] ?? ''));
+        $opdId = $this->resolveOpd(trim($r[10] ?? ''), $regencyId);
+        $posId = $this->resolvePosition(trim($r[9] ?? ''), trim($r[8] ?? ''));
+        $createdAt = $this->parseDate(trim($r[18] ?? ''), $now);
 
         return [
             'partnership_contact_id' => $id,
-            'name'                   => $name,
-            'sumber'                 => $this->mapSumber(trim($r[2] ?? '')),
-            'category'               => $this->mapKategori(trim($r[5] ?? '')),
-            'region_id'              => $this->resolveRegion((int) trim($r[3] ?? 0)),
-            'pic_employee_id'        => $this->resolveEmployee(trim($r[4] ?? '')),
-            'regency_id'             => $regencyId,
-            'contact_position_id'    => $posId,
-            'opd_id'                 => $opdId,
-            'phone'                  => $this->sanitizePhone(trim($r[13] ?? '')),
-            'email'                  => $this->sanitizeEmail(trim($r[12] ?? '')),
-            'created_at'             => $createdAt,
-            'updated_at'             => $now,
+            'name' => $name,
+            'sumber' => $this->mapSumber(trim($r[2] ?? '')),
+            'category' => $this->mapKategori(trim($r[5] ?? '')),
+            'region_id' => $this->resolveRegion((int) trim($r[3] ?? 0)),
+            'pic_employee_id' => $this->resolveEmployee(trim($r[4] ?? '')),
+            'regency_id' => $regencyId,
+            'contact_position_id' => $posId,
+            'opd_id' => $opdId,
+            'phone' => $this->sanitizePhone(trim($r[13] ?? '')),
+            'email' => $this->sanitizeEmail(trim($r[12] ?? '')),
+            'created_at' => $createdAt,
+            'updated_at' => $now,
         ];
     }
 
@@ -185,7 +192,9 @@ class ContactSeeder extends Seeder
 
     private function resolveRegency(string $raw): ?int
     {
-        if ($raw === '') return null;
+        if ($raw === '') {
+            return null;
+        }
 
         $key = $this->normalizeGeoName($raw);
 
@@ -206,7 +215,9 @@ class ContactSeeder extends Seeder
 
     private function resolveEmployee(string $picName): ?int
     {
-        if ($picName === '') return null;
+        if ($picName === '') {
+            return null;
+        }
 
         $lower = strtolower($picName);
 
@@ -241,7 +252,9 @@ class ContactSeeder extends Seeder
 
             // Translate via jabatanMap
             $translated = $this->jabatanMap[$lower] ?? $raw;
-            if ($translated === '') continue; // explicitly mapped to empty → skip
+            if ($translated === '') {
+                continue;
+            } // explicitly mapped to empty → skip
 
             $lowerTranslated = strtolower($translated);
 
@@ -263,18 +276,22 @@ class ContactSeeder extends Seeder
 
     private function resolveOpd(string $instansi, ?int $regencyId): ?int
     {
-        if ($instansi === '' || $regencyId === null) return null;
+        if ($instansi === '' || $regencyId === null) {
+            return null;
+        }
 
-        $key = $regencyId . '|' . strtolower($instansi);
+        $key = $regencyId.'|'.strtolower($instansi);
         if (isset($this->opds[$key])) {
             return $this->opds[$key];
         }
 
         // Partial match within same regency
-        $prefix = $regencyId . '|';
-        $lower  = strtolower($instansi);
+        $prefix = $regencyId.'|';
+        $lower = strtolower($instansi);
         foreach ($this->opds as $dbKey => $oid) {
-            if (! str_starts_with($dbKey, $prefix)) continue;
+            if (! str_starts_with($dbKey, $prefix)) {
+                continue;
+            }
             $dbName = substr($dbKey, \strlen($prefix));
             if (str_contains($dbName, $lower) || str_contains($lower, $dbName)) {
                 return $oid;
@@ -342,19 +359,21 @@ class ContactSeeder extends Seeder
         }
 
         $digits = preg_replace('/[^0-9]/', '', $raw);
-        if (\strlen($digits) < 8) return null;
+        if (\strlen($digits) < 8) {
+            return null;
+        }
 
         if (str_starts_with($digits, '08')) {
-            return '+628' . substr($digits, 2);
+            return '+628'.substr($digits, 2);
         }
         if (str_starts_with($digits, '8')) {
-            return '+628' . substr($digits, 1);
+            return '+628'.substr($digits, 1);
         }
         if (str_starts_with($digits, '62')) {
-            return '+' . $digits;
+            return '+'.$digits;
         }
 
-        return '+' . $digits;
+        return '+'.$digits;
     }
 
     private function sanitizeEmail(string $raw): ?string
@@ -370,7 +389,9 @@ class ContactSeeder extends Seeder
 
     private function parseDate(string $raw, string $fallback): string
     {
-        if ($raw === '') return $fallback;
+        if ($raw === '') {
+            return $fallback;
+        }
 
         $parsed = strtotime($raw);
 
@@ -382,7 +403,7 @@ class ContactSeeder extends Seeder
     private function normalizeGeoName(string $name): string
     {
         $prefixes = ['kabupaten', 'kab.', 'kota', 'provinsi', 'prov.', 'kab ', 'prov '];
-        $lower    = strtolower(trim($name));
+        $lower = strtolower(trim($name));
 
         foreach ($prefixes as $prefix) {
             if (str_starts_with($lower, $prefix)) {

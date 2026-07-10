@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PipelineStage extends Model
 {
+    protected $table = 'pmo_pipeline_stages';
+
     protected $guarded = ['id'];
 
     protected $casts = [

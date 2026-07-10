@@ -65,21 +65,21 @@ class ProductSeeder extends Seeder
         // Insert Divisions
         $this->command->info('Menyisipkan data divisi...');
         foreach ($divisions as $code => $name) {
-            DB::table('divisions')->insertOrIgnore([
+            DB::table('pmo_divisions')->insertOrIgnore([
                 'code' => $code,
                 'name' => $name,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
-        $divisionMap = DB::table('divisions')->pluck('id', 'code')->toArray();
+        $divisionMap = DB::table('pmo_divisions')->pluck('id', 'code')->toArray();
 
         // Insert Service Centers
         $this->command->info('Menyisipkan data pusat layanan...');
         foreach ($serviceCenters as $fullCode => $info) {
             $divId = $divisionMap[$info['division_code']] ?? null;
             if ($divId) {
-                DB::table('service_centers')->insertOrIgnore([
+                DB::table('pmo_service_centers')->insertOrIgnore([
                     'division_id' => $divId,
                     'code' => $info['code'],
                     'full_code' => $fullCode,
@@ -89,12 +89,12 @@ class ProductSeeder extends Seeder
                 ]);
             }
         }
-        $serviceCenterMap = DB::table('service_centers')->pluck('id', 'full_code')->toArray();
+        $serviceCenterMap = DB::table('pmo_service_centers')->pluck('id', 'full_code')->toArray();
 
         // Insert Categories
         $this->command->info('Menyisipkan data kategori produk...');
         foreach ($categories as $code => $name) {
-            DB::table('product_categories')->insertOrIgnore([
+            DB::table('pmo_product_categories')->insertOrIgnore([
                 'code' => $code,
                 'name' => $name,
                 'created_at' => now(),
@@ -134,7 +134,7 @@ class ProductSeeder extends Seeder
         DB::transaction(function () use ($outputsData) {
             DB::connection()->disableQueryLog();
             foreach (array_chunk($outputsData, 500) as $chunk) {
-                DB::table('outputs')->insert($chunk);
+                DB::table('pmo_outputs')->insert($chunk);
             }
         });
 

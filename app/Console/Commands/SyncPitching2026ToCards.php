@@ -42,7 +42,7 @@ class SyncPitching2026ToCards extends Command
         }
 
         $this->info('Loading pipeline stages...');
-        $profile = DB::table('pipeline_profiles')
+        $profile = DB::table('pmo_pipeline_profiles')
             ->where('pipeline_name', 'Pitching')
             ->where('is_active', true)
             ->first();
@@ -53,7 +53,7 @@ class SyncPitching2026ToCards extends Command
             return Command::FAILURE;
         }
 
-        $stages = DB::table('pipeline_stages')
+        $stages = DB::table('pmo_pipeline_stages')
             ->where('pipeline_profile_id', $profile->id)
             ->pluck('id', 'stage_name')
             ->toArray();
@@ -73,7 +73,7 @@ class SyncPitching2026ToCards extends Command
         $pitchingRekaps = DB::connection($source)
             ->table('rekaps')
             ->where('rekap_jenis', 'pitching')
-            ->whereIn('rekap_proyeksi', function ($q) use ($source) {
+            ->whereIn('rekap_proyeksi', function ($q) {
                 $q->select('id')->from('prediksis')->where('tahun', '2026');
             })
             ->select('rekap_proyeksi', 'rekap_tgl', 'rekap_terlaksana', 'rekap_tdk_terlaksana')
@@ -82,7 +82,7 @@ class SyncPitching2026ToCards extends Command
 
         // Pre-load all outputs
         $this->info('Loading outputs...');
-        $outputs = DB::table('outputs')
+        $outputs = DB::table('pmo_outputs')
             ->select('id', 'output_name', 'generated_code')
             ->get()
             ->keyBy('generated_code');
@@ -90,7 +90,7 @@ class SyncPitching2026ToCards extends Command
         // TRANSLASI ID: Pre-load mapping kontak dari database Smartboard
         // Format hasil: [partnership_kontaks.id => smartboard_contacts.id]
         $this->info('Loading contacts mapping (Partnership kontaks.id => Smartboard contacts.id)...');
-        $contactsMap = DB::table('contacts')
+        $contactsMap = DB::table('pmo_contacts')
             ->whereNotNull('partnership_contact_id')
             ->pluck('id', 'partnership_contact_id');
 
@@ -117,9 +117,9 @@ class SyncPitching2026ToCards extends Command
         $bar->start();
 
         $inserted = 0;
-        $updated  = 0;
-        $skipped  = 0;
-        $failed   = 0;
+        $updated = 0;
+        $skipped = 0;
+        $failed = 0;
 
         DB::connection($source)
             ->table('prediksis as p')
@@ -150,20 +150,21 @@ class SyncPitching2026ToCards extends Command
                         if ($payload === null) {
                             $skipped++;
                             $bar->advance();
+
                             continue;
                         }
 
-                        $existing = DB::table('cards')
+                        $existing = DB::table('pmo_cards')
                             ->whereRaw("history_logs->>'partnership_prediksi_id' = ?", [(string) $row->id])
                             ->first();
 
                         if ($existing) {
-                            DB::table('cards')
+                            DB::table('pmo_cards')
                                 ->where('id', $existing->id)
                                 ->update(array_merge($payload, ['updated_at' => now()]));
                             $updated++;
                         } else {
-                            DB::table('cards')->insert(array_merge($payload, [
+                            DB::table('pmo_cards')->insert(array_merge($payload, [
                                 'created_at' => $row->p_created_at ?? now(),
                                 'updated_at' => now(),
                             ]));
@@ -296,78 +297,78 @@ class SyncPitching2026ToCards extends Command
             return null;
         }
 
-        $stageId  = $this->resolveStageId((int) $row->id, $pitchingRekaps, $stages);
-        $status   = $this->resolveStatus($row);
-        $nominal  = $this->resolveNominal($row);
-        $output   = $this->resolveOutput($row->kegiatan, $outputs);
+        $stageId = $this->resolveStageId((int) $row->id, $pitchingRekaps, $stages);
+        $status = $this->resolveStatus($row);
+        $nominal = $this->resolveNominal($row);
+        $output = $this->resolveOutput($row->kegiatan, $outputs);
 
         // FIX #3: Gunakan resolveContactId yang punya fallback via bidangs
         $contactId = $this->resolveContactId($row, $contactsMap, $bidangsContactMap);
 
         $projectionStatus = match (true) {
-            $row->closing  !== null => 'Closing',
-            $row->deal     !== null => 'Deal',
-            $row->optimis  !== null => 'Optimis',
+            $row->closing !== null => 'Closing',
+            $row->deal !== null => 'Deal',
+            $row->optimis !== null => 'Optimis',
             $row->moderate !== null => 'Moderate',
-            $row->lost     !== null => 'Lost',
-            default                 => 'Proyeksi',
+            $row->lost !== null => 'Lost',
+            default => 'Proyeksi',
         };
 
         $followUps = [];
         if ($row->tgl_fu || $row->hasil_fu) {
             $followUps[] = [
-                'date'   => $row->tgl_fu,
+                'date' => $row->tgl_fu,
                 'result' => $row->hasil_fu,
             ];
         }
 
         $historyLogs = array_filter([
             'partnership_prediksi_id' => (string) $row->id,
-            'id_ukw'                  => $row->id_ukw,
-            'id_pmo'                  => $row->id_pmo,
-            'id_provinsi'             => $row->id_provinsi,
-            'id_kabupaten'            => $row->id_kabupaten,
-            'id_instansi'             => $row->id_instansi,
-            'id_bidang'               => $row->id_bidang,
-            'jenis'                   => $row->jenis,
-            'bulan'                   => $row->bulan,
-            'bulan_awal'              => $row->bulan_awal,
-            'bulan_akhir'             => $row->bulan_akhir,
-            'sumber_informasi'        => $row->sumber_informasi,
-            'profiling_market'        => $row->profiling_market,
+            'id_ukw' => $row->id_ukw,
+            'id_pmo' => $row->id_pmo,
+            'id_provinsi' => $row->id_provinsi,
+            'id_kabupaten' => $row->id_kabupaten,
+            'id_instansi' => $row->id_instansi,
+            'id_bidang' => $row->id_bidang,
+            'jenis' => $row->jenis,
+            'bulan' => $row->bulan,
+            'bulan_awal' => $row->bulan_awal,
+            'bulan_akhir' => $row->bulan_akhir,
+            'sumber_informasi' => $row->sumber_informasi,
+            'profiling_market' => $row->profiling_market,
             'kode_output_partnership' => $row->kegiatan,
-            'nama_instansi'           => $row->nama_instansi,
-            'monev'                   => array_filter([
-                'proyeksi'  => $row->monev_proyeksi,
-                'budget'    => $row->monev_budget,
+            'nama_instansi' => $row->nama_instansi,
+            'monev' => array_filter([
+                'proyeksi' => $row->monev_proyeksi,
+                'budget' => $row->monev_budget,
                 'authority' => $row->monev_authority,
-                'needs'     => $row->monev_needs,
-                'timeline'  => $row->monev_timeline,
-                'kontrak'   => $row->monev_kontrak,
+                'needs' => $row->monev_needs,
+                'timeline' => $row->monev_timeline,
+                'kontrak' => $row->monev_kontrak,
             ]) ?: null,
         ]);
 
         return [
-            'title'                  => $output?->output_name ?? $row->nama_instansi ?? $row->kegiatan,
-            'output_id'              => $output?->id,
-            'stage_id'               => $stageId,
-            'contact_id'             => $contactId,
-            'nominal_value'          => $nominal,
-            'status'                 => $status,
-            'sumber_proyeksi'        => $row->rp_sumber_proyeksi ?? $row->sumber_informasi ?? $row->sumber,
+            'title' => $output?->output_name ?? $row->nama_instansi ?? $row->kegiatan,
+            'output_id' => $output?->id,
+            'stage_id' => $stageId,
+            'contact_id' => $contactId,
+            'nominal_value' => $nominal,
+            'status' => $status,
+            'sumber_proyeksi' => $row->rp_sumber_proyeksi ?? $row->sumber_informasi ?? $row->sumber,
             'detail_sumber_proyeksi' => $row->profiling_market,
-            'pitching_date'          => $this->resolvePitchingDate((int) $row->id, $pitchingRekaps, $row),
-            'communication_method'   => $row->rp_metode,
-            'fiscal_year'            => 2026,
-            'archived_at'            => $status === 'lost' ? ($row->tanggal_closing ?? now()) : null,
-            'negative_reason'        => $row->alasan_closing ?? $row->rp_alasan_negative,
-            'projection_month'       => $this->buildProjectionDate((string) $row->tahun, (string) ($row->bulan_pencairan ?? $row->bulan ?? ''),(string) ($row->rp_pekan ?? $row->pekan ?? '')),
-            'projection_week'        => $row->rp_pekan ?? $row->pekan,
-            'projection_status'      => $projectionStatus,
-            'drive_link'             => $row->link_acc ?? $row->rp_link_dokumen ?? $row->link_branding,
-            'manager_verified'       => (bool) $row->verifikasi_manager,
-            'history_logs'           => json_encode($historyLogs),
-            'follow_ups'             => json_encode($followUps),
+            'pitching_date' => $this->resolvePitchingDate((int) $row->id, $pitchingRekaps, $row),
+            'communication_method' => $row->rp_metode,
+            'fiscal_year' => 2026,
+            'archived_at' => $status === 'lost' ? ($row->tanggal_closing ?? now()) : null,
+            'negative_reason' => $row->alasan_closing ?? $row->rp_alasan_negative,
+            'projection_month' => $this->buildProjectionDate((string) $row->tahun, (string) ($row->bulan_pencairan ?? $row->bulan ?? ''), (string) ($row->rp_pekan ?? $row->pekan ?? '')),
+            'projection_week' => $row->rp_pekan ?? $row->pekan,
+            'projection_status' => $projectionStatus,
+            'drive_link' => $row->link_acc ?? $row->rp_link_dokumen ?? $row->link_branding,
+            'manager_verified' => (bool) $row->verifikasi_manager,
+            'history_logs' => json_encode($historyLogs),
+            'follow_ups' => json_encode($followUps),
         ];
     }
 
@@ -387,12 +388,12 @@ class SyncPitching2026ToCards extends Command
     private function resolveStatus(object $row): string
     {
         return match (true) {
-            $row->closing  !== null => 'won',
-            $row->deal     !== null => 'won',
-            $row->optimis  !== null => 'hot',
+            $row->closing !== null => 'won',
+            $row->deal !== null => 'won',
+            $row->optimis !== null => 'hot',
             $row->moderate !== null => 'warm',
-            $row->lost     !== null => 'lost',
-            default                 => 'Active',
+            $row->lost !== null => 'lost',
+            default => 'Active',
         };
     }
 
@@ -438,13 +439,16 @@ class SyncPitching2026ToCards extends Command
 
     private function buildProjectionDate(string $year, string $month, string $week): ?string
     {
-        if ($month === '') return null;
-        $y   = (int) ($year ?: 2026);
-        $m   = (int) $month;
-        $w   = max(1, (int) ($week ?: 1));
+        if ($month === '') {
+            return null;
+        }
+        $y = (int) ($year ?: 2026);
+        $m = (int) $month;
+        $w = max(1, (int) ($week ?: 1));
         $day = ($w - 1) * 7 + 1;
         $lastDay = (int) date('t', mktime(0, 0, 0, $m, 1, $y));
         $day = min($day, $lastDay);
+
         return sprintf('%04d-%02d-%02d 07:00:00', $y, $m, $day);
     }
 

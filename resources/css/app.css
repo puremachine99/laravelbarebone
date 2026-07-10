@@ -131,3 +131,47 @@ select:focus[data-flux-control] {
 .sidebar-menu .collapse > input {
     @apply min-h-0;
 }
+
+/* ─── Navy Branded Sidebar Overrides ──────────────────────── */
+
+.sidebar-menu.sidebar-dark .menu-label {
+    @apply text-white/40;
+}
+
+.sidebar-menu.sidebar-dark .menu-item,
+.sidebar-menu.sidebar-dark .collapse-title {
+    @apply text-white/70 hover:bg-white/5 hover:text-white;
+}
+
+.sidebar-menu.sidebar-dark .menu-item.active {
+    @apply border-s-2 border-amber-400 font-semibold text-white ps-[9px];
+    background-image: linear-gradient(to right, rgb(251 191 36 / 0.18), transparent);
+}
+
+.sidebar-menu.sidebar-dark .collapse-title .arrow-icon {
+    @apply text-white/40;
+}
+
+/* ─── Icon-only Collapsed Sidebar (desktop only) ──────────── */
+
+@media (min-width: 1024px) {
+    .sidebar-menu.sidebar-collapsed .menu-label,
+    .sidebar-menu.sidebar-collapsed .menu-item span,
+    .sidebar-menu.sidebar-collapsed .collapse-title span,
+    .sidebar-menu.sidebar-collapsed .collapse-title .arrow-icon {
+        @apply hidden;
+    }
+
+    .sidebar-menu.sidebar-collapsed .menu-item,
+    .sidebar-menu.sidebar-collapsed .collapse-title {
+        @apply justify-start ps-2.5 pe-0;
+    }
+
+    .sidebar-menu.sidebar-collapsed .collapse-content {
+        @apply hidden;
+    }
+
+    .sidebar-menu.sidebar-collapsed .collapse > input {
+        @apply pointer-events-none;
+    }
+}

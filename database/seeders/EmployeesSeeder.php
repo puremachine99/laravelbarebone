@@ -346,7 +346,7 @@ class EmployeesSeeder extends Seeder
 
             // Assign region to employee_regions pivot table
             if ($employeeId && $regionId) {
-                DB::table('employee_regions')->insertOrIgnore([
+                DB::table('pmo_employee_regions')->insertOrIgnore([
                     'employee_id' => $employeeId,
                     'region_id' => $regionId,
                 ]);

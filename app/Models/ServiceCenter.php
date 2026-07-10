@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ServiceCenter extends Model
 {
+    protected $table = 'pmo_service_centers';
+
     protected $fillable = ['division_id', 'code', 'full_code', 'name'];
 
     public function division()

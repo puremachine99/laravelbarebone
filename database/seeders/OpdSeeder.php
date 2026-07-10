@@ -33,7 +33,7 @@ class OpdSeeder extends Seeder
 
         $this->command->info('Memuat data wilayah dan urusan ke memori...');
         $regencies = DB::table('regencies')->pluck('id', 'code')->toArray();
-        $urusans = DB::table('urusans')->pluck('id', 'code')->toArray();
+        $urusans = DB::table('pmo_urusans')->pluck('id', 'code')->toArray();
 
         $opdData = [];
         $opdUrusanPivot = [];
@@ -95,11 +95,11 @@ class OpdSeeder extends Seeder
             DB::connection()->disableQueryLog();
 
             foreach (array_chunk($opdData, 1000) as $chunk) {
-                DB::table('opds')->insert($chunk);
+                DB::table('pmo_opds')->insert($chunk);
             }
 
             foreach (array_chunk($opdUrusanPivot, 1000) as $chunk) {
-                DB::table('opd_urusan')->insert($chunk);
+                DB::table('pmo_opd_urusan')->insert($chunk);
             }
         });
 
