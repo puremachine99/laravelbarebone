@@ -30,7 +30,7 @@ test('guests are redirected to login from realisasi', function () {
         ->assertRedirect(route('login'));
 });
 
-test('unauthorized users without manage-pipeline permission cannot access realisasi page', function () {
+test('unauthorized users without access-partnership permission cannot access realisasi page', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
@@ -38,9 +38,9 @@ test('unauthorized users without manage-pipeline permission cannot access realis
         ->assertStatus(403);
 });
 
-test('authorized users with manage-pipeline permission can access realisasi page', function () {
+test('authorized users with access-partnership permission can access realisasi page', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('manage-pipeline');
+    $permission = Permission::findOrCreate('access-partnership');
     $user->givePermissionTo($permission);
 
     $this->actingAs($user)
@@ -51,7 +51,7 @@ test('authorized users with manage-pipeline permission can access realisasi page
 
 test('realisasi page renders completed cards only', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('manage-pipeline'));
+    $user->assignRole('Super Admin');
     $this->actingAs($user);
 
     (new PipelineSeeder)->run();
@@ -123,7 +123,7 @@ test('realisasi page renders completed cards only', function () {
 test('realisasi page filter and search functionality works', function () {
     (new PipelineSeeder)->run();
     $user = User::factory()->create();
-    $user->givePermissionTo(['manage-pipeline']);
+    $user->givePermissionTo(['access-partnership']);
 
     $region = Region::first() ?: Region::create(['name' => 'Region Jawa', 'code' => 'REG-JAWA']);
     $contact1 = Contact::create(['name' => 'Instansi Alpha', 'sumber' => 'SIRUP', 'region_id' => $region->id, 'category' => 'Pemerintah Daerah']);

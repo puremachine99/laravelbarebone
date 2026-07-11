@@ -15,7 +15,7 @@ test('guests are redirected to login from partnership employees', function () {
         ->assertRedirect(route('login'));
 });
 
-test('unauthorized users without manage-partnership permission cannot access partnership employees page', function () {
+test('unauthorized users without access-partnership permission cannot access partnership employees page', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
@@ -23,9 +23,9 @@ test('unauthorized users without manage-partnership permission cannot access par
         ->assertStatus(403);
 });
 
-test('authorized users with manage-partnership permission can access partnership employees page', function () {
+test('authorized users with access-partnership permission can access partnership employees page', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('manage-partnership');
+    $permission = Permission::findOrCreate('access-partnership');
     $user->givePermissionTo($permission);
 
     // Ensure target department exists
@@ -39,7 +39,7 @@ test('authorized users with manage-partnership permission can access partnership
 
 test('partnership employees CRUD functionality with region assignment', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('manage-partnership');
+    $permission = Permission::findOrCreate('access-partnership');
     $user->givePermissionTo($permission);
     $user->givePermissionTo(Permission::findOrCreate('modify-master-data'));
 

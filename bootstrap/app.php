@@ -1,9 +1,11 @@
 <?php
 
+use App\Services\ErrorTracker;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,4 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        $exceptions->report(function (Throwable $e) {
+            if (app()->runningInConsole() || $e instanceof ValidationException) {
+                return;
+            }
+
+            ErrorTracker::captureException($e, request());
+        });
     })->create();

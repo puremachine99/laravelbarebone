@@ -5,7 +5,6 @@ namespace App\Livewire\Admin;
 use Flux\Flux;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RoleManagement extends Component
@@ -28,6 +27,55 @@ class RoleManagement extends Component
     protected $queryString = [
         'search' => ['except' => ''],
     ];
+
+    /**
+     * Permissions tied 1:1 to a business module (department-scoped access).
+     *
+     * @return array<string, array{label: string, description: string, icon: string}>
+     */
+    public function modulePermissions(): array
+    {
+        return collect(config('modules.list'))
+            ->mapWithKeys(fn (array $module) => [
+                $module['permission'] => [
+                    'label' => $module['label'],
+                    'description' => $module['description'],
+                    'icon' => $module['icon'],
+                ],
+            ])
+            ->all();
+    }
+
+    /**
+     * Cross-cutting permissions not tied to a specific department/module.
+     *
+     * @return array<string, array{label: string, description: string, icon: string}>
+     */
+    public function otherPermissions(): array
+    {
+        return [
+            'view-executive-dashboard' => ['label' => 'Executive Dashboard', 'description' => 'Ringkasan performa perusahaan.', 'icon' => 'presentation-chart-line'],
+            'manage-talent-okr' => ['label' => 'Talent Leaderboard', 'description' => 'OKR dan leaderboard talent.', 'icon' => 'trophy'],
+            'manage-chat' => ['label' => 'Nakama Chat', 'description' => 'Chat internal tim.', 'icon' => 'chat-bubble-left-right'],
+            'manage-ai-center' => ['label' => 'AI Center', 'description' => 'Fitur AI internal.', 'icon' => 'sparkles'],
+        ];
+    }
+
+    public static function permissionLabel(string $name): string
+    {
+        $catalog = collect(config('modules.list'))->mapWithKeys(fn (array $m) => [$m['permission'] => $m['label']]);
+
+        $labels = $catalog->merge([
+            'view-executive-dashboard' => 'Executive Dashboard',
+            'manage-talent-okr' => 'Talent Leaderboard',
+            'manage-chat' => 'Nakama Chat',
+            'manage-ai-center' => 'AI Center',
+            'modify-master-data' => 'Modify Master Data',
+            'verify-manager' => 'Verify Manager',
+        ]);
+
+        return $labels->get($name, $name);
+    }
 
     public function updatingSearch()
     {
@@ -115,11 +163,11 @@ class RoleManagement extends Component
         }
 
         $roles = $query->paginate(10);
-        $allPermissions = Permission::orderBy('name')->get();
 
         return view('livewire.admin.role-management', [
             'roles' => $roles,
-            'allPermissions' => $allPermissions,
+            'modulePermissions' => $this->modulePermissions(),
+            'otherPermissions' => $this->otherPermissions(),
         ]);
     }
 }

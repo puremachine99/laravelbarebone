@@ -70,10 +70,25 @@ $updatedRegencyId = function ($value) {
     $this->opd_id = '';
 };
 
-$isSuperAdmin = computed(fn() => 
-    auth()->user()?->email === 'supernakama@smartid.co.id' || 
+$isSuperAdmin = computed(fn() =>
+    auth()->user()?->email === 'supernakama@smartid.co.id' ||
     auth()->user()->hasRole('Super Admin')
 );
+
+// PMO: only their own (PIC'd) contacts. SPV (Partnership Admin): contacts within their region ("team"). Super Admin: everything.
+$viewerScope = computed(function () {
+    $user = auth()->user();
+    $employee = $user->employee;
+    $isSuper = $this->isSuperAdmin;
+    $isSpv = !$isSuper && $user->hasRole('Partnership Admin');
+
+    return [
+        'employee' => $employee,
+        'isSuper' => $isSuper,
+        'isSpv' => $isSpv,
+        'spvRegionId' => $isSpv ? $employee?->region_id : null,
+    ];
+});
 
 $employeeOptions = computed(function () {
     $filtered = Employee::with('user')->whereHas('department', fn($q) => $q->where('name', 'Revenue and Growth'))->orWhereHas('positionStruktural', fn($q) => $q->where('name', 'like', '%Partnership%'))->orWhereHas('positionFungsional', fn($q) => $q->where('name', 'like', '%Partnership%'))->get();
@@ -89,12 +104,12 @@ $contacts = computed(function () {
     $filterCategory = $this->filterCategory;
     $filterKelompok = $this->filterKelompokJabatan;
 
-    $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
-    $isSuper = auth()->user()?->email === 'supernakama@smartid.co.id';
+    ['employee' => $employee, 'isSuper' => $isSuper, 'isSpv' => $isSpv, 'spvRegionId' => $spvRegionId] = $this->viewerScope;
 
     return Contact::query()
         ->with(['region', 'regency.province', 'opd', 'pic.user', 'contactPosition'])
-        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+        ->when($isSpv && $spvRegionId, fn($q) => $q->where('pmo_contacts.region_id', $spvRegionId))
+            ->when(!$isSuper && !$isSpv && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
         ->when($search, fn($q) => $q->whereRaw('LOWER(pmo_contacts.name) LIKE ?', ['%' . strtolower($search) . '%']))
         ->when($filterRegion, fn($q) => $q->where('pmo_contacts.region_id', $filterRegion))
         ->when($filterCategory, fn($q) => $q->where('pmo_contacts.category', $filterCategory))
@@ -242,17 +257,18 @@ $deleteContact = function ($id = null) {
 };
 
 $statsCategory = computed(function () {
-    $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
-    $isSuper = auth()->user()?->email === 'supernakama@smartid.co.id';
+    ['employee' => $employee, 'isSuper' => $isSuper, 'isSpv' => $isSpv, 'spvRegionId' => $spvRegionId] = $this->viewerScope;
 
     $total =
         Contact::query()
-            ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+            ->when($isSpv && $spvRegionId, fn($q) => $q->where('pmo_contacts.region_id', $spvRegionId))
+            ->when(!$isSuper && !$isSpv && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
             ->count() ?:
         1;
 
     $categories = Contact::query()
-        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+        ->when($isSpv && $spvRegionId, fn($q) => $q->where('pmo_contacts.region_id', $spvRegionId))
+            ->when(!$isSuper && !$isSpv && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
         ->selectRaw('category, count(*) as count')
         ->groupBy('category')
         ->get();
@@ -275,18 +291,19 @@ $statsCategory = computed(function () {
 });
 
 $statsRegion = computed(function () {
-    $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
-    $isSuper = auth()->user()?->email === 'supernakama@smartid.co.id';
+    ['employee' => $employee, 'isSuper' => $isSuper, 'isSpv' => $isSpv, 'spvRegionId' => $spvRegionId] = $this->viewerScope;
 
     $total =
         Contact::query()
-            ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+            ->when($isSpv && $spvRegionId, fn($q) => $q->where('pmo_contacts.region_id', $spvRegionId))
+            ->when(!$isSuper && !$isSpv && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
             ->whereNotNull('region_id')
             ->count() ?:
         1;
 
     $regions = Contact::query()
-        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+        ->when($isSpv && $spvRegionId, fn($q) => $q->where('pmo_contacts.region_id', $spvRegionId))
+            ->when(!$isSuper && !$isSpv && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
         ->whereNotNull('region_id')
         ->selectRaw('region_id, count(*) as count')
         ->groupBy('region_id')
@@ -304,17 +321,18 @@ $statsRegion = computed(function () {
 });
 
 $statsProvince = computed(function () {
-    $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
-    $isSuper = auth()->user()?->email === 'supernakama@smartid.co.id';
+    ['employee' => $employee, 'isSuper' => $isSuper, 'isSpv' => $isSpv, 'spvRegionId' => $spvRegionId] = $this->viewerScope;
 
     $total = Contact::query()
-        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+        ->when($isSpv && $spvRegionId, fn($q) => $q->where('pmo_contacts.region_id', $spvRegionId))
+            ->when(!$isSuper && !$isSpv && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
         ->join('regencies', 'pmo_contacts.regency_id', '=', 'regencies.id')
         ->join('provinces', 'regencies.province_id', '=', 'provinces.id')
         ->count() ?: 1;
 
     $provinces = Contact::query()
-        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+        ->when($isSpv && $spvRegionId, fn($q) => $q->where('pmo_contacts.region_id', $spvRegionId))
+            ->when(!$isSuper && !$isSpv && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
         ->join('regencies', 'pmo_contacts.regency_id', '=', 'regencies.id')
         ->join('provinces', 'regencies.province_id', '=', 'provinces.id')
         ->selectRaw('provinces.name as province_name, count(*) as count')
@@ -329,18 +347,19 @@ $statsProvince = computed(function () {
 });
 
 $statsPosition = computed(function () {
-    $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
-    $isSuper = auth()->user()?->email === 'supernakama@smartid.co.id';
+    ['employee' => $employee, 'isSuper' => $isSuper, 'isSpv' => $isSpv, 'spvRegionId' => $spvRegionId] = $this->viewerScope;
 
     $total =
         Contact::query()
-            ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+            ->when($isSpv && $spvRegionId, fn($q) => $q->where('pmo_contacts.region_id', $spvRegionId))
+            ->when(!$isSuper && !$isSpv && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
             ->whereNotNull('contact_position_id')
             ->count() ?:
         1;
 
     $positions = Contact::query()
-        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+        ->when($isSpv && $spvRegionId, fn($q) => $q->where('pmo_contacts.region_id', $spvRegionId))
+            ->when(!$isSuper && !$isSpv && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
         ->whereNotNull('contact_position_id')
         ->selectRaw('contact_position_id, count(*) as count')
         ->groupBy('contact_position_id')
@@ -358,11 +377,11 @@ $statsPosition = computed(function () {
 });
 
 $contactsCount = computed(function () {
-    $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
-    $isSuper = auth()->user()?->email === 'supernakama@smartid.co.id';
+    ['employee' => $employee, 'isSuper' => $isSuper, 'isSpv' => $isSpv, 'spvRegionId' => $spvRegionId] = $this->viewerScope;
 
     return Contact::query()
-        ->when(!$isSuper && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
+        ->when($isSpv && $spvRegionId, fn($q) => $q->where('pmo_contacts.region_id', $spvRegionId))
+            ->when(!$isSuper && !$isSpv && $employee, fn($q) => $q->where('pmo_contacts.pic_employee_id', $employee->id))
         ->count();
 });
 

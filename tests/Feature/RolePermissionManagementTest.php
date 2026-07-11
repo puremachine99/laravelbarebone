@@ -14,7 +14,7 @@ test('guests are redirected to login', function () {
         ->assertRedirect(route('login'));
 });
 
-test('unauthorized users without manage-internal-org permission cannot access role management', function () {
+test('unauthorized users without access-internal-org permission cannot access role management', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
@@ -22,9 +22,9 @@ test('unauthorized users without manage-internal-org permission cannot access ro
         ->assertStatus(403);
 });
 
-test('authorized users with manage-internal-org permission can access role management', function () {
+test('authorized users with access-internal-org permission can access role management', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('manage-internal-org');
+    $permission = Permission::findOrCreate('access-internal-org');
     $user->givePermissionTo($permission);
 
     $this->actingAs($user)
@@ -35,36 +35,36 @@ test('authorized users with manage-internal-org permission can access role manag
 
 test('role management component CRUD operations', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('manage-internal-org'));
+    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
 
     $this->actingAs($admin);
 
     // Create permissions to assign
-    $perm1 = Permission::findOrCreate('manage-partnership');
-    $perm2 = Permission::findOrCreate('manage-pipeline');
+    $perm1 = Permission::findOrCreate('access-partnership');
+    $perm2 = Permission::findOrCreate('access-products');
 
     // 1. Create a new Role
     Livewire::test(RoleManagement::class)
         ->set('roleName', 'Partnership Staff')
-        ->set('rolePermissions', ['manage-partnership'])
+        ->set('rolePermissions', ['access-partnership'])
         ->call('saveRole')
         ->assertHasNoErrors();
 
     $newRole = Role::findByName('Partnership Staff');
     expect($newRole)->not->toBeNull()
-        ->and($newRole->hasPermissionTo('manage-partnership'))->toBeTrue()
-        ->and($newRole->hasPermissionTo('manage-pipeline'))->toBeFalse();
+        ->and($newRole->hasPermissionTo('access-partnership'))->toBeTrue()
+        ->and($newRole->hasPermissionTo('access-products'))->toBeFalse();
 
     // 2. Edit the Role permissions
     Livewire::test(RoleManagement::class)
         ->call('edit', $newRole->id)
         ->assertSet('roleName', 'Partnership Staff')
-        ->set('rolePermissions', ['manage-partnership', 'manage-pipeline'])
+        ->set('rolePermissions', ['access-partnership', 'access-products'])
         ->call('saveRole')
         ->assertHasNoErrors();
 
     $newRole->refresh();
-    expect($newRole->hasPermissionTo('manage-pipeline'))->toBeTrue();
+    expect($newRole->hasPermissionTo('access-products'))->toBeTrue();
 
     // 3. Delete the Role
     Livewire::test(RoleManagement::class)

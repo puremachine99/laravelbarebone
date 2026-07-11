@@ -16,9 +16,11 @@ $applyFilter = function () {
 
 $dashboardData = computed(function () {
     $user       = auth()->user();
+    $isAdmin      = $user->hasRole('Super Admin');
     $isSupervisor = $user->hasRole('Partnership Admin');
+    $employeeId   = $user->employee?->id;
     $regionId   = $isSupervisor
-        ? \App\Models\Employee::where('user_id', auth()->id())->value('region_id')
+        ? $user->employee?->region_id
         : null;
 
     $year = (int) $this->filterFiscalYear;
@@ -28,7 +30,8 @@ $dashboardData = computed(function () {
         ->where('fiscal_year', $year)
         ->when($isSupervisor && $regionId, fn($q) =>
             $q->whereHas('employee', fn($e) => $e->where('region_id', $regionId))
-        );
+        )
+        ->when(!$isAdmin && !$isSupervisor, fn($q) => $q->where('employee_id', $employeeId ?? 0));
 
     // ── Summary (load once, aggregate in PHP) ──────────────────
     $allCards = (clone $base)->with('stage')->get();
@@ -77,6 +80,16 @@ $dashboardData = computed(function () {
             ->groupBy('employees.id', 'users.id', 'users.name')
             ->orderByDesc('total_nominal')
             ->get();
+    } elseif (!$isAdmin) {
+        // Plain PMO: only their own contribution, no cross-employee visibility.
+        $regionRows = \App\Models\Card::query()
+            ->where('fiscal_year', $year)
+            ->where('pmo_cards.employee_id', $employeeId ?? 0)
+            ->join('employees', 'pmo_cards.employee_id', '=', 'employees.id')
+            ->join('users', 'employees.user_id', '=', 'users.id')
+            ->selectRaw('users.name AS label, SUM(pmo_cards.nominal_value) AS total_nominal, COUNT(*) AS cnt')
+            ->groupBy('employees.id', 'users.id', 'users.name')
+            ->get();
     } else {
         $regionRows = \App\Models\Card::query()
             ->where('fiscal_year', $year)
@@ -98,6 +111,7 @@ $dashboardData = computed(function () {
         ->when($isSupervisor && $regionId, fn($q) =>
             $q->whereHas('employee', fn($e) => $e->where('region_id', $regionId))
         )
+        ->when(!$isAdmin && !$isSupervisor, fn($q) => $q->where('pmo_cards.employee_id', $employeeId ?? 0))
         ->join('employees', 'pmo_cards.employee_id', '=', 'employees.id')
         ->join('users', 'employees.user_id', '=', 'users.id')
         ->whereNotNull('pmo_cards.employee_id')

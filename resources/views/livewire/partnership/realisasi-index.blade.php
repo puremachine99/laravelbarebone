@@ -56,17 +56,22 @@ state([
 });
 
 $cards = computed(function () {
+    $user = auth()->user();
+    $isAdmin = $user->hasRole('Super Admin');
+    $isSpv = $user->hasRole('Partnership Admin');
+
     return \App\Models\Card::forRealisasi()
         ->where('fiscal_year', (int) $this->filterFiscalYear)
         ->when($this->filterSumberProyeksi, fn($q) => $q->where('sumber_proyeksi', $this->filterSumberProyeksi))
         ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
         ->when($this->filterManagerVerified !== '', fn($q) => $q->where('manager_verified', $this->filterManagerVerified === '1'))
-        ->when(auth()->user()->hasRole('Partnership Admin'), function ($q) {
-            $regionId = \App\Models\Employee::where('user_id', auth()->id())->value('region_id');
+        ->when($isSpv, function ($q) use ($user) {
+            $regionId = $user->employee?->region_id;
             if ($regionId) {
                 $q->whereHas('employee', fn($e) => $e->where('region_id', $regionId));
             }
         })
+        ->when(!$isAdmin && !$isSpv, fn($q) => $q->where('employee_id', $user->employee?->id ?? 0))
         ->when($this->filterEmployee, fn($q) => $q->where('employee_id', (int) $this->filterEmployee))
         ->when($this->search, function ($q) {
             $q->where(function ($sub) {
@@ -85,17 +90,22 @@ $cards = computed(function () {
 });
 
 $realisasiStats = computed(function () {
+    $user = auth()->user();
+    $isAdmin = $user->hasRole('Super Admin');
+    $isSpv = $user->hasRole('Partnership Admin');
+
     $baseQuery = \App\Models\Card::forRealisasi()
         ->where('fiscal_year', (int) $this->filterFiscalYear)
         ->when($this->filterSumberProyeksi, fn($q) => $q->where('sumber_proyeksi', $this->filterSumberProyeksi))
         ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
         ->when($this->filterManagerVerified !== '', fn($q) => $q->where('manager_verified', $this->filterManagerVerified === '1'))
-        ->when(auth()->user()->hasRole('Partnership Admin'), function ($q) {
-            $regionId = \App\Models\Employee::where('user_id', auth()->id())->value('region_id');
+        ->when($isSpv, function ($q) use ($user) {
+            $regionId = $user->employee?->region_id;
             if ($regionId) {
                 $q->whereHas('employee', fn($e) => $e->where('region_id', $regionId));
             }
         })
+        ->when(!$isAdmin && !$isSpv, fn($q) => $q->where('employee_id', $user->employee?->id ?? 0))
         ->when($this->filterEmployee, fn($q) => $q->where('employee_id', (int) $this->filterEmployee))
         ->when($this->search, function ($q) {
             $q->where(function ($sub) {
@@ -142,14 +152,18 @@ $resetFilters = function () {
 };
 
 $employeeOptions = computed(function () {
+    $user = auth()->user();
     $query = \App\Models\Employee::join('users', 'users.id', '=', 'employees.user_id')
         ->select('employees.id', 'users.name');
 
-    if (auth()->user()->hasRole('Partnership Admin')) {
-        $regionId = \App\Models\Employee::where('user_id', auth()->id())->value('region_id');
+    if ($user->hasRole('Partnership Admin')) {
+        $regionId = $user->employee?->region_id;
         if ($regionId) {
             $query->where('employees.region_id', $regionId);
         }
+    } elseif (!$user->hasRole('Super Admin')) {
+        // Plain PMO: only their own record, no cross-employee visibility.
+        return collect([$user->employee ? ['id' => (string) $user->employee->id, 'name' => $user->name] : ['id' => '', 'name' => 'Semua PMO']])->toArray();
     }
 
     return $query->orderBy('users.name')->get()

@@ -30,7 +30,7 @@ test('guests are redirected to login', function () {
         ->assertRedirect(route('login'));
 });
 
-test('unauthorized users without manage-pipeline permission cannot access pitching page', function () {
+test('unauthorized users without access-partnership permission cannot access pitching page', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
@@ -38,9 +38,9 @@ test('unauthorized users without manage-pipeline permission cannot access pitchi
         ->assertStatus(403);
 });
 
-test('authorized users with manage-pipeline permission can access pitching page', function () {
+test('authorized users with access-partnership permission can access pitching page', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('manage-pipeline');
+    $permission = Permission::findOrCreate('access-partnership');
     $user->givePermissionTo($permission);
 
     $this->actingAs($user)
@@ -51,7 +51,7 @@ test('authorized users with manage-pipeline permission can access pitching page'
 
 test('pitching page livewire component functionality', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('manage-pipeline');
+    $permission = Permission::findOrCreate('access-partnership');
     $user->givePermissionTo($permission);
 
     $this->actingAs($user);
@@ -195,7 +195,7 @@ test('contact QL status condition', function () {
 test('pmo user verify manager permission checks', function () {
     (new PipelineSeeder)->run();
     $user = User::factory()->create();
-    $user->givePermissionTo('manage-pipeline');
+    $user->givePermissionTo('access-partnership');
 
     // Without verify-manager permission
     Livewire::actingAs($user)
@@ -212,7 +212,7 @@ test('pmo user verify manager permission checks', function () {
 test('pitching won requires manager verification but hot or warm do not', function () {
     (new PipelineSeeder)->run();
     $user = User::factory()->create();
-    $user->givePermissionTo(['manage-pipeline']); // no verify-manager
+    $user->givePermissionTo(['access-partnership']); // no verify-manager
 
     $region = Region::first() ?: Region::create(['name' => 'Region Jawa', 'code' => 'REG-JAWA']);
     $contact = Contact::create([
@@ -291,7 +291,7 @@ test('pitching won requires manager verification but hot or warm do not', functi
 test('pitching page filter and search functionality works', function () {
     (new PipelineSeeder)->run();
     $user = User::factory()->create();
-    $user->givePermissionTo(['manage-pipeline']);
+    $user->givePermissionTo(['access-partnership']);
 
     $region = Region::first() ?: Region::create(['name' => 'Region Jawa', 'code' => 'REG-JAWA']);
     $contact1 = Contact::create(['name' => 'Instansi Alpha', 'sumber' => 'SIRUP', 'region_id' => $region->id, 'category' => 'Pemerintah Daerah']);

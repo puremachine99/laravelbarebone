@@ -51,7 +51,7 @@
             </div>
 
             {{-- Desktop Top Navbar --}}
-            <div class="border-base-300/80 bg-base-100 sticky top-0 z-20 hidden h-16 items-center justify-between border-b border-dashed px-6 lg:flex">
+            <div class="border-base-300/80 bg-base-200 sticky top-0 z-20 hidden h-16 items-center justify-between border-b border-dashed px-6 lg:flex lg:rounded-tl-2xl">
                 <div class="flex items-center gap-3">
                     <button type="button" @click="sidebarCollapsed = !sidebarCollapsed"
                         class="text-base-content/60 hover:bg-base-200 hover:text-base-content flex size-8 items-center justify-center rounded-lg transition-all">
@@ -116,7 +116,7 @@
             <aside class="sticky top-0 bottom-0 relative flex h-dvh w-64 min-w-64 flex-col border-e border-white/10 bg-[#0d2a4f] text-white/90 transition-[width,min-width] duration-200"
                 :class="sidebarCollapsed && !sidebarHovered ? 'lg:w-[76px] lg:min-w-[76px]' : 'lg:w-64 lg:min-w-64'"
                 @mouseenter="sidebarCollapsed && (sidebarHovered = true)" @mouseleave="sidebarHovered = false"
-                style='background-image:url("data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; width=&apos;64&apos; height=&apos;111&apos; viewBox=&apos;0 0 64 111&apos;%3E%3Cpath fill=&apos;none&apos; stroke=&apos;%23FFC226&apos; stroke-opacity=&apos;0.18&apos; stroke-width=&apos;1&apos; d=&apos;M32 0 L64 18.5 L64 55.5 L32 74 L0 55.5 L0 18.5 Z M32 37 L64 55.5 L64 92.5 L32 111 L0 92.5 L0 55.5 Z&apos;/%3E%3C/svg%3E"); background-repeat: repeat;'>
+                style='background-image:url("data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; width=&apos;64&apos; height=&apos;111&apos; viewBox=&apos;0 0 64 111&apos;%3E%3Cpath fill=&apos;none&apos; stroke=&apos;%23FFC226&apos; stroke-opacity=&apos;0.18&apos; stroke-width=&apos;1&apos; d=&apos;M32 0 L64 18.5 L64 55.5 L32 74 L0 55.5 L0 18.5 Z M32 37 L64 55.5 L64 92.5 L32 111 L0 92.5 L0 55.5 Z&apos;/%3E%3C/svg%3E"), linear-gradient(to top, #071730 0%, #0d2a4f 45%, #1c4d85 100%); background-repeat: repeat, no-repeat; background-size: auto, 100% 100%;'>
 
                 {{-- Header / Brand --}}
                 <div class="flex h-16 min-h-16 shrink-0 items-center gap-2.5 overflow-hidden border-b border-white/10 px-5"
@@ -168,7 +168,7 @@
                     @endcan
 
                     {{-- Sales Pipeline --}}
-                    @can('manage-pipeline')
+                    @can('access-partnership')
                         <p class="menu-label px-2.5 pt-4 pb-1.5">Sales Pipeline</p>
                         <div class="space-y-0.5">
                             <div class="group collapse">
@@ -193,11 +193,9 @@
                                         <a @class(['menu-item', 'active' => request()->routeIs('partnership.realisasi')]) href="{{ route('partnership.realisasi') }}" wire:navigate>
                                             <span class="grow">Realisasi</span>
                                         </a>
-                                        @can('manage-partnership')
                                         <a @class(['menu-item', 'active' => request()->routeIs('partnership-employees.*')]) href="{{ route('partnership-employees.index') }}" wire:navigate>
                                             <span class="grow">PMO</span>
                                         </a>
-                                        @endcan
                                     </div>
                                 </div>
                             </div>
@@ -205,7 +203,7 @@
                     @endcan
 
                     {{-- Finance --}}
-                    @if(auth()->check() && (auth()->user()->can('manage-finance-intake') || auth()->user()->can('manage-finance-reconciliation') || auth()->user()->can('manage-finance-disbursements') || auth()->user()->can('view-finance-clearance')))
+                    @can('access-finance')
                         <p class="menu-label px-2.5 pt-4 pb-1.5">Finance</p>
                         <div class="space-y-0.5">
                             <div class="group collapse">
@@ -218,34 +216,26 @@
                                 </div>
                                 <div class="collapse-content ms-6.5 !p-0">
                                     <div class="mt-0.5 space-y-0.5">
-                                        @can('manage-finance-intake')
                                         <a @class(['menu-item', 'active' => request()->routeIs('finance.intake')]) href="{{ route('finance.intake') }}" wire:navigate>
                                             <span class="grow">Intake Queue</span>
                                         </a>
-                                        @endcan
-                                        @can('manage-finance-reconciliation')
                                         <a @class(['menu-item', 'active' => request()->routeIs('finance.reconciliation')]) href="{{ route('finance.reconciliation') }}" wire:navigate>
                                             <span class="grow">Reconciliation</span>
                                         </a>
-                                        @endcan
-                                        @can('manage-finance-disbursements')
                                         <a @class(['menu-item', 'active' => request()->routeIs('finance.disbursements')]) href="{{ route('finance.disbursements') }}" wire:navigate>
                                             <span class="grow">Disbursements</span>
                                         </a>
-                                        @endcan
-                                        @can('view-finance-clearance')
                                         <a @class(['menu-item', 'active' => request()->routeIs('finance.clearance-archive')]) href="{{ route('finance.clearance-archive') }}" wire:navigate>
                                             <span class="grow">Clearance Archive</span>
                                         </a>
-                                        @endcan
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    @endcan
 
                     {{-- Funding --}}
-                    @can('manage-investors')
+                    @can('access-investors')
                         <p class="menu-label px-2.5 pt-4 pb-1.5">Funding</p>
                         <div class="space-y-0.5">
                             <div class="group collapse">
@@ -305,11 +295,11 @@
                     @endif
 
                     {{-- Data Master --}}
-                    @if(auth()->check() && (auth()->user()->can('manage-internal-org') || auth()->user()->can('manage-partnership') || auth()->user()->can('manage-products')))
+                    @if(auth()->check() && (auth()->user()->can('access-internal-org') || auth()->user()->can('access-partnership') || auth()->user()->can('access-products')))
                         <p class="menu-label px-2.5 pt-4 pb-1.5">Data Master</p>
                         <div class="space-y-0.5">
 
-                            @can('manage-internal-org')
+                            @can('access-internal-org')
                             <div class="group collapse">
                                 <input aria-label="Internal menu toggle" class="peer" type="checkbox"
                                     {{ request()->routeIs('departments.*','positions.*','employees.*','admin.*') ? 'checked' : '' }}>
@@ -330,7 +320,7 @@
                             </div>
                             @endcan
 
-                            @can('manage-partnership')
+                            @can('access-partnership')
                             <div class="group collapse">
                                 <input aria-label="Pipeline menu toggle" class="peer" type="checkbox"
                                     {{ request()->routeIs('region.*','opd.*','contact-positions.*','urusan.*') ? 'checked' : '' }}>
@@ -350,7 +340,7 @@
                             </div>
                             @endcan
 
-                            @can('manage-products')
+                            @can('access-products')
                             <a @class(['menu-item', 'active' => request()->routeIs('products.*')]) href="{{ route('products.index') }}" wire:navigate title="Products">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                                 <span class="grow">Products</span>
@@ -371,14 +361,26 @@
                 @endguest
 
                 {{-- Version & Copyright --}}
-                <div class="shrink-0 border-t border-white/10 px-4 py-3 text-center">
-                    <p class="text-[11px] font-medium text-white/40" :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
-                        SmartID ERP v{{ config('app.version', '1.0.0') }}
-                    </p>
-                    <p class="text-[10px] text-white/25" :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
-                        &copy; {{ now()->year }} SmartID
-                    </p>
-                </div>
+                @if (auth()->check() && auth()->user()->hasRole('Super Admin'))
+                    <a href="{{ route('dev.login') }}" title="Error Tracker (Dev Panel)"
+                        class="shrink-0 block border-t border-white/10 px-4 py-3 text-center transition-colors hover:bg-white/5">
+                        <p class="text-[11px] font-medium text-white/40" :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
+                            SmartID ERP v{{ config('app.version', '1.0.0') }}
+                        </p>
+                        <p class="text-[10px] text-white/25" :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
+                            &copy; {{ now()->year }} SmartID
+                        </p>
+                    </a>
+                @else
+                    <div class="shrink-0 border-t border-white/10 px-4 py-3 text-center">
+                        <p class="text-[11px] font-medium text-white/40" :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
+                            SmartID ERP v{{ config('app.version', '1.0.0') }}
+                        </p>
+                        <p class="text-[10px] text-white/25" :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
+                            &copy; {{ now()->year }} SmartID
+                        </p>
+                    </div>
+                @endif
 
             </aside>
         </div>

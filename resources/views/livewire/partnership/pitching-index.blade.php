@@ -71,11 +71,14 @@ $stageOptions = computed(function () {
 
 $cards = computed(function () {
     $user = auth()->user();
-    $employeeId = $user->employee?->id;
+    $employee = $user->employee;
+    $isSpv = $user->hasRole('Partnership Admin');
+    $spvRegionId = $isSpv ? $employee?->region_id : null;
 
     return \App\Models\Card::forPitching()
         ->where('fiscal_year', (int) $this->filterFiscalYear)
-        ->when(!$this->canVerify && $employeeId, fn($q) => $q->where('employee_id', $employeeId))
+        ->when(!$this->canVerify && $isSpv && $spvRegionId, fn($q) => $q->whereHas('employee', fn($e) => $e->where('region_id', $spvRegionId)))
+        ->when(!$this->canVerify && !$isSpv && $employee, fn($q) => $q->where('employee_id', $employee->id))
         ->when($this->filterSumberProyeksi, fn($q) => $q->where('sumber_proyeksi', $this->filterSumberProyeksi))
         ->when($this->filterStageId, fn($q) => $q->where('stage_id', $this->filterStageId))
         ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
@@ -330,11 +333,14 @@ $saveTidakTerlaksanaDecision = function () {
 
 $pitchingStats = computed(function () {
     $user = auth()->user();
-    $employeeId = $user->employee?->id;
+    $employee = $user->employee;
+    $isSpv = $user->hasRole('Partnership Admin');
+    $spvRegionId = $isSpv ? $employee?->region_id : null;
 
     $baseQuery = \App\Models\Card::forPitching()
         ->where('fiscal_year', (int) $this->filterFiscalYear)
-        ->when(!$this->canVerify && $employeeId, fn($q) => $q->where('employee_id', $employeeId))
+        ->when(!$this->canVerify && $isSpv && $spvRegionId, fn($q) => $q->whereHas('employee', fn($e) => $e->where('region_id', $spvRegionId)))
+        ->when(!$this->canVerify && !$isSpv && $employee, fn($q) => $q->where('employee_id', $employee->id))
         ->when($this->filterSumberProyeksi, fn($q) => $q->where('sumber_proyeksi', $this->filterSumberProyeksi))
         ->when($this->filterStageId, fn($q) => $q->where('stage_id', $this->filterStageId))
         ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))

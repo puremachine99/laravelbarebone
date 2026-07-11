@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'debug_panel' => [
+        'password' => env('DEBUG_PAGE_PASSWORD', 'debug123'),
+    ],
+
 ];

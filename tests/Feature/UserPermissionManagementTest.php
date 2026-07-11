@@ -14,7 +14,7 @@ test('guests are redirected to login', function () {
         ->assertRedirect(route('login'));
 });
 
-test('unauthorized users without manage-internal-org permission cannot access user management', function () {
+test('unauthorized users without access-internal-org permission cannot access user management', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
@@ -22,9 +22,9 @@ test('unauthorized users without manage-internal-org permission cannot access us
         ->assertStatus(403);
 });
 
-test('authorized users with manage-internal-org permission can access user management', function () {
+test('authorized users with access-internal-org permission can access user management', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('manage-internal-org');
+    $permission = Permission::findOrCreate('access-internal-org');
     $user->givePermissionTo($permission);
 
     $this->actingAs($user)
@@ -34,7 +34,7 @@ test('authorized users with manage-internal-org permission can access user manag
 
 test('admin can assign roles and permissions dynamically to a user', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('manage-internal-org'));
+    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
 
     $targetUser = User::factory()->create();
     $role = Role::findOrCreate('Partnership Admin');

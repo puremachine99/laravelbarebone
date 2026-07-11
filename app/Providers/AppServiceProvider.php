@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Employee;
+use App\Observers\EmployeeObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +34,8 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Gate::before(fn ($user, $ability) => $user->hasRole('Super Admin') ? true : null);
+
+        Employee::observe(EmployeeObserver::class);
     }
 
     /**

@@ -18,26 +18,20 @@ class RoleAndPermissionSeeder extends Seeder
         // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Create permissions
-        $permissions = [
-            'manage-internal-org',
-            'manage-partnership',
-            'manage-products',
-            'manage-investors',
+        // Module-level permissions (one per business module, mirrors config('modules.list'))
+        $modulePermissions = collect(config('modules.list'))->pluck('permission')->all();
+
+        // Cross-cutting permissions not tied to a single department/module
+        $otherPermissions = [
             'view-executive-dashboard',
             'manage-talent-okr',
-            'manage-pipeline',
-            'manage-finance-intake',
-            'manage-finance-reconciliation',
-            'manage-finance-disbursements',
-            'view-finance-clearance',
             'manage-chat',
             'manage-ai-center',
             'modify-master-data',
             'verify-manager',
         ];
 
-        foreach ($permissions as $permission) {
+        foreach ([...$modulePermissions, ...$otherPermissions] as $permission) {
             Permission::findOrCreate($permission);
         }
 
@@ -45,20 +39,31 @@ class RoleAndPermissionSeeder extends Seeder
         $superAdminRole = Role::findOrCreate('Super Admin');
         $superAdminRole->givePermissionTo(Permission::all());
 
+        // Direksi/BOD: full visibility into business dashboards, enforced read-only in the UI layer.
+        $direksiRole = Role::findOrCreate('Direksi');
+        $direksiRole->givePermissionTo([
+            'access-finance',
+            'access-partnership',
+            'access-products',
+            'access-investors',
+            'view-executive-dashboard',
+            'manage-talent-okr',
+        ]);
+
         $internalOrgAdminRole = Role::findOrCreate('Internal Org Admin');
-        $internalOrgAdminRole->givePermissionTo('manage-internal-org');
+        $internalOrgAdminRole->givePermissionTo('access-internal-org');
 
         $partnershipAdminRole = Role::findOrCreate('Partnership Admin');
-        $partnershipAdminRole->givePermissionTo(['manage-partnership', 'manage-pipeline']);
+        $partnershipAdminRole->givePermissionTo('access-partnership');
 
         $pmoRole = Role::findOrCreate('PMO');
-        $pmoRole->givePermissionTo('manage-pipeline');
+        $pmoRole->givePermissionTo('access-partnership');
 
         $productAdminRole = Role::findOrCreate('Product Admin');
-        $productAdminRole->givePermissionTo('manage-products');
+        $productAdminRole->givePermissionTo('access-products');
 
         $investorAdminRole = Role::findOrCreate('Investor Admin');
-        $investorAdminRole->givePermissionTo('manage-investors');
+        $investorAdminRole->givePermissionTo('access-investors');
 
         // Assign Super Admin role to the default admin user
         $superAdmin = User::where('email', 'supernakama@smartid.co.id')->first();

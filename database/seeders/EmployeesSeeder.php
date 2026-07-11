@@ -262,10 +262,9 @@ class EmployeesSeeder extends Seeder
                 if ($userModel) {
                     $userModel->assignRole('Partnership Admin');
                     $userModel->givePermissionTo([
-                        'manage-partnership',
-                        'manage-pipeline',
-                        'manage-products',
-                        'manage-investors',
+                        'access-partnership',
+                        'access-products',
+                        'access-investors',
                     ]);
                 }
             }
@@ -355,7 +354,7 @@ class EmployeesSeeder extends Seeder
             // Assign Spatie Role 'PMO' and permission 'verify-manager'
             if ($userModel) {
                 $userModel->assignRole('PMO');
-                $userModel->givePermissionTo(['manage-pipeline', 'verify-manager']);
+                $userModel->givePermissionTo(['access-partnership', 'verify-manager']);
             }
         }
     }
