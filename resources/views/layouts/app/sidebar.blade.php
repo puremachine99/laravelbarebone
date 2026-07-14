@@ -260,8 +260,11 @@
                                         <a class="menu-item" href="#">
                                             <span class="grow">Yearly Analysis</span>
                                         </a>
-                                        <a class="menu-item" href="#">
-                                            <span class="grow">FO Pipeline</span>
+                                        <a @class(['menu-item', 'active' => request()->routeIs('investors.funnel')]) href="{{ route('investors.funnel') }}" wire:navigate>
+                                            <span class="grow">Funnel</span>
+                                        </a>
+                                        <a @class(['menu-item', 'active' => request()->routeIs('investors.contacts')]) href="{{ route('investors.contacts') }}" wire:navigate>
+                                            <span class="grow">Contacts</span>
                                         </a>
                                         <a class="menu-item" href="#">
                                             <span class="grow">Daily Trends</span>

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Department;
 use App\Models\User;
 use Flux\Flux;
 use Livewire\Component;
@@ -14,15 +15,23 @@ class UserManagement extends Component
 
     public string $search = '';
 
+    public string $departmentId = '';
+
     public ?User $selectedUser = null;
 
     public array $userRoles = [];
 
     protected $queryString = [
         'search' => ['except' => ''],
+        'departmentId' => ['except' => ''],
     ];
 
     public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDepartmentId()
     {
         $this->resetPage();
     }
@@ -66,12 +75,20 @@ class UserManagement extends Component
             });
         }
 
+        if (! empty($this->departmentId)) {
+            $query->whereHas('employee', function ($sub) {
+                $sub->where('department_id', $this->departmentId);
+            });
+        }
+
         $users = $query->paginate(10);
         $allRoles = Role::all();
+        $departments = Department::orderBy('name')->get();
 
         return view('livewire.admin.user-management', [
             'users' => $users,
             'allRoles' => $allRoles,
+            'departments' => $departments,
         ]);
     }
 }

@@ -11,8 +11,14 @@
  </div>
  </div>
  
- <div class="w-full sm:w-72">
- <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari nama, email, atau NIS..." icon="magnifying-glass" />
+ <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+ <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari nama, email, atau NIS..." icon="magnifying-glass" class="w-full sm:w-72" />
+ <flux:select wire:model.live="departmentId" class="w-full sm:w-56">
+ <flux:select.option value="">Semua Departemen</flux:select.option>
+ @foreach ($departments as $department)
+ <flux:select.option value="{{ $department->id }}">{{ $department->name }}</flux:select.option>
+ @endforeach
+ </flux:select>
  </div>
  </div>
 

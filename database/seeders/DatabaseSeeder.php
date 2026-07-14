@@ -40,6 +40,8 @@ class DatabaseSeeder extends Seeder
             ContactSeeder::class,
             PrediksiCardSeeder::class,
             RencanaPitchingCardSeeder::class,
+            FundingOfficerSeeder::class,
+            FoFunnelDataSeeder::class,
         ]);
     }
 }

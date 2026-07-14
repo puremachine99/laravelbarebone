@@ -73,6 +73,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Volt::route('/products', 'master.products.index')->name('products.index')->middleware('can:access-products');
     Route::view('/investors', 'pages.master.investors.index')->name('investors.index')->middleware('can:access-investors');
+
+    Route::middleware('can:access-investors')->group(function () {
+        Volt::route('/investors/contacts', 'investors.contact-index')->name('investors.contacts');
+        Volt::route('/investors/funnel', 'investors.funnel-index')->name('investors.funnel');
+    });
 });
 
 // ─── Custom Error Tracker (dev-only debug panel, session-gated, not tied to app auth) ───

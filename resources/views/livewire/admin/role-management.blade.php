@@ -8,7 +8,7 @@
 
             <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
                 <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari nama role..." icon="magnifying-glass" class="w-64" />
-                <flux:button variant="primary" icon="plus" wire:click="resetForm" x-on:click="flux.modal('role-modal').show()">Peran Baru</flux:button>
+                <flux:button variant="primary" icon="plus" wire:click="resetForm" x-on:click="$flux.modal('role-modal').show()">Peran Baru</flux:button>
             </div>
         </div>
 
@@ -87,7 +87,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     @foreach ($modulePermissions as $permission => $meta)
                         <label class="flex items-start gap-3 p-3 rounded-lg border border-base-300 bg-base-100 hover:bg-base-200 cursor-pointer">
-                            <input type="checkbox" wire:model="rolePermissions" value="{{ $permission }}" class="mt-0.5 rounded border-base-300 text-indigo-600 focus:ring-indigo-500" :disabled="$roleName === 'Super Admin'" />
+                            <input type="checkbox" wire:model="rolePermissions" value="{{ $permission }}" class="mt-0.5 rounded border-base-300 text-indigo-600 focus:ring-indigo-500" :disabled="$wire.roleName === 'Super Admin'" />
                             <div class="flex items-start gap-2.5">
                                 <flux:icon name="{{ $meta['icon'] }}" class="size-5 shrink-0 text-indigo-500 mt-0.5" />
                                 <div>
@@ -106,7 +106,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     @foreach ($otherPermissions as $permission => $meta)
                         <label class="flex items-start gap-3 p-3 rounded-lg border border-base-300 bg-base-100 hover:bg-base-200 cursor-pointer">
-                            <input type="checkbox" wire:model="rolePermissions" value="{{ $permission }}" class="mt-0.5 rounded border-base-300 text-indigo-600 focus:ring-indigo-500" :disabled="$roleName === 'Super Admin'" />
+                            <input type="checkbox" wire:model="rolePermissions" value="{{ $permission }}" class="mt-0.5 rounded border-base-300 text-indigo-600 focus:ring-indigo-500" :disabled="$wire.roleName === 'Super Admin'" />
                             <div class="flex items-start gap-2.5">
                                 <flux:icon name="{{ $meta['icon'] }}" class="size-5 shrink-0 text-indigo-500 mt-0.5" />
                                 <div>

@@ -19,7 +19,17 @@ php artisan sync:cards --year=2026   # migrasi rencana_pitchings 2026 → cards
 
 ---
 
-## 7:00 PM 07/07/2026 Checklist Migrasi Partnership → Smartboard 
+## Ringkasan Modul Partnership & Data Master
+
+**Status:** Modul Partnership di Nakama Dashboard sudah bisa dipakai — data pitching, kontak, dan data master (wilayah, urusan, produk, OPD) sudah bisa ditarik dari sistem Partnership lama ke Nakama Dashboard, lengkap dengan pembagian akses sesuai role (PMO hanya lihat data sendiri, SPV lihat data timnya, Admin lihat semua).
+
+**Bottleneck:** Kendala utama ada di proses ETL (proses tarik & bersih-bersih data dari sistem Partnership lama ke Nakama Dashboard). Data lama formatnya tidak selalu rapi, jadi setiap migrasi butuh proses cek & penyesuaian manual, bukan sekadar copy-paste otomatis.
+
+**Rencana migrasi:** Karena proses ETL sudah teruji, data pitching partnership bisa mulai dimigrasikan penuh dari **awal Juni 2026** ke Nakama Dashboard.
+
+---
+
+## 7:00 PM 07/07/2026 Checklist Migrasi Partnership → Nakama Dashboard 
 
 ### Infrastructure & Config
 - [x] Force HTTPS di production (URL::forceScheme + trustProxies)
@@ -39,7 +49,7 @@ php artisan sync:cards --year=2026   # migrasi rencana_pitchings 2026 → cards
 - [x] Search pakai `ILIKE` (case-insensitive PostgreSQL)
 
 ### Test & Comparison
-- [x] Halaman `/partnership/test/pitching` — side-by-side Partnership App vs Smartboard
+- [x] Halaman `/partnership/test/pitching` — side-by-side Partnership App vs Nakama Dashboard
 - [x] Filter PMO & search di comparison page juga pakai `ILIKE`
 
 ### Pending
@@ -111,6 +121,33 @@ php artisan sync:cards --year=2026   # migrasi rencana_pitchings 2026 → cards
 
 ### Pending
 - [ ] Halaman admin isi/edit mapping department → module_codes belum ada (masih manual lewat DB/tinker)
+
+---
+
+## 10:47 PM 14/07/2026 Checklist Modul Funding (FO Kontak & Funnel)
+
+### FO Kontak
+- [x] Halaman baru "Contacts" buat Funding Officer nyatetin data kontak calon investor (nama, profesi, no HP, catatan)
+- [x] FO biasa cuma bisa lihat & pegang kontak miliknya sendiri; Admin FO bisa lihat & atur punya semua orang
+- [x] 5 orang FO (dari data existing) langsung dikasih role & akses yang pas ke menu Funding ini, sisanya menu lain otomatis kesembunyi buat mereka
+
+### Menu Funnel (papan Kanban)
+- [x] Menu "Funnel" — papan visual drag-and-drop buat mindahin kontak antar tahap: Leads → QL → Pitching → Follow Up → Won/Lost
+- [x] Bisa gonta-ganti tampilan Kanban (kartu) atau Table (daftar biasa)
+- [x] Tiap kolom nunjukin total nilai proyeksi & jumlah kartu di situ
+- [x] Nambah lead baru: tinggal cari kontak yang udah ada, isi target closing & sumbernya (Murni/EXPFO/Referral/SIDS)
+- [x] Pas kartu digeser ke kolom Pitching atau Follow Up, otomatis muncul form buat nyatet tanggal & catatan kegiatannya (ada tombol "Hari Ini" biar gak perlu ketik manual)
+- [x] Follow Up bisa dicatat berkali-kali — ada badge angka di kartu, diklik langsung muncul panel riwayat semua follow up yang pernah dicatat
+- [x] Kolom pencarian di atas — bisa cari berdasarkan nama, profesi, no HP, nama FO, atau sumbernya
+- [x] Filter by FO (khusus Admin), Bulan, dan Tahun
+
+### Data Beneran
+- [x] Data funnel asli dari 3 Funding Officer (397 data kontak & prospek) berhasil dipindahin ke sistem, lengkap sama riwayat pitching & follow up-nya
+- [x] Sekali `migrate:fresh --seed`, semua ini (role, kontak, data funnel) otomatis kebentuk ulang — gak perlu setup manual lagi
+
+### Pending
+- [ ] Data "Won" (closing) belum ada form khusus buat nyatet nominal investasi final, jangka waktu, & bagi hasil — masih ikutan data proyeksi
+- [ ] Belum ada laporan/rekap performa bulanan per FO (baru sebatas papan kerja harian)
 
 ---
 
