@@ -4,6 +4,7 @@ use App\Models\Employee;
 use App\Models\FoContact;
 use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
+use Illuminate\Support\Facades\Cache;
 
 use function Livewire\Volt\computed;
 use function Livewire\Volt\layout;
@@ -25,6 +26,7 @@ $stagesData = [
 
 state([
     'stages' => $stagesData,
+    'viewMode' => 'kanban',
     'search' => '',
     'filterFo' => '',
     'filterBulan' => '',
@@ -57,37 +59,51 @@ $isAdminFo = computed(fn () => auth()->user()->hasRole(['Investor Admin', 'Super
 $currentEmployee = computed(fn () => Employee::with('user')->where('user_id', auth()->id())->first());
 
 // Contacts owned by the logged-in FO — used to pick which contact a lead entry is created for.
+// Di-cache 60 detik per employee: daftar ini jarang berubah dalam rentang seinteraksi, dan tanpa cache
+// query ini re-run tiap kali ada interaksi apapun di halaman (drag kartu, buka modal, ngetik search, dst).
 $contactOptions = computed(function () {
     $employeeId = $this->currentEmployee?->id;
 
-    return FoContact::query()
-        ->where('employee_id', $employeeId)
-        ->orderBy('nama')
-        ->get(['id', 'nama', 'profesi'])
-        ->toArray();
+    return Cache::remember("fo-funnel:contact-options:{$employeeId}", 60, function () use ($employeeId) {
+        return FoContact::query()
+            ->where('employee_id', $employeeId)
+            ->orderBy('nama')
+            ->get(['id', 'nama', 'profesi'])
+            ->toArray();
+    });
 });
 
+// Daftar Funding Officer buat dropdown filter Admin — sama buat semua orang, jarang berubah.
 $foOptions = computed(function () {
-    return Employee::with('user')
-        ->whereHas('department', fn ($q) => $q->where('name', 'Departemen Finance'))
-        ->whereHas('user.roles', fn ($q) => $q->whereIn('name', ['Funding Officer', 'Investor Admin']))
-        ->get()
-        ->map(fn ($e) => ['id' => $e->id, 'name' => $e->user?->name])
-        ->values()
-        ->all();
+    return Cache::remember('fo-funnel:fo-options', 60, function () {
+        return Employee::with('user')
+            ->whereHas('department', fn ($q) => $q->where('name', 'Departemen Finance'))
+            ->whereHas('user.roles', fn ($q) => $q->whereIn('name', ['Funding Officer', 'Investor Admin']))
+            ->get()
+            ->map(fn ($e) => ['id' => $e->id, 'name' => $e->user?->name])
+            ->values()
+            ->all();
+    });
 });
 
+// Daftar tahun buat dropdown filter — sama buat semua orang, jarang berubah.
 $tahunOptions = computed(function () {
-    return FoFunnel::query()
-        ->whereNotNull('proyeksi_close_date')
-        ->get(['proyeksi_close_date'])
-        ->pluck('proyeksi_close_date')
-        ->map(fn ($date) => $date->year)
-        ->unique()
-        ->sortDesc()
-        ->map(fn ($year) => ['id' => $year, 'name' => (string) $year])
-        ->values()
-        ->all();
+    return Cache::remember('fo-funnel:tahun-options', 60, function () {
+        // EXTRACT(YEAR ...) itu sintaks Postgres/MySQL; SQLite (dipakai di test) butuh strftime.
+        $yearExpression = FoFunnel::query()->getConnection()->getDriverName() === 'sqlite'
+            ? "CAST(strftime('%Y', proyeksi_close_date) AS INTEGER)"
+            : 'CAST(EXTRACT(YEAR FROM proyeksi_close_date) AS INTEGER)';
+
+        return FoFunnel::query()
+            ->whereNotNull('proyeksi_close_date')
+            ->selectRaw("{$yearExpression} as year")
+            ->distinct()
+            ->orderByDesc('year')
+            ->pluck('year')
+            ->map(fn ($year) => ['id' => (int) $year, 'name' => (string) (int) $year])
+            ->values()
+            ->all();
+    });
 });
 
 $funnels = computed(function () {
@@ -96,40 +112,30 @@ $funnels = computed(function () {
     $search = trim(strtolower($this->search));
 
     return FoFunnel::query()
-        ->with(['contact', 'employee.user', 'activities'])
+        ->with(['contact', 'employee.user'])
+        ->withCount(['activities as followup_count' => fn ($q) => $q->where('stage', 'followup')])
         ->when(! $isAdmin, fn ($q) => $q->where('employee_id', $ownEmployeeId))
         ->when($isAdmin && $this->filterFo, fn ($q) => $q->where('employee_id', $this->filterFo))
-        ->orderByDesc('created_at')
-        ->get()
-        ->filter(function ($funnel) use ($search) {
-            if ($this->filterBulan && (int) optional($funnel->proyeksi_close_date)->month !== (int) $this->filterBulan) {
-                return false;
-            }
+        ->when($this->filterBulan, fn ($q) => $q->whereMonth('proyeksi_close_date', (int) $this->filterBulan))
+        ->when($this->filterTahun, fn ($q) => $q->whereYear('proyeksi_close_date', (int) $this->filterTahun))
+        ->when($search !== '', function ($q) use ($search) {
+            $like = "%{$search}%";
 
-            if ($this->filterTahun && (int) optional($funnel->proyeksi_close_date)->year !== (int) $this->filterTahun) {
-                return false;
-            }
-
-            if ($search !== '') {
-                $haystack = collect([
-                    $funnel->contact?->nama,
-                    $funnel->contact?->profesi,
-                    $funnel->contact?->no_telepon,
-                    $funnel->employee?->user?->name,
-                    $funnel->sumber,
-                    $funnel->jangka_waktu,
-                    $funnel->bagi_hasil,
-                    $funnel->tier,
-                ])->filter()->map(fn ($v) => strtolower($v))->implode(' ');
-
-                if (! str_contains($haystack, $search)) {
-                    return false;
-                }
-            }
-
-            return true;
+            $q->where(function ($q2) use ($like) {
+                $q2->whereHas('contact', function ($cq) use ($like) {
+                    $cq->whereRaw('LOWER(nama) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(profesi) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(no_telepon) LIKE ?', [$like]);
+                })
+                    ->orWhereHas('employee.user', fn ($uq) => $uq->whereRaw('LOWER(name) LIKE ?', [$like]))
+                    ->orWhereRaw('LOWER(sumber) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(jangka_waktu) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(bagi_hasil) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(tier) LIKE ?', [$like]);
+            });
         })
-        ->values();
+        ->orderByDesc('created_at')
+        ->get();
 });
 
 $stageSum = function ($stage) {
@@ -316,6 +322,48 @@ $logPitchingAndMove = function ($funnelId, $tanggal, $catatan) {
     $this->success('Sesi pitching berhasil dicatat.');
 };
 
+// Pindah ke kolom Won selalu lewat sini — mencatat tanggal & nominal closing.
+$logWonAndMove = function ($funnelId, $tanggal, $amount) {
+    $funnel = FoFunnel::findOrFail($funnelId);
+
+    if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
+        abort(403);
+    }
+
+    if ($amount && $amount > 9_999_999_999_999) {
+        $this->error('Nominal closing terlalu besar', 'Maksimal Rp 9.999.999.999.999.');
+
+        return;
+    }
+
+    $funnel->update([
+        'stage' => 'won',
+        'status_closing' => 'won',
+        'tgl_closing' => $tanggal ?: now()->toDateString(),
+        'nominal_investasi' => $amount ?: null,
+    ]);
+
+    $this->success('Data closing (Won) berhasil dicatat!');
+};
+
+// Pindah ke kolom Lost selalu lewat sini — mencatat tanggal & alasan gagalnya.
+$logLostAndMove = function ($funnelId, $tanggal, $reason) {
+    $funnel = FoFunnel::findOrFail($funnelId);
+
+    if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
+        abort(403);
+    }
+
+    $funnel->update([
+        'stage' => 'lost',
+        'status_closing' => 'lost',
+        'tgl_closing' => $tanggal ?: now()->toDateString(),
+        'lost_reason' => $reason ?: null,
+    ]);
+
+    $this->success('Data Lost berhasil dicatat.');
+};
+
 // Follow up bisa dicatat berkali-kali untuk funnel yang sama.
 // $moveStage: true ketika dipicu drag-drop ke kolom Follow Up, false saat menambah histori dari sidebar
 // (funnel yang sudah lanjut ke tahap lain — mis. Won — tidak boleh mundur ke Follow Up cuma karena dicatat).
@@ -398,10 +446,10 @@ $closeHistory = function () {
     <!-- View Toggle -->
     <div class="flex justify-end">
         <div class="join">
-            <button type="button" class="btn btn-sm btn-square join-item" :class="viewMode === 'kanban' && 'btn-active'" x-on:click="viewMode = 'kanban'" title="Kanban">
+            <button type="button" class="btn btn-sm btn-square join-item {{ $viewMode === 'kanban' ? 'btn-active' : '' }}" wire:click="$set('viewMode', 'kanban')" title="Kanban">
                 <x-icon name="o-view-columns" class="w-4 h-4" />
             </button>
-            <button type="button" class="btn btn-sm btn-square join-item" :class="viewMode === 'table' && 'btn-active'" x-on:click="viewMode = 'table'" title="Table">
+            <button type="button" class="btn btn-sm btn-square join-item {{ $viewMode === 'table' ? 'btn-active' : '' }}" wire:click="$set('viewMode', 'table')" title="Table">
                 <x-icon name="o-table-cells" class="w-4 h-4" />
             </button>
         </div>
@@ -419,7 +467,8 @@ $closeHistory = function () {
     }; @endphp
 
     <!-- Kanban Mode -->
-    <div x-show="viewMode === 'kanban'" class="flex gap-4 overflow-x-auto pb-2">
+    @if ($viewMode === 'kanban')
+    <div class="flex gap-4 overflow-auto pb-2 max-h-[70vh]">
         @foreach ($stages as $stage)
             <div
                 class="w-72 shrink-0 bg-base-200 rounded-2xl p-3 flex flex-col gap-3 transition-colors"
@@ -469,12 +518,17 @@ $closeHistory = function () {
                             <div class="font-semibold text-sm text-base-content pr-5">{{ $funnel->contact?->nama }}</div>
                             <div class="text-xs text-base-content/50 truncate">{{ $funnel->contact?->profesi }}</div>
 
+                            @php
+                                $usesClosingData = in_array($funnel->stage, ['won', 'akad'], true) && $funnel->nominal_investasi;
+                                $displayAmount = $usesClosingData ? $funnel->nominal_investasi : $funnel->proyeksi_amount;
+                                $displayDate = $usesClosingData ? $funnel->tgl_closing : $funnel->proyeksi_close_date;
+                            @endphp
                             <div class="flex items-center justify-between pt-1">
-                                <span class="badge badge-sm badge-ghost font-semibold">{{ $fmtRupiah($funnel->proyeksi_amount) }}</span>
+                                <span class="badge badge-sm {{ $usesClosingData ? 'badge-success' : 'badge-ghost' }} font-semibold">{{ $fmtRupiah($displayAmount) }}</span>
                                 <span class="text-[11px] text-base-content/50 truncate max-w-[110px]" title="{{ $funnel->employee?->user?->name }}">{{ $funnel->employee?->user?->name }}</span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-[11px] text-base-content/40">{{ $funnel->proyeksi_close_date?->format('d M Y') ?? '-' }}</span>
+                                <span class="text-[11px] text-base-content/40">{{ $displayDate?->format('d M Y') ?? '-' }}</span>
                                 <span class="badge badge-xs badge-outline">{{ $funnel->sumber }}</span>
                             </div>
                             @if ($funnel->stage === 'akad' && $funnel->dokumen_akad_path)
@@ -489,7 +543,14 @@ $closeHistory = function () {
                                     <x-icon name="o-paper-clip" class="w-3 h-3" /> {{ $funnel->dokumen_akad_nama }}
                                 </a>
                             @endif
-                            @php $fuCount = $funnel->activities->where('stage', 'followup')->count(); @endphp
+                            @if ($funnel->stage === 'lost' && $funnel->lost_reason)
+                                <div class="tooltip w-full" data-tip="{{ $funnel->lost_reason }}">
+                                    <div class="text-[11px] text-error/80 bg-error/10 rounded-lg px-2 py-1 truncate">
+                                        {{ $funnel->lost_reason }}
+                                    </div>
+                                </div>
+                            @endif
+                            @php $fuCount = $funnel->followup_count; @endphp
                             @if ($fuCount > 0)
                                 <div class="tooltip" data-tip="Tampilkan detail">
                                     <button
@@ -513,9 +574,11 @@ $closeHistory = function () {
             </div>
         @endforeach
     </div>
+    @endif
 
     <!-- Table Mode -->
-    <div x-show="viewMode === 'table'" class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
+    @if ($viewMode === 'table')
+    <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
         <div class="overflow-x-auto">
             <table class="table table-zebra w-full text-base-content/70">
                 <thead>
@@ -529,24 +592,30 @@ $closeHistory = function () {
                         <th>Proyeksi Close</th>
                         <th>Follow Up</th>
                         <th>Dokumen Akad</th>
+                        <th>Lost Reason</th>
                         <th class="text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($this->funnels as $funnel)
+                        @php
+                            $usesClosingDataTable = in_array($funnel->stage, ['won', 'akad'], true) && $funnel->nominal_investasi;
+                            $displayAmountTable = $usesClosingDataTable ? $funnel->nominal_investasi : $funnel->proyeksi_amount;
+                            $displayDateTable = $usesClosingDataTable ? $funnel->tgl_closing : $funnel->proyeksi_close_date;
+                        @endphp
                         <tr class="border-b border-base-300 hover:bg-base-200">
                             <td class="font-semibold text-base-content py-3">{{ $funnel->contact?->nama }}</td>
                             <td class="max-w-[220px] truncate">{{ $funnel->contact?->profesi }}</td>
-                            <td>{{ $fmtRupiah($funnel->proyeksi_amount) }}</td>
+                            <td>{{ $fmtRupiah($displayAmountTable) }}</td>
                             <td>{{ $funnel->employee?->user?->name }}</td>
                             <td>{{ $funnel->sumber }}</td>
                             <td>
                                 @php $meta = collect($stages)->firstWhere('key', $funnel->stage); @endphp
                                 <span class="badge badge-sm {{ $meta['badge'] ?? 'badge-neutral' }}">{{ $meta['label'] ?? $funnel->stage }}</span>
                             </td>
-                            <td>{{ $funnel->proyeksi_close_date?->format('d M Y') ?? '-' }}</td>
+                            <td>{{ $displayDateTable?->format('d M Y') ?? '-' }}</td>
                             <td>
-                                @php $fuCountTable = $funnel->activities->where('stage', 'followup')->count(); @endphp
+                                @php $fuCountTable = $funnel->followup_count; @endphp
                                 @if ($fuCountTable > 0)
                                     <div class="tooltip" data-tip="Tampilkan detail">
                                         <button type="button" class="badge badge-sm badge-secondary" wire:click="openHistory({{ $funnel->id }})">
@@ -566,6 +635,13 @@ $closeHistory = function () {
                                     <span class="text-base-content/30">-</span>
                                 @endif
                             </td>
+                            <td class="max-w-[220px] truncate">
+                                @if ($funnel->lost_reason)
+                                    <span class="text-error/80 text-xs" title="{{ $funnel->lost_reason }}">{{ $funnel->lost_reason }}</span>
+                                @else
+                                    <span class="text-base-content/30">-</span>
+                                @endif
+                            </td>
                             <td class="text-right">
                                 <div class="flex gap-2 justify-end">
                                     <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" x-on:click="editCard({{ $funnel->id }}, '{{ $funnel->proyeksi_close_date?->format('Y-m-d') }}', {{ $funnel->proyeksi_amount ?? 'null' }}, '{{ $funnel->sumber }}')" />
@@ -575,7 +651,7 @@ $closeHistory = function () {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="text-center text-base-content/50 py-8">
+                            <td colspan="11" class="text-center text-base-content/50 py-8">
                                 Belum ada data funnel.
                             </td>
                         </tr>
@@ -584,6 +660,7 @@ $closeHistory = function () {
             </table>
         </div>
     </div>
+    @endif
 
     <!-- Add Lead Modal -->
     <x-modal id="funnel-add-modal" title="Tambah Leads" without-trap-focus>
@@ -719,6 +796,50 @@ $closeHistory = function () {
         </form>
     </x-modal>
 
+    <!-- Won Modal -->
+    <x-modal id="funnel-won-modal" title="Catat Closing (Won)" subtitle="Kartu ini akan pindah ke kolom Won setelah dicatat." without-trap-focus>
+        <form x-on:submit.prevent="submitWon()" class="space-y-4">
+            <div>
+                <div class="flex items-center justify-between mb-0.5">
+                    <span class="fieldset-legend text-sm font-medium">Tanggal Closing</span>
+                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setWonToday()" />
+                </div>
+                <x-input type="date" x-model="wonForm.tanggal" required />
+            </div>
+
+            <x-input label="Amount Closing (Rp)" type="number" max="9999999999999" x-model="wonForm.amount" placeholder="Cth: 250000000" hint="Isi nominal penuh, cth: 250000000 untuk Rp 250 Juta" />
+
+            <div class="modal-action">
+                <form method="dialog">
+                    <x-button label="Batal" class="btn-ghost" />
+                </form>
+                <x-button label="Simpan" type="submit" class="btn-primary" />
+            </div>
+        </form>
+    </x-modal>
+
+    <!-- Lost Modal -->
+    <x-modal id="funnel-lost-modal" title="Catat Lost" subtitle="Kartu ini akan pindah ke kolom Lost setelah dicatat." without-trap-focus>
+        <form x-on:submit.prevent="submitLost()" class="space-y-4">
+            <div>
+                <div class="flex items-center justify-between mb-0.5">
+                    <span class="fieldset-legend text-sm font-medium">Tanggal Lost</span>
+                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setLostToday()" />
+                </div>
+                <x-input type="date" x-model="lostForm.tanggal" required />
+            </div>
+
+            <x-textarea label="Lost Reason" x-model="lostForm.reason" placeholder="Kenapa lead ini gagal closing..." rows="4" />
+
+            <div class="modal-action">
+                <form method="dialog">
+                    <x-button label="Batal" class="btn-ghost" />
+                </form>
+                <x-button label="Simpan" type="submit" class="btn-primary" />
+            </div>
+        </form>
+    </x-modal>
+
     <!-- Follow Up History Sidebar -->
     <div
         x-show="$wire.historyFunnelId"
@@ -775,7 +896,6 @@ $closeHistory = function () {
 @script
 <script>
     Alpine.data('funnelUi', (contacts, isAdminFo) => ({
-        viewMode: 'kanban',
         draggingId: null,
         draggingStage: null,
         dragOverStage: null,
@@ -791,6 +911,8 @@ $closeHistory = function () {
         pitchForm: { funnelId: null, tanggal: '', catatan: '' },
         followUpForm: { funnelId: null, tanggal: '', catatan: '' },
         followUpMovesStage: false,
+        wonForm: { funnelId: null, tanggal: '', amount: '' },
+        lostForm: { funnelId: null, tanggal: '', reason: '' },
 
         filteredContactOptions() {
             const search = this.contactSearchText.toLowerCase();
@@ -873,6 +995,12 @@ $closeHistory = function () {
                 $wire.openAkadModal(this.draggingId).then(() => {
                     document.getElementById('funnel-akad-modal').showModal();
                 });
+            } else if (stage === 'won') {
+                this.wonForm = { funnelId: this.draggingId, tanggal: new Date().toISOString().slice(0, 10), amount: '' };
+                document.getElementById('funnel-won-modal').showModal();
+            } else if (stage === 'lost') {
+                this.lostForm = { funnelId: this.draggingId, tanggal: '', reason: '' };
+                document.getElementById('funnel-lost-modal').showModal();
             } else {
                 $wire.moveStage(this.draggingId, stage);
             }
@@ -915,6 +1043,32 @@ $closeHistory = function () {
 
             $wire.logFollowUp(this.followUpForm.funnelId, this.followUpForm.tanggal, this.followUpForm.catatan, this.followUpMovesStage);
             document.getElementById('funnel-followup-modal').close();
+        },
+
+        setWonToday() {
+            this.wonForm.tanggal = new Date().toISOString().slice(0, 10);
+        },
+
+        submitWon() {
+            if (!this.wonForm.tanggal) {
+                return;
+            }
+
+            $wire.logWonAndMove(this.wonForm.funnelId, this.wonForm.tanggal, this.wonForm.amount);
+            document.getElementById('funnel-won-modal').close();
+        },
+
+        setLostToday() {
+            this.lostForm.tanggal = new Date().toISOString().slice(0, 10);
+        },
+
+        submitLost() {
+            if (!this.lostForm.tanggal) {
+                return;
+            }
+
+            $wire.logLostAndMove(this.lostForm.funnelId, this.lostForm.tanggal, this.lostForm.reason);
+            document.getElementById('funnel-lost-modal').close();
         },
     }));
 </script>

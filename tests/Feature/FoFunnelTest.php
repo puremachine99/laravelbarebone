@@ -6,12 +6,17 @@ use App\Models\FoFunnel;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Volt;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
+
+// $foOptions/$tahunOptions/$contactOptions kini di-cache 60 detik (key global, tidak scoped per test) —
+// flush di awal tiap test biar gak ada nilai cache nyangkut dari test sebelumnya di proses yang sama.
+beforeEach(fn () => Cache::flush());
 
 test('guests are redirected to login', function () {
     $this->get(route('investors.funnel'))
@@ -37,6 +42,22 @@ test('funnel page is rendered for authorized users', function () {
         ->assertSee('Leads')
         ->assertSee('Won')
         ->assertSee('Lost');
+});
+
+test('view mode toggle renders only the active mode server-side', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $this->actingAs($user);
+
+    $component = Volt::test('investors.funnel-index');
+
+    expect($component->get('viewMode'))->toBe('kanban');
+    $component->assertSee('Tidak ada kartu')->assertDontSee('Belum ada data funnel.');
+
+    $component->set('viewMode', 'table');
+
+    expect($component->get('viewMode'))->toBe('table');
+    $component->assertSee('Belum ada data funnel.')->assertDontSee('Tidak ada kartu');
 });
 
 test('a fo can create a lead for their own contact', function () {
@@ -232,6 +253,74 @@ test('moving to pitching logs an activity and updates the stage', function () {
     ]);
 });
 
+test('moving to won logs the closing date and amount', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('logWonAndMove', $funnel->id, '2026-09-10', 500_000_000)
+        ->assertHasNoErrors();
+
+    $funnel->refresh();
+    expect($funnel->stage)->toBe('won')
+        ->and($funnel->status_closing)->toBe('won')
+        ->and($funnel->tgl_closing->format('Y-m-d'))->toBe('2026-09-10')
+        ->and((float) $funnel->nominal_investasi)->toBe(500_000_000.0);
+});
+
+test('a plain fo cannot move another fo funnel to won', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    Employee::create(['user_id' => $user->id]);
+
+    $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
+    $otherFunnel = FoFunnel::factory()->create(['employee_id' => $otherEmployee->id, 'stage' => 'followup']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('logWonAndMove', $otherFunnel->id, '2026-09-10', 500_000_000)
+        ->assertStatus(403);
+
+    expect($otherFunnel->refresh()->stage)->toBe('followup');
+});
+
+test('moving to lost logs the lost date and reason', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'pitching']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('logLostAndMove', $funnel->id, '2026-09-10', 'Tidak tertarik lagi.')
+        ->assertHasNoErrors();
+
+    $funnel->refresh();
+    expect($funnel->stage)->toBe('lost')
+        ->and($funnel->status_closing)->toBe('lost')
+        ->and($funnel->tgl_closing->format('Y-m-d'))->toBe('2026-09-10')
+        ->and($funnel->lost_reason)->toBe('Tidak tertarik lagi.');
+});
+
+test('a plain fo cannot move another fo funnel to lost', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    Employee::create(['user_id' => $user->id]);
+
+    $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
+    $otherFunnel = FoFunnel::factory()->create(['employee_id' => $otherEmployee->id, 'stage' => 'pitching']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('logLostAndMove', $otherFunnel->id, '2026-09-10', 'Alasan apapun.')
+        ->assertStatus(403);
+
+    expect($otherFunnel->refresh()->stage)->toBe('pitching');
+});
+
 test('a plain fo cannot move or edit or delete another fo funnel', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));
@@ -351,6 +440,32 @@ test('search finds a funnel by contact name, profesi, phone, pic name, or sumber
     expect($idsFor('tidak ada yang cocok sama sekali'))->toBeEmpty();
 });
 
+test('filterBulan and filterTahun scope funnels by proyeksi close date', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+
+    $matching = FoFunnel::factory()->create(['employee_id' => $employee->id, 'proyeksi_close_date' => '2026-08-15']);
+    $otherMonth = FoFunnel::factory()->create(['employee_id' => $employee->id, 'proyeksi_close_date' => '2026-09-15']);
+    $otherYear = FoFunnel::factory()->create(['employee_id' => $employee->id, 'proyeksi_close_date' => '2025-08-15']);
+    $noDate = FoFunnel::factory()->create(['employee_id' => $employee->id, 'proyeksi_close_date' => null]);
+
+    $this->actingAs($user);
+
+    $ids = Volt::test('investors.funnel-index')
+        ->set('filterBulan', 8)
+        ->set('filterTahun', 2026)
+        ->instance()
+        ->funnels
+        ->pluck('id')
+        ->all();
+
+    expect($ids)->toContain($matching->id)
+        ->and($ids)->not->toContain($otherMonth->id)
+        ->and($ids)->not->toContain($otherYear->id)
+        ->and($ids)->not->toContain($noDate->id);
+});
+
 test('logging a follow up from drag-drop moves the stage and records history', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));
@@ -403,6 +518,25 @@ test('a funnel can accumulate multiple follow up entries', function () {
     Volt::test('investors.funnel-index')->call('logFollowUp', $funnel->id, '2026-08-15', 'FU 3', false);
 
     expect($funnel->activities()->where('stage', 'followup')->count())->toBe(3);
+});
+
+test('funnels list exposes followup_count aggregated from activities, excluding other stages', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')->call('logPitchingAndMove', $funnel->id, '2026-08-01', 'Sesi pitching');
+    Volt::test('investors.funnel-index')->call('logFollowUp', $funnel->id, '2026-08-08', 'FU 1', false);
+    Volt::test('investors.funnel-index')->call('logFollowUp', $funnel->id, '2026-08-15', 'FU 2', false);
+
+    $found = Volt::test('investors.funnel-index')
+        ->instance()
+        ->funnels
+        ->firstWhere('id', $funnel->id);
+
+    expect($found->followup_count)->toBe(2);
 });
 
 test('history sidebar shows a funnel own follow up activities', function () {

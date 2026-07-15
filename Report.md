@@ -151,3 +151,52 @@ php artisan sync:cards --year=2026   # migrasi rencana_pitchings 2026 → cards
 
 ---
 
+## 15/07/2026 Checklist Kolom Akad & Upload Dokumen
+
+### Papan Funnel
+- [x] Kartu di tiap kolom sekarang urut dari yang paling baru ditambah/diubah
+- [x] Kolom baru **"Akad"** di paling ujung — nandain lead yang udah bener-bener tanda tangan kontrak, bukan cuma "Won" doang
+- [x] Cuma Admin FO / Super Admin yang bisa mindahin kartu ke Akad (FO biasa tetep bisa lihat, cuma gak bisa geser ke situ)
+
+### Proses Akad
+- [x] Pas kartu digeser ke kolom Akad, muncul form: tanggal akad, nominal investasi final, dan upload dokumen akad
+- [x] Dokumen yang diupload (PDF/DOC/DOCX, maks 5MB) langsung tersimpan ke cloud storage (bucket MinIO kantor), bukan di server aplikasi
+- [x] Dokumen yang udah keupload muncul sebagai link "Lihat" di kartu & tabel, bisa langsung dibuka
+
+### Perbaikan Bug
+- [x] Modal Akad sempat nutup sendiri pas lagi diisi — dibenerin
+- [x] Pilih file sempat nunjukin semua jenis file (harusnya cuma PDF/DOC/DOCX) — dibenerin, sekarang sudah difilter
+- [x] Pesan "wajib diisi" yang nyangkut padahal file udah dipilih — dibenerin, sekarang otomatis ke-refresh
+- [x] Link lihat dokumen sempat 404 (nyasar ke domain aplikasi, bukan ke bucket) — dibenerin, konfigurasi cloud storage-nya dirapikan
+
+---
+
+## 11:00 PM 15/07/2026 Checklist Kolom Won/Lost, Performa Halaman, & Keamanan Dokumen
+
+### Kolom Won & Lost — sekarang ada form-nya juga
+- [x] Kartu digeser ke kolom **Won**: muncul form tanggal closing + nominal closing beneran (bukan cuma angka proyeksi lagi)
+- [x] Kartu digeser ke kolom **Lost**: muncul form tanggal + alasan gagalnya (Lost Reason), langsung kelihatan di kartu & tabel
+- [x] Kartu yang udah Won/Akad sekarang nampilin angka closing yang sebenarnya (bukan proyeksi awal) — badge-nya dikasih warna hijau biar beda
+- [x] Tanggal closing di form Won otomatis keisi hari ini, gak perlu klik "Hari Ini" manual lagi
+
+### Halaman Funnel dibikin lebih ringan & cepat
+Halaman ini dirasa lemot pas dibuka, jadi dibedah & dibenerin 5 titik yang paling berat:
+- [x] Filter (bulan/tahun/cari) sekarang disaring langsung di database, bukan ditarik semua dulu baru dibuang — jauh lebih cepat kalau datanya makin banyak
+- [x] Hitungan jumlah "follow up" di tiap kartu sekarang dihitung database, bukan narik semua data histori dulu ke aplikasi
+- [x] Dropdown pilihan "Tahun" di filter sekarang juga dihitung langsung di database
+- [x] Tampilan Kanban & Table gak lagi dirender dua-duanya sekaligus di belakang layar (yang keliatan doang yang beneran diproses) — dampaknya klik ganti tampilan jadi ada jeda singkat, tapi halamannya jauh lebih ringan
+- [x] Beberapa data yang jarang berubah (daftar FO, daftar tahun) sekarang disimpan sementara (cache 1 menit) biar gak dihitung ulang tiap kali klak-klik di halaman
+
+### Keamanan Dokumen Akad (bucket MinIO)
+- [x] Link "Lihat" dokumen akad sempat error Access Denied — ternyata bucket penyimpanannya emang sengaja diset privat (supaya dokumen kontrak gak sembarangan bisa diakses orang)
+- [x] Solusinya: link dokumen sekarang pakai "kunci sementara" (presigned URL, berlaku 15 menit) — jadi tetap aman (bucket tetap privat, gak diubah), tapi tetap bisa dibuka pas dibutuhkan
+
+### Perbaikan Tampilan
+- [x] Scroll ke samping di papan Kanban sempat gak jalan di beberapa laptop layar kecil — ternyata ada bug tata letak halaman (bukan cuma di halaman Funnel, ini bug bawaan layout situs), sudah dibenerin
+- [x] Papan Kanban dikasih tinggi maksimal biar scroll-nya selalu kejangkau tanpa harus scroll halaman ke bawah dulu
+
+### Pending
+- [ ] Belum ada laporan/rekap performa bulanan per FO (baru sebatas papan kerja harian)
+
+---
+

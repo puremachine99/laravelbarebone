@@ -11,7 +11,7 @@
         <input id="main-drawer" type="checkbox" class="drawer-toggle" />
 
         {{-- ─── Main Content Area ───────────────────────────────── --}}
-        <div class="drawer-content flex flex-col">
+        <div class="drawer-content flex min-w-0 flex-col">
 
             {{-- Mobile Top Bar --}}
             <div class="border-base-300/80 bg-base-100 sticky -top-10 z-20 flex h-14 items-center gap-3 border-b border-dashed px-4 lg:hidden">
@@ -104,7 +104,7 @@
             </div>
 
             {{-- Page Content --}}
-            <main class="flex-1 p-4 lg:p-6">
+            <main class="min-w-0 flex-1 p-4 lg:p-6">
                 {{ $slot }}
             </main>
         </div>

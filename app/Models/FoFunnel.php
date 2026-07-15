@@ -45,6 +45,6 @@ class FoFunnel extends Model
             return null;
         }
 
-        return Storage::disk('s3')->url($this->dokumen_akad_path);
+        return Storage::disk('s3')->temporaryUrl($this->dokumen_akad_path, now()->addMinutes(15));
     }
 }
