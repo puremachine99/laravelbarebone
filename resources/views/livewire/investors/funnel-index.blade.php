@@ -500,7 +500,7 @@ $closeHistory = function () {
     </div>
 
     <!-- Add Lead Modal -->
-    <x-modal id="funnel-add-modal" title="Tambah Leads">
+    <x-modal id="funnel-add-modal" title="Tambah Leads" without-trap-focus>
         <form x-on:submit.prevent="submitCreate()" class="space-y-4">
             <div class="relative" x-on:click.outside="contactDropdownOpen = false">
                 <x-input
@@ -547,7 +547,7 @@ $closeHistory = function () {
     </x-modal>
 
     <!-- Edit Modal -->
-    <x-modal id="funnel-edit-modal" title="Edit Data Funnel">
+    <x-modal id="funnel-edit-modal" title="Edit Data Funnel" without-trap-focus>
         <form x-on:submit.prevent="submitEdit()" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <x-input label="Proyeksi Close Date" type="date" x-model="editForm.tanggal" />
@@ -566,7 +566,7 @@ $closeHistory = function () {
     </x-modal>
 
     <!-- Pitching Log Modal -->
-    <x-modal id="funnel-pitch-modal" title="Catat Sesi Pitching" subtitle="Kartu ini akan pindah ke kolom Pitching setelah dicatat.">
+    <x-modal id="funnel-pitch-modal" title="Catat Sesi Pitching" subtitle="Kartu ini akan pindah ke kolom Pitching setelah dicatat." without-trap-focus>
         <form x-on:submit.prevent="submitPitch()" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
@@ -588,7 +588,7 @@ $closeHistory = function () {
     </x-modal>
 
     <!-- Follow Up Log Modal -->
-    <x-modal id="funnel-followup-modal" title="Catat Follow Up" subtitle="Follow up bisa dicatat berkali-kali untuk funnel yang sama.">
+    <x-modal id="funnel-followup-modal" title="Catat Follow Up" subtitle="Follow up bisa dicatat berkali-kali untuk funnel yang sama." without-trap-focus>
         <form x-on:submit.prevent="submitFollowUp()" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
