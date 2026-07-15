@@ -5,6 +5,8 @@ use App\Models\FoContact;
 use App\Models\FoFunnel;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Volt;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -82,6 +84,132 @@ test('moving to a non-pitching stage updates it directly', function () {
         ->assertHasNoErrors();
 
     expect($funnel->refresh()->stage)->toBe('ql');
+});
+
+test('a plain fo cannot move a funnel to akad, but admin fo can', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('moveStage', $funnel->id, 'akad')
+        ->assertStatus(403);
+
+    expect($funnel->refresh()->stage)->toBe('won');
+
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $this->actingAs($admin);
+
+    Volt::test('investors.funnel-index')
+        ->call('moveStage', $funnel->id, 'akad')
+        ->assertHasNoErrors();
+
+    expect($funnel->refresh()->stage)->toBe('akad');
+});
+
+test('opening the akad modal is admin-only and resets the form state', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['stage' => 'won']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('openAkadModal', $funnel->id)
+        ->assertStatus(403);
+
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $this->actingAs($admin);
+
+    Volt::test('investors.funnel-index')
+        ->call('openAkadModal', $funnel->id)
+        ->assertHasNoErrors()
+        ->assertSet('akadFunnelId', $funnel->id)
+        ->assertSet('akadTanggal', '')
+        ->assertSet('akadNominal', null);
+});
+
+test('admin fo can submit akad with a document upload to s3', function () {
+    Storage::fake('s3');
+
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $employee = Employee::create(['user_id' => User::factory()->create()->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
+    $this->actingAs($admin);
+
+    $file = UploadedFile::fake()->create('akad.docx', 2000, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+
+    Volt::test('investors.funnel-index')
+        ->set('akadFunnelId', $funnel->id)
+        ->set('akadTanggal', '2026-09-01')
+        ->set('akadNominal', 500_000_000)
+        ->set('akadFile', $file)
+        ->call('submitAkad')
+        ->assertHasNoErrors();
+
+    $funnel->refresh();
+    expect($funnel->stage)->toBe('akad')
+        ->and((float) $funnel->nominal_investasi)->toBe(500_000_000.0)
+        ->and($funnel->tgl_closing->format('Y-m-d'))->toBe('2026-09-01')
+        ->and($funnel->dokumen_akad_path)->not->toBeNull()
+        ->and($funnel->dokumen_akad_nama)->toBe('akad.docx');
+
+    Storage::disk('s3')->assertExists($funnel->dokumen_akad_path);
+});
+
+test('a plain fo cannot submit akad even with a valid document', function () {
+    Storage::fake('s3');
+
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
+    $this->actingAs($user);
+
+    $file = UploadedFile::fake()->create('akad.pdf', 500, 'application/pdf');
+
+    Volt::test('investors.funnel-index')
+        ->set('akadFunnelId', $funnel->id)
+        ->set('akadTanggal', '2026-09-01')
+        ->set('akadNominal', 500_000_000)
+        ->set('akadFile', $file)
+        ->call('submitAkad')
+        ->assertStatus(403);
+
+    expect($funnel->refresh()->stage)->toBe('won');
+});
+
+test('submitting akad rejects a disallowed file type and files over 5mb', function () {
+    Storage::fake('s3');
+
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $employee = Employee::create(['user_id' => User::factory()->create()->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
+    $this->actingAs($admin);
+
+    Volt::test('investors.funnel-index')
+        ->set('akadFunnelId', $funnel->id)
+        ->set('akadTanggal', '2026-09-01')
+        ->set('akadNominal', 500_000_000)
+        ->set('akadFile', UploadedFile::fake()->create('akad.jpg', 200, 'image/jpeg'))
+        ->call('submitAkad')
+        ->assertHasErrors(['akadFile']);
+
+    Volt::test('investors.funnel-index')
+        ->set('akadFunnelId', $funnel->id)
+        ->set('akadTanggal', '2026-09-01')
+        ->set('akadNominal', 500_000_000)
+        ->set('akadFile', UploadedFile::fake()->create('akad.docx', 6000, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
+        ->call('submitAkad')
+        ->assertHasErrors(['akadFile']);
+
+    expect($funnel->refresh()->stage)->toBe('won');
 });
 
 test('moving to pitching logs an activity and updates the stage', function () {

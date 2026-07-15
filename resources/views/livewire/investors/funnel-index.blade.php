@@ -11,7 +11,7 @@ use function Livewire\Volt\state;
 use function Livewire\Volt\uses;
 
 layout('layouts.app');
-uses(\Mary\Traits\Toast::class);
+uses([\Mary\Traits\Toast::class, \Livewire\WithFileUploads::class]);
 
 $stagesData = [
     ['key' => 'leads', 'label' => 'Leads', 'badge' => 'badge-neutral'],
@@ -20,6 +20,7 @@ $stagesData = [
     ['key' => 'followup', 'label' => 'Follow Up', 'badge' => 'badge-secondary'],
     ['key' => 'won', 'label' => 'Won', 'badge' => 'badge-success'],
     ['key' => 'lost', 'label' => 'Lost', 'badge' => 'badge-error'],
+    ['key' => 'akad', 'label' => 'Akad', 'badge' => 'badge-primary'],
 ];
 
 state([
@@ -29,6 +30,11 @@ state([
     'filterBulan' => '',
     'filterTahun' => '',
     'historyFunnelId' => null,
+
+    'akadFunnelId' => null,
+    'akadTanggal' => '',
+    'akadNominal' => null,
+    'akadFile' => null,
 
     'bulanOptions' => [
         ['id' => 1, 'name' => 'Januari'], ['id' => 2, 'name' => 'Februari'], ['id' => 3, 'name' => 'Maret'],
@@ -226,6 +232,8 @@ $deleteFunnel = function ($funnelId) {
     $this->error('Data funnel berhasil dihapus.');
 };
 
+// Akad menandakan lead yang sudah Won benar-benar sampai ke tahap tanda tangan akad —
+// cuma Admin FO / Super Admin yang boleh memindahkan kartu ke sana, tapi tetap kelihatan oleh role lain.
 $moveStage = function ($funnelId, $stage) {
     $funnel = FoFunnel::findOrFail($funnelId);
 
@@ -233,7 +241,58 @@ $moveStage = function ($funnelId, $stage) {
         abort(403);
     }
 
+    if ($stage === 'akad' && ! $this->isAdminFo) {
+        abort(403);
+    }
+
     $funnel->update(['stage' => $stage]);
+};
+
+$openAkadModal = function ($funnelId) {
+    if (! $this->isAdminFo) {
+        abort(403);
+    }
+
+    $this->akadFunnelId = $funnelId;
+    $this->akadTanggal = '';
+    $this->akadNominal = null;
+    $this->akadFile = null;
+    $this->resetValidation();
+};
+
+// Bersihkan pesan error "required" begitu file baru dipilih, biar gak nyangkut dari percobaan submit sebelumnya.
+$updatedAkadFile = function () {
+    $this->resetErrorBag('akadFile');
+};
+
+// Dipicu drag-drop ke kolom Akad. Simpan tanggal akad, nominal, dan dokumen (unggah ke bucket S3/MinIO
+// lewat disk "s3" — kredensialnya di .env, lihat config/filesystems.php).
+$submitAkad = function () {
+    if (! $this->isAdminFo) {
+        abort(403);
+    }
+
+    $funnel = FoFunnel::findOrFail($this->akadFunnelId);
+
+    $validated = $this->validate([
+        'akadTanggal' => ['required', 'date'],
+        'akadNominal' => ['required', 'numeric', 'min:1', 'max:9999999999999'],
+        'akadFile' => ['required', 'file', 'mimes:doc,docx,pdf', 'max:5120'],
+    ]);
+
+    $path = $this->akadFile->store('funnel-akad', 's3');
+
+    $funnel->update([
+        'stage' => 'akad',
+        'tgl_closing' => $validated['akadTanggal'],
+        'nominal_investasi' => $validated['akadNominal'],
+        'dokumen_akad_path' => $path,
+        'dokumen_akad_nama' => $this->akadFile->getClientOriginalName(),
+    ]);
+
+    $this->reset(['akadFunnelId', 'akadTanggal', 'akadNominal', 'akadFile']);
+    $this->success('Proses akad berhasil dicatat!');
+    $this->js("document.getElementById('funnel-akad-modal').close()");
 };
 
 // Pindah ke kolom Pitching selalu lewat sini — mencatat tanggal & catatan sesi pitching sebagai histori.
@@ -298,7 +357,7 @@ $closeHistory = function () {
 
 ?>
 
-<div class="space-y-6" x-data="funnelUi(@js($this->contactOptions))">
+<div class="space-y-6" x-data="funnelUi(@js($this->contactOptions), @js($this->isAdminFo))">
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
         <h2 class="text-xl font-bold text-base-content">Funnel</h2>
         <p class="text-sm text-base-content/50 mt-1">
@@ -364,7 +423,7 @@ $closeHistory = function () {
         @foreach ($stages as $stage)
             <div
                 class="w-72 shrink-0 bg-base-200 rounded-2xl p-3 flex flex-col gap-3 transition-colors"
-                x-on:dragover.prevent="dragOverStage = '{{ $stage['key'] }}'"
+                x-on:dragover.prevent="dragOverStage = ('{{ $stage['key'] }}' === 'akad' && !isAdminFo) ? null : '{{ $stage['key'] }}'"
                 x-on:dragleave="dragOverStage = null"
                 x-on:drop="onDrop('{{ $stage['key'] }}')"
                 :class="dragOverStage === '{{ $stage['key'] }}' && 'ring-2 ring-primary/50 bg-primary/5'"
@@ -372,6 +431,11 @@ $closeHistory = function () {
                 <div class="flex items-center justify-between px-1">
                     <div class="flex items-center gap-2">
                         <span class="{{ $stage['badge'] }} badge badge-sm">{{ $stage['label'] }}</span>
+                        @if ($stage['key'] === 'akad' && ! $this->isAdminFo)
+                            <div class="tooltip" data-tip="Hanya Admin FO / Super Admin yang bisa memindahkan ke sini">
+                                <x-icon name="o-lock-closed" class="w-3 h-3 text-base-content/30" />
+                            </div>
+                        @endif
                         <span class="text-xs font-semibold text-base-content/40">{{ $this->funnels->where('stage', $stage['key'])->count() }}</span>
                     </div>
                     <span class="text-xs font-bold text-primary">{{ $fmtRupiah($this->stageSum($stage['key'])) }}</span>
@@ -413,6 +477,18 @@ $closeHistory = function () {
                                 <span class="text-[11px] text-base-content/40">{{ $funnel->proyeksi_close_date?->format('d M Y') ?? '-' }}</span>
                                 <span class="badge badge-xs badge-outline">{{ $funnel->sumber }}</span>
                             </div>
+                            @if ($funnel->stage === 'akad' && $funnel->dokumen_akad_path)
+                                <a
+                                    href="{{ $funnel->dokumenAkadUrl() }}"
+                                    target="_blank"
+                                    class="badge badge-sm badge-primary badge-outline w-full truncate"
+                                    x-on:mousedown.stop
+                                    x-on:click.stop
+                                    title="{{ $funnel->dokumen_akad_nama }}"
+                                >
+                                    <x-icon name="o-paper-clip" class="w-3 h-3" /> {{ $funnel->dokumen_akad_nama }}
+                                </a>
+                            @endif
                             @php $fuCount = $funnel->activities->where('stage', 'followup')->count(); @endphp
                             @if ($fuCount > 0)
                                 <div class="tooltip" data-tip="Tampilkan detail">
@@ -452,6 +528,7 @@ $closeHistory = function () {
                         <th>Tahap</th>
                         <th>Proyeksi Close</th>
                         <th>Follow Up</th>
+                        <th>Dokumen Akad</th>
                         <th class="text-right">Aksi</th>
                     </tr>
                 </thead>
@@ -480,6 +557,15 @@ $closeHistory = function () {
                                     <span class="text-base-content/30">-</span>
                                 @endif
                             </td>
+                            <td>
+                                @if ($funnel->dokumen_akad_path)
+                                    <a href="{{ $funnel->dokumenAkadUrl() }}" target="_blank" class="link link-primary text-xs" title="{{ $funnel->dokumen_akad_nama }}">
+                                        <x-icon name="o-paper-clip" class="w-3 h-3 inline" /> Lihat
+                                    </a>
+                                @else
+                                    <span class="text-base-content/30">-</span>
+                                @endif
+                            </td>
                             <td class="text-right">
                                 <div class="flex gap-2 justify-end">
                                     <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" x-on:click="editCard({{ $funnel->id }}, '{{ $funnel->proyeksi_close_date?->format('Y-m-d') }}', {{ $funnel->proyeksi_amount ?? 'null' }}, '{{ $funnel->sumber }}')" />
@@ -489,7 +575,7 @@ $closeHistory = function () {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center text-base-content/50 py-8">
+                            <td colspan="10" class="text-center text-base-content/50 py-8">
                                 Belum ada data funnel.
                             </td>
                         </tr>
@@ -609,6 +695,30 @@ $closeHistory = function () {
         </form>
     </x-modal>
 
+    <!-- Akad Modal (Admin FO / Super Admin only) -->
+    <x-modal id="funnel-akad-modal" title="Proses Akad" subtitle="Kartu ini akan pindah ke kolom Akad setelah dokumen tersimpan." without-trap-focus wire:ignore.self>
+        <form wire:submit="submitAkad" class="space-y-4">
+            <div>
+                <div class="flex items-center justify-between mb-0.5">
+                    <span class="fieldset-legend text-sm font-medium">Tanggal Akad</span>
+                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setAkadToday()" />
+                </div>
+                <x-input type="date" wire:model="akadTanggal" required />
+            </div>
+
+            <x-input label="Nominal Investasi (Rp)" type="number" max="9999999999999" wire:model="akadNominal" placeholder="Cth: 250000000" hint="Isi nominal penuh, cth: 250000000 untuk Rp 250 Juta" required />
+
+            <x-file label="Dokumen Akad" wire:model="akadFile" accept=".doc,.docx,.pdf" hint="Format DOC, DOCX, atau PDF. Maksimal 5MB." required />
+
+            <div class="modal-action">
+                <form method="dialog">
+                    <x-button label="Batal" class="btn-ghost" />
+                </form>
+                <x-button label="Simpan" type="submit" class="btn-primary" spinner="submitAkad" />
+            </div>
+        </form>
+    </x-modal>
+
     <!-- Follow Up History Sidebar -->
     <div
         x-show="$wire.historyFunnelId"
@@ -664,12 +774,13 @@ $closeHistory = function () {
 
 @script
 <script>
-    Alpine.data('funnelUi', (contacts) => ({
+    Alpine.data('funnelUi', (contacts, isAdminFo) => ({
         viewMode: 'kanban',
         draggingId: null,
         draggingStage: null,
         dragOverStage: null,
         justMovedId: null,
+        isAdminFo: isAdminFo,
 
         contacts: contacts,
         contactSearchText: '',
@@ -744,6 +855,13 @@ $closeHistory = function () {
                 return;
             }
 
+            if (stage === 'akad' && !this.isAdminFo) {
+                alert('Hanya Admin FO / Super Admin yang bisa memindahkan kartu ke Akad.');
+                this.draggingId = null;
+                this.dragOverStage = null;
+                return;
+            }
+
             if (stage === 'pitching') {
                 this.pitchForm = { funnelId: this.draggingId, tanggal: '', catatan: '' };
                 document.getElementById('funnel-pitch-modal').showModal();
@@ -751,6 +869,10 @@ $closeHistory = function () {
                 this.followUpForm = { funnelId: this.draggingId, tanggal: '', catatan: '' };
                 this.followUpMovesStage = true;
                 document.getElementById('funnel-followup-modal').showModal();
+            } else if (stage === 'akad') {
+                $wire.openAkadModal(this.draggingId).then(() => {
+                    document.getElementById('funnel-akad-modal').showModal();
+                });
             } else {
                 $wire.moveStage(this.draggingId, stage);
             }
@@ -780,6 +902,10 @@ $closeHistory = function () {
 
         setFollowUpToday() {
             this.followUpForm.tanggal = new Date().toISOString().slice(0, 10);
+        },
+
+        setAkadToday() {
+            $wire.set('akadTanggal', new Date().toISOString().slice(0, 10));
         },
 
         submitFollowUp() {

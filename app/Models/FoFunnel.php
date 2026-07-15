@@ -6,6 +6,7 @@ use Database\Factories\FoFunnelFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class FoFunnel extends Model
 {
@@ -36,5 +37,14 @@ class FoFunnel extends Model
     public function activities()
     {
         return $this->hasMany(FoFunnelActivity::class);
+    }
+
+    public function dokumenAkadUrl(): ?string
+    {
+        if (! $this->dokumen_akad_path) {
+            return null;
+        }
+
+        return Storage::disk('s3')->url($this->dokumen_akad_path);
     }
 }
