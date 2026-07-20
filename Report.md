@@ -223,6 +223,30 @@ Halaman ini dirasa lemot pas dibuka, jadi dibedah & dibenerin 5 titik yang palin
 - [x] Tabel "Rekap 6 Bulan Terakhir" per FO (leads, QL, pitching, closing, nilai closing per bulan) — buat lihat tren, bukan cuma snapshot hari ini
 - [x] Tabel "Ranking FO Tahun Ini" — semua FO dibandingkan berdasarkan nilai closing & pencapaian (%) terhadap target tahunan, sekali lihat langsung ketauan siapa yang paling unggul
 - [x] Test otomatis ditambah lagi buat reset target, rekap bulanan, & ranking FO (14 test total, semua pass)
+- [x] Tooltip di angka Realisasi/Proyeksi/Target tiap card FO — hover buat tau maksud tiap angka & warnanya
+- [x] Tabel baru `fo_target_logs` — tiap kali target diubah/reset otomatis kecatat: siapa yang ubah, target siapa, metrik apa, nilai sebelum & sesudah, jam berapa
+- [x] Card "Riwayat Perubahan Target" — nampilin 30 perubahan terakhir tahun ini, jadi ketauan histori pengaturan target per FO
+- [x] Test otomatis ditambah buat mastiin log kebentuk bener pas update maupun reset target (16 test total, semua pass)
+
+---
+
+## 20/07/2026 Checklist Helper Nominal Rupiah (Masking Input & Tooltip Nilai Exact)
+
+### Halaman /investors/funnel-index
+- [x] Input nominal (Proyeksi Amount, Nominal Akad, Amount Closing) yang tadinya angka polos (susah dibaca kalau ratusan juta - milyaran) sekarang otomatis keformat pemisah ribuan pas diketik, cth: ketik "250000000" langsung kebaca "250.000.000"
+- [x] Angka yang disingkat (cth: "3,5 M") sekarang bisa di-hover — muncul tooltip nilai exact-nya (cth: "Rp 3.500.000.000"), jadi gak perlu nebak-nebak
+- [x] Helper baru `App\Support\Money` (dipakai di seluruh app, gak cuma 1 halaman) — `normalize()` buat bersihin angka yang diketik masuk ke database, `abbreviate()` buat tampilan singkat, `exact()` buat isi tooltip
+- [x] Komponen baru `<x-currency-abbr>` — cara pakai standar di seluruh app buat nampilin nominal singkat + tooltip exact sekaligus, gak perlu nulis ulang logic format tiap halaman
+- [x] Duplikasi kode format Rupiah yang sebelumnya ada di beberapa halaman terpisah dirapikan jadi satu helper
+- [x] Test otomatis buat helper `Money` (normalize, abbreviate, exact) — 4 test, semua pass
+
+### Halaman /investors/management-fo
+- [x] Helper `Money` yang sama diterapkan juga di halaman ini — gak ada lagi kode format Rupiah yang duplikat antar halaman
+- [x] Input target "Nilai Closing" sekarang otomatis keformat pemisah ribuan pas diketik (input target lain tetap angka biasa karena bukan duit)
+- [x] Semua angka Rupiah yang tadinya disingkat (Ringkasan Semua FO, Rekap Bulanan, Ranking FO, Riwayat Perubahan Target) sekarang bisa di-hover buat lihat nilai exact-nya
+- [x] Tooltip Realisasi/Proyeksi/Target di tiap card FO (yang sudah ada sebelumnya) digabung dengan nilai exact, jadi satu hover langsung dapat penjelasan + angka pastinya
+- [x] Ketemu & benerin bug kecil di helper `Money::normalize()` — tanda minus ikut kehapus (nilai negatif jadi positif), gak masalah buat nominal Rupiah (emang gak pernah negatif) tapi jadi salah kalau dipakai buat validasi "tolak nilai negatif" pada input target
+- [x] Test otomatis nambah 1 kasus buat mastiin tanda minus gak ikut kehapus (5 test `Money` total, semua pass); 16 test halaman ini tetap pass
 
 ---
 

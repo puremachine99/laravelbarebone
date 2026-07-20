@@ -6,6 +6,7 @@ use App\Models\FoContact;
 use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
 use App\Models\FoTarget;
+use App\Models\FoTargetLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
@@ -119,6 +120,59 @@ test('yearly target falls back to a historical-data suggestion when nothing is s
         ->yearlyTargetFor($admin->id, 'leads');
 
     expect($saved)->toBe(999.0);
+});
+
+test('updating a yearly target writes an audit log with who, whose, and old/new values', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $target = makeFoEmployee('Funding Officer');
+    $this->actingAs($admin->user);
+
+    // Pertama kali diisi — belum ada nilai lama tersimpan (masih saran otomatis).
+    Volt::test('investors.management-fo')
+        ->call('updateYearlyTarget', $target->id, 'leads', 100)
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('fo_target_logs', [
+        'employee_id' => $target->id,
+        'changed_by_user_id' => $admin->user->id,
+        'metric_key' => 'leads',
+        'old_value' => null,
+        'new_value' => 100.00,
+    ]);
+
+    // Diubah lagi — kali ini ada nilai lama (100) yang harus kecatat sebagai old_value.
+    Volt::test('investors.management-fo')
+        ->call('updateYearlyTarget', $target->id, 'leads', 150)
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('fo_target_logs', [
+        'employee_id' => $target->id,
+        'changed_by_user_id' => $admin->user->id,
+        'metric_key' => 'leads',
+        'old_value' => 100.00,
+        'new_value' => 150.00,
+    ]);
+
+    expect(FoTargetLog::where('employee_id', $target->id)->count())->toBe(2);
+});
+
+test('resetting a yearly target logs the old value with a null new value', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    FoTarget::create(['employee_id' => $admin->id, 'year' => now()->year, 'metric_key' => 'leads', 'yearly_target' => 999]);
+
+    Volt::test('investors.management-fo')
+        ->call('resetYearlyTarget', $admin->id, 'leads')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('fo_target_logs', [
+        'employee_id' => $admin->id,
+        'changed_by_user_id' => $admin->user->id,
+        'metric_key' => 'leads',
+        'old_value' => 999.00,
+        'new_value' => null,
+    ]);
 });
 
 test('resetting a yearly target deletes the override and falls back to the suggestion again', function () {

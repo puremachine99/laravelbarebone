@@ -4,6 +4,7 @@ use App\Models\Employee;
 use App\Models\FoContact;
 use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
+use App\Support\Money;
 use Illuminate\Support\Facades\Cache;
 
 use function Livewire\Volt\computed;
@@ -183,6 +184,9 @@ $createLead = function ($contactId, $proyeksiCloseDate, $proyeksiAmount, $sumber
         abort(403);
     }
 
+    // Input nominal dikirim dari input bermasking (mis. "250.000.000") — normalize dulu jadi angka bersih.
+    $proyeksiAmount = Money::normalize($proyeksiAmount);
+
     // Kolom proyeksi_amount = numeric(15,2) — nominal (Rupiah penuh) tidak boleh melebihi ini.
     if ($proyeksiAmount && $proyeksiAmount > 9_999_999_999_999) {
         $this->error('Nominal proyeksi terlalu besar', 'Maksimal Rp 9.999.999.999.999.');
@@ -209,6 +213,9 @@ $updateLead = function ($funnelId, $proyeksiCloseDate, $proyeksiAmount, $sumber)
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
         abort(403);
     }
+
+    // Input nominal dikirim dari input bermasking (mis. "250.000.000") — normalize dulu jadi angka bersih.
+    $proyeksiAmount = Money::normalize($proyeksiAmount);
 
     // Kolom proyeksi_amount = numeric(15,2) — nominal (Rupiah penuh) tidak boleh melebihi ini.
     if ($proyeksiAmount && $proyeksiAmount > 9_999_999_999_999) {
@@ -280,6 +287,10 @@ $submitAkad = function () {
 
     $funnel = FoFunnel::findOrFail($this->akadFunnelId);
 
+    // Mary's money-input udah otomatis unmask nilainya ke $this->akadNominal, tapi tetap dinormalize di
+    // sini sebagai jaring pengaman kalau ada karakter pemisah yang kebawa.
+    $this->akadNominal = Money::normalize($this->akadNominal);
+
     $validated = $this->validate([
         'akadTanggal' => ['required', 'date'],
         'akadNominal' => ['required', 'numeric', 'min:1', 'max:9999999999999'],
@@ -329,6 +340,9 @@ $logWonAndMove = function ($funnelId, $tanggal, $amount) {
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
         abort(403);
     }
+
+    // Input nominal dikirim dari input bermasking (mis. "250.000.000") — normalize dulu jadi angka bersih.
+    $amount = Money::normalize($amount);
 
     if ($amount && $amount > 9_999_999_999_999) {
         $this->error('Nominal closing terlalu besar', 'Maksimal Rp 9.999.999.999.999.');
@@ -455,17 +469,6 @@ $closeHistory = function () {
         </div>
     </div>
 
-    @php $fmtRupiah = function ($value) {
-        if (! $value) {
-            return 'Rp 0';
-        }
-        if ($value >= 1_000_000_000) {
-            return 'Rp '.rtrim(rtrim(number_format($value / 1_000_000_000, 1), '0'), '.').' M';
-        }
-
-        return 'Rp '.rtrim(rtrim(number_format($value / 1_000_000, 1), '0'), '.').' Jt';
-    }; @endphp
-
     <!-- Kanban Mode -->
     @if ($viewMode === 'kanban')
     <div class="flex gap-4 overflow-auto pb-2 max-h-[70vh]">
@@ -487,7 +490,7 @@ $closeHistory = function () {
                         @endif
                         <span class="text-xs font-semibold text-base-content/40">{{ $this->funnels->where('stage', $stage['key'])->count() }}</span>
                     </div>
-                    <span class="text-xs font-bold text-primary">{{ $fmtRupiah($this->stageSum($stage['key'])) }}</span>
+                    <span class="text-xs font-bold text-primary"><x-currency-abbr :value="$this->stageSum($stage['key'])" /></span>
                 </div>
 
                 <div class="flex flex-col gap-2 min-h-[80px]">
@@ -524,7 +527,7 @@ $closeHistory = function () {
                                 $displayDate = $usesClosingData ? $funnel->tgl_closing : $funnel->proyeksi_close_date;
                             @endphp
                             <div class="flex items-center justify-between pt-1">
-                                <span class="badge badge-sm {{ $usesClosingData ? 'badge-success' : 'badge-ghost' }} font-semibold">{{ $fmtRupiah($displayAmount) }}</span>
+                                <span class="badge badge-sm {{ $usesClosingData ? 'badge-success' : 'badge-ghost' }} font-semibold"><x-currency-abbr :value="$displayAmount" /></span>
                                 <span class="text-[11px] text-base-content/50 truncate max-w-[110px]" title="{{ $funnel->employee?->user?->name }}">{{ $funnel->employee?->user?->name }}</span>
                             </div>
                             <div class="flex items-center justify-between">
@@ -606,7 +609,7 @@ $closeHistory = function () {
                         <tr class="border-b border-base-300 hover:bg-base-200">
                             <td class="font-semibold text-base-content py-3">{{ $funnel->contact?->nama }}</td>
                             <td class="max-w-[220px] truncate">{{ $funnel->contact?->profesi }}</td>
-                            <td>{{ $fmtRupiah($displayAmountTable) }}</td>
+                            <td><x-currency-abbr :value="$displayAmountTable" /></td>
                             <td>{{ $funnel->employee?->user?->name }}</td>
                             <td>{{ $funnel->sumber }}</td>
                             <td>
@@ -695,7 +698,7 @@ $closeHistory = function () {
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <x-input label="Proyeksi Close Date" type="date" x-model="addForm.tanggal" />
-                <x-input label="Proyeksi Amount (Rp)" type="number" max="9999999999999" x-model="addForm.proyeksiAmount" placeholder="Cth: 250000000" hint="Isi nominal penuh, cth: 250000000 untuk Rp 250 Juta" />
+                <x-input label="Proyeksi Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="addForm.proyeksiAmount" placeholder="Cth: 250.000.000" hint="Otomatis diformat, cth: 250.000.000 untuk Rp 250 Juta" />
             </div>
 
             <x-select label="Sumber" x-model="addForm.sumber" :options="$sumberOptions" placeholder="Pilih Sumber" required />
@@ -714,7 +717,7 @@ $closeHistory = function () {
         <form x-on:submit.prevent="submitEdit()" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <x-input label="Proyeksi Close Date" type="date" x-model="editForm.tanggal" />
-                <x-input label="Proyeksi Amount (Rp)" type="number" max="9999999999999" x-model="editForm.proyeksiAmount" placeholder="Cth: 250000000" hint="Isi nominal penuh, cth: 250000000 untuk Rp 250 Juta" />
+                <x-input label="Proyeksi Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="editForm.proyeksiAmount" placeholder="Cth: 250.000.000" hint="Otomatis diformat, cth: 250.000.000 untuk Rp 250 Juta" />
             </div>
 
             <x-select label="Sumber" x-model="editForm.sumber" :options="$sumberOptions" placeholder="Pilih Sumber" required />
@@ -783,7 +786,7 @@ $closeHistory = function () {
                 <x-input type="date" wire:model="akadTanggal" required />
             </div>
 
-            <x-input label="Nominal Investasi (Rp)" type="number" max="9999999999999" wire:model="akadNominal" placeholder="Cth: 250000000" hint="Isi nominal penuh, cth: 250000000 untuk Rp 250 Juta" required />
+            <x-input label="Nominal Investasi (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="akadNominal" placeholder="Cth: 250.000.000" hint="Otomatis diformat, cth: 250.000.000 untuk Rp 250 Juta" required />
 
             <x-file label="Dokumen Akad" wire:model="akadFile" accept=".doc,.docx,.pdf" hint="Format DOC, DOCX, atau PDF. Maksimal 5MB." required />
 
@@ -807,7 +810,7 @@ $closeHistory = function () {
                 <x-input type="date" x-model="wonForm.tanggal" required />
             </div>
 
-            <x-input label="Amount Closing (Rp)" type="number" max="9999999999999" x-model="wonForm.amount" placeholder="Cth: 250000000" hint="Isi nominal penuh, cth: 250000000 untuk Rp 250 Juta" />
+            <x-input label="Amount Closing (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="wonForm.amount" placeholder="Cth: 250.000.000" hint="Otomatis diformat, cth: 250.000.000 untuk Rp 250 Juta" />
 
             <div class="modal-action">
                 <form method="dialog">
@@ -940,7 +943,7 @@ $closeHistory = function () {
                 return;
             }
 
-            $wire.createLead(this.addForm.contactId, this.addForm.tanggal, this.addForm.proyeksiAmount, this.addForm.sumber);
+            $wire.createLead(this.addForm.contactId, this.addForm.tanggal, normalizeCurrency(this.addForm.proyeksiAmount), this.addForm.sumber);
             document.getElementById('funnel-add-modal').close();
         },
 
@@ -950,7 +953,7 @@ $closeHistory = function () {
         },
 
         submitEdit() {
-            $wire.updateLead(this.editForm.id, this.editForm.tanggal, this.editForm.proyeksiAmount, this.editForm.sumber);
+            $wire.updateLead(this.editForm.id, this.editForm.tanggal, normalizeCurrency(this.editForm.proyeksiAmount), this.editForm.sumber);
             document.getElementById('funnel-edit-modal').close();
         },
 
@@ -1054,7 +1057,7 @@ $closeHistory = function () {
                 return;
             }
 
-            $wire.logWonAndMove(this.wonForm.funnelId, this.wonForm.tanggal, this.wonForm.amount);
+            $wire.logWonAndMove(this.wonForm.funnelId, this.wonForm.tanggal, normalizeCurrency(this.wonForm.amount));
             document.getElementById('funnel-won-modal').close();
         },
 
