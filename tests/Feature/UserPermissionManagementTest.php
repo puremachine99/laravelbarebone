@@ -44,14 +44,71 @@ test('admin can assign roles and permissions dynamically to a user', function ()
     // Assert target user does not have the role initially
     expect($targetUser->hasRole('Partnership Admin'))->toBeFalse();
 
-    // Call Livewire component to save permissions
+    // Open edit form and save with a new role assigned
     Livewire::test(UserManagement::class)
-        ->set('selectedUser', $targetUser)
+        ->call('openEdit', $targetUser->id)
         ->set('userRoles', ['Partnership Admin'])
-        ->call('savePermissions')
+        ->call('saveUser')
         ->assertHasNoErrors();
 
     // Assert changes were persisted
     $targetUser->refresh();
     expect($targetUser->hasRole('Partnership Admin'))->toBeTrue();
+});
+
+test('admin can create a new user with roles', function () {
+    $admin = User::factory()->create();
+    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    Role::findOrCreate('Partnership Admin');
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserManagement::class)
+        ->call('openCreate')
+        ->set('name', 'New Employee')
+        ->set('email', 'new.employee@example.com')
+        ->set('password', 'password123')
+        ->set('userRoles', ['Partnership Admin'])
+        ->call('saveUser')
+        ->assertHasNoErrors();
+
+    $newUser = User::where('email', 'new.employee@example.com')->first();
+
+    expect($newUser)->not->toBeNull()
+        ->and($newUser->name)->toBe('New Employee')
+        ->and($newUser->hasRole('Partnership Admin'))->toBeTrue();
+});
+
+test('admin can update an existing user profile fields', function () {
+    $admin = User::factory()->create();
+    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+
+    $targetUser = User::factory()->create(['name' => 'Old Name']);
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserManagement::class)
+        ->call('openEdit', $targetUser->id)
+        ->set('name', 'Updated Name')
+        ->set('email', $targetUser->email)
+        ->call('saveUser')
+        ->assertHasNoErrors();
+
+    $targetUser->refresh();
+    expect($targetUser->name)->toBe('Updated Name');
+});
+
+test('admin can delete a user', function () {
+    $admin = User::factory()->create();
+    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+
+    $targetUser = User::factory()->create();
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserManagement::class)
+        ->call('confirmDelete', $targetUser->id)
+        ->call('delete');
+
+    expect(User::find($targetUser->id))->toBeNull();
 });

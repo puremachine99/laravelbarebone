@@ -77,6 +77,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('can:access-investors')->group(function () {
         Volt::route('/investors/contacts', 'investors.contact-index')->name('investors.contacts');
         Volt::route('/investors/funnel', 'investors.funnel-index')->name('investors.funnel');
+        Volt::route('/investors/management-fo', 'investors.management-fo')->name('investors.management-fo');
     });
 });
 

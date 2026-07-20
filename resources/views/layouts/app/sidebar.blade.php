@@ -266,6 +266,11 @@
                                         <a @class(['menu-item', 'active' => request()->routeIs('investors.contacts')]) href="{{ route('investors.contacts') }}" wire:navigate>
                                             <span class="grow">Contacts</span>
                                         </a>
+                                        @hasanyrole('Investor Admin|Super Admin')
+                                            <a @class(['menu-item', 'active' => request()->routeIs('investors.management-fo')]) href="{{ route('investors.management-fo') }}" wire:navigate>
+                                                <span class="grow">Management FO</span>
+                                            </a>
+                                        @endhasanyrole
                                         <a class="menu-item" href="#">
                                             <span class="grow">Daily Trends</span>
                                         </a>
