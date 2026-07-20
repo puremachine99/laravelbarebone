@@ -3,6 +3,7 @@
 use App\Models\Employee;
 use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
+use App\Models\FoTarget;
 
 use function Livewire\Volt\computed;
 use function Livewire\Volt\layout;
@@ -15,7 +16,6 @@ uses(\Mary\Traits\Toast::class);
 
 state([
     'activePeriod' => 'tahunan',
-    'targetOverrides' => [],
     'targetSettingEmployeeId' => null,
 ]);
 
@@ -48,20 +48,35 @@ $foEmployees = computed(function () {
         ->all();
 });
 
-// Belum ada tabel target beneran — angka target ini digenerate deterministik (stabil tiap reload, seeded dari
-// employee id) biar UI-nya bisa dites dulu. Ganti dengan query beneran begitu skema `fo_targets` dibuatkan.
-// Realisasi & Proyeksi di bawah ini SUDAH dari data funnel asli (bukan dummy).
-$dummyYearlyTarget = function ($employeeId, $metricKey) {
-    mt_srand($employeeId * 31 + crc32($metricKey));
+// Saran target tahunan dihitung dari data funnel asli FO tersebut (all-time), di-annualisasi berdasarkan
+// rentang waktu data yang ada (biar FO yang baru mulai gak dikasih saran yang terlalu ekstrem). Dipakai
+// sebagai nilai default di form — begitu admin isi & simpan, nilai dari `fo_targets` yang dipakai.
+$suggestedYearlyTarget = function ($employeeId, $metricKey) {
+    $firstActivity = FoFunnel::where('employee_id', $employeeId)->min('tgl_leads');
 
-    return match ($metricKey) {
-        'leads' => mt_rand(80, 160),
-        'ql' => mt_rand(40, 90),
-        'pitching' => mt_rand(20, 60),
-        'closing' => mt_rand(6, 20),
-        'nilai_closing' => mt_rand(500, 3000) * 1_000_000,
+    if (! $firstActivity) {
+        return 0;
+    }
+
+    $dataSpanDays = max(90, abs(now()->diffInDays($firstActivity)));
+    $annualizeFactor = 365 / $dataSpanDays;
+
+    $allTimeTotal = match ($metricKey) {
+        'leads' => FoFunnel::where('employee_id', $employeeId)->count(),
+        'ql' => FoFunnel::where('employee_id', $employeeId)->whereNotNull('tgl_qualified')->count(),
+        'pitching' => FoFunnelActivity::where('stage', 'pitching')
+            ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId))
+            ->pluck('fo_funnel_id')
+            ->unique()
+            ->count(),
+        'closing' => FoFunnel::where('employee_id', $employeeId)->whereIn('stage', ['won', 'akad'])->count(),
+        'nilai_closing' => (float) FoFunnel::where('employee_id', $employeeId)
+            ->whereIn('stage', ['won', 'akad'])
+            ->sum('nominal_investasi'),
         default => 0,
     };
+
+    return round($allTimeTotal * $annualizeFactor);
 };
 
 // Rekomendasi otomatis: tahunan dibagi rata ke bulanan (÷12), bulanan dibagi ke harian (÷25 hari kerja/bulan).
@@ -73,9 +88,15 @@ $splitTarget = function ($yearly) {
     ];
 };
 
+// Target tersimpan (fo_targets) untuk tahun berjalan dipakai kalau ada; kalau admin belum pernah isi,
+// tampilkan saran dari data historis (lihat suggestedYearlyTarget di atas).
 $yearlyTargetFor = function ($employeeId, $metricKey) {
-    return $this->targetOverrides[$employeeId][$metricKey]
-        ?? $this->dummyYearlyTarget($employeeId, $metricKey);
+    $saved = FoTarget::where('employee_id', $employeeId)
+        ->where('year', now()->year)
+        ->where('metric_key', $metricKey)
+        ->value('yearly_target');
+
+    return $saved !== null ? (float) $saved : $this->suggestedYearlyTarget($employeeId, $metricKey);
 };
 
 $targetFor = function ($employeeId, $metricKey) {
@@ -93,10 +114,9 @@ $periodRange = function () {
     };
 };
 
-// Realisasi = data funnel yang beneran sudah terjadi di periode ini, milik FO tersebut.
-$realisasiFor = function ($employeeId, $metricKey) {
-    [$start, $end] = $this->periodRange();
-
+// Realisasi = data funnel yang beneran sudah terjadi di rentang tanggal tertentu, milik FO tersebut.
+// Dipisah dari periode aktif (tahunan/bulanan/harian) biar bisa dipakai ulang buat rekap bulanan custom.
+$realisasiInRange = function ($employeeId, $metricKey, $start, $end) {
     return match ($metricKey) {
         'leads' => FoFunnel::where('employee_id', $employeeId)
             ->whereBetween('tgl_leads', [$start, $end])
@@ -123,6 +143,12 @@ $realisasiFor = function ($employeeId, $metricKey) {
     };
 };
 
+$realisasiFor = function ($employeeId, $metricKey) {
+    [$start, $end] = $this->periodRange();
+
+    return $this->realisasiInRange($employeeId, $metricKey, $start, $end);
+};
+
 // Proyeksi cuma relevan buat Closing & Nilai Closing — funnel yang masih diproses (Pitching/Follow Up, belum
 // Won/Lost) dengan target tanggal closing jatuh di periode ini. Estimasi "kemungkinan bakal closing".
 $proyeksiFor = function ($employeeId, $metricKey) {
@@ -141,7 +167,6 @@ $proyeksiFor = function ($employeeId, $metricKey) {
     };
 };
 
-// Dummy dulu — belum nulis ke database, cuma disimpan di state komponen (hilang kalau halaman di-reload).
 $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
     if (! is_numeric($value) || $value < 0) {
         $this->error('Nilai target gak valid.');
@@ -149,9 +174,73 @@ $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
         return;
     }
 
-    $this->targetOverrides[$employeeId][$metricKey] = (float) $value;
-    $this->success('Target tahunan diperbarui (data uji coba, belum tersimpan permanen).');
+    FoTarget::updateOrCreate(
+        ['employee_id' => $employeeId, 'year' => now()->year, 'metric_key' => $metricKey],
+        ['yearly_target' => (float) $value],
+    );
+
+    $this->success('Target tahunan diperbarui dan tersimpan.');
 };
+
+// Cek apakah metrik ini punya target manual tersimpan (buat nampilin tombol reset di UI atau nggak).
+$hasSavedTarget = function ($employeeId, $metricKey) {
+    return FoTarget::where('employee_id', $employeeId)
+        ->where('year', now()->year)
+        ->where('metric_key', $metricKey)
+        ->exists();
+};
+
+// Hapus target manual, balik ke saran otomatis dari data historis.
+$resetYearlyTarget = function ($employeeId, $metricKey) {
+    FoTarget::where('employee_id', $employeeId)
+        ->where('year', now()->year)
+        ->where('metric_key', $metricKey)
+        ->delete();
+
+    $this->success('Target di-reset, balik ke saran otomatis dari data historis.');
+};
+
+// Rekap performa 6 bulan terakhir buat FO yang lagi dipilih di dropdown "Atur Target Tahunan".
+$monthlyRekap = computed(function () {
+    $employeeId = $this->targetSettingEmployeeId;
+
+    if (! $employeeId) {
+        return [];
+    }
+
+    return collect(range(5, 0))->map(function ($monthsAgo) use ($employeeId) {
+        $start = now()->subMonths($monthsAgo)->startOfMonth();
+        $end = now()->subMonths($monthsAgo)->endOfMonth();
+
+        return [
+            'label' => $start->translatedFormat('M Y'),
+            'leads' => $this->realisasiInRange($employeeId, 'leads', $start, $end),
+            'ql' => $this->realisasiInRange($employeeId, 'ql', $start, $end),
+            'pitching' => $this->realisasiInRange($employeeId, 'pitching', $start, $end),
+            'closing' => $this->realisasiInRange($employeeId, 'closing', $start, $end),
+            'nilai_closing' => $this->realisasiInRange($employeeId, 'nilai_closing', $start, $end),
+        ];
+    })->values()->all();
+});
+
+// Ranking semua FO tahun berjalan — buat bandingin performa antar FO, bukan cuma satu-satu.
+$foRanking = computed(function () {
+    $start = now()->startOfYear();
+    $end = now()->endOfYear();
+
+    return collect($this->foEmployees)->map(function ($fo) use ($start, $end) {
+        $nilaiClosing = $this->realisasiInRange($fo['id'], 'nilai_closing', $start, $end);
+        $target = $this->yearlyTargetFor($fo['id'], 'nilai_closing');
+
+        return [
+            'name' => $fo['name'],
+            'closing' => $this->realisasiInRange($fo['id'], 'closing', $start, $end),
+            'nilai_closing' => $nilaiClosing,
+            'target' => $target,
+            'achievement' => $target > 0 ? round($nilaiClosing / $target * 100, 1) : null,
+        ];
+    })->sortByDesc('nilai_closing')->values()->all();
+});
 
 ?>
 
@@ -161,7 +250,7 @@ $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
         <p class="text-xs text-base-content/50">
             Atur & pantau target kerja Funding Officer — target tahunan otomatis dipecah ke bulanan & harian.
         </p>
-        <div class="badge badge-warning badge-outline badge-sm mt-1.5">Target manual · Realisasi & Proyeksi dari data funnel asli</div>
+        <div class="badge badge-warning badge-outline badge-sm mt-1.5">Saran target dari data historis · bisa diubah manual · Realisasi & Proyeksi dari data funnel asli</div>
     </div>
 
     @php $fmtRupiah = function ($value) {
@@ -193,14 +282,26 @@ $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
 
             <div class="space-y-3">
                 @foreach ($metrics as $metric)
-                    <x-input
-                        :label="$metric['label']"
-                        type="number"
-                        value="{{ $this->yearlyTargetFor($targetSettingEmployeeId, $metric['key']) }}"
-                        wire:change="updateYearlyTarget({{ $targetSettingEmployeeId }}, '{{ $metric['key'] }}', $event.target.value)"
-                        class="input-sm"
-                    />
+                    <div class="flex items-end gap-1">
+                        <x-input
+                            :label="$metric['label']"
+                            type="number"
+                            value="{{ $this->yearlyTargetFor($targetSettingEmployeeId, $metric['key']) }}"
+                            wire:change="updateYearlyTarget({{ $targetSettingEmployeeId }}, '{{ $metric['key'] }}', $event.target.value)"
+                            class="input-sm"
+                            wire:key="target-input-{{ $targetSettingEmployeeId }}-{{ $metric['key'] }}"
+                        />
+                        @if ($this->hasSavedTarget($targetSettingEmployeeId, $metric['key']))
+                            <x-button
+                                icon="o-arrow-path"
+                                class="btn-ghost btn-xs text-base-content/50 mb-1.5"
+                                tooltip="Reset ke saran otomatis"
+                                wire:click="resetYearlyTarget({{ $targetSettingEmployeeId }}, '{{ $metric['key'] }}')"
+                            />
+                        @endif
+                    </div>
                 @endforeach
+                <div class="text-[11px] text-base-content/40">Angka tanpa tombol reset = saran otomatis dari data historis, belum diisi manual.</div>
             </div>
         </div>
 
@@ -224,11 +325,17 @@ $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
                                 <div class="flex items-center justify-between gap-1 text-xs">
                                     <span class="text-base-content/50 shrink-0">{{ $metric['label'] }}</span>
                                     <span class="text-right">
-                                        <span class="font-medium {{ $gap >= 0 ? 'text-success' : 'text-error' }}">{{ $fmt($realisasi) }}</span>
+                                        <span class="tooltip tooltip-left" data-tip="Realisasi — yang udah beneran terjadi di periode ini. {{ $gap >= 0 ? 'Hijau = udah capai/lewat target.' : 'Merah = masih di bawah target.' }}">
+                                            <span class="font-medium {{ $gap >= 0 ? 'text-success' : 'text-error' }}">{{ $fmt($realisasi) }}</span>
+                                        </span>
                                         @if ($hasProyeksi)
-                                            <span class="text-warning">({{ $fmt($proyeksi) }})</span>
+                                            <span class="tooltip tooltip-left" data-tip="Proyeksi — perkiraan tambahan dari funnel yang masih jalan (Pitching/Follow Up), belum pasti closing.">
+                                                <span class="text-warning">({{ $fmt($proyeksi) }})</span>
+                                            </span>
                                         @endif
-                                        <span class="text-base-content/30">/ {{ $fmt($target) }}</span>
+                                        <span class="tooltip tooltip-left" data-tip="Target — angka target {{ $activePeriod }} (manual kalau udah diisi admin, atau saran otomatis dari data historis kalau belum).">
+                                            <span class="text-base-content/30">/ {{ $fmt($target) }}</span>
+                                        </span>
                                     </span>
                                 </div>
                             @endforeach
@@ -257,6 +364,82 @@ $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
                     @endforeach
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Rekap Bulanan (FO yang lagi dipilih di dropdown kiri) -->
+    <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
+        <div class="text-sm font-semibold text-base-content mb-1">Rekap 6 Bulan Terakhir — {{ collect($this->foEmployees)->firstWhere('id', $targetSettingEmployeeId)['name'] ?? '-' }}</div>
+        <p class="text-xs text-base-content/50 mb-3">Tren realisasi bulanan, bukan snapshot periode aktif di atas.</p>
+        <div class="overflow-x-auto">
+            <table class="table table-sm table-zebra w-full text-base-content/70">
+                <thead>
+                    <tr class="text-base-content/50 border-b border-base-300">
+                        <th>Bulan</th>
+                        @foreach ($metrics as $metric)
+                            <th class="text-right">{{ $metric['label'] }}</th>
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($this->monthlyRekap as $row)
+                        <tr class="border-b border-base-300">
+                            <td class="font-medium text-base-content">{{ $row['label'] }}</td>
+                            @foreach ($metrics as $metric)
+                                <td class="text-right">
+                                    {{ $metric['type'] === 'currency' ? $fmtRupiah($row[$metric['key']]) : number_format($row[$metric['key']]) }}
+                                </td>
+                            @endforeach
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="{{ count($metrics) + 1 }}" class="text-center text-base-content/50 py-4">Pilih FO dulu di panel kiri.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Ranking Semua FO (tahun berjalan) -->
+    <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
+        <div class="text-sm font-semibold text-base-content mb-1">Ranking FO Tahun Ini</div>
+        <p class="text-xs text-base-content/50 mb-3">Dibandingkan berdasarkan Nilai Closing tahun berjalan vs target tahunan.</p>
+        <div class="overflow-x-auto">
+            <table class="table table-sm table-zebra w-full text-base-content/70">
+                <thead>
+                    <tr class="text-base-content/50 border-b border-base-300">
+                        <th>#</th>
+                        <th>Nama FO</th>
+                        <th class="text-right">Closing</th>
+                        <th class="text-right">Nilai Closing</th>
+                        <th class="text-right">Target</th>
+                        <th class="text-right">Achievement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($this->foRanking as $i => $fo)
+                        <tr class="border-b border-base-300">
+                            <td>{{ $i + 1 }}</td>
+                            <td class="font-medium text-base-content">{{ $fo['name'] }}</td>
+                            <td class="text-right">{{ number_format($fo['closing']) }}</td>
+                            <td class="text-right">{{ $fmtRupiah($fo['nilai_closing']) }}</td>
+                            <td class="text-right text-base-content/40">{{ $fmtRupiah($fo['target']) }}</td>
+                            <td class="text-right">
+                                @if ($fo['achievement'] !== null)
+                                    <span class="badge badge-sm {{ $fo['achievement'] >= 100 ? 'badge-success' : 'badge-warning' }} badge-outline">{{ $fo['achievement'] }}%</span>
+                                @else
+                                    <span class="text-base-content/30">-</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center text-base-content/50 py-4">Belum ada data FO.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

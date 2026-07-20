@@ -5,6 +5,7 @@ use App\Models\Employee;
 use App\Models\FoContact;
 use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
+use App\Models\FoTarget;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
@@ -55,7 +56,7 @@ test('super admin can access management fo', function () {
     $this->get(route('investors.management-fo'))->assertOk();
 });
 
-test('updating a yearly target overrides the dummy value and recalculates the split', function () {
+test('updating a yearly target persists it to the database and recalculates the split', function () {
     $admin = makeFoEmployee('Investor Admin');
     $this->actingAs($admin->user);
 
@@ -64,7 +65,14 @@ test('updating a yearly target overrides the dummy value and recalculates the sp
         ->call('updateYearlyTarget', $admin->id, 'leads', 120)
         ->assertHasNoErrors();
 
-    expect((float) $component->get('targetOverrides')[$admin->id]['leads'])->toBe(120.0);
+    $this->assertDatabaseHas('fo_targets', [
+        'employee_id' => $admin->id,
+        'year' => now()->year,
+        'metric_key' => 'leads',
+        'yearly_target' => 120.00,
+    ]);
+
+    expect((float) $component->instance()->yearlyTargetFor($admin->id, 'leads'))->toBe(120.0);
 
     $component->set('activePeriod', 'bulanan');
 
@@ -75,11 +83,93 @@ test('updating a yearly target rejects a negative value', function () {
     $admin = makeFoEmployee('Investor Admin');
     $this->actingAs($admin->user);
 
-    $component = Volt::test('investors.management-fo')
+    Volt::test('investors.management-fo')
         ->call('updateYearlyTarget', $admin->id, 'leads', -5)
         ->assertHasNoErrors();
 
-    expect($component->get('targetOverrides'))->toBe([]);
+    $this->assertDatabaseMissing('fo_targets', ['employee_id' => $admin->id]);
+});
+
+test('yearly target falls back to a historical-data suggestion when nothing is saved yet', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    // 10 leads spread across the last 180 hari — cukup buat dihitung annualized run-rate-nya.
+    FoFunnel::factory()->count(10)->create([
+        'employee_id' => $admin->id,
+        'tgl_leads' => now()->subDays(180)->toDateString(),
+    ]);
+
+    $suggested = Volt::test('investors.management-fo')
+        ->instance()
+        ->yearlyTargetFor($admin->id, 'leads');
+
+    // annualizeFactor = 365/180, jadi 10 leads -> ~20.
+    expect($suggested)->toBe(20.0);
+
+    FoTarget::create([
+        'employee_id' => $admin->id,
+        'year' => now()->year,
+        'metric_key' => 'leads',
+        'yearly_target' => 999,
+    ]);
+
+    $saved = Volt::test('investors.management-fo')
+        ->instance()
+        ->yearlyTargetFor($admin->id, 'leads');
+
+    expect($saved)->toBe(999.0);
+});
+
+test('resetting a yearly target deletes the override and falls back to the suggestion again', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    FoTarget::create(['employee_id' => $admin->id, 'year' => now()->year, 'metric_key' => 'leads', 'yearly_target' => 999]);
+
+    Volt::test('investors.management-fo')
+        ->call('resetYearlyTarget', $admin->id, 'leads')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseMissing('fo_targets', ['employee_id' => $admin->id, 'metric_key' => 'leads']);
+});
+
+test('monthly rekap returns six months of real realisasi data for the selected fo', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    FoFunnel::factory()->create(['employee_id' => $admin->id, 'tgl_leads' => now()->startOfMonth()->toDateString()]);
+    FoFunnel::factory()->create(['employee_id' => $admin->id, 'tgl_leads' => now()->subMonths(2)->startOfMonth()->toDateString()]);
+
+    $rekap = Volt::test('investors.management-fo')
+        ->set('targetSettingEmployeeId', $admin->id)
+        ->instance()
+        ->monthlyRekap();
+
+    expect($rekap)->toHaveCount(6)
+        ->and(collect($rekap)->sum('leads'))->toBe(2);
+});
+
+test('fo ranking sorts by nilai closing this year and computes achievement against target', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    FoFunnel::factory()->create([
+        'employee_id' => $admin->id,
+        'stage' => 'won',
+        'tgl_closing' => now()->toDateString(),
+        'nominal_investasi' => 100_000_000,
+    ]);
+    FoTarget::create(['employee_id' => $admin->id, 'year' => now()->year, 'metric_key' => 'nilai_closing', 'yearly_target' => 200_000_000]);
+
+    $ranking = Volt::test('investors.management-fo')
+        ->instance()
+        ->foRanking();
+
+    $row = collect($ranking)->firstWhere('name', $admin->user->name);
+
+    expect($row['nilai_closing'])->toBe(100_000_000.0)
+        ->and($row['achievement'])->toBe(50.0);
 });
 
 test('realisasi leads and ql are counted from real funnel data within the active period', function () {

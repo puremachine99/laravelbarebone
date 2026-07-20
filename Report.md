@@ -200,3 +200,29 @@ Halaman ini dirasa lemot pas dibuka, jadi dibedah & dibenerin 5 titik yang palin
 
 ---
 
+## 20/07/2026 Checklist CRUD User Management
+
+### Halaman /admin/users
+- [x] Dulu halaman ini cuma bisa lihat data user & atur role doang — sekarang udah full CRUD (Tambah, Edit, Hapus)
+- [x] Satu form buat Tambah/Edit user: nama, email, password (pas edit boleh dikosongin kalau gak mau ganti password), pilih departemen, sampai centang role — jadi atur akun & hak akses sekaligus, gak perlu bolak-balik
+- [x] Tombol Hapus user ada konfirmasi dulu biar gak kepencet gak sengaja, & user gak bisa hapus akun sendiri
+- [x] Tampilan dipindah dari Flux UI ke DaisyUI/Mary UI biar konsisten sama halaman lain yang emang udah pindah ke DaisyUI
+- [x] Test otomatis ditambah buat mastiin create/edit/delete/assign role beneran jalan (7 test, semua pass)
+
+---
+
+## 20/07/2026 Checklist Target FO Pakai Data Real
+
+### Halaman /investors/management-fo
+- [x] Dulu angka target tahunan cuma angka acak (dummy), sekarang tabel baru `fo_targets` buat nyimpen target beneran ke database — gak ilang lagi kalau halaman di-reload
+- [x] Kalau admin belum pernah isi target buat FO tertentu, sistem otomatis kasih saran angka berdasarkan data historis FO itu sendiri (dihitung dari jumlah leads/QL/pitching/closing asli, diproyeksikan setahun penuh)
+- [x] Begitu admin isi & simpan angka target manual, itu yang dipakai — bukan saran otomatis lagi
+- [x] Realisasi & Proyeksi tetap dari data funnel asli seperti sebelumnya, gak berubah
+- [x] Test otomatis ditambah buat mastiin target kesimpan ke database & saran otomatisnya kehitung bener (11 test, semua pass)
+- [x] Tombol reset per metrik — kalau target manual mau dihapus, tinggal klik, otomatis balik ke saran dari data historis
+- [x] Tabel "Rekap 6 Bulan Terakhir" per FO (leads, QL, pitching, closing, nilai closing per bulan) — buat lihat tren, bukan cuma snapshot hari ini
+- [x] Tabel "Ranking FO Tahun Ini" — semua FO dibandingkan berdasarkan nilai closing & pencapaian (%) terhadap target tahunan, sekali lihat langsung ketauan siapa yang paling unggul
+- [x] Test otomatis ditambah lagi buat reset target, rekap bulanan, & ranking FO (14 test total, semua pass)
+
+---
+
