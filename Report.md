@@ -221,3 +221,22 @@ Halaman ini dirasa lemot pas dibuka, jadi dibedah & dibenerin 5 titik yang palin
 
 ---
 
+## 23/07/2026 Checklist API OPD Lookup (buat Dropdown Provinsi/Kabupaten/OPD)
+
+### API Baru
+- 3 endpoint baru buat aplikasi lain yang butuh dropdown berjenjang Provinsi → Kabupaten/Kota → OPD, tanpa perlu akses database Nakama Dashboard langsung
+- `GET /api/provinces` — ambil daftar provinsi, bisa dicari pakai kata kunci
+- `GET /api/regencies?provinsi=...` — ambil daftar kabupaten/kota dalam satu provinsi (nama provinsi wajib diisi)
+- `GET /api/opds?provinsi=...` — ambil daftar OPD dalam satu provinsi, bisa dipersempit lagi pakai kabupaten & kata kunci nama OPD
+- Pencarian nama gak perlu persis sama (cukup sebagian kata), dan khusus pencarian provinsi udah dipastikan gak peduli huruf besar/kecil
+- Hasil pencarian langsung dikasih semua sekaligus (gak dipotong per halaman) biar gampang buat isi dropdown
+
+### Dokumentasi buat Developer
+- Halaman baru `/documentation` — panduan teknis lengkap buat developer aplikasi lain yang mau pakai API ini
+- Isinya: penjelasan tiap endpoint, contoh permintaan & hasilnya, sampai contoh kode JavaScript siap pakai buat alur dropdown berjenjang
+
+### Test
+- Semua endpoint & halaman dokumentasi sudah ada test otomatisnya (11 test, semua pass)
+
+---
+

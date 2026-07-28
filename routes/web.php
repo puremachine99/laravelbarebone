@@ -74,9 +74,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Volt::route('/partnership/test/pitching', 'partnership.test-pitching-compare')->name('partnership.test.pitching');
 
     Volt::route('/products', 'master.products.index')->name('products.index')->middleware('can:access-products');
-    Route::view('/investors', 'pages.master.investors.index')->name('investors.index')->middleware('can:access-investors');
 
     Route::middleware('can:access-investors')->group(function () {
+        Volt::route('/investors', 'investors.dashboard-index')->name('investors.index');
+        Volt::route('/investors/monthly', 'investors.monthly-index')->name('investors.monthly');
+        Volt::route('/investors/conversion', 'investors.conversion-index')->name('investors.conversion');
         Volt::route('/investors/contacts', 'investors.contact-index')->name('investors.contacts');
         Volt::route('/investors/funnel', 'investors.funnel-index')->name('investors.funnel');
         Volt::route('/investors/management-fo', 'investors.management-fo')->name('investors.management-fo');

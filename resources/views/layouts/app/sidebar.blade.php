@@ -251,14 +251,11 @@
                                         <a @class(['menu-item', 'active' => request()->routeIs('investors.index')]) href="{{ route('investors.index') }}" wire:navigate>
                                             <span class="grow">Dashboard</span>
                                         </a>
-                                        <a class="menu-item" href="#">
+                                        <a @class(['menu-item', 'active' => request()->routeIs('investors.monthly')]) href="{{ route('investors.monthly') }}" wire:navigate>
                                             <span class="grow">Monthly Achievement</span>
                                         </a>
-                                        <a class="menu-item" href="#">
+                                        <a @class(['menu-item', 'active' => request()->routeIs('investors.conversion')]) href="{{ route('investors.conversion') }}" wire:navigate>
                                             <span class="grow">Monthly Conversion</span>
-                                        </a>
-                                        <a class="menu-item" href="#">
-                                            <span class="grow">Yearly Analysis</span>
                                         </a>
                                         <a @class(['menu-item', 'active' => request()->routeIs('investors.funnel')]) href="{{ route('investors.funnel') }}" wire:navigate>
                                             <span class="grow">Funnel</span>
@@ -271,12 +268,6 @@
                                                 <span class="grow">Management FO</span>
                                             </a>
                                         @endhasanyrole
-                                        <a class="menu-item" href="#">
-                                            <span class="grow">Daily Trends</span>
-                                        </a>
-                                        <a class="menu-item" href="#">
-                                            <span class="grow">System SOP</span>
-                                        </a>
                                     </div>
                                 </div>
                             </div>
