@@ -212,6 +212,84 @@ test('leaderboard is sorted by cumulative nilai closing regardless of masuk seba
         ->and($leaderboard[1]['name'])->toBe($foLow->user->name);
 });
 
+test('selectedDate defaults to today', function () {
+    $admin = makeDashboardFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    $component = Volt::test('investors.dashboard-index');
+
+    expect($component->get('selectedDate'))->toBe(now()->toDateString());
+});
+
+test('switching the date picker recalculates realisasi for the newly selected day', function () {
+    $admin = makeDashboardFoEmployee('Investor Admin');
+    $fo = makeDashboardFoEmployee('Funding Officer');
+    $contact = FoContact::factory()->create(['employee_id' => $fo->id]);
+
+    $threeDaysAgo = now()->subDays(3)->toDateString();
+
+    FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'tgl_leads' => now()->toDateString()]);
+    FoFunnel::factory()->count(2)->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'tgl_leads' => $threeDaysAgo]);
+
+    $this->actingAs($admin->user);
+
+    $component = Volt::test('investors.dashboard-index');
+
+    expect($component->instance()->todaySummary()['leads']['realisasi'])->toBe(1);
+
+    $component->set('selectedDate', $threeDaysAgo);
+
+    $rows = collect($component->instance()->realisasiPerFo())->keyBy('name');
+
+    expect($component->instance()->todaySummary()['leads']['realisasi'])->toBe(2)
+        ->and($rows[$fo->user->name]['leads'])->toBe(2);
+});
+
+test('14-day trend ends at the selected date rather than always today', function () {
+    $admin = makeDashboardFoEmployee('Investor Admin');
+    $fo = makeDashboardFoEmployee('Funding Officer');
+    $contact = FoContact::factory()->create(['employee_id' => $fo->id]);
+
+    $selectedDate = now()->subDays(20)->toDateString();
+
+    // This lead sits well within the 14-day window ending at $selectedDate, but far outside a window ending today.
+    FoFunnel::factory()->create([
+        'fo_contact_id' => $contact->id,
+        'employee_id' => $fo->id,
+        'tgl_leads' => now()->subDays(20)->toDateString(),
+    ]);
+
+    $this->actingAs($admin->user);
+
+    $component = Volt::test('investors.dashboard-index')->set('selectedDate', $selectedDate);
+
+    $trend = collect($component->instance()->trend());
+
+    expect($trend)->toHaveCount(14)
+        ->and($trend->last()['label'])->toBe(now()->subDays(20)->format('d/m'))
+        ->and($trend->sum('leads'))->toBe(1);
+});
+
+test('daily target year is derived from the selected date, not the current date', function () {
+    $admin = makeDashboardFoEmployee('Investor Admin');
+    $fo = makeDashboardFoEmployee('Funding Officer');
+
+    FoTarget::factory()->create([
+        'employee_id' => $fo->id,
+        'metric_key' => 'leads',
+        'year' => now()->year - 1,
+        'yearly_target' => 1200,
+    ]);
+
+    $this->actingAs($admin->user);
+
+    $component = Volt::test('investors.dashboard-index')
+        ->set('selectedDate', now()->subYear()->toDateString());
+
+    // 1200 / 12 / 25 = 4 leads/day, only visible when selectedDate falls in last year.
+    expect((float) $component->instance()->todaySummary()['leads']['target'])->toBe(4.0);
+});
+
 test('pitching and follow up count distinct funnels once per day even with multiple activity logs', function () {
     $admin = makeDashboardFoEmployee('Investor Admin');
     $fo = makeDashboardFoEmployee('Funding Officer');

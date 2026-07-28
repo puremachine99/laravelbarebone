@@ -31,7 +31,6 @@ $metricsData = [
 
 state(['metrics' => $metricsData]);
 
-// Halaman ini khusus Admin FO (Investor Admin) / Super Admin — FO biasa gak boleh lihat/atur target orang lain.
 mount(function () {
     abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin']), 403);
 
@@ -50,9 +49,6 @@ $foEmployees = computed(function () {
         ->all();
 });
 
-// Saran target tahunan dihitung dari data funnel asli FO tersebut (all-time), di-annualisasi berdasarkan
-// rentang waktu data yang ada (biar FO yang baru mulai gak dikasih saran yang terlalu ekstrem). Dipakai
-// sebagai nilai default di form — begitu admin isi & simpan, nilai dari `fo_targets` yang dipakai.
 $suggestedYearlyTarget = function ($employeeId, $metricKey) {
     $firstActivity = FoFunnel::where('employee_id', $employeeId)->min('tgl_leads');
 
@@ -81,7 +77,7 @@ $suggestedYearlyTarget = function ($employeeId, $metricKey) {
     return round($allTimeTotal * $annualizeFactor);
 };
 
-// Rekomendasi otomatis: tahunan dibagi rata ke bulanan (÷12), bulanan dibagi ke harian (÷25 hari kerja/bulan).
+// Rekomendasi 
 $splitTarget = function ($yearly) {
     return [
         'tahunan' => $yearly,
@@ -90,8 +86,7 @@ $splitTarget = function ($yearly) {
     ];
 };
 
-// Target tersimpan (fo_targets) untuk tahun berjalan dipakai kalau ada; kalau admin belum pernah isi,
-// tampilkan saran dari data historis (lihat suggestedYearlyTarget di atas).
+// Target 
 $yearlyTargetFor = function ($employeeId, $metricKey) {
     $saved = FoTarget::where('employee_id', $employeeId)
         ->where('year', now()->year)

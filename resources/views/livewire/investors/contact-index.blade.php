@@ -29,14 +29,14 @@ state([
 ]);
 
 $employeeOptions = computed(function () {
-    // FO = employees under Departemen Finance whose user has the Funding Officer / Investor Admin role.
+  
     return Employee::with('user')
         ->whereHas('department', fn ($q) => $q->where('name', 'Departemen Finance'))
         ->whereHas('user.roles', fn ($q) => $q->whereIn('name', ['Funding Officer', 'Investor Admin']))
         ->get();
 });
 
-// Admin FO (Investor Admin / Super Admin) may assign any FO as PIC. A plain FO is always the PIC of their own contacts.
+
 $isAdminFo = computed(fn () => auth()->user()->hasRole(['Investor Admin', 'Super Admin']));
 
 $currentEmployee = computed(fn () => Employee::with('user')->where('user_id', auth()->id())->first());
@@ -49,7 +49,7 @@ $contacts = computed(function () {
 
     return FoContact::query()
         ->with('employee.user')
-        // Admin FO sees everyone's contacts; a plain FO only ever sees their own.
+
         ->when(! $isAdmin, fn ($q) => $q->where('employee_id', $ownEmployeeId))
         ->when($search, function ($q) use ($search) {
             $q->where(function ($query) use ($search) {

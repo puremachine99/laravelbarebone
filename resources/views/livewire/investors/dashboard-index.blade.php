@@ -4,6 +4,7 @@ use App\Models\Employee;
 use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
 use App\Models\FoTarget;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 use function Livewire\Volt\computed;
@@ -13,7 +14,10 @@ use function Livewire\Volt\state;
 
 layout('layouts.app');
 
-state(['viewAsEmployeeId' => null]);
+state([
+    'viewAsEmployeeId' => null,
+    'selectedDate' => now()->toDateString(),
+]);
 
 $metricsData = [
     ['key' => 'leads', 'label' => 'Lead Baru'],
@@ -24,7 +28,6 @@ $metricsData = [
 
 state(['metrics' => $metricsData]);
 
-// Admin FO (Investor Admin) / Super Admin bisa "masuk sebagai" siapa saja; FO biasa terkunci ke dirinya sendiri.
 $isAdminFo = computed(fn () => auth()->user()->hasRole(['Investor Admin', 'Super Admin']));
 
 $currentEmployee = computed(fn () => Employee::with('user')->where('user_id', auth()->id())->first());
@@ -35,7 +38,6 @@ mount(function () {
     }
 });
 
-// Semua Funding Officer (+ Admin FO) aktif — dasar tabel realisasi & pembagian target tim.
 $foEmployees = computed(function () {
     return Cache::remember('fo-dashboard-harian:fo-options', 60, function () {
         return Employee::with('user')
@@ -56,7 +58,6 @@ $viewAsOptions = computed(function () {
         ->all();
 });
 
-// FO mana saja yang datanya ditampilkan — satu FO tertentu, atau seluruh tim kalau "Admin (Semua FO)" dipilih.
 $scopedEmployees = computed(function () {
     if (! $this->viewAsEmployeeId) {
         return $this->foEmployees;
@@ -67,17 +68,13 @@ $scopedEmployees = computed(function () {
 
 $scopedEmployeeIds = computed(fn () => collect($this->scopedEmployees)->pluck('id')->all());
 
-// Target tahunan tersimpan di fo_targets (diatur per FO di halaman Management FO). Kalau belum pernah diisi
-// admin untuk FO/metrik tersebut, dianggap 0 — dashboard ini murni menampilkan apa yang sudah diatur, bukan
-// mengarang saran baru.
 $yearlyTargetFor = function ($employeeId, $metricKey) {
     return (float) (FoTarget::where('employee_id', $employeeId)
-        ->where('year', now()->year)
+        ->where('year', (int) substr($this->selectedDate, 0, 4))
         ->where('metric_key', $metricKey)
         ->value('yearly_target') ?? 0);
 };
 
-// Target tahunan dipecah rata ke harian: ÷12 bulan ÷25 hari kerja/bulan (konvensi sama dengan Management FO).
 $dailyTargetFor = fn ($employeeId, $metricKey) => $this->yearlyTargetFor($employeeId, $metricKey) / 12 / 25;
 
 $realisasiForFo = function ($employeeId, $metricKey, $date) {
@@ -109,15 +106,14 @@ $statusFor = function (?float $percent) {
     };
 };
 
-// Ringkasan hari ini per metrik untuk FO yang sedang di-scope (tim atau satu orang) — dipakai 5 stat card teratas.
 $todaySummary = computed(function () {
-    $today = now()->toDateString();
+    $selectedDate = $this->selectedDate;
     $employeeIds = $this->scopedEmployeeIds;
 
     $summary = [];
 
     foreach ($this->metrics as $metric) {
-        $realisasi = collect($employeeIds)->sum(fn ($id) => $this->realisasiForFo($id, $metric['key'], $today));
+        $realisasi = collect($employeeIds)->sum(fn ($id) => $this->realisasiForFo($id, $metric['key'], $selectedDate));
         $target = collect($employeeIds)->sum(fn ($id) => $this->dailyTargetFor($id, $metric['key']));
         $percent = $target > 0 ? round($realisasi / $target * 100) : ($realisasi > 0 ? 100.0 : 0.0);
 
@@ -132,41 +128,40 @@ $todaySummary = computed(function () {
 
     $summary['nilai_closing'] = [
         'label' => 'Nilai Closing',
-        'realisasi' => collect($employeeIds)->sum(fn ($id) => $this->realisasiForFo($id, 'nilai_closing', $today)),
+        'realisasi' => collect($employeeIds)->sum(fn ($id) => $this->realisasiForFo($id, 'nilai_closing', $selectedDate)),
     ];
 
     return $summary;
 });
 
-// Tabel "Realisasi per FO" hari ini — status per baris didasarkan pada capaian Lead Baru (metrik funnel paling awal).
+// Tabel "Realisasi per FO" untuk hari yang dipilih — status per baris didasarkan pada capaian Lead Baru (metrik funnel paling awal).
 $realisasiPerFo = computed(function () {
-    $today = now()->toDateString();
+    $selectedDate = $this->selectedDate;
 
-    return collect($this->scopedEmployees)->map(function ($fo) use ($today) {
-        $leads = $this->realisasiForFo($fo['id'], 'leads', $today);
+    return collect($this->scopedEmployees)->map(function ($fo) use ($selectedDate) {
+        $leads = $this->realisasiForFo($fo['id'], 'leads', $selectedDate);
         $target = $this->dailyTargetFor($fo['id'], 'leads');
         $percent = $target > 0 ? round($leads / $target * 100) : ($leads > 0 ? 100.0 : 0.0);
 
         return [
             'name' => $fo['name'],
             'leads' => $leads,
-            'ql' => $this->realisasiForFo($fo['id'], 'ql', $today),
-            'pitching' => $this->realisasiForFo($fo['id'], 'pitching', $today),
-            'followup' => $this->realisasiForFo($fo['id'], 'followup', $today),
-            'closing' => $this->realisasiForFo($fo['id'], 'closing', $today),
-            'nilai_closing' => $this->realisasiForFo($fo['id'], 'nilai_closing', $today),
+            'ql' => $this->realisasiForFo($fo['id'], 'ql', $selectedDate),
+            'pitching' => $this->realisasiForFo($fo['id'], 'pitching', $selectedDate),
+            'followup' => $this->realisasiForFo($fo['id'], 'followup', $selectedDate),
+            'closing' => $this->realisasiForFo($fo['id'], 'closing', $selectedDate),
+            'nilai_closing' => $this->realisasiForFo($fo['id'], 'nilai_closing', $selectedDate),
             'status' => $this->statusFor($percent),
         ];
     })->values()->all();
 });
 
-// Tren 14 hari terakhir (Lead Baru vs Closing), total FO yang sedang di-scope. Di-dispatch tiap render supaya
-// chart JS (di-render sekali lewat @script) selalu tahu update-an terbaru setelah "masuk sebagai" diganti.
 $trend = computed(function () {
     $employeeIds = $this->scopedEmployeeIds;
+    $selectedDate = Carbon::parse($this->selectedDate);
 
-    $data = collect(range(13, 0))->map(function ($daysAgo) use ($employeeIds) {
-        $date = now()->subDays($daysAgo);
+    $data = collect(range(13, 0))->map(function ($daysAgo) use ($employeeIds, $selectedDate) {
+        $date = $selectedDate->copy()->subDays($daysAgo);
 
         return [
             'label' => $date->format('d/m'),
@@ -180,7 +175,6 @@ $trend = computed(function () {
     return $data;
 });
 
-// Papan peringkat all-time — selalu seluruh FO tim, tidak ikut ke-scope "masuk sebagai" biar tetap bisa dibandingkan.
 $leaderboard = computed(function () {
     return collect($this->foEmployees)->map(function ($fo) {
         return [
@@ -200,24 +194,28 @@ $leaderboard = computed(function () {
             <div>
                 <h2 class="text-xl font-bold text-base-content">Dashboard Harian</h2>
                 <p class="text-sm text-base-content/50 mt-1">
-                    Ringkasan capaian tim hari ini, tren 14 hari & papan peringkat — read-only, otomatis dari Pipeline.
+                    Ringkasan capaian tim pada tanggal terpilih, tren 14 hari & papan peringkat — read-only, otomatis dari Pipeline.
                 </p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex flex-wrap items-end gap-3">
                 @if ($this->isAdminFo)
                     <div class="w-56">
                         <x-select label="Masuk sebagai" wire:model.live="viewAsEmployeeId" :options="$this->viewAsOptions" class="select-sm" />
                     </div>
                 @else
-                    <div class="text-sm text-base-content/50">
+                    <div class="text-sm text-base-content/50 pb-2.5">
                         Masuk sebagai <span class="font-semibold text-base-content">{{ $this->currentEmployee?->user?->name }}</span>
                     </div>
                 @endif
 
-                <div class="badge badge-lg badge-outline border-success/50 text-success">
-                    Tanggal Kerja: {{ now()->translatedFormat('l, d F Y') }}
+                <div class="w-44">
+                    <x-input type="date" label="Tanggal Kerja" wire:model.live="selectedDate" max="{{ now()->toDateString() }}" class="input-sm" />
                 </div>
+
+                @if ($selectedDate !== now()->toDateString())
+                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-sm" wire:click="$set('selectedDate', '{{ now()->toDateString() }}')" />
+                @endif
             </div>
         </div>
     </div>
@@ -245,15 +243,15 @@ $leaderboard = computed(function () {
         <div class="card bg-base-100 border border-success/40 p-4 rounded-xl">
             <div class="text-xs font-semibold text-base-content/40 uppercase tracking-wide">Nilai Closing</div>
             <div class="text-2xl font-bold text-base-content mt-1"><x-currency-abbr :value="$nc['realisasi']" /></div>
-            <div class="text-xs text-base-content/40 mt-2">Hari ini</div>
+            <div class="text-xs text-base-content/40 mt-2">{{ Carbon::parse($selectedDate)->translatedFormat('d M Y') }}</div>
         </div>
     </div>
 
     <!-- Realisasi per FO -->
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
-        <h3 class="text-base font-bold text-base-content">Realisasi per FO — {{ now()->translatedFormat('l, d F Y') }}</h3>
+        <h3 class="text-base font-bold text-base-content">Realisasi per FO — {{ Carbon::parse($selectedDate)->translatedFormat('l, d F Y') }}</h3>
         <p class="text-xs text-base-content/50 mt-1 mb-4">
-            Dihitung otomatis dari perpindahan stage di Pipeline hari ini. Read-only — tidak ada input manual.
+            Dihitung otomatis dari perpindahan stage di Pipeline pada tanggal terpilih. Read-only — tidak ada input manual.
         </p>
         <div class="overflow-x-auto">
             <table class="table table-zebra w-full text-base-content/70">

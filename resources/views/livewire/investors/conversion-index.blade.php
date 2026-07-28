@@ -27,7 +27,7 @@ state([
     ],
 ]);
 
-// Admin FO (Investor Admin) / Super Admin bisa "masuk sebagai" siapa saja; FO biasa terkunci ke dirinya sendiri.
+
 $isAdminFo = computed(fn () => auth()->user()->hasRole(['Investor Admin', 'Super Admin']));
 
 $currentEmployee = computed(fn () => Employee::with('user')->where('user_id', auth()->id())->first());
@@ -38,7 +38,7 @@ mount(function () {
     }
 });
 
-// Semua Funding Officer (+ Admin FO) aktif.
+
 $foEmployees = computed(function () {
     return Cache::remember('fo-dashboard-harian:fo-options', 60, function () {
         return Employee::with('user')
@@ -59,7 +59,7 @@ $viewAsOptions = computed(function () {
         ->all();
 });
 
-// FO mana saja yang datanya ditampilkan — satu FO tertentu, atau seluruh tim kalau "Admin (Semua FO)" dipilih.
+
 $scopedEmployees = computed(function () {
     if (! $this->viewAsEmployeeId) {
         return $this->foEmployees;
@@ -70,7 +70,7 @@ $scopedEmployees = computed(function () {
 
 $scopedEmployeeIds = computed(fn () => collect($this->scopedEmployees)->pluck('id')->all());
 
-// Realisasi satu metrik untuk satu FO dalam rentang tanggal tertentu.
+
 $realisasiInRange = function ($employeeId, $metricKey, $start, $end) {
     return match ($metricKey) {
         'leads' => FoFunnel::where('employee_id', $employeeId)->whereBetween('tgl_leads', [$start, $end])->count(),
@@ -86,14 +86,13 @@ $realisasiInRange = function ($employeeId, $metricKey, $start, $end) {
     };
 };
 
-// Total satu metrik gabungan seluruh FO yang sedang di-scope, dalam satu rentang tanggal.
+
 $teamRealisasiInRange = function ($metricKey, $start, $end) {
     $employeeIds = $this->scopedEmployeeIds;
 
     return collect($employeeIds)->sum(fn ($id) => $this->realisasiInRange($id, $metricKey, $start, $end));
 };
 
-// Rekap bulan-per-bulan tahun berjalan (Januari s.d. bulan ini) — data mentah + persentase konversi antar tahap.
 $monthlyRows = computed(function () {
     $year = (int) now()->year;
     $currentMonth = (int) now()->month;
@@ -124,17 +123,15 @@ $monthlyRows = computed(function () {
     })->values()->all();
 });
 
-// Hanya bulan yang beneran ada lead-nya — dasar hitungan rata-rata, ranking bulan, & bottleneck.
+
 $activeMonths = computed(fn () => collect($this->monthlyRows)->where('hasData', true)->values());
 
-// Rata-rata overall bulan-bulan aktif — jadi patokan status per baris (bukan angka kumulatif Total).
 $rataRata = computed(function () {
     $active = $this->activeMonths;
 
     return $active->isEmpty() ? 0.0 : round($active->avg('overall'), 1);
 });
 
-// Status per baris bulan: hijau kalau >= rata-rata, kuning kalau mendekati (80–100%), merah kalau di bawah itu.
 $statusFor = function (?float $overall) {
     $rataRata = $this->rataRata;
 
@@ -149,7 +146,6 @@ $statusFor = function (?float $overall) {
     };
 };
 
-// Baris "Total" — kumulatif SUM/SUM (bukan rata-rata dari persentase per bulan), sesuai catatan di halaman.
 $totalRow = computed(function () {
     $rows = collect($this->monthlyRows);
     $lead = $rows->sum('lead');
@@ -171,7 +167,6 @@ $totalRow = computed(function () {
     ];
 });
 
-// Ringkasan kartu: konversi kumulatif, bulan terbaik/terlemah, dan bottleneck (tahap dengan rata-rata konversi terendah).
 $ringkasan = computed(function () {
     $active = $this->activeMonths;
     $total = $this->totalRow;
@@ -198,7 +193,6 @@ $ringkasan = computed(function () {
     ];
 });
 
-// Funnel kumulatif (Lead Baru → Qualified Lead → Pitching → Closing) tahun berjalan, buat bar chart horizontal.
 $funnelKumulatif = computed(function () {
     $total = $this->totalRow;
 

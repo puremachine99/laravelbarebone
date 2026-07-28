@@ -54,14 +54,10 @@ state([
     ],
 ]);
 
-// Admin FO (Investor Admin / Super Admin) sees everyone's funnel entries. A plain FO only ever sees their own.
 $isAdminFo = computed(fn () => auth()->user()->hasRole(['Investor Admin', 'Super Admin']));
 
 $currentEmployee = computed(fn () => Employee::with('user')->where('user_id', auth()->id())->first());
 
-// Contacts owned by the logged-in FO — used to pick which contact a lead entry is created for.
-// Di-cache 60 detik per employee: daftar ini jarang berubah dalam rentang seinteraksi, dan tanpa cache
-// query ini re-run tiap kali ada interaksi apapun di halaman (drag kartu, buka modal, ngetik search, dst).
 $contactOptions = computed(function () {
     $employeeId = $this->currentEmployee?->id;
 
@@ -87,7 +83,6 @@ $foOptions = computed(function () {
     });
 });
 
-// Daftar tahun buat dropdown filter — sama buat semua orang, jarang berubah.
 $tahunOptions = computed(function () {
     return Cache::remember('fo-funnel:tahun-options', 60, function () {
         // EXTRACT(YEAR ...) itu sintaks Postgres/MySQL; SQLite (dipakai di test) butuh strftime.
@@ -184,10 +179,8 @@ $createLead = function ($contactId, $proyeksiCloseDate, $proyeksiAmount, $sumber
         abort(403);
     }
 
-    // Input nominal dikirim dari input bermasking (mis. "250.000.000") — normalize dulu jadi angka bersih.
     $proyeksiAmount = Money::normalize($proyeksiAmount);
 
-    // Kolom proyeksi_amount = numeric(15,2) — nominal (Rupiah penuh) tidak boleh melebihi ini.
     if ($proyeksiAmount && $proyeksiAmount > 9_999_999_999_999) {
         $this->error('Nominal proyeksi terlalu besar', 'Maksimal Rp 9.999.999.999.999.');
 
@@ -214,10 +207,8 @@ $updateLead = function ($funnelId, $proyeksiCloseDate, $proyeksiAmount, $sumber)
         abort(403);
     }
 
-    // Input nominal dikirim dari input bermasking (mis. "250.000.000") — normalize dulu jadi angka bersih.
     $proyeksiAmount = Money::normalize($proyeksiAmount);
 
-    // Kolom proyeksi_amount = numeric(15,2) — nominal (Rupiah penuh) tidak boleh melebihi ini.
     if ($proyeksiAmount && $proyeksiAmount > 9_999_999_999_999) {
         $this->error('Nominal proyeksi terlalu besar', 'Maksimal Rp 9.999.999.999.999.');
 
@@ -245,8 +236,6 @@ $deleteFunnel = function ($funnelId) {
     $this->error('Data funnel berhasil dihapus.');
 };
 
-// Akad menandakan lead yang sudah Won benar-benar sampai ke tahap tanda tangan akad —
-// cuma Admin FO / Super Admin yang boleh memindahkan kartu ke sana, tapi tetap kelihatan oleh role lain.
 $moveStage = function ($funnelId, $stage) {
     $funnel = FoFunnel::findOrFail($funnelId);
 
@@ -273,13 +262,11 @@ $openAkadModal = function ($funnelId) {
     $this->resetValidation();
 };
 
-// Bersihkan pesan error "required" begitu file baru dipilih, biar gak nyangkut dari percobaan submit sebelumnya.
+
 $updatedAkadFile = function () {
     $this->resetErrorBag('akadFile');
 };
 
-// Dipicu drag-drop ke kolom Akad. Simpan tanggal akad, nominal, dan dokumen (unggah ke bucket S3/MinIO
-// lewat disk "s3" — kredensialnya di .env, lihat config/filesystems.php).
 $submitAkad = function () {
     if (! $this->isAdminFo) {
         abort(403);
@@ -287,8 +274,6 @@ $submitAkad = function () {
 
     $funnel = FoFunnel::findOrFail($this->akadFunnelId);
 
-    // Mary's money-input udah otomatis unmask nilainya ke $this->akadNominal, tapi tetap dinormalize di
-    // sini sebagai jaring pengaman kalau ada karakter pemisah yang kebawa.
     $this->akadNominal = Money::normalize($this->akadNominal);
 
     $validated = $this->validate([
@@ -312,7 +297,6 @@ $submitAkad = function () {
     $this->js("document.getElementById('funnel-akad-modal').close()");
 };
 
-// Pindah ke kolom Pitching selalu lewat sini — mencatat tanggal & catatan sesi pitching sebagai histori.
 $logPitchingAndMove = function ($funnelId, $tanggal, $catatan) {
     $funnel = FoFunnel::findOrFail($funnelId);
 
@@ -333,7 +317,6 @@ $logPitchingAndMove = function ($funnelId, $tanggal, $catatan) {
     $this->success('Sesi pitching berhasil dicatat.');
 };
 
-// Pindah ke kolom Won selalu lewat sini — mencatat tanggal & nominal closing.
 $logWonAndMove = function ($funnelId, $tanggal, $amount) {
     $funnel = FoFunnel::findOrFail($funnelId);
 
@@ -341,7 +324,6 @@ $logWonAndMove = function ($funnelId, $tanggal, $amount) {
         abort(403);
     }
 
-    // Input nominal dikirim dari input bermasking (mis. "250.000.000") — normalize dulu jadi angka bersih.
     $amount = Money::normalize($amount);
 
     if ($amount && $amount > 9_999_999_999_999) {
@@ -360,7 +342,6 @@ $logWonAndMove = function ($funnelId, $tanggal, $amount) {
     $this->success('Data closing (Won) berhasil dicatat!');
 };
 
-// Pindah ke kolom Lost selalu lewat sini — mencatat tanggal & alasan gagalnya.
 $logLostAndMove = function ($funnelId, $tanggal, $reason) {
     $funnel = FoFunnel::findOrFail($funnelId);
 
@@ -378,9 +359,6 @@ $logLostAndMove = function ($funnelId, $tanggal, $reason) {
     $this->success('Data Lost berhasil dicatat.');
 };
 
-// Follow up bisa dicatat berkali-kali untuk funnel yang sama.
-// $moveStage: true ketika dipicu drag-drop ke kolom Follow Up, false saat menambah histori dari sidebar
-// (funnel yang sudah lanjut ke tahap lain — mis. Won — tidak boleh mundur ke Follow Up cuma karena dicatat).
 $logFollowUp = function ($funnelId, $tanggal, $catatan, $moveStage = false) {
     $funnel = FoFunnel::findOrFail($funnelId);
 

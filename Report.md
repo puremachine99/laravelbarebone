@@ -240,3 +240,32 @@ Halaman ini dirasa lemot pas dibuka, jadi dibedah & dibenerin 5 titik yang palin
 
 ---
 
+## 28/07/2026 Checklist Dashboard Harian, Capaian Bulanan, & Konversi Bulanan (Modul Funding)
+
+### Dashboard Harian
+- Halaman utama Funding (sebelumnya cuma placeholder kosong) sekarang jadi dashboard beneran — realisasi hari ini dihitung otomatis dari data Funnel, gak ada input manual sama sekali
+- 5 kartu ringkasan: Lead Baru, Qualified Lead, Pitching, Closing, dan Nilai Closing — tiap kartu nunjukin capaian hari ini vs target, plus status warna (Hijau/Kuning/Merah)
+- Tabel "Realisasi per FO" — rincian capaian tiap Funding Officer hari ini
+- Tren 14 hari terakhir (grafik Lead Baru vs Closing) dan Papan Peringkat FO (ranking nilai closing sepanjang waktu)
+- Fitur "Masuk sebagai" — Admin bisa lihat data gabungan semua FO atau pilih satu FO tertentu buat dicek sendirian; FO biasa otomatis cuma lihat datanya sendiri
+
+### Capaian Bulanan
+- Halaman baru buat rekap performa per bulan per FO (Lead Baru, QL, Pitching, Follow Up, Closing, Nilai Closing) — bisa pilih bulan & tahun mana yang mau dilihat
+- Ada baris "Total Tim" di bawah tabel, dan grafik tren 12 bulan biar kelihatan naik-turunnya performa sepanjang tahun
+
+### Konversi Bulanan
+- Halaman baru buat lihat funnel konversi tim — dari Lead sampai Closing, per bulan berjalan (Januari s.d. bulan ini)
+- Tiap bulan dikasih status (≥ rata-rata / mendekati / di bawah) dibandingkan rata-rata tahun berjalan, bukan angka tetap
+- Baris Total di bawah tabel dihitung kumulatif (bukan rata-rata dari persen tiap bulan) biar gak salah baca
+- Ada ringkasan: Konversi Kumulatif, Bulan Terbaik, Bulan Terlemah, dan Bottleneck (tahap funnel yang paling sering macet)
+- Grafik Funnel Kumulatif (Lead Baru → QL → Pitching → Closing) tahun berjalan
+
+### Rapiin Sidebar & Komponen
+- Menu placeholder yang belum ada halamannya (Yearly Analysis, Daily Trends, System SOP) dihapus dari sidebar Funding
+- Icon inisial nama FO di kolom "PIC (FO)" pada halaman Contacts sempat gak center & keliatan miring — dibenerin, sekaligus dijadiin komponen biar bisa dipakai ulang di tempat lain
+
+### Test
+- Ketiga halaman baru sudah ada test otomatisnya masing-masing (30 test baru, semua pass)
+
+---
+
