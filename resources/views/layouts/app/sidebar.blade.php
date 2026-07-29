@@ -60,6 +60,11 @@
                     <h1 class="text-base-content text-lg font-semibold">{{ $title ?? 'Dashboard' }}</h1>
                 </div>
 
+                <div class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-lg bg-base-100 border border-base-300 px-3 py-1.5 xl:flex">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="text-base-content/50 size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <span class="text-base-content text-sm font-semibold">{{ now()->translatedFormat('l, d F Y') }}</span>
+                </div>
+
                 @auth
                 <div class="dropdown dropdown-end">
                     <div tabindex="0" role="button" class="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-all hover:bg-base-200">

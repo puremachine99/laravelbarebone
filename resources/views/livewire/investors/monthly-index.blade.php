@@ -190,10 +190,6 @@ $monthlyTrend = computed(function () {
                         Masuk sebagai <span class="font-semibold text-base-content">{{ $this->currentEmployee?->user?->name }}</span>
                     </div>
                 @endif
-
-                <div class="badge badge-lg badge-outline border-success/50 text-success">
-                    Tanggal Kerja: {{ now()->translatedFormat('l, d F Y') }}
-                </div>
             </div>
         </div>
     </div>
