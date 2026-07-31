@@ -11,20 +11,11 @@ use Spatie\Permission\Models\Role;
 class FundingOfficerSeeder extends Seeder
 {
     /**
-     * user_id => is this person the Admin FO (structural head)?
-     *
-     * @var array<int, bool>
-     */
-    private const FUNDING_OFFICERS = [
-        31 => false, // Chanira Nuansa Bunga, S.I.Kom., M.I.Kom.
-        56 => false, // Oktavia Helda Theresia Wonsiwor, ST.
-        33 => false, // Dwi Febriyano Jatmiko, S.Psi.
-        57 => false, // Virgy Sharfina Dewinta, S.IP.
-        47 => true,  // Putri Caniagy Lucky, S.E. — Admin FO
-    ];
-
-    /**
      * Run the database seeds.
+     *
+     * Funding Officers and their structural head (Admin FO) are derived from the
+     * imported HR data (department + original job title from sdm.csv) rather than
+     * a hardcoded list of user IDs, so re-imports keep this in sync automatically.
      */
     public function run(): void
     {
@@ -45,10 +36,19 @@ class FundingOfficerSeeder extends Seeder
         $foRole = Role::findOrCreate('Funding Officer');
         $foRole->givePermissionTo(Permission::findOrCreate('access-investors'));
 
-        foreach (self::FUNDING_OFFICERS as $userId => $isAdminFo) {
-            $employee = Employee::where('user_id', $userId)->first();
+        $financeEmployees = Employee::whereHas('department', fn ($query) => $query->where('name', 'Departemen Finance'))
+            ->with(['user', 'positionStruktural', 'positionFungsional'])
+            ->get();
 
-            if (! $employee) {
+        foreach ($financeEmployees as $employee) {
+            if (! $employee->user) {
+                continue;
+            }
+
+            $isAdminFo = str_starts_with((string) $employee->positionStruktural?->name, 'Head of Funding');
+            $isFo = str_starts_with((string) $employee->positionFungsional?->name, 'Funding Officer');
+
+            if (! $isAdminFo && ! $isFo) {
                 continue;
             }
 

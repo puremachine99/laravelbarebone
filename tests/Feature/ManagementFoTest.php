@@ -30,12 +30,27 @@ test('guests are redirected to login', function () {
         ->assertRedirect(route('login'));
 });
 
-test('a plain funding officer cannot access management fo', function () {
+test('a plain funding officer can view management fo but not the target form', function () {
     $employee = makeFoEmployee('Funding Officer');
     $this->actingAs($employee->user);
 
     Volt::test('investors.management-fo')
+        ->assertOk()
+        ->assertSee('Management FO')
+        ->assertDontSee('Simpan Target');
+});
+
+test('a plain funding officer cannot save or reset a target', function () {
+    $employee = makeFoEmployee('Funding Officer');
+    $this->actingAs($employee->user);
+
+    Volt::test('investors.management-fo')
+        ->set('targetSettingEmployeeId', $employee->id)
+        ->set('targetInputs.leads', '999')
+        ->call('saveTargets')
         ->assertStatus(403);
+
+    $this->assertDatabaseMissing('fo_targets', ['employee_id' => $employee->id, 'metric_key' => 'leads']);
 });
 
 test('investor admin can access management fo and sees the fo list', function () {
@@ -78,6 +93,29 @@ test('updating a yearly target persists it to the database and recalculates the 
     $component->set('activePeriod', 'bulanan');
 
     expect((float) $component->instance()->targetFor($admin->id, 'leads'))->toBe(10.0);
+});
+
+test('save targets only persists metrics whose buffered input actually changed', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    $component = Volt::test('investors.management-fo')
+        ->set('targetSettingEmployeeId', $admin->id)
+        ->set('targetInputs.leads', '120')
+        ->call('saveTargets')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('fo_targets', [
+        'employee_id' => $admin->id,
+        'metric_key' => 'leads',
+        'yearly_target' => 120.00,
+    ]);
+    expect(FoTargetLog::where('employee_id', $admin->id)->where('metric_key', 'leads')->count())->toBe(1);
+
+    // Submit lagi tanpa mengubah nilai apa pun — gak boleh nambah log baru.
+    $component->call('saveTargets')->assertHasNoErrors();
+
+    expect(FoTargetLog::where('employee_id', $admin->id)->where('metric_key', 'leads')->count())->toBe(1);
 });
 
 test('updating a yearly target rejects a negative value', function () {

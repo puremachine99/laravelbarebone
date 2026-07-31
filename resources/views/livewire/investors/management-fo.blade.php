@@ -19,6 +19,8 @@ uses(\Mary\Traits\Toast::class);
 state([
     'activePeriod' => 'tahunan',
     'targetSettingEmployeeId' => null,
+    'targetInputs' => [],
+    'targetInputsSnapshot' => [],
 ]);
 
 $metricsData = [
@@ -31,11 +33,34 @@ $metricsData = [
 
 state(['metrics' => $metricsData]);
 
+// Halaman ini boleh dilihat semua FO / Admin FO; cuma Admin FO / Super Admin yang boleh ubah target.
+$canManageTargets = computed(function () {
+    return auth()->user()->hasRole(['Investor Admin', 'Super Admin']);
+});
+
+// Isi ulang buffer input target (dan snapshot-nya) sesuai FO yang lagi dipilih, biar form gak "nyangkut"
+// nilai FO sebelumnya dan biar saveTargets() bisa tau metrik mana aja yang beneran diubah user.
+$loadTargetInputs = function () {
+    $values = collect($this->metrics)
+        ->mapWithKeys(fn ($metric) => [
+            $metric['key'] => (string) $this->yearlyTargetFor($this->targetSettingEmployeeId, $metric['key']),
+        ])
+        ->all();
+
+    $this->targetInputs = $values;
+    $this->targetInputsSnapshot = $values;
+};
+
 mount(function () {
-    abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin']), 403);
+    abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin', 'Funding Officer']), 403);
 
     $this->targetSettingEmployeeId = $this->foEmployees[0]['id'] ?? null;
+    $this->loadTargetInputs();
 });
+
+$updatedTargetSettingEmployeeId = function () {
+    $this->loadTargetInputs();
+};
 
 // Daftar Funding Officer (+ Admin FO) yang bisa diatur target-nya.
 $foEmployees = computed(function () {
@@ -176,15 +201,17 @@ $logTargetChange = function ($employeeId, $metricKey, $oldValue, $newValue) {
     ]);
 };
 
+// Persist satu metrik target (dipanggil per-metrik dari saveTargets() saat tombol Simpan ditekan).
+// Return bool sukses/gagal biar saveTargets() bisa kumpulin nilai yang invalid tanpa spam toast per-field.
 $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
+    abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin']), 403);
+
     // Input nominal (nilai_closing) dikirim dari input bermasking (mis. "3.500.000.000") — normalize dulu.
     // Aman juga dipakai buat metrik hitungan biasa (leads, ql, dst) karena isinya cuma digit tanpa pemisah.
     $value = Money::normalize($value);
 
     if ($value === null || $value < 0) {
-        $this->error('Nilai target gak valid.');
-
-        return;
+        return false;
     }
 
     $existing = FoTarget::where('employee_id', $employeeId)
@@ -199,7 +226,45 @@ $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
 
     $this->logTargetChange($employeeId, $metricKey, $existing?->yearly_target, $value);
 
-    $this->success('Target tahunan diperbarui dan tersimpan.');
+    return true;
+};
+
+// Tombol "Simpan Target" — cuma metrik yang nilainya beneran berubah dari snapshot terakhir yang di-submit,
+// biar gak nulis FoTarget/FoTargetLog buat metrik yang gak disentuh user.
+$saveTargets = function () {
+    abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin']), 403);
+
+    if (! $this->targetSettingEmployeeId) {
+        return;
+    }
+
+    $changed = false;
+    $hasInvalid = false;
+
+    foreach ($this->metrics as $metric) {
+        $key = $metric['key'];
+        $newValue = $this->targetInputs[$key] ?? null;
+
+        if ((string) $newValue === (string) ($this->targetInputsSnapshot[$key] ?? null)) {
+            continue;
+        }
+
+        $changed = true;
+
+        if (! $this->updateYearlyTarget($this->targetSettingEmployeeId, $key, $newValue)) {
+            $hasInvalid = true;
+        }
+    }
+
+    $this->loadTargetInputs();
+
+    if ($hasInvalid) {
+        $this->error('Ada nilai target yang gak valid, sebagian gak tersimpan.');
+    } elseif ($changed) {
+        $this->success('Target tahunan diperbarui dan tersimpan.');
+    } else {
+        $this->success('Gak ada perubahan buat disimpan.');
+    }
 };
 
 // Cek apakah metrik ini punya target manual tersimpan (buat nampilin tombol reset di UI atau nggak).
@@ -212,6 +277,8 @@ $hasSavedTarget = function ($employeeId, $metricKey) {
 
 // Hapus target manual, balik ke saran otomatis dari data historis.
 $resetYearlyTarget = function ($employeeId, $metricKey) {
+    abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin']), 403);
+
     $existing = FoTarget::where('employee_id', $employeeId)
         ->where('year', now()->year)
         ->where('metric_key', $metricKey)
@@ -224,6 +291,8 @@ $resetYearlyTarget = function ($employeeId, $metricKey) {
     $existing->delete();
 
     $this->logTargetChange($employeeId, $metricKey, $existing->yearly_target, null);
+
+    $this->loadTargetInputs();
 
     $this->success('Target di-reset, balik ke saran otomatis dari data historis.');
 };
@@ -306,42 +375,59 @@ $foRanking = computed(function () {
 
             <x-select wire:model.live="targetSettingEmployeeId" :options="$this->foEmployees" class="select-sm mb-3" />
 
-            <div class="space-y-3">
-                @foreach ($metrics as $metric)
-                    <div class="flex items-end gap-1">
-                        @if ($metric['type'] === 'currency')
-                            <x-input
-                                :label="$metric['label']"
-                                type="text"
-                                inputmode="numeric"
-                                x-mask:dynamic="$money($input, ',', '.', 0)"
-                                value="{{ $this->yearlyTargetFor($targetSettingEmployeeId, $metric['key']) }}"
-                                wire:change="updateYearlyTarget({{ $targetSettingEmployeeId }}, '{{ $metric['key'] }}', $event.target.value)"
-                                class="input-sm"
-                                wire:key="target-input-{{ $targetSettingEmployeeId }}-{{ $metric['key'] }}"
-                            />
-                        @else
-                            <x-input
-                                :label="$metric['label']"
-                                type="number"
-                                value="{{ $this->yearlyTargetFor($targetSettingEmployeeId, $metric['key']) }}"
-                                wire:change="updateYearlyTarget({{ $targetSettingEmployeeId }}, '{{ $metric['key'] }}', $event.target.value)"
-                                class="input-sm"
-                                wire:key="target-input-{{ $targetSettingEmployeeId }}-{{ $metric['key'] }}"
-                            />
-                        @endif
-                        @if ($this->hasSavedTarget($targetSettingEmployeeId, $metric['key']))
-                            <x-button
-                                icon="o-arrow-path"
-                                class="btn-ghost btn-xs text-base-content/50 mb-1.5"
-                                tooltip="Reset ke saran otomatis"
-                                wire:click="resetYearlyTarget({{ $targetSettingEmployeeId }}, '{{ $metric['key'] }}')"
-                            />
-                        @endif
-                    </div>
-                @endforeach
-                <div class="text-[11px] text-base-content/40">Angka tanpa tombol reset = saran otomatis dari data historis, belum diisi manual.</div>
-            </div>
+            @if ($this->canManageTargets)
+                <form wire:submit="saveTargets" class="space-y-3">
+                    @foreach ($metrics as $metric)
+                        <div class="flex items-end gap-1">
+                            @if ($metric['type'] === 'currency')
+                                <x-input
+                                    :label="$metric['label']"
+                                    type="text"
+                                    inputmode="numeric"
+                                    x-mask:dynamic="$money($input, ',', '.', 0)"
+                                    wire:model="targetInputs.{{ $metric['key'] }}"
+                                    class="input-sm"
+                                    wire:key="target-input-{{ $targetSettingEmployeeId }}-{{ $metric['key'] }}"
+                                />
+                            @else
+                                <x-input
+                                    :label="$metric['label']"
+                                    type="number"
+                                    wire:model="targetInputs.{{ $metric['key'] }}"
+                                    class="input-sm"
+                                    wire:key="target-input-{{ $targetSettingEmployeeId }}-{{ $metric['key'] }}"
+                                />
+                            @endif
+                            @if ($this->hasSavedTarget($targetSettingEmployeeId, $metric['key']))
+                                <x-button
+                                    icon="o-arrow-path"
+                                    class="btn-ghost btn-xs text-base-content/50 mb-1.5"
+                                    tooltip="Reset ke saran otomatis"
+                                    wire:click="resetYearlyTarget({{ $targetSettingEmployeeId }}, '{{ $metric['key'] }}')"
+                                />
+                            @endif
+                        </div>
+                    @endforeach
+                    <div class="text-[11px] text-base-content/40">Angka tanpa tombol reset = saran otomatis dari data historis, belum diisi manual. Perubahan baru tersimpan setelah klik Simpan.</div>
+                    <x-button label="Simpan Target" type="submit" icon="o-check" class="btn-primary btn-sm w-full mt-1" spinner="saveTargets" />
+                </form>
+            @else
+                <div class="space-y-2">
+                    @foreach ($metrics as $metric)
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-base-content/60">{{ $metric['label'] }}</span>
+                            <span class="font-medium text-base-content">
+                                @if ($metric['type'] === 'currency')
+                                    <x-currency-abbr :value="$this->yearlyTargetFor($targetSettingEmployeeId, $metric['key'])" />
+                                @else
+                                    {{ number_format($this->yearlyTargetFor($targetSettingEmployeeId, $metric['key'])) }}
+                                @endif
+                            </span>
+                        </div>
+                    @endforeach
+                    <div class="text-[11px] text-base-content/40 pt-1">Cuma Admin FO / Super Admin yang bisa mengubah target.</div>
+                </div>
+            @endif
         </div>
 
         <!-- Kanan: data saat ini -->
