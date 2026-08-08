@@ -269,3 +269,24 @@ Halaman ini dirasa lemot pas dibuka, jadi dibedah & dibenerin 5 titik yang palin
 
 ---
 
+## 03/08/2026 Checklist Seeder FO Dinamis & Tombol Submit Target FO
+
+### Seeder Funding Officer — gak hardcode nama orang lagi
+- Sebelumnya daftar FO/Admin FO di-hardcode pakai `user_id` orang tertentu; sekarang otomatis dideteksi dari data HR asli (departemen "Departemen Finance" + jabatan hasil import CSV) — persis pola yang udah dipakai buat departemen Revenue and Growth
+- Jadi kalau ada FO baru masuk lewat data HR berikutnya, otomatis ke-assign role & posisinya tanpa perlu edit kode seeder lagi
+
+### Halaman Management FO — sekarang ada tombol Simpan
+- Input target tahunan (Leads, QL, Pitching, Closing, Nilai Closing) gak lagi otomatis tersimpan begitu diketik — sekarang harus klik tombol **"Simpan Target"** dulu, biar gak kepencet/salah ketik langsung berubah
+- Yang beneran tersimpan & kecatat di riwayat cuma metrik yang nilainya emang diubah — klik Simpan tanpa ubah apa-apa gak bikin riwayat baru yang gak perlu
+- FO biasa sekarang **boleh buka** halaman Management FO (sebelumnya kena blokir 403 total) — tapi cuma bisa lihat data, gak ada form/tombol edit sama sekali; yang bisa ubah target tetap cuma Admin FO & Super Admin
+- Proteksi ubah/reset target juga ditambahin di level backend (bukan cuma disembunyikan di tampilan), jadi FO biasa gak bisa akalin lewat console browser
+
+### Audit Hak Akses (RBAC)
+- Ditulis dokumen `rbac_implementation.md` — hasil audit semua tempat di kode yang ngecek role/permission, buat jawab pertanyaan "apakah hak akses di project ini hardcode atau dinamis?"
+- Kesimpulan: assign role ke user itu sudah dinamis penuh lewat halaman **Manage Users** & **Manage Roles** yang udah ada — tinggal centang role di situ buat kasih/cabut akses, gak perlu ubah kode
+
+### Test
+- Test lama (`ManagementFoTest`) disesuaikan + ditambah test baru buat tombol submit & proteksi role FO biasa
+
+---
+

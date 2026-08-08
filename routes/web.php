@@ -25,6 +25,8 @@ Route::view('/documentation', 'pages.documentation')->name('documentation');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
+    Volt::route('/notifications', 'notifications.index')->name('notifications.index');
+
     Route::middleware('can:view-executive-dashboard')->group(function () {
         Route::get('/executive-dashboard', ExecutiveIndex::class)->name('executive-dashboard');
     });

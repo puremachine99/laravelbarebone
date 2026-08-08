@@ -1,6 +1,7 @@
 <?php
 
 use function Livewire\Volt\{state, layout, computed, usesPagination};
+use App\Notifications\ManagerVerifiedNotification;
 use Flux\Flux;
 
 usesPagination();
@@ -53,6 +54,14 @@ state([
 // Refresh component when a card is updated
 \Livewire\Volt\mount(function () {
     $this->editProjectionMonth = date('Y-m');
+
+    if ($cardId = request()->integer('card')) {
+        $card = \App\Models\Card::with(['stage', 'contact.regency.province', 'contact.opd', 'contact.region', 'employee.user'])->find($cardId);
+        if ($card) {
+            $this->selectedCardForDetail = $card;
+            $this->showDetailDrawer = true;
+        }
+    }
 });
 
 $cards = computed(function () {
@@ -196,6 +205,10 @@ $toggleVerification = function (int $cardId) {
 
     $action = $card->manager_verified ? 'verified' : 'unverified';
     $card->addHistoryLog('verification_changed', "Manager {$action} the prospect during Realisasi");
+
+    if ($card->manager_verified) {
+        ManagerVerifiedNotification::sendToOwner($card);
+    }
 
     Flux::toast(variant: 'success', text: $card->manager_verified ? 'Prospek berhasil diverifikasi oleh Manager!' : 'Verifikasi manager dibatalkan.');
 };

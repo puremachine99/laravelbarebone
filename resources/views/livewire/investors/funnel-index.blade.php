@@ -4,6 +4,7 @@ use App\Models\Employee;
 use App\Models\FoContact;
 use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
+use App\Notifications\FundingDealClosedNotification;
 use App\Support\Money;
 use Illuminate\Support\Facades\Cache;
 
@@ -338,6 +339,8 @@ $logWonAndMove = function ($funnelId, $tanggal, $amount) {
         'tgl_closing' => $tanggal ?: now()->toDateString(),
         'nominal_investasi' => $amount ?: null,
     ]);
+
+    FundingDealClosedNotification::sendToAdmins($funnel);
 
     $this->success('Data closing (Won) berhasil dicatat!');
 };

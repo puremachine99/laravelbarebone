@@ -4,6 +4,7 @@ use App\Models\Employee;
 use App\Models\FoContact;
 use App\Models\FoFunnel;
 use App\Models\User;
+use App\Notifications\FundingDealClosedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -269,6 +270,32 @@ test('moving to won logs the closing date and amount', function () {
         ->and($funnel->status_closing)->toBe('won')
         ->and($funnel->tgl_closing->format('Y-m-d'))->toBe('2026-09-10')
         ->and((float) $funnel->nominal_investasi)->toBe(500_000_000.0);
+});
+
+test('moving a funding deal to won notifies investor admins, not partnership managers', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
+    $this->actingAs($user);
+
+    $investorAdmin = User::factory()->create();
+    $investorAdmin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+
+    // Investors has no manager sign-off concept — a Partnership `verify-manager`
+    // holder must NOT be notified about a funding deal closing.
+    $partnershipManager = User::factory()->create();
+    $partnershipManager->givePermissionTo(Permission::findOrCreate('verify-manager'));
+
+    Volt::test('investors.funnel-index')
+        ->call('logWonAndMove', $funnel->id, '2026-09-10', 500_000_000)
+        ->assertHasNoErrors();
+
+    expect($investorAdmin->notifications()->count())->toBe(1);
+    expect($investorAdmin->notifications()->first()->type)->toBe(FundingDealClosedNotification::class);
+    expect($investorAdmin->notifications()->first()->data['type'])->toBe('funding_deal_closed');
+    expect($user->notifications()->count())->toBe(0);
+    expect($partnershipManager->notifications()->count())->toBe(0);
 });
 
 test('a plain fo cannot move another fo funnel to won', function () {

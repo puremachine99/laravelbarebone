@@ -1,6 +1,7 @@
 <?php
 
 use function Livewire\Volt\{state, layout, computed, usesPagination, on};
+use App\Notifications\DealClosedNotification;
 use Flux\Flux;
 
 usesPagination();
@@ -250,6 +251,7 @@ $executeSaveDecision = function () {
         $card->addHistoryLog('stage_changed', "Stage changed to Terlaksana with status {$this->decisionType}");
 
         if ($this->decisionType === 'won') {
+            DealClosedNotification::sendToManagers($card);
             $this->dispatch('show-confetti');
             Flux::toast(variant: 'success', text: 'Selamat! Kerja sama telah berhasil disepakati (Won / Deal)! 🥳🎉');
         } else {
