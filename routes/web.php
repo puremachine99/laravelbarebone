@@ -25,6 +25,12 @@ Route::view('/documentation', 'pages.documentation')->name('documentation');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
+    Volt::route('/profile', 'profile.index')->name('profile.show');
+
+    Route::livewire('/profile/security', 'profile.security-settings')
+        ->middleware('password.confirm')
+        ->name('profile.security');
+
     Volt::route('/notifications', 'notifications.index')->name('notifications.index');
 
     Route::middleware('can:view-executive-dashboard')->group(function () {
@@ -109,5 +115,3 @@ Route::post('/api/error-track', function (Request $request) {
 
     return response()->json(['ok' => true]);
 })->name('api.error-track');
-
-require __DIR__.'/settings.php';

@@ -18,7 +18,7 @@
  {{ __('Manage Account') }}
  </div>
  <li>
- <a href="{{ route('profile.edit') }}" wire:navigate class="flex items-center gap-2 text-sm text-base-content/80">
+ <a href="{{ route('profile.show') }}" wire:navigate class="flex items-center gap-2 text-sm text-base-content/80">
  <x-icon name="o-cog-6-tooth" class="w-4 h-4" />
  <span>{{ __('Settings') }}</span>
  </a>

@@ -30,23 +30,28 @@
 
                 <div class="dropdown dropdown-end">
                     <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm avatar placeholder">
-                        <div class="bg-base-300 text-base-content rounded-full size-8 flex items-center justify-center text-xs font-bold">
-                            {{ auth()->user()->initials() }}
-                        </div>
+                        <x-user-avatar size="size-8" />
                     </div>
-                    <ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box border border-base-300 shadow-lg w-56 mt-2 z-50 p-2">
+                    <ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box border border-base-300 shadow-lg w-max min-w-56 max-w-xs mt-2 z-50 p-2">
                         <div class="px-3 py-2">
-                            <p class="text-sm font-semibold truncate">{{ auth()->user()->name }}</p>
+                            <p class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</p>
                             <p class="text-base-content/50 text-xs truncate">{{ auth()->user()->email }}</p>
                             @if ($jabatan = auth()->user()->employee?->positionStruktural?->name ?? auth()->user()->employee?->positionFungsional?->name)
                                 <p class="text-base-content/50 text-xs truncate">{{ $jabatan }}</p>
                             @endif
+                            @if ($roleNames = auth()->user()->getRoleNames())
+                                <div class="flex flex-wrap gap-1 mt-1">
+                                    @foreach ($roleNames as $roleName)
+                                        <span class="badge badge-ghost badge-xs">{{ $roleName }}</span>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                         <li><hr class="border-base-300 my-1"></li>
                         <li>
-                            <a href="{{ route('profile.edit') }}" wire:navigate>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                Settings
+                            <a href="{{ route('profile.show') }}" wire:navigate>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                My Profile
                             </a>
                         </li>
                         <li>
@@ -81,29 +86,28 @@
 
                     <div class="dropdown dropdown-end">
                         <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm avatar placeholder">
-                            <div class="bg-base-300 text-base-content flex size-8 items-center justify-center rounded-full text-xs font-bold">
-                                {{ auth()->user()->initials() }}
-                            </div>
+                            <x-user-avatar size="size-8" />
                         </div>
-                        <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box border-base-300 z-50 mt-2 w-56 border p-2 shadow-lg">
+                        <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box border-base-300 z-50 mt-2 w-max min-w-56 max-w-xs border p-2 shadow-lg">
                             <div class="px-3 py-2">
-                                <p class="text-sm font-semibold truncate">{{ auth()->user()->name }}</p>
+                                <p class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</p>
                                 <p class="text-base-content/50 text-xs truncate">{{ auth()->user()->email }}</p>
-                                @if ($jabatan = auth()->user()->employee?->positionStruktural?->name ?? auth()->user()->employee?->positionFungsional?->name)
+                                {{-- @if ($jabatan = auth()->user()->employee?->positionStruktural?->name ?? auth()->user()->employee?->positionFungsional?->name)
                                     <p class="text-base-content/50 text-xs truncate">{{ $jabatan }}</p>
+                                @endif --}}
+                                @if ($roleNames = auth()->user()->getRoleNames())
+                                    <div class="flex flex-wrap gap-1 mt-1">
+                                        @foreach ($roleNames as $roleName)
+                                            <span class="badge badge-primary badge-sm">{{ $roleName }}</span>
+                                        @endforeach
+                                    </div>
                                 @endif
                             </div>
                             <li><hr class="border-base-300 my-1"></li>
                             <li>
-                                <a href="{{ route('profile.edit') }}" wire:navigate>
+                                <a href="{{ route('profile.show') }}" wire:navigate>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                     My Profile
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('profile.edit') }}" wire:navigate>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                    Settings
                                 </a>
                             </li>
                             <li>
@@ -139,15 +143,25 @@
                 style='background-image:url("data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; width=&apos;64&apos; height=&apos;111&apos; viewBox=&apos;0 0 64 111&apos;%3E%3Cpath fill=&apos;none&apos; stroke=&apos;%23FFC226&apos; stroke-opacity=&apos;0.18&apos; stroke-width=&apos;1&apos; d=&apos;M32 0 L64 18.5 L64 55.5 L32 74 L0 55.5 L0 18.5 Z M32 37 L64 55.5 L64 92.5 L32 111 L0 92.5 L0 55.5 Z&apos;/%3E%3C/svg%3E"), linear-gradient(to top, #071730 0%, #0d2a4f 45%, #1c4d85 100%); background-repeat: repeat, no-repeat; background-size: auto, 100% 100%;'>
 
                 {{-- Header / Brand --}}
-                <div class="flex h-16 min-h-16 shrink-0 items-center gap-2.5 overflow-hidden border-b border-white/10 px-5"
-                    :class="sidebarCollapsed && !sidebarHovered && 'lg:justify-center lg:px-0'">
-                    <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-2.5 overflow-hidden">
-                        <img src="{{ asset('smartid.png') }}" alt="SmartID" class="size-9 shrink-0 rounded-lg object-contain">
-                        <span class="flex flex-col leading-tight" :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
+                <div class="flex flex-col shrink-0 gap-2 overflow-hidden border-b border-white/10 px-5 py-4"
+                    :class="sidebarCollapsed && !sidebarHovered && 'lg:items-center lg:px-2'">
+                    <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-3 overflow-hidden">
+                        <img src="{{ asset('smartid.png') }}" alt="SmartID" class="size-11 shrink-0 rounded-lg object-contain">
+                        <span class="flex flex-col justify-center gap-1 leading-tight" :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
                             <span class="text-base font-bold whitespace-nowrap text-white">SmartID</span>
-                            <span class="text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap text-amber-400">ERP</span>
+                            @auth
+                                @if ($sidebarRole = auth()->user()->getRoleNames()->first())
+                                    <span class="inline-flex w-fit items-center gap-1 rounded-full border border-amber-400/40 bg-linear-to-r from-amber-400/20 via-amber-300/10 to-transparent px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider whitespace-nowrap text-amber-300 shadow-[0_0_8px_-2px_rgba(251,191,36,0.5)]">
+                                        {{ $sidebarRole }}
+                                    </span>
+                                @endif
+                            @endauth
                         </span>
                     </a>
+                    <span class="block w-full text-center text-[9px] font-semibold uppercase tracking-widest whitespace-nowrap text-amber-400/70"
+                        :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
+                        Enterprise Resource Planner
+                    </span>
                 </div>
 
                 {{-- Scrollable Navigation --}}

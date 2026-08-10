@@ -322,3 +322,90 @@ Halaman ini dirasa lemot pas dibuka, jadi dibedah & dibenerin 5 titik yang palin
 
 ---
 
+## 10/08/2026 Checklist Notifikasi Detail, Stage "Closing" Baru, Follow Up Audit Trail, & Perbaikan UI Funnel
+
+### Notifikasi Funding — lebih detail
+- Notifikasi ke Admin FO sekarang dipicu pas lead-nya bener-bener **Closing** (uang masuk PT), bukan pas baru **Won** (komitmen doang) — biar gak ada notif "closing" padahal duitnya belum cair
+- Notifikasi baru: lead yang di-set **Lost** juga otomatis ngirim notif ke Admin FO
+- Notifikasi perubahan target FO sekarang nunjukin detail lengkap per metrik — misal "Leads 194 → 195, QL 126 → 100", bukan cuma "target kamu diubah" doang
+
+### Stage Baru: "Closing" (dipisah dari "Won")
+- Alur funnel Funding sekarang jadi: Leads → QL → Pitching → Follow Up → **Won** → Lost → **Closing** → Akad
+- **Won** sekarang cuma nandain komitmen verbal calon investor (tanggal + nominal komitmen, kolom baru `nominal_won`) — belum tentu duitnya udah cair
+- **Closing** (stage baru) baru nandain uang investor beneran udah masuk ke perusahaan (nominal & tanggal final, terpisah dari nominal Won) — biar kalau ada selisih antara nominal janji vs nominal beneran, ketauan (ada badge kuning kecil "Komit: Rp X" di kartu kalau angkanya beda)
+- Form Won & Closing sekarang **wajib diisi** (tanggal + nominal) dan **gak bisa ditutup** sebelum disimpan — jadi gak ada lagi kartu yang "nyangkut" di kolom Won/Closing tanpa data lengkap
+- Semua laporan yang sebelumnya nganggep "Won = Closing" (Dashboard Harian, Capaian Bulanan, Konversi Bulanan, Management FO) udah dirapiin — sekarang keduanya dihitung & ditampilin terpisah, termasuk kolom Won baru di tiap tabel/grafik
+- Data lama yang udah kadung ada di stage Won (dari sebelum fitur ini ada) dibiarkan apa adanya, gak dipaksa dimigrasiin
+
+### Follow Up — bisa Edit, ada Riwayat Perubahan, & bisa Dihapus/Dipulihkan
+- Tiap catatan Follow Up di panel riwayat sekarang bisa **diedit** (ubah tanggal/catatan)
+- Setiap perubahan otomatis kecatat ke riwayat perubahan tersendiri (siapa yang ubah, kapan, dari apa ke apa) — bisa dicek lewat tombol kecil di tiap catatan, muncul di popup terurut dari yang terbaru
+- Follow Up juga sekarang bisa **dihapus** (ada konfirmasi dulu biar gak kepencet gak sengaja) dan **dipulihkan lagi** lewat tombol "Lihat Terhapus" — bukan hilang permanen
+
+### Kontak yang Dihapus
+- Lead yang kontaknya udah dihapus sekarang otomatis gak nongol lagi di kolom **Leads** (kartu tanpa identitas gak ada gunanya di tahap paling awal)
+- Lead yang udah lewat tahap Leads (Won, Closing, dst.) tetap ditampilkan apa adanya walau kontaknya dihapus — datanya tetap kesimpen utuh
+
+### Halaman Contacts — Masking & Anti Double-Klik
+- Input No HP di form Tambah/Edit Kontak sekarang otomatis dibatesin cuma angka (9-15 digit), langsung divalidasi di server juga
+- Tombol Simpan otomatis nge-disable diri sendiri (dikasih loading spinner) selama proses simpan berjalan — jaga-jaga biar gak numpuk data ganda kalau user keburu klik berkali-kali
+
+### Rapiin Tampilan Kanban
+- Warna badge nominal di tiap kartu sekarang ngikutin warna stage-nya sendiri (misal kartu di Leads warnanya abu-abu, di Won ijo, dst.) — sebelumnya cuma 3 warna tetap
+- Badge "Nx Follow Up" dipindah ke tengah, di antara tanggal & sumber (Murni/Referral/dst.), warnanya dinetralin, dan kursornya jadi pointer biar jelas itu bisa diklik
+- Background tiap kolom Kanban sekarang ngikutin tinggi kartu-kartu di kolom itu sendiri — sebelumnya ikut ke-stretch sama kolom lain yang lebih tinggi, jadi kolom kosong/pendek keliatan aneh (background kepanjangan gak jelas)
+
+### Bug Serius yang Ketemu & Dibenerin
+- Nemu lagi bug di compiler Livewire Volt (mirip temuan sesi sebelumnya): nulis kata "new" apa adanya (termasuk di dalam attribute HTML kayak `new Date()`) di file komponen Volt bisa bikin komponen itu gagal total pas cache-nya di-refresh (halaman 500) — udah dibenerin, dan aturannya sekarang: semua pemanggilan tanggal hari ini pakai method Alpine bernama (`setWonToday()`, dst.), bukan nulis `new Date()` langsung di HTML
+- Modal Won/Closing sempet nutup sendiri pas user baru ngetik 1 digit nominal — ternyata modalnya kurang atribut `wire:ignore.self` (modal Akad yang lama udah bener duluan), jadi tiap kali ada respon server, modalnya ke-refresh paksa & keitung "ketutup". Udah disamain polanya kayak modal Akad
+
+### Test
+- Semua fitur di atas udah ada test otomatisnya (nambah puluhan test baru di `FoFunnelTest`, `ManagementFoTest`, `InvestorsDashboardTest`, `MonthlyAchievementTest`, `MonthlyConversionTest`)
+- Full test suite: 210/212 pass (2 gagal pre-existing, `ilike` gak didukung SQLite, gak berkaitan sama kerjaan sesi ini)
+
+### Pending
+- Enforcement read-only Direksi di level tombol Add/Edit/Delete (masih pending dari sesi-sesi sebelumnya)
+- Realtime notifikasi (Reverb/websocket) — masih nyusul bareng fitur Chat
+- Belum ada opsi buat cegah hapus kontak yang masih punya funnel aktif di stage lain (Won/Closing/dst.) — untuk sekarang cuma disembunyikan dari Leads, stage lain tetap tampil walau kontaknya kehapus
+
+---
+
+## 10/08/2026 (Sesi 2) Checklist Keamanan Login, Konsolidasi Settings → Profile, & Foto Profil
+
+### Keamanan Login (modul umum, bukan ERP)
+- [x] Validasi format email diperketat (`email:rfc,strict`) — email tanpa domain lengkap kayak `user@domain` (tanpa `.com`/`.id`/dst.) sekarang ditolak, sebelumnya lolos begitu aja. Diterapkan di form Login & form Registrasi/Edit Profil
+- [x] Pesan gagal login dicek — ternyata Laravel Fortify udah generik dari sononya ("These credentials do not match our records."), gak bocorin apakah yang salah itu email atau password-nya. Dikonfirmasi & dikunci pakai test biar gak berubah gak sengaja ke depannya
+- [x] Tombol "Log in" sekarang otomatis nonaktif + munculin spinner pas diklik, biar gak numpuk request kalau user keburu klik berkali-kali
+
+### Sidebar & Branding
+- [x] Role user yang lagi login sekarang ditampilin — badge kecil emas di brand header sidebar (di bawah logo "SmartID ERP") dan di dropdown profil user
+- [x] Tagline "Enterprise Resource Planner" dirapiin jadi satu baris penuh di bawah logo, ngikutin lebar sidebar
+- [x] Dropdown user di navbar (mobile & desktop) sekarang lebarnya otomatis ngikutin panjang nama — nama pendek tetep rapi, nama panjang gak lagi kepotong aneh
+
+### Konsolidasi Halaman Settings → Profile
+- [x] Halaman Settings lama (Profile, Security, Appearance — tiga halaman terpisah di `/settings/*`) dihapus total
+- [x] Digabung jadi satu grup halaman baru: `/profile` (info akun, foto, info kepegawaian, ganti tema, hapus akun — semua dalam satu halaman pakai tab) dan `/profile/security` (ganti password, 2FA, passkeys — sengaja dipisah rute sendiri biar tetap kena proteksi "konfirmasi ulang password" yang emang udah ada dari sononya, gak ikut dilonggarin)
+- [x] Menu dropdown di sidebar dirapiin — sebelumnya ada 2 menu ("My Profile" & "Settings") yang nyasar ke halaman yang sama, sekarang cuma nyisain satu menu "My Profile" yang jelas ke halaman baru ini
+
+### Foto Profil
+- [x] User bisa upload foto profil sendiri — klik icon pensil kecil di pojok foto, langsung kebuka pemilih file, dan otomatis keupload begitu file dipilih (gak perlu klik tombol "Upload" terpisah lagi)
+- [x] Foto disimpan di cloud storage yang sama dipakai buat dokumen Akad (bucket MinIO), bukan di server aplikasi
+- [x] Foto yang udah diupload langsung ikut muncul di avatar navbar (sebelumnya cuma inisial huruf doang, sekarang fallback ke inisial cuma kalau belum ada foto)
+- [x] Tombol "Remove Photo" buat hapus foto & balik ke tampilan inisial huruf
+
+### Info Kepegawaian di Halaman Profile
+- [x] Info "Joined since [tanggal] (x.x yrs)" — dihitung otomatis dari tanggal mulai kontrak karyawan
+- [x] Nambah field yang sebelumnya belum ditampilin sama sekali: Tanggal Lahir, Mulai Kontrak, Selesai Kontrak
+- [x] Data sensitif (NIK, NPWP, Status Pernikahan, Tanggal Lahir) disensor default (tampil titik-titik) — ada tombol "peek" (icon mata, mirip toggle show/hide password) buat nampilin sementara kalau memang perlu dicek
+- [x] User ID ditampilin di bawah nama — biar gampang kalau user perlu sebutin ID-nya pas lapor masalah ke admin
+- [x] Card "Employee Information" digabung jadi satu sama card foto profil (dipisah pakai separator), bukan card terpisah lagi
+
+### Bug Ketemu & Dibenerin
+- [x] Ketemu lagi bug compiler Livewire Volt (kejadian ketiga di project ini, mirip temuan-temuan sesi sebelumnya soal kata `new`) — kalau baris kode terakhir di komponen Volt itu nutup pakai `};` polos (closure biasa, bukan dibungkus pemanggilan fungsi lain), compiler-nya bisa salah taro kode internal di tempat yang salah & bikin halaman 500 pas cache-nya di-refresh. Dibenerin dengan nulis komponen `/profile` pakai gaya class biasa (`new class extends Component {...}`), bukan gaya functional closure — polanya disamain kayak komponen lain yang udah terbukti aman
+
+### Pending
+- Full test suite belum di-run ulang setelah revisi terakhir (Employee Information & foto profil) — perlu diverifikasi sebelum dianggap kelar total
+- Kolom `contract_type` yang sempet diminta buat ditampilin ternyata belum ada di database (baru ada `employment_status` & `is_cltp`) — sempat disiasati pakai `employment_status` + badge "CLTP", tapi baris ini akhirnya dihapus lagi dari tampilan atas permintaan user
+
+---
+

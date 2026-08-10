@@ -7,7 +7,7 @@
 
  <x-passkey-verify />
 
- <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
+ <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6" x-data="{ submitting: false }" @submit="submitting = true">
  @csrf
 
  <!-- Email Address -->
@@ -52,7 +52,10 @@
  <x-checkbox name="remember" label="{{ __('Remember me') }}" />
 
  <div class="flex items-center justify-end">
- <x-button label="{{ __('Log in') }}" type="submit" class="btn-primary w-full" data-test="login-button" />
+ <x-button type="submit" class="btn-primary w-full" data-test="login-button" x-bind:disabled="submitting">
+ <span x-show="submitting" class="loading loading-spinner loading-sm"></span>
+ <span x-text="submitting ? '{{ __('Logging in...') }}' : '{{ __('Log in') }}'"></span>
+ </x-button>
  </div>
  </form>
 

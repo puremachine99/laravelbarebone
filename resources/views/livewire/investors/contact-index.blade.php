@@ -364,8 +364,8 @@ $statsPic = computed(function () {
             <x-input label="Nama Lengkap" wire:model="nama" placeholder="Cth: John Doe" icon="o-user" required />
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <x-input label="Profesi / Institusi" wire:model="profesi" placeholder="Cth: Direktur PT ABC" icon="o-briefcase" maxlength="255" />
-                <x-input label="No HP" wire:model="no_telepon" type="text" inputmode="numeric" x-mask="99999999999999" placeholder="Cth: 08123456789" icon="o-phone" hint="Angka saja, 9-15 digit." />
+                <x-input label="Profesi / Institusi" wire:model="profesi" placeholder="Cth: Direktur PT ABC" icon="o-briefcase" maxlength="255" required/>
+                <x-input label="No HP" wire:model="no_telepon" type="text" inputmode="numeric" x-mask="99999999999999" placeholder="Cth: 08123456789" icon="o-phone" hint="Angka saja, 9-15 digit." required />
             </div>
 
             @if ($this->isAdminFo)

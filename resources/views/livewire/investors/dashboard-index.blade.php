@@ -39,6 +39,23 @@ mount(function () {
     }
 });
 
+// Guard against incomplete/invalid dates (e.g. "0000-08-26" while the native
+// date picker is mid-typing) — falls back to today instead of letting an
+// unparsable date reach Carbon::parse()/whereDate() further down and 500.
+$updatedSelectedDate = function ($value) {
+    $year = (int) substr((string) $value, 0, 4);
+    $month = (int) substr((string) $value, 5, 2);
+    $day = (int) substr((string) $value, 8, 2);
+
+    if (
+        ! preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $value)
+        || ! checkdate($month, $day, $year)
+        || $value > now()->toDateString()
+    ) {
+        $this->selectedDate = now()->toDateString();
+    }
+};
+
 $foEmployees = computed(function () {
     return Cache::remember('fo-dashboard-harian:fo-options', 60, function () {
         return Employee::with('user')
@@ -215,7 +232,8 @@ $leaderboard = computed(function () {
                 @endif
 
                 <div class="w-44">
-                    <x-input type="date" label="Tanggal Kerja" wire:model.live="selectedDate" max="{{ now()->toDateString() }}" class="input-sm" />
+                    <x-input type="date" label="Tanggal Kerja" wire:model.live="selectedDate" max="{{ now()->toDateString() }}"
+                        class="input-sm" readonly onkeydown="event.preventDefault()" />
                 </div>
 
                 @if ($selectedDate !== now()->toDateString())

@@ -37,6 +37,36 @@ test('users can not authenticate with invalid password', function () {
     $this->assertGuest();
 });
 
+test('users can not authenticate with an email missing a top-level domain', function () {
+    $response = $this->post(route('login.store'), [
+        'email' => 'user@domain',
+        'password' => 'password',
+    ]);
+
+    $response->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
+
+test('failed login shows a generic message regardless of whether the email is registered', function () {
+    $user = User::factory()->create();
+
+    $unknownEmailResponse = $this->post(route('login.store'), [
+        'email' => 'not-registered@example.com',
+        'password' => 'password',
+    ]);
+
+    $wrongPasswordResponse = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'wrong-password',
+    ]);
+
+    $unknownEmailResponse->assertSessionHasErrors(['email' => trans('auth.failed')]);
+    $wrongPasswordResponse->assertSessionHasErrors(['email' => trans('auth.failed')]);
+
+    $this->assertGuest();
+});
+
 test('users with two factor enabled are redirected to two factor challenge', function () {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
