@@ -290,3 +290,35 @@ Halaman ini dirasa lemot pas dibuka, jadi dibedah & dibenerin 5 titik yang palin
 
 ---
 
+## 05–08/08/2026 Checklist Sistem Notifikasi In-App (Partnership & Funding)
+
+### Fondasi Notifikasi
+- Tabel `notifications` baru (fitur bawaan Laravel) — notifikasi disimpan per user, ada status baca/belum baca
+- Icon lonceng di navbar (mobile & desktop) — nunjukin badge jumlah notifikasi belum dibaca, update sendiri tiap 15 detik tanpa perlu refresh manual
+- Halaman baru **"Semua Notifikasi"** (`/notifications`) — daftar lengkap, ada tab Semua/Belum Dibaca, tombol "Tandai semua dibaca"
+- Klik satu notifikasi otomatis tandai sudah dibaca sekaligus langsung diarahkan ke data yang relevan (card/prospek yang dimaksud)
+- Belum pakai realtime/websocket (Reverb) — masih model polling ringan, cukup buat kebutuhan sekarang; realtime baru akan digarap barengan kalau fitur Chat mulai dikerjakan
+
+### Notifikasi Partnership
+- PMO closing deal (status jadi **Won**) otomatis kirim notifikasi ke Manager terkait
+- Manager verifikasi prospek di halaman Realisasi, notifikasinya balik ke PMO yang punya prospek itu
+
+### Notifikasi Funding
+- FO closing deal investasi otomatis kirim notifikasi — tapi ke **Admin FO** (Investor Admin), bukan ke Manager Partnership
+- Sempat kepikiran nyamain logic "siapa yang dinotif" antara Partnership & Funding karena user-nya sama-sama internal, tapi ternyata dua departemen ini punya alur approval yang beda total (Partnership punya jenjang Manager, Funding enggak) — dipisah biar notifikasi gak nyasar ke orang yang gak ada hubungannya sama modul itu
+
+### Perbaikan & Temuan selama pengerjaan
+- Navbar avatar user disederhanakan — cuma ikon bulat inisial di navbar, nama lengkap/email/jabatan dipindah ke dalam dropdown-nya aja
+- Ketemu bug aneh di compiler Livewire Volt: bikin objek baru (`new ...`) langsung di dalam komponen Volt tertentu bikin halaman error total — disiasati dengan mindahin pembuatan notifikasi ke method khusus di dalam class notifikasinya sendiri
+- Sempat salah taruh perubahan navbar/lonceng di file layout lama sisa starter-kit yang ternyata gak kepake sama sekali (dead code) — makanya sempat gak muncul di localhost, sudah dipindah ke file layout yang beneran aktif
+
+### Test
+- Test baru buat notifikasi Partnership & Funding, termasuk test khusus mastiin notifikasi gak nyasar lintas departemen — semua pass
+- Full test suite: 193/195 pass (2 gagal pre-existing, `ilike` gak didukung SQLite, gak berkaitan sama kerjaan ini)
+
+### Pending
+- Realtime notifikasi (Reverb/websocket) — nyusul bareng fitur Chat
+- 2 test lama yang gagal karena `ilike` (khusus PostgreSQL) belum dibikin portable ke SQLite
+
+---
+

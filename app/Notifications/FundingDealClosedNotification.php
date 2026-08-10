@@ -19,6 +19,11 @@ class FundingDealClosedNotification extends Notification
         NotificationFacade::send(NotificationRecipients::investorAdmins(), new self($funnel));
     }
 
+    public static function sendToOwner(FoFunnel $funnel): void
+    {
+        $funnel->employee?->user?->notify(new self($funnel));
+    }
+
     /**
      * @return array<int, string>
      */

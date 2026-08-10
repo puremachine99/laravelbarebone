@@ -5,6 +5,7 @@ use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
 use App\Models\FoTarget;
 use App\Models\FoTargetLog;
+use App\Notifications\FoTargetUpdatedNotification;
 use App\Support\Money;
 
 use function Livewire\Volt\computed;
@@ -240,6 +241,7 @@ $saveTargets = function () {
 
     $changed = false;
     $hasInvalid = false;
+    $changedLabels = [];
 
     foreach ($this->metrics as $metric) {
         $key = $metric['key'];
@@ -251,12 +253,22 @@ $saveTargets = function () {
 
         $changed = true;
 
-        if (! $this->updateYearlyTarget($this->targetSettingEmployeeId, $key, $newValue)) {
+        if ($this->updateYearlyTarget($this->targetSettingEmployeeId, $key, $newValue)) {
+            $changedLabels[] = $metric['label'];
+        } else {
             $hasInvalid = true;
         }
     }
 
     $this->loadTargetInputs();
+
+    if ($changedLabels !== []) {
+        $employee = Employee::find($this->targetSettingEmployeeId);
+
+        if ($employee) {
+            FoTargetUpdatedNotification::sendToOwner($employee, $changedLabels, now()->year);
+        }
+    }
 
     if ($hasInvalid) {
         $this->error('Ada nilai target yang gak valid, sebagian gak tersimpan.');

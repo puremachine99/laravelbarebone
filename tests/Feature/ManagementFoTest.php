@@ -8,6 +8,7 @@ use App\Models\FoFunnelActivity;
 use App\Models\FoTarget;
 use App\Models\FoTargetLog;
 use App\Models\User;
+use App\Notifications\FoTargetUpdatedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
 use Spatie\Permission\Models\Permission;
@@ -116,6 +117,36 @@ test('save targets only persists metrics whose buffered input actually changed',
     $component->call('saveTargets')->assertHasNoErrors();
 
     expect(FoTargetLog::where('employee_id', $admin->id)->where('metric_key', 'leads')->count())->toBe(1);
+});
+
+test('saving a changed target notifies the owning fo', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $fo = makeFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    Volt::test('investors.management-fo')
+        ->set('targetSettingEmployeeId', $fo->id)
+        ->set('targetInputs.leads', '120')
+        ->call('saveTargets')
+        ->assertHasNoErrors();
+
+    expect($fo->user->notifications()->count())->toBe(1);
+    expect($fo->user->notifications()->first()->type)->toBe(FoTargetUpdatedNotification::class);
+    expect($fo->user->notifications()->first()->data['type'])->toBe('fo_target_updated');
+    expect($admin->user->notifications()->count())->toBe(0);
+});
+
+test('saving targets with no actual change does not notify the fo', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $fo = makeFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    Volt::test('investors.management-fo')
+        ->set('targetSettingEmployeeId', $fo->id)
+        ->call('saveTargets')
+        ->assertHasNoErrors();
+
+    expect($fo->user->notifications()->count())->toBe(0);
 });
 
 test('updating a yearly target rejects a negative value', function () {

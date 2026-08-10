@@ -4,7 +4,9 @@ use App\Models\Employee;
 use App\Models\FoContact;
 use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
+use App\Notifications\FundingDealAkadNotification;
 use App\Notifications\FundingDealClosedNotification;
+use App\Notifications\FundingDealLostNotification;
 use App\Support\Money;
 use Illuminate\Support\Facades\Cache;
 
@@ -293,6 +295,8 @@ $submitAkad = function () {
         'dokumen_akad_nama' => $this->akadFile->getClientOriginalName(),
     ]);
 
+    FundingDealAkadNotification::sendToOwner($funnel);
+
     $this->reset(['akadFunnelId', 'akadTanggal', 'akadNominal', 'akadFile']);
     $this->success('Proses akad berhasil dicatat!');
     $this->js("document.getElementById('funnel-akad-modal').close()");
@@ -341,6 +345,7 @@ $logWonAndMove = function ($funnelId, $tanggal, $amount) {
     ]);
 
     FundingDealClosedNotification::sendToAdmins($funnel);
+    FundingDealClosedNotification::sendToOwner($funnel);
 
     $this->success('Data closing (Won) berhasil dicatat!');
 };
@@ -358,6 +363,8 @@ $logLostAndMove = function ($funnelId, $tanggal, $reason) {
         'tgl_closing' => $tanggal ?: now()->toDateString(),
         'lost_reason' => $reason ?: null,
     ]);
+
+    FundingDealLostNotification::sendToOwner($funnel);
 
     $this->success('Data Lost berhasil dicatat.');
 };

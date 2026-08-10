@@ -4,7 +4,9 @@ use App\Models\Employee;
 use App\Models\FoContact;
 use App\Models\FoFunnel;
 use App\Models\User;
+use App\Notifications\FundingDealAkadNotification;
 use App\Notifications\FundingDealClosedNotification;
+use App\Notifications\FundingDealLostNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -182,6 +184,11 @@ test('admin fo can submit akad with a document upload to s3', function () {
         ->and($funnel->dokumen_akad_nama)->toBe('akad.docx');
 
     Storage::disk('s3')->assertExists($funnel->dokumen_akad_path);
+
+    $owner = $employee->user;
+    expect($owner->notifications()->count())->toBe(1);
+    expect($owner->notifications()->first()->type)->toBe(FundingDealAkadNotification::class);
+    expect($owner->notifications()->first()->data['type'])->toBe('funding_deal_akad');
 });
 
 test('a plain fo cannot submit akad even with a valid document', function () {
@@ -272,7 +279,7 @@ test('moving to won logs the closing date and amount', function () {
         ->and((float) $funnel->nominal_investasi)->toBe(500_000_000.0);
 });
 
-test('moving a funding deal to won notifies investor admins, not partnership managers', function () {
+test('moving a funding deal to won notifies investor admins and the owning fo, not partnership managers', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
@@ -294,7 +301,8 @@ test('moving a funding deal to won notifies investor admins, not partnership man
     expect($investorAdmin->notifications()->count())->toBe(1);
     expect($investorAdmin->notifications()->first()->type)->toBe(FundingDealClosedNotification::class);
     expect($investorAdmin->notifications()->first()->data['type'])->toBe('funding_deal_closed');
-    expect($user->notifications()->count())->toBe(0);
+    expect($user->notifications()->count())->toBe(1);
+    expect($user->notifications()->first()->data['type'])->toBe('funding_deal_closed');
     expect($partnershipManager->notifications()->count())->toBe(0);
 });
 
@@ -330,6 +338,10 @@ test('moving to lost logs the lost date and reason', function () {
         ->and($funnel->status_closing)->toBe('lost')
         ->and($funnel->tgl_closing->format('Y-m-d'))->toBe('2026-09-10')
         ->and($funnel->lost_reason)->toBe('Tidak tertarik lagi.');
+
+    expect($user->notifications()->count())->toBe(1);
+    expect($user->notifications()->first()->type)->toBe(FundingDealLostNotification::class);
+    expect($user->notifications()->first()->data['type'])->toBe('funding_deal_lost');
 });
 
 test('a plain fo cannot move another fo funnel to lost', function () {
