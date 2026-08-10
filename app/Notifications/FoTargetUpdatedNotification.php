@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Employee;
+use App\Support\Money;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
@@ -11,20 +12,20 @@ class FoTargetUpdatedNotification extends Notification
     use Queueable;
 
     /**
-     * @param  array<int, string>  $changedMetricLabels
+     * @param  array<int, array{label: string, type: string, from: ?float, to: ?float}>  $changes
      */
-    public function __construct(public Employee $employee, public array $changedMetricLabels, public int $year) {}
+    public function __construct(public Employee $employee, public array $changes, public int $year) {}
 
     /**
-     * @param  array<int, string>  $changedMetricLabels
+     * @param  array<int, array{label: string, type: string, from: ?float, to: ?float}>  $changes
      */
-    public static function sendToOwner(Employee $employee, array $changedMetricLabels, int $year): void
+    public static function sendToOwner(Employee $employee, array $changes, int $year): void
     {
-        if ($changedMetricLabels === []) {
+        if ($changes === []) {
             return;
         }
 
-        $employee->user?->notify(new self($employee, $changedMetricLabels, $year));
+        $employee->user?->notify(new self($employee, $changes, $year));
     }
 
     /**
@@ -40,14 +41,25 @@ class FoTargetUpdatedNotification extends Notification
      */
     public function toDatabase(object $notifiable): array
     {
-        $metrics = implode(', ', $this->changedMetricLabels);
+        $details = collect($this->changes)
+            ->map(fn (array $change) => "{$change['label']} ".self::format($change['from'], $change['type']).' → '.self::format($change['to'], $change['type']))
+            ->implode(', ');
 
         return [
             'type' => 'fo_target_updated',
             'icon' => 'o-flag',
             'title' => 'Target kamu diperbarui Admin',
-            'message' => "Target {$this->year} kamu untuk {$metrics} telah diperbarui oleh Admin.",
+            'message' => "Target {$this->year} kamu diperbarui oleh Admin: {$details}.",
             'url' => route('investors.management-fo'),
         ];
+    }
+
+    private static function format(?float $value, string $type): string
+    {
+        if ($value === null) {
+            return '-';
+        }
+
+        return $type === 'currency' ? Money::exact($value) : (string) (int) $value;
     }
 }

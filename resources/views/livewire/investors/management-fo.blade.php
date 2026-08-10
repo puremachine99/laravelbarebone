@@ -203,7 +203,8 @@ $logTargetChange = function ($employeeId, $metricKey, $oldValue, $newValue) {
 };
 
 // Persist satu metrik target (dipanggil per-metrik dari saveTargets() saat tombol Simpan ditekan).
-// Return bool sukses/gagal biar saveTargets() bisa kumpulin nilai yang invalid tanpa spam toast per-field.
+// Return array from/to sukses (dipakai buat detail notifikasi FO), atau false kalau nilainya invalid,
+// biar saveTargets() bisa kumpulin nilai yang invalid tanpa spam toast per-field.
 $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
     abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin']), 403);
 
@@ -227,7 +228,7 @@ $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
 
     $this->logTargetChange($employeeId, $metricKey, $existing?->yearly_target, $value);
 
-    return true;
+    return ['from' => $existing?->yearly_target, 'to' => $value];
 };
 
 // Tombol "Simpan Target" — cuma metrik yang nilainya beneran berubah dari snapshot terakhir yang di-submit,
@@ -241,7 +242,7 @@ $saveTargets = function () {
 
     $changed = false;
     $hasInvalid = false;
-    $changedLabels = [];
+    $changes = [];
 
     foreach ($this->metrics as $metric) {
         $key = $metric['key'];
@@ -253,8 +254,15 @@ $saveTargets = function () {
 
         $changed = true;
 
-        if ($this->updateYearlyTarget($this->targetSettingEmployeeId, $key, $newValue)) {
-            $changedLabels[] = $metric['label'];
+        $result = $this->updateYearlyTarget($this->targetSettingEmployeeId, $key, $newValue);
+
+        if ($result) {
+            $changes[] = [
+                'label' => $metric['label'],
+                'type' => $metric['type'],
+                'from' => $result['from'],
+                'to' => $result['to'],
+            ];
         } else {
             $hasInvalid = true;
         }
@@ -262,11 +270,11 @@ $saveTargets = function () {
 
     $this->loadTargetInputs();
 
-    if ($changedLabels !== []) {
+    if ($changes !== []) {
         $employee = Employee::find($this->targetSettingEmployeeId);
 
         if ($employee) {
-            FoTargetUpdatedNotification::sendToOwner($employee, $changedLabels, now()->year);
+            FoTargetUpdatedNotification::sendToOwner($employee, $changes, now()->year);
         }
     }
 

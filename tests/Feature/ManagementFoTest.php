@@ -119,20 +119,27 @@ test('save targets only persists metrics whose buffered input actually changed',
     expect(FoTargetLog::where('employee_id', $admin->id)->where('metric_key', 'leads')->count())->toBe(1);
 });
 
-test('saving a changed target notifies the owning fo', function () {
+test('saving a changed target notifies the owning fo with the old and new values', function () {
     $admin = makeFoEmployee('Investor Admin');
     $fo = makeFoEmployee('Investor Admin');
     $this->actingAs($admin->user);
 
+    FoTarget::create(['employee_id' => $fo->id, 'year' => now()->year, 'metric_key' => 'leads', 'yearly_target' => 100]);
+    FoTarget::create(['employee_id' => $fo->id, 'year' => now()->year, 'metric_key' => 'ql', 'yearly_target' => 80]);
+
     Volt::test('investors.management-fo')
         ->set('targetSettingEmployeeId', $fo->id)
-        ->set('targetInputs.leads', '120')
+        ->set('targetInputs.leads', '194')
+        ->set('targetInputs.ql', '126')
         ->call('saveTargets')
         ->assertHasNoErrors();
 
     expect($fo->user->notifications()->count())->toBe(1);
-    expect($fo->user->notifications()->first()->type)->toBe(FoTargetUpdatedNotification::class);
-    expect($fo->user->notifications()->first()->data['type'])->toBe('fo_target_updated');
+    $notification = $fo->user->notifications()->first();
+    expect($notification->type)->toBe(FoTargetUpdatedNotification::class);
+    expect($notification->data['type'])->toBe('fo_target_updated');
+    expect($notification->data['message'])->toContain('Leads 100 → 194');
+    expect($notification->data['message'])->toContain('QL 80 → 126');
     expect($admin->user->notifications()->count())->toBe(0);
 });
 
