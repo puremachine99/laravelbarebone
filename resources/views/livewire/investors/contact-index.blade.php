@@ -117,11 +117,12 @@ $saveContact = function () {
     $this->validate([
         'nama' => ['required', 'string', 'max:255'],
         'profesi' => ['nullable', 'string', 'max:255'],
-        'no_telepon' => ['nullable', 'string', 'max:30'],
+        'no_telepon' => ['nullable', 'regex:/^[0-9]{9,15}$/'],
         'employee_id' => ['nullable', 'exists:employees,id'],
         'catatan' => ['nullable', 'string'],
     ], [
         'nama.required' => 'Nama kontak wajib diisi.',
+        'no_telepon.regex' => 'No HP harus berupa angka, 9-15 digit.',
     ]);
 
     if ($this->contact_id && ! $this->isAdminFo) {
@@ -363,8 +364,8 @@ $statsPic = computed(function () {
             <x-input label="Nama Lengkap" wire:model="nama" placeholder="Cth: John Doe" icon="o-user" required />
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <x-input label="Profesi / Institusi" wire:model="profesi" placeholder="Cth: Direktur PT ABC" icon="o-briefcase" />
-                <x-input label="No HP" wire:model="no_telepon" placeholder="Cth: 08123456789" icon="o-phone" />
+                <x-input label="Profesi / Institusi" wire:model="profesi" placeholder="Cth: Direktur PT ABC" icon="o-briefcase" maxlength="255" />
+                <x-input label="No HP" wire:model="no_telepon" type="text" inputmode="numeric" x-mask="99999999999999" placeholder="Cth: 08123456789" icon="o-phone" hint="Angka saja, 9-15 digit." />
             </div>
 
             @if ($this->isAdminFo)
@@ -378,7 +379,7 @@ $statsPic = computed(function () {
 
             <div class="flex justify-end gap-2 pt-4 border-t border-base-300">
                 <x-button label="Batal" wire:click="$set('showContactModal', false)" class="btn-ghost" />
-                <x-button label="Simpan" type="submit" class="btn-primary" />
+                <x-button label="Simpan" type="submit" class="btn-primary" spinner="saveContact" />
             </div>
         </form>
     </x-modal>

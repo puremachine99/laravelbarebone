@@ -125,6 +125,9 @@ $funnels = computed(function () {
     return FoFunnel::query()
         ->with(['contact', 'employee.user'])
         ->withCount(['activities as followup_count' => fn ($q) => $q->where('stage', 'followup')])
+        // Lead yang kontaknya udah dihapus jangan muncul lagi di kolom Leads — kartu tanpa identitas
+        // gak ada gunanya di tahap paling awal. Stage lain dibiarkan apa adanya.
+        ->where(fn ($q) => $q->where('stage', '!=', 'leads')->orWhereHas('contact'))
         ->when(! $isAdmin, fn ($q) => $q->where('employee_id', $ownEmployeeId))
         ->when($isAdmin && $this->filterFo, fn ($q) => $q->where('employee_id', $this->filterFo))
         ->when($this->filterBulan, fn ($q) => $q->whereMonth('proyeksi_close_date', (int) $this->filterBulan))

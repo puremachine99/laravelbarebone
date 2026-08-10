@@ -513,6 +513,30 @@ test('admin fo sees every funnel, plain fo only sees their own', function () {
         ->assertSee('Kontak Milik Orang Lain');
 });
 
+test('a lead whose contact was deleted no longer shows up in the leads column', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+
+    $leadFunnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'leads']);
+    $leadFunnel->contact->update(['nama' => 'Kontak Lead Terhapus']);
+    $leadFunnel->contact->delete();
+
+    // A funnel past the leads stage should still show up even if its contact is gone.
+    $wonFunnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
+    $wonFunnel->contact->update(['nama' => 'Kontak Won Terhapus']);
+    $wonFunnel->contact->delete();
+
+    $this->actingAs($user);
+
+    $component = Volt::test('investors.funnel-index');
+
+    $component->assertDontSee('Kontak Lead Terhapus');
+    expect($component->instance()->funnels->pluck('id'))
+        ->not->toContain($leadFunnel->id)
+        ->toContain($wonFunnel->id);
+});
+
 test('can update and delete a funnel entry', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));
