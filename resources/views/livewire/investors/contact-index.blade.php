@@ -314,7 +314,7 @@ $statsPic = computed(function () {
                             <td>
                                 @if ($contact->employee?->user?->name)
                                     <div class="flex items-center gap-2">
-                                        <x-avatar-initial :name="$contact->employee->user->name" />
+                                        <x-user-avatar :user="$contact->employee->user" size="size-6" />
                                         <span class="text-sm">{{ $contact->employee->user->name }}</span>
                                     </div>
                                 @else

@@ -20,7 +20,7 @@ $markAllAsRead = function () {
 ?>
 
 <div class="dropdown dropdown-end" wire:poll.15s>
-    <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm relative">
+    <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm relative cursor-pointer">
         <x-icon name="o-bell" class="w-4 h-4" />
         @if ($this->unreadCount > 0)
             <span class="absolute -top-1 -right-1 badge badge-error badge-xs text-[10px] font-bold px-1">
@@ -33,7 +33,7 @@ $markAllAsRead = function () {
         <div class="flex items-center justify-between px-4 py-3 border-b border-base-300">
             <span class="font-bold text-sm text-base-content">{{ __('Notifikasi') }}</span>
             @if ($this->unreadCount > 0)
-                <button type="button" wire:click="markAllAsRead" class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+                <button type="button" wire:click="markAllAsRead" class="text-xs text-indigo-600 dark:text-indigo-400 font-medium cursor-pointer">
                     {{ __('Tandai semua dibaca') }}
                 </button>
             @endif
@@ -42,7 +42,7 @@ $markAllAsRead = function () {
         <div class="max-h-96 overflow-y-auto divide-y divide-base-300">
             @forelse ($this->notifications as $notification)
                 <button type="button" wire:click="open('{{ $notification->id }}')"
-                    class="w-full text-left flex items-start gap-2 px-4 py-3 hover:bg-base-200 transition-colors {{ $notification->read_at ? 'opacity-60' : '' }}">
+                    class="w-full text-left flex items-start gap-2 px-4 py-3 hover:bg-base-200 transition-colors cursor-pointer {{ $notification->read_at ? 'opacity-60' : '' }}">
                     <x-icon name="{{ $notification->data['icon'] ?? 'o-bell' }}" class="w-4 h-4 mt-0.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                     <div class="flex-1 min-w-0">
                         <div class="font-semibold text-xs text-base-content truncate">{{ $notification->data['title'] ?? __('Notifikasi') }}</div>
@@ -58,7 +58,7 @@ $markAllAsRead = function () {
         </div>
 
         <a href="{{ route('notifications.index') }}" wire:navigate
-            class="block text-center text-xs font-medium text-indigo-600 dark:text-indigo-400 px-4 py-3 border-t border-base-300">
+            class="block text-center text-xs font-medium text-indigo-600 dark:text-indigo-400 px-4 py-3 border-t border-base-300 cursor-pointer">
             {{ __('Lihat semua notifikasi') }}
         </a>
     </div>

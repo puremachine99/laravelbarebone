@@ -29,33 +29,32 @@
                 <livewire:notification-bell />
 
                 <div class="dropdown dropdown-end">
-                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm avatar placeholder">
+                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm avatar placeholder cursor-pointer">
                         <x-user-avatar size="size-8" />
                     </div>
                     <ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box border border-base-300 shadow-lg w-max min-w-56 max-w-xs mt-2 z-50 p-2">
-                        <div class="px-3 py-2">
-                            <p class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</p>
-                            <p class="text-base-content/50 text-xs truncate">{{ auth()->user()->email }}</p>
-                            @if ($jabatan = auth()->user()->employee?->positionStruktural?->name ?? auth()->user()->employee?->positionFungsional?->name)
-                                <p class="text-base-content/50 text-xs truncate">{{ $jabatan }}</p>
-                            @endif
-                            @if ($roleNames = auth()->user()->getRoleNames())
-                                <div class="flex flex-wrap gap-1 mt-1">
-                                    @foreach ($roleNames as $roleName)
-                                        <span class="badge badge-ghost badge-xs">{{ $roleName }}</span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-                        <li><hr class="border-base-300 my-1"></li>
                         <li>
-                            <a href="{{ route('profile.show') }}" wire:navigate>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                                My Profile
+                            <a href="{{ route('profile.show') }}" wire:navigate class="flex items-center gap-3 px-3 py-2 h-auto">
+                                <x-user-avatar size="size-12" />
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</span>
+                                    <span class="text-base-content/50 text-xs truncate">{{ auth()->user()->email }}</span>
+                                    @if ($jabatan = auth()->user()->employee?->positionStruktural?->name ?? auth()->user()->employee?->positionFungsional?->name)
+                                        <span class="text-base-content/50 text-xs truncate">{{ $jabatan }}</span>
+                                    @endif
+                                    @if ($roleNames = auth()->user()->getRoleNames())
+                                        <div class="flex flex-wrap gap-1 mt-1">
+                                            @foreach ($roleNames as $roleName)
+                                                <span class="badge badge-ghost badge-xs">{{ $roleName }}</span>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
                             </a>
                         </li>
+                        <li><hr class="border-base-300 my-1"></li>
                         <li>
-                            <button type="button" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="text-error w-full text-left flex items-center gap-2">
+                            <button type="button" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="text-error w-full text-left flex items-center gap-2 cursor-pointer">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                                 Log out
                             </button>
@@ -85,36 +84,31 @@
                     <livewire:notification-bell />
 
                     <div class="dropdown dropdown-end">
-                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm avatar placeholder">
+                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm avatar placeholder cursor-pointer">
                             <x-user-avatar size="size-8" />
                         </div>
                         <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box border-base-300 z-50 mt-2 w-max min-w-56 max-w-xs border p-2 shadow-lg">
-                            <div class="px-3 py-2">
-                                <p class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</p>
-                                <p class="text-base-content/50 text-xs truncate">{{ auth()->user()->email }}</p>
-                                {{-- @if ($jabatan = auth()->user()->employee?->positionStruktural?->name ?? auth()->user()->employee?->positionFungsional?->name)
-                                    <p class="text-base-content/50 text-xs truncate">{{ $jabatan }}</p>
-                                @endif --}}
-                                @if ($roleNames = auth()->user()->getRoleNames())
-                                    <div class="flex flex-wrap gap-1 mt-1">
-                                        @foreach ($roleNames as $roleName)
-                                            <span class="badge badge-primary badge-sm">{{ $roleName }}</span>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </div>
-                            <li><hr class="border-base-300 my-1"></li>
                             <li>
-                                <a href="{{ route('profile.show') }}" wire:navigate>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                                    My Profile
+                                <a href="{{ route('profile.show') }}" wire:navigate class="flex items-center gap-3 px-3 py-2 h-auto">
+                                    <x-user-avatar size="size-12" />
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</span>
+                                        <span class="text-base-content/50 text-xs truncate">{{ auth()->user()->email }}</span>
+                                        @if ($roleNames = auth()->user()->getRoleNames())
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                @foreach ($roleNames as $roleName)
+                                                    <span class="badge badge-primary badge-sm">{{ $roleName }}</span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
                                 </a>
                             </li>
                             <li>
                                 <hr class="border-base-300 my-1">
                             </li>
                             <li>
-                                <button type="button" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="text-error hover:bg-error/10 flex w-full items-center gap-2 text-left">
+                                <button type="button" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="text-error hover:bg-error/10 flex w-full items-center gap-2 text-left cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                                     Logout
                                 </button>
