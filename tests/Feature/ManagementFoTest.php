@@ -286,7 +286,7 @@ test('fo ranking sorts by nilai closing this year and computes achievement again
 
     FoFunnel::factory()->create([
         'employee_id' => $admin->id,
-        'stage' => 'won',
+        'stage' => 'closing',
         'tgl_closing' => now()->toDateString(),
         'nominal_investasi' => 100_000_000,
     ]);
@@ -317,13 +317,13 @@ test('realisasi leads and ql are counted from real funnel data within the active
         ->and($component->instance()->realisasiFor($admin->id, 'ql'))->toBe(1);
 });
 
-test('realisasi closing and nilai closing only count won/akad funnels closed within the period', function () {
+test('realisasi closing and nilai closing only count closing/akad funnels closed within the period', function () {
     $admin = makeFoEmployee('Investor Admin');
     $this->actingAs($admin->user);
 
     FoFunnel::factory()->create([
         'employee_id' => $admin->id,
-        'stage' => 'won',
+        'stage' => 'closing',
         'tgl_closing' => now()->toDateString(),
         'nominal_investasi' => 500_000_000,
     ]);
@@ -333,10 +333,10 @@ test('realisasi closing and nilai closing only count won/akad funnels closed wit
         'tgl_closing' => now()->toDateString(),
         'nominal_investasi' => 250_000_000,
     ]);
-    // Bukan won/akad — gak boleh ikut kehitung.
+    // Won cuma komitmen (belum ada uang masuk) — gak boleh ikut kehitung.
     FoFunnel::factory()->create([
         'employee_id' => $admin->id,
-        'stage' => 'pitching',
+        'stage' => 'won',
         'tgl_closing' => now()->toDateString(),
         'nominal_investasi' => 999_000_000,
     ]);

@@ -100,7 +100,7 @@ test('todays lead baru realisasi is counted correctly per fo and aggregated for 
         ->and($rows[$foB->user->name]['ql'])->toBe(1);
 });
 
-test('closing realisasi and nilai closing only count funds won or akad today', function () {
+test('closing realisasi and nilai closing only count funds closing or akad today', function () {
     $admin = makeDashboardFoEmployee('Investor Admin');
     $fo = makeDashboardFoEmployee('Funding Officer');
     $contact = FoContact::factory()->create(['employee_id' => $fo->id]);
@@ -108,10 +108,20 @@ test('closing realisasi and nilai closing only count funds won or akad today', f
     FoFunnel::factory()->create([
         'fo_contact_id' => $contact->id,
         'employee_id' => $fo->id,
-        'stage' => 'won',
+        'stage' => 'closing',
         'tgl_leads' => now()->subDays(3)->toDateString(),
         'tgl_closing' => now()->toDateString(),
         'nominal_investasi' => 500_000_000,
+    ]);
+
+    // Won is just a verbal commitment — should not count as closing.
+    FoFunnel::factory()->create([
+        'fo_contact_id' => $contact->id,
+        'employee_id' => $fo->id,
+        'stage' => 'won',
+        'tgl_leads' => now()->subDays(3)->toDateString(),
+        'tgl_closing' => now()->toDateString(),
+        'nominal_investasi' => 999_000_000,
     ]);
 
     // Lost today should not count as closing.
@@ -188,7 +198,7 @@ test('leaderboard is sorted by cumulative nilai closing regardless of masuk seba
     FoFunnel::factory()->create([
         'fo_contact_id' => $contactLow->id,
         'employee_id' => $foLow->id,
-        'stage' => 'won',
+        'stage' => 'closing',
         'tgl_closing' => now()->toDateString(),
         'nominal_investasi' => 100_000_000,
     ]);
@@ -196,7 +206,7 @@ test('leaderboard is sorted by cumulative nilai closing regardless of masuk seba
     FoFunnel::factory()->create([
         'fo_contact_id' => $contactHigh->id,
         'employee_id' => $foHigh->id,
-        'stage' => 'won',
+        'stage' => 'closing',
         'tgl_closing' => now()->toDateString(),
         'nominal_investasi' => 900_000_000,
     ]);

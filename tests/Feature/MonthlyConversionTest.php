@@ -101,9 +101,10 @@ test('monthly conversion percentages are computed stage by stage', function () {
         ]);
     });
 
-    // Only 1 of those actually closes.
+    // Only 1 of those actually closes (won first, then closing).
     $funnels->first()->update([
-        'stage' => 'won',
+        'stage' => 'closing',
+        'tgl_won' => $monthDate,
         'tgl_closing' => $monthDate,
         'nominal_investasi' => 500_000_000,
     ]);
@@ -115,11 +116,13 @@ test('monthly conversion percentages are computed stage by stage', function () {
     expect($row['lead'])->toBe(10)
         ->and($row['ql'])->toBe(5)
         ->and($row['pitching'])->toBe(4)
+        ->and($row['won'])->toBe(1)
         ->and($row['closing'])->toBe(1)
         ->and((float) $row['nilai_closing'])->toBe(500_000_000.0)
         ->and($row['lead_to_ql'])->toBe(50.0)
         ->and($row['ql_to_pitch'])->toBe(80.0)
-        ->and($row['pitch_to_closing'])->toBe(25.0)
+        ->and($row['pitch_to_won'])->toBe(25.0)
+        ->and($row['won_to_closing'])->toBe(100.0)
         ->and($row['overall'])->toBe(10.0);
 });
 
@@ -132,7 +135,7 @@ test('total row sums the raw counts instead of averaging monthly percentages', f
     FoFunnel::factory()->create([
         'fo_contact_id' => $contact->id,
         'employee_id' => $fo->id,
-        'stage' => 'won',
+        'stage' => 'closing',
         'tgl_leads' => now()->startOfMonth()->toDateString(),
         'tgl_closing' => now()->startOfMonth()->toDateString(),
         'nominal_investasi' => 100_000_000,
@@ -164,7 +167,7 @@ test('status badges are relative to the year-to-date average, not a fixed thresh
     FoFunnel::factory()->create([
         'fo_contact_id' => $contact->id,
         'employee_id' => $fo->id,
-        'stage' => 'won',
+        'stage' => 'closing',
         'tgl_leads' => now()->startOfMonth()->toDateString(),
         'tgl_closing' => now()->startOfMonth()->toDateString(),
     ]);
@@ -174,7 +177,7 @@ test('status badges are relative to the year-to-date average, not a fixed thresh
     FoFunnel::factory()->create([
         'fo_contact_id' => $contactPrev->id,
         'employee_id' => $fo->id,
-        'stage' => 'won',
+        'stage' => 'closing',
         'tgl_leads' => now()->subMonth()->startOfMonth()->toDateString(),
         'tgl_closing' => now()->subMonth()->startOfMonth()->toDateString(),
     ]);
@@ -189,7 +192,7 @@ test('status badges are relative to the year-to-date average, not a fixed thresh
     FoFunnel::factory()->create([
         'fo_contact_id' => $contactPrev2->id,
         'employee_id' => $fo->id,
-        'stage' => 'won',
+        'stage' => 'closing',
         'tgl_leads' => now()->subMonths(2)->startOfMonth()->toDateString(),
         'tgl_closing' => now()->subMonths(2)->startOfMonth()->toDateString(),
     ]);
@@ -233,14 +236,14 @@ test('bottleneck identifies the funnel stage with the lowest average conversion'
         'stage' => 'pitching',
         'tanggal' => $monthDate,
     ]));
-    $funnels->first()->update(['stage' => 'won', 'tgl_closing' => $monthDate, 'nominal_investasi' => 100_000_000]);
+    $funnels->first()->update(['stage' => 'closing', 'tgl_won' => $monthDate, 'tgl_closing' => $monthDate, 'nominal_investasi' => 100_000_000]);
 
     $this->actingAs($admin->user);
 
     $ringkasan = Volt::test('investors.conversion-index')->instance()->ringkasan();
 
-    // lead_to_ql=50%, ql_to_pitch=80%, pitch_to_closing=25% — the weakest stage is Pitching -> Closing.
-    expect($ringkasan['bottleneck']['label'])->toBe('Pitching → Closing')
+    // lead_to_ql=50%, ql_to_pitch=80%, pitch_to_won=25%, won_to_closing=100% — the weakest stage is Pitching -> Won.
+    expect($ringkasan['bottleneck']['label'])->toBe('Pitching → Won')
         ->and($ringkasan['total_lead'])->toBe(10)
         ->and($ringkasan['total_closing'])->toBe(1);
 });

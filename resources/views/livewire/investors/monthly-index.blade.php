@@ -104,8 +104,9 @@ $realisasiInRange = function ($employeeId, $metricKey, $start, $end) {
             ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId))
             ->distinct('fo_funnel_id')
             ->count('fo_funnel_id'),
-        'closing' => FoFunnel::where('employee_id', $employeeId)->whereIn('stage', ['won', 'akad'])->whereBetween('tgl_closing', [$start, $end])->count(),
-        'nilai_closing' => (float) FoFunnel::where('employee_id', $employeeId)->whereIn('stage', ['won', 'akad'])->whereBetween('tgl_closing', [$start, $end])->sum('nominal_investasi'),
+        'won' => FoFunnel::where('employee_id', $employeeId)->whereBetween('tgl_won', [$start, $end])->count(),
+        'closing' => FoFunnel::where('employee_id', $employeeId)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereBetween('tgl_closing', [$start, $end])->count(),
+        'nilai_closing' => (float) FoFunnel::where('employee_id', $employeeId)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereBetween('tgl_closing', [$start, $end])->sum('nominal_investasi'),
         default => 0,
     };
 };
@@ -125,6 +126,7 @@ $realisasiPerFo = computed(function () {
             'ql' => $this->realisasiInRange($fo['id'], 'ql', $start, $end),
             'pitching' => $this->realisasiInRange($fo['id'], 'pitching', $start, $end),
             'followup' => $this->realisasiInRange($fo['id'], 'followup', $start, $end),
+            'won' => $this->realisasiInRange($fo['id'], 'won', $start, $end),
             'closing' => $closing,
             'nilai_closing' => $this->realisasiInRange($fo['id'], 'nilai_closing', $start, $end),
             'konversi' => $leads > 0 ? round($closing / $leads * 100, 1) : null,
@@ -143,6 +145,7 @@ $totalTim = computed(function () {
         'ql' => $rows->sum('ql'),
         'pitching' => $rows->sum('pitching'),
         'followup' => $rows->sum('followup'),
+        'won' => $rows->sum('won'),
         'closing' => $closing,
         'nilai_closing' => $rows->sum('nilai_closing'),
         'konversi' => $leads > 0 ? round($closing / $leads * 100, 1) : null,
@@ -161,6 +164,7 @@ $monthlyTrend = computed(function () {
         return [
             'label' => Str::substr($bulan['name'], 0, 3),
             'leads' => collect($employeeIds)->sum(fn ($id) => $this->realisasiInRange($id, 'leads', $start, $end)),
+            'won' => collect($employeeIds)->sum(fn ($id) => $this->realisasiInRange($id, 'won', $start, $end)),
             'closing' => collect($employeeIds)->sum(fn ($id) => $this->realisasiInRange($id, 'closing', $start, $end)),
         ];
     })->values()->all();
@@ -225,6 +229,7 @@ $monthlyTrend = computed(function () {
                         <th class="text-right">QL</th>
                         <th class="text-right">Pitching</th>
                         <th class="text-right">Follow Up</th>
+                        <th class="text-right">Won</th>
                         <th class="text-right">Closing</th>
                         <th class="text-right">Nilai Closing</th>
                         <th class="text-right">Konversi Lead→Closing</th>
@@ -238,13 +243,14 @@ $monthlyTrend = computed(function () {
                             <td class="text-right">{{ number_format($row['ql']) }}</td>
                             <td class="text-right">{{ number_format($row['pitching']) }}</td>
                             <td class="text-right">{{ number_format($row['followup']) }}</td>
+                            <td class="text-right">{{ number_format($row['won']) }}</td>
                             <td class="text-right">{{ number_format($row['closing']) }}</td>
                             <td class="text-right"><x-currency-abbr :value="$row['nilai_closing']" /></td>
                             <td class="text-right">{{ $row['konversi'] !== null ? $row['konversi'].'%' : '-' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center text-base-content/50 py-6">Belum ada FO aktif.</td>
+                            <td colspan="9" class="text-center text-base-content/50 py-6">Belum ada FO aktif.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -256,6 +262,7 @@ $monthlyTrend = computed(function () {
                         <td class="text-right">{{ number_format($total['ql']) }}</td>
                         <td class="text-right">{{ number_format($total['pitching']) }}</td>
                         <td class="text-right">{{ number_format($total['followup']) }}</td>
+                        <td class="text-right">{{ number_format($total['won']) }}</td>
                         <td class="text-right">{{ number_format($total['closing']) }}</td>
                         <td class="text-right"><x-currency-abbr :value="$total['nilai_closing']" /></td>
                         <td class="text-right">{{ $total['konversi'] !== null ? $total['konversi'].'%' : '-' }}</td>
@@ -304,6 +311,7 @@ $monthlyTrend = computed(function () {
             chart: { ...baseOpts().chart, type: 'bar', height: 300 },
             series: [
                 { name: 'Lead Baru', data: d.map((row) => row.leads) },
+                { name: 'Won', data: d.map((row) => row.won) },
                 { name: 'Closing', data: d.map((row) => row.closing) },
             ],
             xaxis: {
@@ -311,7 +319,7 @@ $monthlyTrend = computed(function () {
                 labels: { style: { fontSize: '12px', colors: tc } },
             },
             yaxis: { labels: { formatter: (v) => Math.round(v), style: { colors: tc } } },
-            colors: ['#f97316', '#10b981'],
+            colors: ['#f97316', '#6366f1', '#10b981'],
             plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
             legend: { show: true, position: 'top', horizontalAlign: 'right', fontSize: '12px', labels: { colors: tc } },
             dataLabels: { enabled: false },

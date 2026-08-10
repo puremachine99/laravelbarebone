@@ -4,6 +4,7 @@ use App\Models\Employee;
 use App\Models\FoContact;
 use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
+use App\Models\FoFunnelActivityLog;
 use App\Notifications\FundingDealAkadNotification;
 use App\Notifications\FundingDealClosedNotification;
 use App\Notifications\FundingDealLostNotification;
@@ -25,6 +26,7 @@ $stagesData = [
     ['key' => 'followup', 'label' => 'Follow Up', 'badge' => 'badge-secondary'],
     ['key' => 'won', 'label' => 'Won', 'badge' => 'badge-success'],
     ['key' => 'lost', 'label' => 'Lost', 'badge' => 'badge-error'],
+    ['key' => 'closing', 'label' => 'Closing', 'badge' => 'badge-accent'],
     ['key' => 'akad', 'label' => 'Akad', 'badge' => 'badge-primary'],
 ];
 
@@ -36,6 +38,8 @@ state([
     'filterBulan' => '',
     'filterTahun' => '',
     'historyFunnelId' => null,
+    'logActivityId' => null,
+    'showDeletedFollowUps' => false,
 
     'akadFunnelId' => null,
     'akadTanggal' => '',
@@ -148,7 +152,7 @@ $historyFunnel = computed(function () {
 
     $funnel = FoFunnel::with([
         'contact',
-        'activities' => fn ($q) => $q->where('stage', 'followup')->orderByDesc('tanggal'),
+        'activities' => fn ($q) => $q->where('stage', 'followup')->withCount('logs')->orderByDesc('tanggal'),
     ])->find($this->historyFunnelId);
 
     if (! $funnel) {
@@ -322,7 +326,21 @@ $logPitchingAndMove = function ($funnelId, $tanggal, $catatan) {
     $this->success('Sesi pitching berhasil dicatat.');
 };
 
-$logWonAndMove = function ($funnelId, $tanggal, $amount) {
+// Won cuma menandai komitmen verbal calon investor — belum ada uang masuk, jadi gak
+// perlu nominal/tanggal closing. Uang yang benar-benar masuk PT dicatat di stage Closing.
+$logWonAndMove = function ($funnelId) {
+    $funnel = FoFunnel::findOrFail($funnelId);
+
+    if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
+        abort(403);
+    }
+
+    $funnel->update(['stage' => 'won', 'tgl_won' => now()->toDateString()]);
+
+    $this->success('Komitmen (Won) berhasil dicatat!');
+};
+
+$logClosingAndMove = function ($funnelId, $tanggal, $amount) {
     $funnel = FoFunnel::findOrFail($funnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
@@ -338,8 +356,8 @@ $logWonAndMove = function ($funnelId, $tanggal, $amount) {
     }
 
     $funnel->update([
-        'stage' => 'won',
-        'status_closing' => 'won',
+        'stage' => 'closing',
+        'status_closing' => 'closing',
         'tgl_closing' => $tanggal ?: now()->toDateString(),
         'nominal_investasi' => $amount ?: null,
     ]);
@@ -347,7 +365,7 @@ $logWonAndMove = function ($funnelId, $tanggal, $amount) {
     FundingDealClosedNotification::sendToAdmins($funnel);
     FundingDealClosedNotification::sendToOwner($funnel);
 
-    $this->success('Data closing (Won) berhasil dicatat!');
+    $this->success('Data closing berhasil dicatat!');
 };
 
 $logLostAndMove = function ($funnelId, $tanggal, $reason) {
@@ -391,6 +409,42 @@ $logFollowUp = function ($funnelId, $tanggal, $catatan, $moveStage = false) {
     $this->success('Follow up berhasil dicatat.');
 };
 
+// Ubah follow up yang sudah tercatat — setiap perubahan disimpan ke fo_funnel_activity_logs
+// (nilai sebelum & sesudah, siapa yang ubah) biar ada jejak audit, bukan cuma overwrite diam-diam.
+$updateFollowUp = function ($activityId, $tanggal, $catatan) {
+    $activity = FoFunnelActivity::with('funnel')->findOrFail($activityId);
+    $funnel = $activity->funnel;
+
+    if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
+        abort(403);
+    }
+
+    $newTanggal = $tanggal ?: now()->toDateString();
+    $newCatatan = $catatan ?: null;
+
+    if ($activity->tanggal->toDateString() === $newTanggal && $activity->catatan === $newCatatan) {
+        $this->success('Gak ada perubahan buat disimpan.');
+
+        return;
+    }
+
+    FoFunnelActivityLog::create([
+        'fo_funnel_activity_id' => $activity->id,
+        'changed_by_user_id' => auth()->id(),
+        'old_tanggal' => $activity->tanggal,
+        'new_tanggal' => $newTanggal,
+        'old_catatan' => $activity->catatan,
+        'new_catatan' => $newCatatan,
+    ]);
+
+    $activity->update([
+        'tanggal' => $newTanggal,
+        'catatan' => $newCatatan,
+    ]);
+
+    $this->success('Follow up berhasil diperbarui.');
+};
+
 $openHistory = function ($funnelId) {
     $funnel = FoFunnel::findOrFail($funnelId);
 
@@ -403,7 +457,73 @@ $openHistory = function ($funnelId) {
 
 $closeHistory = function () {
     $this->historyFunnelId = null;
+    $this->showDeletedFollowUps = false;
 };
+
+$deleteFollowUp = function ($activityId) {
+    $activity = FoFunnelActivity::with('funnel')->findOrFail($activityId);
+
+    if (! $this->isAdminFo && $activity->funnel->employee_id !== $this->currentEmployee?->id) {
+        abort(403);
+    }
+
+    $activity->delete();
+
+    $this->success('Follow up dihapus. Bisa dipulihkan lewat "Lihat Terhapus".');
+};
+
+$restoreFollowUp = function ($activityId) {
+    $activity = FoFunnelActivity::withTrashed()->with('funnel')->findOrFail($activityId);
+
+    if (! $this->isAdminFo && $activity->funnel->employee_id !== $this->currentEmployee?->id) {
+        abort(403);
+    }
+
+    $activity->restore();
+
+    $this->success('Follow up berhasil dipulihkan.');
+};
+
+$toggleDeletedFollowUps = function () {
+    $this->showDeletedFollowUps = ! $this->showDeletedFollowUps;
+};
+
+$deletedFollowUps = computed(function () {
+    if (! $this->historyFunnelId || ! $this->showDeletedFollowUps) {
+        return collect();
+    }
+
+    return FoFunnelActivity::onlyTrashed()
+        ->where('fo_funnel_id', $this->historyFunnelId)
+        ->where('stage', 'followup')
+        ->orderByDesc('deleted_at')
+        ->get();
+});
+
+$openActivityLog = function ($activityId) {
+    $activity = FoFunnelActivity::withTrashed()->with('funnel')->findOrFail($activityId);
+
+    if (! $this->isAdminFo && $activity->funnel->employee_id !== $this->currentEmployee?->id) {
+        abort(403);
+    }
+
+    $this->logActivityId = $activityId;
+};
+
+$closeActivityLog = function () {
+    $this->logActivityId = null;
+};
+
+$activityLogs = computed(function () {
+    if (! $this->logActivityId) {
+        return collect();
+    }
+
+    return FoFunnelActivityLog::with('changedBy')
+        ->where('fo_funnel_activity_id', $this->logActivityId)
+        ->latest('id')
+        ->get();
+});
 
 ?>
 
@@ -510,7 +630,7 @@ $closeHistory = function () {
                             <div class="text-xs text-base-content/50 truncate">{{ $funnel->contact?->profesi }}</div>
 
                             @php
-                                $usesClosingData = in_array($funnel->stage, ['won', 'akad'], true) && $funnel->nominal_investasi;
+                                $usesClosingData = in_array($funnel->stage, FoFunnel::CLOSED_STAGES, true) && $funnel->nominal_investasi;
                                 $displayAmount = $usesClosingData ? $funnel->nominal_investasi : $funnel->proyeksi_amount;
                                 $displayDate = $usesClosingData ? $funnel->tgl_closing : $funnel->proyeksi_close_date;
                             @endphp
@@ -590,7 +710,7 @@ $closeHistory = function () {
                 <tbody>
                     @forelse ($this->funnels as $funnel)
                         @php
-                            $usesClosingDataTable = in_array($funnel->stage, ['won', 'akad'], true) && $funnel->nominal_investasi;
+                            $usesClosingDataTable = in_array($funnel->stage, FoFunnel::CLOSED_STAGES, true) && $funnel->nominal_investasi;
                             $displayAmountTable = $usesClosingDataTable ? $funnel->nominal_investasi : $funnel->proyeksi_amount;
                             $displayDateTable = $usesClosingDataTable ? $funnel->tgl_closing : $funnel->proyeksi_close_date;
                         @endphp
@@ -763,6 +883,72 @@ $closeHistory = function () {
         </form>
     </x-modal>
 
+    <!-- Edit Follow Up Modal -->
+    <x-modal id="funnel-followup-edit-modal" title="Edit Follow Up" subtitle="Perubahan akan disimpan ke log perubahan." without-trap-focus>
+        <form x-on:submit.prevent="submitEditFollowUp()" class="space-y-4">
+            <div>
+                <div class="flex items-center justify-between mb-0.5">
+                    <span class="fieldset-legend text-sm font-medium">Tanggal Follow Up</span>
+                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setEditFollowUpToday()" />
+                </div>
+                <x-input type="date" x-model="editFollowUpForm.tanggal" required />
+            </div>
+
+            <x-textarea label="Catatan" x-model="editFollowUpForm.catatan" placeholder="Ringkasan hasil follow up..." rows="4" />
+
+            <div class="modal-action">
+                <form method="dialog">
+                    <x-button label="Batal" class="btn-ghost" />
+                </form>
+                <x-button label="Simpan" type="submit" class="btn-primary" />
+            </div>
+        </form>
+    </x-modal>
+
+    <!-- Follow Up Change Log Modal -->
+    <x-modal id="funnel-followup-log-modal" title="Log Perubahan Follow Up" subtitle="Terbaru ke terlama." without-trap-focus>
+        <div class="overflow-x-auto">
+            <table class="table table-sm table-zebra w-full text-base-content/70">
+                <thead>
+                    <tr class="text-base-content/50 border-b border-base-300">
+                        <th>Waktu</th>
+                        <th>Diubah Oleh</th>
+                        <th>Tanggal</th>
+                        <th>Catatan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($this->activityLogs as $log)
+                        <tr class="border-b border-base-300 align-top">
+                            <td class="whitespace-nowrap">{{ $log->created_at->format('d/m/Y H:i') }}</td>
+                            <td>{{ $log->changedBy?->name ?? '-' }}</td>
+                            <td class="text-xs">
+                                {{ $log->old_tanggal?->format('d M Y') ?? '-' }}
+                                <x-icon name="o-arrow-right" class="w-3 h-3 inline text-base-content/30" />
+                                {{ $log->new_tanggal?->format('d M Y') ?? '-' }}
+                            </td>
+                            <td class="text-xs max-w-[220px]">
+                                <div class="text-base-content/50 truncate" title="{{ $log->old_catatan }}">{{ $log->old_catatan ?? 'Tidak ada catatan.' }}</div>
+                                <x-icon name="o-arrow-down" class="w-3 h-3 text-base-content/30" />
+                                <div class="truncate" title="{{ $log->new_catatan }}">{{ $log->new_catatan ?? 'Tidak ada catatan.' }}</div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-center text-base-content/50 py-4">Belum ada perubahan tercatat.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="modal-action">
+            <form method="dialog">
+                <x-button label="Tutup" class="btn-ghost" wire:click="closeActivityLog" />
+            </form>
+        </div>
+    </x-modal>
+
     <!-- Akad Modal (Admin FO / Super Admin only) -->
     <x-modal id="funnel-akad-modal" title="Proses Akad" subtitle="Kartu ini akan pindah ke kolom Akad setelah dokumen tersimpan." without-trap-focus wire:ignore.self>
         <form wire:submit="submitAkad" class="space-y-4">
@@ -787,18 +973,18 @@ $closeHistory = function () {
         </form>
     </x-modal>
 
-    <!-- Won Modal -->
-    <x-modal id="funnel-won-modal" title="Catat Closing (Won)" subtitle="Kartu ini akan pindah ke kolom Won setelah dicatat." without-trap-focus>
-        <form x-on:submit.prevent="submitWon()" class="space-y-4">
+    <!-- Closing Modal -->
+    <x-modal id="funnel-closing-modal" title="Catat Closing" subtitle="Kartu ini akan pindah ke kolom Closing setelah dicatat — uang investor sudah masuk PT." without-trap-focus>
+        <form x-on:submit.prevent="submitClosing()" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
                     <span class="fieldset-legend text-sm font-medium">Tanggal Closing</span>
-                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setWonToday()" />
+                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setClosingToday()" />
                 </div>
-                <x-input type="date" x-model="wonForm.tanggal" required />
+                <x-input type="date" x-model="closingForm.tanggal" required />
             </div>
 
-            <x-input label="Amount Closing (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="wonForm.amount" placeholder="Cth: 250.000.000" hint="Otomatis diformat, cth: 250.000.000 untuk Rp 250 Juta" />
+            <x-input label="Nominal Investasi (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="closingForm.amount" placeholder="Cth: 250.000.000" hint="Otomatis diformat, cth: 250.000.000 untuk Rp 250 Juta" required />
 
             <div class="modal-action">
                 <form method="dialog">
@@ -858,13 +1044,75 @@ $closeHistory = function () {
                 <div class="space-y-3">
                     @forelse ($this->historyFunnel->activities as $activity)
                         <div class="card bg-base-200 p-3 space-y-1">
-                            <div class="text-sm font-semibold text-base-content">{{ $activity->tanggal->format('d M Y') }}</div>
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="text-sm font-semibold text-base-content">{{ $activity->tanggal->format('d M Y') }}</div>
+                                <div class="flex items-center gap-1 shrink-0">
+                                    @if ($activity->logs_count > 0)
+                                        <div class="tooltip" data-tip="Log Perubahan ({{ $activity->logs_count }})">
+                                            <button
+                                                type="button"
+                                                class="btn btn-ghost btn-xs btn-circle"
+                                                x-on:click="openFollowUpLog({{ $activity->id }})"
+                                            >
+                                                <x-icon name="o-clock" class="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    @endif
+                                    <button
+                                        type="button"
+                                        class="btn btn-ghost btn-xs btn-circle"
+                                        x-on:click="editFollowUpFromHistory({{ $activity->id }}, '{{ $activity->tanggal->format('Y-m-d') }}', @js($activity->catatan))"
+                                    >
+                                        <x-icon name="o-pencil-square" class="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-ghost btn-xs btn-circle text-error"
+                                        x-on:click="deleteFollowUp({{ $activity->id }})"
+                                    >
+                                        <x-icon name="o-trash" class="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
                             <div class="text-sm text-base-content/70">{{ $activity->catatan ?? 'Tidak ada catatan.' }}</div>
                         </div>
                     @empty
                         <div class="text-sm text-base-content/40 text-center py-8">Belum ada follow up tercatat.</div>
                     @endforelse
                 </div>
+
+                <x-button
+                    :label="$showDeletedFollowUps ? 'Sembunyikan Terhapus' : 'Lihat Terhapus'"
+                    icon="o-archive-box"
+                    class="btn-ghost btn-xs w-full text-base-content/50"
+                    wire:click="toggleDeletedFollowUps"
+                />
+
+                @if ($showDeletedFollowUps)
+                    <div class="space-y-3">
+                        <div class="text-xs font-semibold text-base-content/40 uppercase tracking-wide">Follow Up Terhapus</div>
+                        @forelse ($this->deletedFollowUps as $activity)
+                            <div class="card bg-base-200/50 border border-dashed border-base-300 p-3 space-y-1">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="text-sm font-semibold text-base-content/60 line-through">{{ $activity->tanggal->format('d M Y') }}</div>
+                                    <div class="tooltip" data-tip="Pulihkan">
+                                        <button
+                                            type="button"
+                                            class="btn btn-ghost btn-xs btn-circle text-success"
+                                            wire:click="restoreFollowUp({{ $activity->id }})"
+                                        >
+                                            <x-icon name="o-arrow-uturn-left" class="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="text-sm text-base-content/50">{{ $activity->catatan ?? 'Tidak ada catatan.' }}</div>
+                                <div class="text-[11px] text-base-content/30">Dihapus {{ $activity->deleted_at->diffForHumans() }}</div>
+                            </div>
+                        @empty
+                            <div class="text-sm text-base-content/40 text-center py-4">Tidak ada follow up terhapus.</div>
+                        @endforelse
+                    </div>
+                @endif
             </div>
         @endif
     </div>
@@ -902,7 +1150,8 @@ $closeHistory = function () {
         pitchForm: { funnelId: null, tanggal: '', catatan: '' },
         followUpForm: { funnelId: null, tanggal: '', catatan: '' },
         followUpMovesStage: false,
-        wonForm: { funnelId: null, tanggal: '', amount: '' },
+        editFollowUpForm: { id: null, tanggal: '', catatan: '' },
+        closingForm: { funnelId: null, tanggal: '', amount: '' },
         lostForm: { funnelId: null, tanggal: '', reason: '' },
 
         filteredContactOptions() {
@@ -951,6 +1200,12 @@ $closeHistory = function () {
             }
         },
 
+        deleteFollowUp(id) {
+            if (confirm('Hapus follow up ini? Masih bisa dipulihkan lewat tombol "Lihat Terhapus".')) {
+                $wire.deleteFollowUp(id);
+            }
+        },
+
         onDragStart(id, stage) {
             this.draggingId = id;
             this.draggingStage = stage;
@@ -986,9 +1241,9 @@ $closeHistory = function () {
                 $wire.openAkadModal(this.draggingId).then(() => {
                     document.getElementById('funnel-akad-modal').showModal();
                 });
-            } else if (stage === 'won') {
-                this.wonForm = { funnelId: this.draggingId, tanggal: new Date().toISOString().slice(0, 10), amount: '' };
-                document.getElementById('funnel-won-modal').showModal();
+            } else if (stage === 'closing') {
+                this.closingForm = { funnelId: this.draggingId, tanggal: new Date().toISOString().slice(0, 10), amount: '' };
+                document.getElementById('funnel-closing-modal').showModal();
             } else if (stage === 'lost') {
                 this.lostForm = { funnelId: this.draggingId, tanggal: '', reason: '' };
                 document.getElementById('funnel-lost-modal').showModal();
@@ -1036,17 +1291,41 @@ $closeHistory = function () {
             document.getElementById('funnel-followup-modal').close();
         },
 
-        setWonToday() {
-            this.wonForm.tanggal = new Date().toISOString().slice(0, 10);
+        editFollowUpFromHistory(id, tanggal, catatan) {
+            this.editFollowUpForm = { id, tanggal: tanggal ?? '', catatan: catatan ?? '' };
+            document.getElementById('funnel-followup-edit-modal').showModal();
         },
 
-        submitWon() {
-            if (!this.wonForm.tanggal) {
+        setEditFollowUpToday() {
+            this.editFollowUpForm.tanggal = new Date().toISOString().slice(0, 10);
+        },
+
+        submitEditFollowUp() {
+            if (!this.editFollowUpForm.tanggal) {
                 return;
             }
 
-            $wire.logWonAndMove(this.wonForm.funnelId, this.wonForm.tanggal, normalizeCurrency(this.wonForm.amount));
-            document.getElementById('funnel-won-modal').close();
+            $wire.updateFollowUp(this.editFollowUpForm.id, this.editFollowUpForm.tanggal, this.editFollowUpForm.catatan);
+            document.getElementById('funnel-followup-edit-modal').close();
+        },
+
+        openFollowUpLog(id) {
+            $wire.openActivityLog(id).then(() => {
+                document.getElementById('funnel-followup-log-modal').showModal();
+            });
+        },
+
+        setClosingToday() {
+            this.closingForm.tanggal = new Date().toISOString().slice(0, 10);
+        },
+
+        submitClosing() {
+            if (!this.closingForm.tanggal) {
+                return;
+            }
+
+            $wire.logClosingAndMove(this.closingForm.funnelId, this.closingForm.tanggal, normalizeCurrency(this.closingForm.amount));
+            document.getElementById('funnel-closing-modal').close();
         },
 
         setLostToday() {

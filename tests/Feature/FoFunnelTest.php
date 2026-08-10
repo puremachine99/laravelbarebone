@@ -3,6 +3,8 @@
 use App\Models\Employee;
 use App\Models\FoContact;
 use App\Models\FoFunnel;
+use App\Models\FoFunnelActivity;
+use App\Models\FoFunnelActivityLog;
 use App\Models\User;
 use App\Notifications\FundingDealAkadNotification;
 use App\Notifications\FundingDealClosedNotification;
@@ -261,7 +263,7 @@ test('moving to pitching logs an activity and updates the stage', function () {
     ]);
 });
 
-test('moving to won logs the closing date and amount', function () {
+test('moving to won only marks commitment, without touching closing data', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
@@ -269,41 +271,16 @@ test('moving to won logs the closing date and amount', function () {
     $this->actingAs($user);
 
     Volt::test('investors.funnel-index')
-        ->call('logWonAndMove', $funnel->id, '2026-09-10', 500_000_000)
+        ->call('logWonAndMove', $funnel->id)
         ->assertHasNoErrors();
 
     $funnel->refresh();
     expect($funnel->stage)->toBe('won')
-        ->and($funnel->status_closing)->toBe('won')
-        ->and($funnel->tgl_closing->format('Y-m-d'))->toBe('2026-09-10')
-        ->and((float) $funnel->nominal_investasi)->toBe(500_000_000.0);
-});
+        ->and($funnel->status_closing)->toBeNull()
+        ->and($funnel->tgl_closing)->toBeNull()
+        ->and($funnel->nominal_investasi)->toBeNull();
 
-test('moving a funding deal to won notifies investor admins and the owning fo, not partnership managers', function () {
-    $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
-    $employee = Employee::create(['user_id' => $user->id]);
-    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
-    $this->actingAs($user);
-
-    $investorAdmin = User::factory()->create();
-    $investorAdmin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
-
-    // Investors has no manager sign-off concept — a Partnership `verify-manager`
-    // holder must NOT be notified about a funding deal closing.
-    $partnershipManager = User::factory()->create();
-    $partnershipManager->givePermissionTo(Permission::findOrCreate('verify-manager'));
-
-    Volt::test('investors.funnel-index')
-        ->call('logWonAndMove', $funnel->id, '2026-09-10', 500_000_000)
-        ->assertHasNoErrors();
-
-    expect($investorAdmin->notifications()->count())->toBe(1);
-    expect($investorAdmin->notifications()->first()->type)->toBe(FundingDealClosedNotification::class);
-    expect($investorAdmin->notifications()->first()->data['type'])->toBe('funding_deal_closed');
-    expect($user->notifications()->count())->toBe(1);
-    expect($user->notifications()->first()->data['type'])->toBe('funding_deal_closed');
-    expect($partnershipManager->notifications()->count())->toBe(0);
+    expect($user->notifications()->count())->toBe(0);
 });
 
 test('a plain fo cannot move another fo funnel to won', function () {
@@ -316,10 +293,71 @@ test('a plain fo cannot move another fo funnel to won', function () {
     $this->actingAs($user);
 
     Volt::test('investors.funnel-index')
-        ->call('logWonAndMove', $otherFunnel->id, '2026-09-10', 500_000_000)
+        ->call('logWonAndMove', $otherFunnel->id)
         ->assertStatus(403);
 
     expect($otherFunnel->refresh()->stage)->toBe('followup');
+});
+
+test('moving to closing logs the closing date and amount', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('logClosingAndMove', $funnel->id, '2026-09-10', 500_000_000)
+        ->assertHasNoErrors();
+
+    $funnel->refresh();
+    expect($funnel->stage)->toBe('closing')
+        ->and($funnel->status_closing)->toBe('closing')
+        ->and($funnel->tgl_closing->format('Y-m-d'))->toBe('2026-09-10')
+        ->and((float) $funnel->nominal_investasi)->toBe(500_000_000.0);
+});
+
+test('moving a funding deal to closing notifies investor admins and the owning fo, not partnership managers', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
+    $this->actingAs($user);
+
+    $investorAdmin = User::factory()->create();
+    $investorAdmin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+
+    // Investors has no manager sign-off concept — a Partnership `verify-manager`
+    // holder must NOT be notified about a funding deal closing.
+    $partnershipManager = User::factory()->create();
+    $partnershipManager->givePermissionTo(Permission::findOrCreate('verify-manager'));
+
+    Volt::test('investors.funnel-index')
+        ->call('logClosingAndMove', $funnel->id, '2026-09-10', 500_000_000)
+        ->assertHasNoErrors();
+
+    expect($investorAdmin->notifications()->count())->toBe(1);
+    expect($investorAdmin->notifications()->first()->type)->toBe(FundingDealClosedNotification::class);
+    expect($investorAdmin->notifications()->first()->data['type'])->toBe('funding_deal_closed');
+    expect($user->notifications()->count())->toBe(1);
+    expect($user->notifications()->first()->data['type'])->toBe('funding_deal_closed');
+    expect($partnershipManager->notifications()->count())->toBe(0);
+});
+
+test('a plain fo cannot move another fo funnel to closing', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    Employee::create(['user_id' => $user->id]);
+
+    $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
+    $otherFunnel = FoFunnel::factory()->create(['employee_id' => $otherEmployee->id, 'stage' => 'won']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('logClosingAndMove', $otherFunnel->id, '2026-09-10', 500_000_000)
+        ->assertStatus(403);
+
+    expect($otherFunnel->refresh()->stage)->toBe('won');
 });
 
 test('moving to lost logs the lost date and reason', function () {
@@ -557,6 +595,192 @@ test('a funnel can accumulate multiple follow up entries', function () {
     Volt::test('investors.funnel-index')->call('logFollowUp', $funnel->id, '2026-08-15', 'FU 3', false);
 
     expect($funnel->activities()->where('stage', 'followup')->count())->toBe(3);
+});
+
+test('editing a follow up updates it and records an audit log entry', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
+    $activity = $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan awal']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('updateFollowUp', $activity->id, '2026-08-05', 'Catatan revisi')
+        ->assertHasNoErrors();
+
+    $activity->refresh();
+    expect($activity->tanggal->format('Y-m-d'))->toBe('2026-08-05')
+        ->and($activity->catatan)->toBe('Catatan revisi');
+
+    $log = FoFunnelActivityLog::where('fo_funnel_activity_id', $activity->id)->first();
+
+    expect($log)->not->toBeNull()
+        ->and($log->changed_by_user_id)->toBe($user->id)
+        ->and($log->old_tanggal->format('Y-m-d'))->toBe('2026-08-01')
+        ->and($log->new_tanggal->format('Y-m-d'))->toBe('2026-08-05')
+        ->and($log->old_catatan)->toBe('Catatan awal')
+        ->and($log->new_catatan)->toBe('Catatan revisi');
+});
+
+test('editing a follow up without any actual change does not create a log entry', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
+    $activity = $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan awal']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('updateFollowUp', $activity->id, '2026-08-01', 'Catatan awal')
+        ->assertHasNoErrors();
+
+    expect(FoFunnelActivityLog::where('fo_funnel_activity_id', $activity->id)->count())->toBe(0);
+});
+
+test('a plain fo cannot edit a follow up on another fo funnel', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    Employee::create(['user_id' => $user->id]);
+
+    $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
+    $otherFunnel = FoFunnel::factory()->create(['employee_id' => $otherEmployee->id]);
+    $activity = $otherFunnel->activities()->create(['employee_id' => $otherEmployee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('updateFollowUp', $activity->id, '2026-08-05', 'Diubah paksa')
+        ->assertStatus(403);
+
+    expect($activity->refresh()->catatan)->toBe('Catatan');
+});
+
+test('viewing the activity log lists entries newest first', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
+    $activity = $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Awal']);
+    $this->actingAs($user);
+
+    $component = Volt::test('investors.funnel-index');
+    $component->call('updateFollowUp', $activity->id, '2026-08-02', 'Revisi 1')->assertHasNoErrors();
+    $component->call('updateFollowUp', $activity->id, '2026-08-03', 'Revisi 2')->assertHasNoErrors();
+
+    $logs = $component->call('openActivityLog', $activity->id)->instance()->activityLogs;
+
+    expect($logs)->toHaveCount(2)
+        ->and($logs->first()->new_catatan)->toBe('Revisi 2')
+        ->and($logs->last()->new_catatan)->toBe('Revisi 1');
+});
+
+test('a plain fo cannot view the activity log for another fo funnel', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    Employee::create(['user_id' => $user->id]);
+
+    $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
+    $otherFunnel = FoFunnel::factory()->create(['employee_id' => $otherEmployee->id]);
+    $activity = $otherFunnel->activities()->create(['employee_id' => $otherEmployee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('openActivityLog', $activity->id)
+        ->assertStatus(403);
+});
+
+test('deleting a follow up soft deletes it and hides it from the active history list', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
+    $activity = $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('deleteFollowUp', $activity->id)
+        ->assertHasNoErrors();
+
+    expect(FoFunnelActivity::find($activity->id))->toBeNull()
+        ->and(FoFunnelActivity::withTrashed()->find($activity->id))->not->toBeNull();
+
+    $history = Volt::test('investors.funnel-index')
+        ->call('openHistory', $funnel->id)
+        ->instance()
+        ->historyFunnel;
+
+    expect($history->activities)->toHaveCount(0);
+});
+
+test('a plain fo cannot delete a follow up on another fo funnel', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    Employee::create(['user_id' => $user->id]);
+
+    $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
+    $otherFunnel = FoFunnel::factory()->create(['employee_id' => $otherEmployee->id]);
+    $activity = $otherFunnel->activities()->create(['employee_id' => $otherEmployee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('deleteFollowUp', $activity->id)
+        ->assertStatus(403);
+
+    expect(FoFunnelActivity::find($activity->id))->not->toBeNull();
+});
+
+test('restoring a follow up brings it back into the active history list', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
+    $activity = $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan']);
+    $activity->delete();
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('restoreFollowUp', $activity->id)
+        ->assertHasNoErrors();
+
+    expect(FoFunnelActivity::find($activity->id))->not->toBeNull();
+});
+
+test('a plain fo cannot restore a follow up on another fo funnel', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    Employee::create(['user_id' => $user->id]);
+
+    $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
+    $otherFunnel = FoFunnel::factory()->create(['employee_id' => $otherEmployee->id]);
+    $activity = $otherFunnel->activities()->create(['employee_id' => $otherEmployee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan']);
+    $activity->delete();
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('restoreFollowUp', $activity->id)
+        ->assertStatus(403);
+
+    expect(FoFunnelActivity::find($activity->id))->toBeNull();
+});
+
+test('deleted follow ups only show up in the sidebar after toggling "lihat terhapus"', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
+    $activity = $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan terhapus']);
+    $activity->delete();
+    $this->actingAs($user);
+
+    $component = Volt::test('investors.funnel-index')->call('openHistory', $funnel->id);
+
+    expect($component->instance()->deletedFollowUps)->toHaveCount(0);
+
+    $component->call('toggleDeletedFollowUps');
+
+    $deleted = $component->instance()->deletedFollowUps;
+    expect($deleted)->toHaveCount(1)
+        ->and($deleted->first()->catatan)->toBe('Catatan terhapus');
 });
 
 test('funnels list exposes followup_count aggregated from activities, excluding other stages', function () {

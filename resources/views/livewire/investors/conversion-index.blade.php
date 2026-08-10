@@ -23,7 +23,8 @@ state([
     'stageLabels' => [
         'lead_to_ql' => 'Lead → QL',
         'ql_to_pitch' => 'QL → Pitching',
-        'pitch_to_closing' => 'Pitching → Closing',
+        'pitch_to_won' => 'Pitching → Won',
+        'won_to_closing' => 'Won → Closing',
     ],
 ]);
 
@@ -80,8 +81,9 @@ $realisasiInRange = function ($employeeId, $metricKey, $start, $end) {
             ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId))
             ->distinct('fo_funnel_id')
             ->count('fo_funnel_id'),
-        'closing' => FoFunnel::where('employee_id', $employeeId)->whereIn('stage', ['won', 'akad'])->whereBetween('tgl_closing', [$start, $end])->count(),
-        'nilai_closing' => (float) FoFunnel::where('employee_id', $employeeId)->whereIn('stage', ['won', 'akad'])->whereBetween('tgl_closing', [$start, $end])->sum('nominal_investasi'),
+        'won' => FoFunnel::where('employee_id', $employeeId)->whereBetween('tgl_won', [$start, $end])->count(),
+        'closing' => FoFunnel::where('employee_id', $employeeId)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereBetween('tgl_closing', [$start, $end])->count(),
+        'nilai_closing' => (float) FoFunnel::where('employee_id', $employeeId)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereBetween('tgl_closing', [$start, $end])->sum('nominal_investasi'),
         default => 0,
     };
 };
@@ -104,6 +106,7 @@ $monthlyRows = computed(function () {
         $lead = $this->teamRealisasiInRange('leads', $start, $end);
         $ql = $this->teamRealisasiInRange('ql', $start, $end);
         $pitching = $this->teamRealisasiInRange('pitching', $start, $end);
+        $won = $this->teamRealisasiInRange('won', $start, $end);
         $closing = $this->teamRealisasiInRange('closing', $start, $end);
         $nilaiClosing = $this->teamRealisasiInRange('nilai_closing', $start, $end);
 
@@ -113,11 +116,13 @@ $monthlyRows = computed(function () {
             'lead' => $lead,
             'ql' => $ql,
             'pitching' => $pitching,
+            'won' => $won,
             'closing' => $closing,
             'nilai_closing' => $nilaiClosing,
             'lead_to_ql' => $lead > 0 ? round($ql / $lead * 100, 1) : null,
             'ql_to_pitch' => $ql > 0 ? round($pitching / $ql * 100, 1) : null,
-            'pitch_to_closing' => $pitching > 0 ? round($closing / $pitching * 100, 1) : null,
+            'pitch_to_won' => $pitching > 0 ? round($won / $pitching * 100, 1) : null,
+            'won_to_closing' => $won > 0 ? round($closing / $won * 100, 1) : null,
             'overall' => $lead > 0 ? round($closing / $lead * 100, 1) : null,
         ];
     })->values()->all();
@@ -151,17 +156,20 @@ $totalRow = computed(function () {
     $lead = $rows->sum('lead');
     $ql = $rows->sum('ql');
     $pitching = $rows->sum('pitching');
+    $won = $rows->sum('won');
     $closing = $rows->sum('closing');
 
     return [
         'lead' => $lead,
         'ql' => $ql,
         'pitching' => $pitching,
+        'won' => $won,
         'closing' => $closing,
         'nilai_closing' => $rows->sum('nilai_closing'),
         'lead_to_ql' => $lead > 0 ? round($ql / $lead * 100, 1) : null,
         'ql_to_pitch' => $ql > 0 ? round($pitching / $ql * 100, 1) : null,
-        'pitch_to_closing' => $pitching > 0 ? round($closing / $pitching * 100, 1) : null,
+        'pitch_to_won' => $pitching > 0 ? round($won / $pitching * 100, 1) : null,
+        'won_to_closing' => $won > 0 ? round($closing / $won * 100, 1) : null,
         'overall' => $lead > 0 ? round($closing / $lead * 100, 1) : null,
         'active_months' => $this->activeMonths->count(),
     ];
@@ -200,6 +208,7 @@ $funnelKumulatif = computed(function () {
         ['label' => 'Lead Baru', 'value' => $total['lead']],
         ['label' => 'Qualified Lead', 'value' => $total['ql']],
         ['label' => 'Pitching', 'value' => $total['pitching']],
+        ['label' => 'Won', 'value' => $total['won']],
         ['label' => 'Closing', 'value' => $total['closing']],
     ];
 
@@ -251,11 +260,13 @@ $funnelKumulatif = computed(function () {
                         <th>Lead</th>
                         <th>QL</th>
                         <th>Pitching</th>
+                        <th>Won</th>
                         <th>Closing</th>
                         <th>Nilai Closing</th>
                         <th>Lead→QL</th>
                         <th>QL→Pitch</th>
-                        <th>Pitch→Closing</th>
+                        <th>Pitch→Won</th>
+                        <th>Won→Closing</th>
                         <th>Overall</th>
                     </tr>
                 </thead>
@@ -267,11 +278,13 @@ $funnelKumulatif = computed(function () {
                             :lead="$row['lead']"
                             :ql="$row['ql']"
                             :pitching="$row['pitching']"
+                            :won="$row['won']"
                             :closing="$row['closing']"
                             :nilai-closing="$row['nilai_closing']"
                             :lead-to-ql="$row['lead_to_ql']"
                             :ql-to-pitch="$row['ql_to_pitch']"
-                            :pitch-to-closing="$row['pitch_to_closing']"
+                            :pitch-to-won="$row['pitch_to_won']"
+                            :won-to-closing="$row['won_to_closing']"
                             :overall="$row['overall']"
                             :status="$row['hasData'] ? $this->statusFor($row['overall']) : null"
                         />
@@ -285,11 +298,13 @@ $funnelKumulatif = computed(function () {
                         :lead="$total['lead']"
                         :ql="$total['ql']"
                         :pitching="$total['pitching']"
+                        :won="$total['won']"
                         :closing="$total['closing']"
                         :nilai-closing="$total['nilai_closing']"
                         :lead-to-ql="$total['lead_to_ql']"
                         :ql-to-pitch="$total['ql_to_pitch']"
-                        :pitch-to-closing="$total['pitch_to_closing']"
+                        :pitch-to-won="$total['pitch_to_won']"
+                        :won-to-closing="$total['won_to_closing']"
                         :overall="$total['overall']"
                     />
                 </tbody>
@@ -378,7 +393,7 @@ $funnelKumulatif = computed(function () {
                 labels: { style: { fontSize: '12px', colors: tc } },
             },
             yaxis: { labels: { style: { fontSize: '13px', fontWeight: 600, colors: tc } } },
-            colors: ['#c2410c', '#ea580c', '#eab308', '#16a34a'],
+            colors: ['#c2410c', '#ea580c', '#eab308', '#6366f1', '#16a34a'],
             plotOptions: {
                 bar: {
                     horizontal: true,

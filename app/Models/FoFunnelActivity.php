@@ -5,11 +5,12 @@ namespace App\Models;
 use Database\Factories\FoFunnelActivityFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FoFunnelActivity extends Model
 {
     /** @use HasFactory<FoFunnelActivityFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $guarded = ['id'];
 
@@ -25,5 +26,10 @@ class FoFunnelActivity extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(FoFunnelActivityLog::class)->latest('id');
     }
 }

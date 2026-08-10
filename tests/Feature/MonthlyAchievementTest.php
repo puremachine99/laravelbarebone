@@ -75,7 +75,7 @@ test('monthly realisasi counts leads, ql and closing only within the selected mo
     FoFunnel::factory()->create([
         'fo_contact_id' => $contact->id,
         'employee_id' => $fo->id,
-        'stage' => 'won',
+        'stage' => 'closing',
         'tgl_leads' => now()->startOfMonth()->addDays(4)->toDateString(),
         'tgl_closing' => now()->startOfMonth()->addDays(10)->toDateString(),
         'nominal_investasi' => 250_000_000,

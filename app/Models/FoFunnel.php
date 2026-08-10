@@ -13,12 +13,21 @@ class FoFunnel extends Model
     /** @use HasFactory<FoFunnelFactory> */
     use HasFactory, SoftDeletes;
 
+    /**
+     * Stages where the investor's money has actually landed at the company —
+     * 'won' is only a verbal commitment and must not be counted as closing.
+     *
+     * @var array<int, string>
+     */
+    public const CLOSED_STAGES = ['closing', 'akad'];
+
     protected $guarded = ['id'];
 
     protected $casts = [
         'tgl_leads' => 'date',
         'tgl_qualified' => 'date',
         'proyeksi_close_date' => 'date',
+        'tgl_won' => 'date',
         'tgl_closing' => 'date',
         'proyeksi_amount' => 'decimal:2',
         'nominal_investasi' => 'decimal:2',

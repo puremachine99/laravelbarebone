@@ -93,9 +93,9 @@ $suggestedYearlyTarget = function ($employeeId, $metricKey) {
             ->pluck('fo_funnel_id')
             ->unique()
             ->count(),
-        'closing' => FoFunnel::where('employee_id', $employeeId)->whereIn('stage', ['won', 'akad'])->count(),
+        'closing' => FoFunnel::where('employee_id', $employeeId)->whereIn('stage', FoFunnel::CLOSED_STAGES)->count(),
         'nilai_closing' => (float) FoFunnel::where('employee_id', $employeeId)
-            ->whereIn('stage', ['won', 'akad'])
+            ->whereIn('stage', FoFunnel::CLOSED_STAGES)
             ->sum('nominal_investasi'),
         default => 0,
     };
@@ -154,12 +154,15 @@ $realisasiInRange = function ($employeeId, $metricKey, $start, $end) {
             ->pluck('fo_funnel_id')
             ->unique()
             ->count(),
+        'won' => FoFunnel::where('employee_id', $employeeId)
+            ->whereBetween('tgl_won', [$start, $end])
+            ->count(),
         'closing' => FoFunnel::where('employee_id', $employeeId)
-            ->whereIn('stage', ['won', 'akad'])
+            ->whereIn('stage', FoFunnel::CLOSED_STAGES)
             ->whereBetween('tgl_closing', [$start, $end])
             ->count(),
         'nilai_closing' => (float) FoFunnel::where('employee_id', $employeeId)
-            ->whereIn('stage', ['won', 'akad'])
+            ->whereIn('stage', FoFunnel::CLOSED_STAGES)
             ->whereBetween('tgl_closing', [$start, $end])
             ->sum('nominal_investasi'),
         default => 0,
@@ -260,7 +263,9 @@ $saveTargets = function () {
             $changes[] = [
                 'label' => $metric['label'],
                 'type' => $metric['type'],
-                'from' => $result['from'],
+                // Pakai nilai yang tadinya tampil di form (bisa jadi saran otomatis, bukan cuma target
+                // tersimpan di DB), biar FO lihat perbandingan yang sama persis kayak yang Admin lihat.
+                'from' => Money::normalize($this->targetInputsSnapshot[$key] ?? null),
                 'to' => $result['to'],
             ];
         } else {
@@ -343,6 +348,7 @@ $monthlyRekap = computed(function () {
             'leads' => $this->realisasiInRange($employeeId, 'leads', $start, $end),
             'ql' => $this->realisasiInRange($employeeId, 'ql', $start, $end),
             'pitching' => $this->realisasiInRange($employeeId, 'pitching', $start, $end),
+            'won' => $this->realisasiInRange($employeeId, 'won', $start, $end),
             'closing' => $this->realisasiInRange($employeeId, 'closing', $start, $end),
             'nilai_closing' => $this->realisasiInRange($employeeId, 'nilai_closing', $start, $end),
         ];
@@ -360,6 +366,7 @@ $foRanking = computed(function () {
 
         return [
             'name' => $fo['name'],
+            'won' => $this->realisasiInRange($fo['id'], 'won', $start, $end),
             'closing' => $this->realisasiInRange($fo['id'], 'closing', $start, $end),
             'nilai_closing' => $nilaiClosing,
             'target' => $target,
@@ -486,6 +493,14 @@ $foRanking = computed(function () {
                                     </span>
                                 </div>
                             @endforeach
+
+                            @php $wonRealisasi = $this->realisasiFor($fo['id'], 'won'); @endphp
+                            <div class="flex items-center justify-between gap-1 text-xs">
+                                <span class="text-base-content/50 shrink-0">Won</span>
+                                <span class="tooltip tooltip-left" data-tip="Won — calon investor yang sudah komitmen verbal, belum tentu uangnya sudah masuk (lihat Closing).">
+                                    <span class="font-medium text-base-content">{{ number_format($wonRealisasi, $activePeriod === 'harian' ? 1 : 0) }}</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 @endforeach
@@ -520,6 +535,12 @@ $foRanking = computed(function () {
                             </span>
                         </div>
                     @endforeach
+
+                    @php $totalWon = collect($this->foEmployees)->sum(fn ($fo) => $this->realisasiFor($fo['id'], 'won')); @endphp
+                    <div>
+                        <span class="text-base-content/50">Won</span>
+                        <span class="font-semibold text-base-content ms-1">{{ number_format($totalWon, 0) }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -537,6 +558,7 @@ $foRanking = computed(function () {
                         @foreach ($metrics as $metric)
                             <th class="text-right">{{ $metric['label'] }}</th>
                         @endforeach
+                        <th class="text-right">Won</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -552,10 +574,11 @@ $foRanking = computed(function () {
                                     @endif
                                 </td>
                             @endforeach
+                            <td class="text-right">{{ number_format($row['won']) }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ count($metrics) + 1 }}" class="text-center text-base-content/50 py-4">Pilih FO dulu di panel kiri.</td>
+                            <td colspan="{{ count($metrics) + 2 }}" class="text-center text-base-content/50 py-4">Pilih FO dulu di panel kiri.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -573,6 +596,7 @@ $foRanking = computed(function () {
                     <tr class="text-base-content/50 border-b border-base-300">
                         <th>#</th>
                         <th>Nama FO</th>
+                        <th class="text-right">Won</th>
                         <th class="text-right">Closing</th>
                         <th class="text-right">Nilai Closing</th>
                         <th class="text-right">Target</th>
@@ -584,6 +608,7 @@ $foRanking = computed(function () {
                         <tr class="border-b border-base-300">
                             <td>{{ $i + 1 }}</td>
                             <td class="font-medium text-base-content">{{ $fo['name'] }}</td>
+                            <td class="text-right">{{ number_format($fo['won']) }}</td>
                             <td class="text-right">{{ number_format($fo['closing']) }}</td>
                             <td class="text-right"><x-currency-abbr :value="$fo['nilai_closing']" /></td>
                             <td class="text-right text-base-content/40"><x-currency-abbr :value="$fo['target']" /></td>
@@ -597,7 +622,7 @@ $foRanking = computed(function () {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-base-content/50 py-4">Belum ada data FO.</td>
+                            <td colspan="7" class="text-center text-base-content/50 py-4">Belum ada data FO.</td>
                         </tr>
                     @endforelse
                 </tbody>

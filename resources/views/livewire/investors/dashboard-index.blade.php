@@ -23,6 +23,7 @@ $metricsData = [
     ['key' => 'leads', 'label' => 'Lead Baru'],
     ['key' => 'ql', 'label' => 'Qualified Lead'],
     ['key' => 'pitching', 'label' => 'Pitching'],
+    ['key' => 'won', 'label' => 'Won (Komitmen)'],
     ['key' => 'closing', 'label' => 'Closing (Deal)'],
 ];
 
@@ -91,8 +92,9 @@ $realisasiForFo = function ($employeeId, $metricKey, $date) {
             ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId))
             ->distinct('fo_funnel_id')
             ->count('fo_funnel_id'),
-        'closing' => FoFunnel::where('employee_id', $employeeId)->whereIn('stage', ['won', 'akad'])->whereDate('tgl_closing', $date)->count(),
-        'nilai_closing' => (float) FoFunnel::where('employee_id', $employeeId)->whereIn('stage', ['won', 'akad'])->whereDate('tgl_closing', $date)->sum('nominal_investasi'),
+        'won' => FoFunnel::where('employee_id', $employeeId)->whereDate('tgl_won', $date)->count(),
+        'closing' => FoFunnel::where('employee_id', $employeeId)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereDate('tgl_closing', $date)->count(),
+        'nilai_closing' => (float) FoFunnel::where('employee_id', $employeeId)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereDate('tgl_closing', $date)->sum('nominal_investasi'),
         default => 0,
     };
 };
@@ -149,6 +151,7 @@ $realisasiPerFo = computed(function () {
             'ql' => $this->realisasiForFo($fo['id'], 'ql', $selectedDate),
             'pitching' => $this->realisasiForFo($fo['id'], 'pitching', $selectedDate),
             'followup' => $this->realisasiForFo($fo['id'], 'followup', $selectedDate),
+            'won' => $this->realisasiForFo($fo['id'], 'won', $selectedDate),
             'closing' => $this->realisasiForFo($fo['id'], 'closing', $selectedDate),
             'nilai_closing' => $this->realisasiForFo($fo['id'], 'nilai_closing', $selectedDate),
             'status' => $this->statusFor($percent),
@@ -166,7 +169,8 @@ $trend = computed(function () {
         return [
             'label' => $date->format('d/m'),
             'leads' => collect($employeeIds)->sum(fn ($id) => FoFunnel::where('employee_id', $id)->whereDate('tgl_leads', $date)->count()),
-            'closing' => collect($employeeIds)->sum(fn ($id) => FoFunnel::where('employee_id', $id)->whereIn('stage', ['won', 'akad'])->whereDate('tgl_closing', $date)->count()),
+            'won' => collect($employeeIds)->sum(fn ($id) => FoFunnel::where('employee_id', $id)->whereDate('tgl_won', $date)->count()),
+            'closing' => collect($employeeIds)->sum(fn ($id) => FoFunnel::where('employee_id', $id)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereDate('tgl_closing', $date)->count()),
         ];
     })->values()->all();
 
@@ -180,8 +184,9 @@ $leaderboard = computed(function () {
         return [
             'name' => $fo['name'],
             'lead' => FoFunnel::where('employee_id', $fo['id'])->count(),
-            'closing' => FoFunnel::where('employee_id', $fo['id'])->whereIn('stage', ['won', 'akad'])->count(),
-            'nilai_closing' => (float) FoFunnel::where('employee_id', $fo['id'])->whereIn('stage', ['won', 'akad'])->sum('nominal_investasi'),
+            'won' => FoFunnel::where('employee_id', $fo['id'])->where('stage', 'won')->count(),
+            'closing' => FoFunnel::where('employee_id', $fo['id'])->whereIn('stage', FoFunnel::CLOSED_STAGES)->count(),
+            'nilai_closing' => (float) FoFunnel::where('employee_id', $fo['id'])->whereIn('stage', FoFunnel::CLOSED_STAGES)->sum('nominal_investasi'),
         ];
     })->sortByDesc('nilai_closing')->values()->all();
 });
@@ -226,7 +231,7 @@ $leaderboard = computed(function () {
     </div>
 
     <!-- Stat cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
         @foreach ($metrics as $metric)
             @php $s = $this->todaySummary[$metric['key']]; @endphp
             <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
@@ -262,6 +267,7 @@ $leaderboard = computed(function () {
                         <th class="text-right">QL</th>
                         <th class="text-right">Pitching</th>
                         <th class="text-right">Follow Up</th>
+                        <th class="text-right">Won</th>
                         <th class="text-right">Closing</th>
                         <th class="text-right">Nilai Closing</th>
                         <th>Status</th>
@@ -275,13 +281,14 @@ $leaderboard = computed(function () {
                             <td class="text-right">{{ number_format($row['ql']) }}</td>
                             <td class="text-right">{{ number_format($row['pitching']) }}</td>
                             <td class="text-right">{{ number_format($row['followup']) }}</td>
+                            <td class="text-right">{{ number_format($row['won']) }}</td>
                             <td class="text-right">{{ number_format($row['closing']) }}</td>
                             <td class="text-right"><x-currency-abbr :value="$row['nilai_closing']" /></td>
                             <td><span class="badge badge-sm {{ $row['status']['class'] }}">{{ $row['status']['label'] }}</span></td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center text-base-content/50 py-6">Belum ada FO aktif.</td>
+                            <td colspan="9" class="text-center text-base-content/50 py-6">Belum ada FO aktif.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -319,6 +326,7 @@ $leaderboard = computed(function () {
                         <th>#</th>
                         <th>FO</th>
                         <th class="text-right">Lead</th>
+                        <th class="text-right">Won</th>
                         <th class="text-right">Closing</th>
                         <th class="text-right">Nilai Closing Kumulatif</th>
                     </tr>
@@ -329,12 +337,13 @@ $leaderboard = computed(function () {
                             <td>{{ $i + 1 }}</td>
                             <td class="font-medium text-base-content">{{ $fo['name'] }}</td>
                             <td class="text-right">{{ number_format($fo['lead']) }}</td>
+                            <td class="text-right">{{ number_format($fo['won']) }}</td>
                             <td class="text-right">{{ number_format($fo['closing']) }}</td>
                             <td class="text-right font-semibold text-base-content"><x-currency-abbr :value="$fo['nilai_closing']" /></td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-base-content/50 py-6">Belum ada data FO.</td>
+                            <td colspan="6" class="text-center text-base-content/50 py-6">Belum ada data FO.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -372,6 +381,7 @@ $leaderboard = computed(function () {
             chart: { ...baseOpts().chart, type: 'area', height: 300 },
             series: [
                 { name: 'Lead Baru', data: d.map((row) => row.leads) },
+                { name: 'Won', data: d.map((row) => row.won) },
                 { name: 'Closing', data: d.map((row) => row.closing) },
             ],
             xaxis: {
@@ -379,7 +389,7 @@ $leaderboard = computed(function () {
                 labels: { style: { fontSize: '12px', colors: tc } },
             },
             yaxis: { labels: { formatter: (v) => Math.round(v), style: { colors: tc } } },
-            colors: ['#f97316', '#10b981'],
+            colors: ['#f97316', '#6366f1', '#10b981'],
             stroke: { curve: 'smooth', width: 2 },
             fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.05 } },
             legend: { show: true, position: 'top', horizontalAlign: 'right', fontSize: '12px', labels: { colors: tc } },
