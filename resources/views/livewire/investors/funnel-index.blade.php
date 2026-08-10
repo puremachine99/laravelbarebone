@@ -46,6 +46,14 @@ state([
     'akadNominal' => null,
     'akadFile' => null,
 
+    'wonFunnelId' => null,
+    'wonTanggal' => '',
+    'wonNominal' => null,
+
+    'closingFunnelId' => null,
+    'closingTanggal' => '',
+    'closingNominal' => null,
+
     'bulanOptions' => [
         ['id' => 1, 'name' => 'Januari'], ['id' => 2, 'name' => 'Februari'], ['id' => 3, 'name' => 'Maret'],
         ['id' => 4, 'name' => 'April'], ['id' => 5, 'name' => 'Mei'], ['id' => 6, 'name' => 'Juni'],
@@ -326,46 +334,88 @@ $logPitchingAndMove = function ($funnelId, $tanggal, $catatan) {
     $this->success('Sesi pitching berhasil dicatat.');
 };
 
-// Won cuma menandai komitmen verbal calon investor — belum ada uang masuk, jadi gak
-// perlu nominal/tanggal closing. Uang yang benar-benar masuk PT dicatat di stage Closing.
-$logWonAndMove = function ($funnelId) {
+// Won = komitmen verbal calon investor. Nominalnya dicatat terpisah dari Closing (nominal_won vs
+// nominal_investasi) karena angkanya bisa berubah pas uang beneran cair — biar bisa dibandingkan.
+$openWonModal = function ($funnelId) {
     $funnel = FoFunnel::findOrFail($funnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
         abort(403);
     }
 
-    $funnel->update(['stage' => 'won', 'tgl_won' => now()->toDateString()]);
-
-    $this->success('Komitmen (Won) berhasil dicatat!');
+    $this->wonFunnelId = $funnelId;
+    $this->wonTanggal = '';
+    $this->wonNominal = null;
+    $this->resetValidation();
 };
 
-$logClosingAndMove = function ($funnelId, $tanggal, $amount) {
+$submitWon = function () {
+    $funnel = FoFunnel::findOrFail($this->wonFunnelId);
+
+    if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
+        abort(403);
+    }
+
+    $this->wonNominal = Money::normalize($this->wonNominal);
+
+    $validated = $this->validate([
+        'wonTanggal' => ['required', 'date'],
+        'wonNominal' => ['required', 'numeric', 'min:1', 'max:9999999999999'],
+    ]);
+
+    $funnel->update([
+        'stage' => 'won',
+        'tgl_won' => $validated['wonTanggal'],
+        'nominal_won' => $validated['wonNominal'],
+    ]);
+
+    $this->reset(['wonFunnelId', 'wonTanggal', 'wonNominal']);
+    $this->success('Komitmen (Won) berhasil dicatat!');
+    $this->js("document.getElementById('funnel-won-modal').close()");
+};
+
+// Closing = uang investor beneran sudah masuk PT. Nominal & tanggalnya final, dicatat lagi di sini
+// (bukan cuma dicopy dari Won) supaya kalau ada selisih dari nominal komitmen, ketahuan.
+$openClosingModal = function ($funnelId) {
     $funnel = FoFunnel::findOrFail($funnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
         abort(403);
     }
 
-    $amount = Money::normalize($amount);
+    $this->closingFunnelId = $funnelId;
+    $this->closingTanggal = '';
+    $this->closingNominal = null;
+    $this->resetValidation();
+};
 
-    if ($amount && $amount > 9_999_999_999_999) {
-        $this->error('Nominal closing terlalu besar', 'Maksimal Rp 9.999.999.999.999.');
+$submitClosing = function () {
+    $funnel = FoFunnel::findOrFail($this->closingFunnelId);
 
-        return;
+    if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
+        abort(403);
     }
+
+    $this->closingNominal = Money::normalize($this->closingNominal);
+
+    $validated = $this->validate([
+        'closingTanggal' => ['required', 'date'],
+        'closingNominal' => ['required', 'numeric', 'min:1', 'max:9999999999999'],
+    ]);
 
     $funnel->update([
         'stage' => 'closing',
         'status_closing' => 'closing',
-        'tgl_closing' => $tanggal ?: now()->toDateString(),
-        'nominal_investasi' => $amount ?: null,
+        'tgl_closing' => $validated['closingTanggal'],
+        'nominal_investasi' => $validated['closingNominal'],
     ]);
 
     FundingDealClosedNotification::sendToAdmins($funnel);
     FundingDealClosedNotification::sendToOwner($funnel);
 
+    $this->reset(['closingFunnelId', 'closingTanggal', 'closingNominal']);
     $this->success('Data closing berhasil dicatat!');
+    $this->js("document.getElementById('funnel-closing-modal').close()");
 };
 
 $logLostAndMove = function ($funnelId, $tanggal, $reason) {
@@ -500,6 +550,23 @@ $deletedFollowUps = computed(function () {
         ->get();
 });
 
+// NOTE: Livewire/Volt's single-file compiler locates the end of the component by finding the
+// last "}" immediately followed by ";" in this script — a plain closure assignment satisfies
+// that, but a trailing computed(fn () => ...) call (ending in "});") does not. Keep a plain
+// "$foo = function () {...};" statement (not a computed()) as the LAST statement in this block,
+// or the compiler mis-injects its view() method mid-closure and the whole page 500s on a fresh
+// compile. See git history around 2026-08-10 for the same bug hitting management-fo.blade.php.
+$activityLogs = computed(function () {
+    if (! $this->logActivityId) {
+        return collect();
+    }
+
+    return FoFunnelActivityLog::with('changedBy')
+        ->where('fo_funnel_activity_id', $this->logActivityId)
+        ->latest('id')
+        ->get();
+});
+
 $openActivityLog = function ($activityId) {
     $activity = FoFunnelActivity::withTrashed()->with('funnel')->findOrFail($activityId);
 
@@ -513,17 +580,6 @@ $openActivityLog = function ($activityId) {
 $closeActivityLog = function () {
     $this->logActivityId = null;
 };
-
-$activityLogs = computed(function () {
-    if (! $this->logActivityId) {
-        return collect();
-    }
-
-    return FoFunnelActivityLog::with('changedBy')
-        ->where('fo_funnel_activity_id', $this->logActivityId)
-        ->latest('id')
-        ->get();
-});
 
 ?>
 
@@ -579,7 +635,7 @@ $activityLogs = computed(function () {
 
     <!-- Kanban Mode -->
     @if ($viewMode === 'kanban')
-    <div class="flex gap-4 overflow-auto pb-2 max-h-[70vh]">
+    <div class="flex items-start gap-4 overflow-auto pb-2 max-h-[70vh]">
         @foreach ($stages as $stage)
             <div
                 class="w-72 shrink-0 bg-base-200 rounded-2xl p-3 flex flex-col gap-3 transition-colors"
@@ -630,18 +686,29 @@ $activityLogs = computed(function () {
                             <div class="text-xs text-base-content/50 truncate">{{ $funnel->contact?->profesi }}</div>
 
                             @php
+                                $usesWonData = $funnel->stage === 'won' && $funnel->nominal_won;
                                 $usesClosingData = in_array($funnel->stage, FoFunnel::CLOSED_STAGES, true) && $funnel->nominal_investasi;
-                                $displayAmount = $usesClosingData ? $funnel->nominal_investasi : $funnel->proyeksi_amount;
-                                $displayDate = $usesClosingData ? $funnel->tgl_closing : $funnel->proyeksi_close_date;
+                                $displayAmount = $usesClosingData ? $funnel->nominal_investasi : ($usesWonData ? $funnel->nominal_won : $funnel->proyeksi_amount);
+                                $displayDate = $usesClosingData ? $funnel->tgl_closing : ($usesWonData ? $funnel->tgl_won : $funnel->proyeksi_close_date);
+                                $showWonComparison = $usesClosingData && $funnel->nominal_won && (float) $funnel->nominal_won !== (float) $funnel->nominal_investasi;
+                                $amountBadgeClass = collect($stages)->firstWhere('key', $funnel->stage)['badge'] ?? 'badge-ghost';
                             @endphp
                             <div class="flex items-center justify-between pt-1">
-                                <span class="badge badge-sm {{ $usesClosingData ? 'badge-success' : 'badge-ghost' }} font-semibold"><x-currency-abbr :value="$displayAmount" /></span>
+                                <span class="badge badge-sm {{ $amountBadgeClass }} font-semibold"><x-currency-abbr :value="$displayAmount" /></span>
                                 <span class="text-[11px] text-base-content/50 truncate max-w-[110px]" title="{{ $funnel->employee?->user?->name }}">{{ $funnel->employee?->user?->name }}</span>
                             </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-[11px] text-base-content/40">{{ $displayDate?->format('d M Y') ?? '-' }}</span>
-                                <span class="badge badge-xs badge-outline">{{ $funnel->sumber }}</span>
+                            @php $fuCount = $funnel->followup_count; @endphp
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="text-[11px] text-base-content/40 shrink-0">{{ $displayDate?->format('d M Y') ?? '-' }}</span>
+                                <span class="badge badge-xs badge-outline shrink-0">{{ $funnel->sumber }}</span>
                             </div>
+                            @if ($showWonComparison)
+                                <div class="tooltip w-full" data-tip="Nominal komitmen (Won) vs nominal final (Closing) beda.">
+                                    <div class="text-[11px] text-warning/80 bg-warning/10 rounded-lg px-2 py-1 truncate">
+                                        Komit: <x-currency-abbr :value="$funnel->nominal_won" />
+                                    </div>
+                                </div>
+                            @endif
                             @if ($funnel->stage === 'akad' && $funnel->dokumen_akad_path)
                                 <a
                                     href="{{ $funnel->dokumenAkadUrl() }}"
@@ -666,7 +733,7 @@ $activityLogs = computed(function () {
                                 <div class="tooltip" data-tip="Tampilkan detail">
                                     <button
                                         type="button"
-                                        class="badge badge-sm badge-secondary w-full"
+                                        class="badge badge-sm badge-secondary cursor-pointer w-full"
                                         wire:click="openHistory({{ $funnel->id }})"
                                         x-on:mousedown.stop
                                         x-on:click.stop
@@ -710,9 +777,10 @@ $activityLogs = computed(function () {
                 <tbody>
                     @forelse ($this->funnels as $funnel)
                         @php
+                            $usesWonDataTable = $funnel->stage === 'won' && $funnel->nominal_won;
                             $usesClosingDataTable = in_array($funnel->stage, FoFunnel::CLOSED_STAGES, true) && $funnel->nominal_investasi;
-                            $displayAmountTable = $usesClosingDataTable ? $funnel->nominal_investasi : $funnel->proyeksi_amount;
-                            $displayDateTable = $usesClosingDataTable ? $funnel->tgl_closing : $funnel->proyeksi_close_date;
+                            $displayAmountTable = $usesClosingDataTable ? $funnel->nominal_investasi : ($usesWonDataTable ? $funnel->nominal_won : $funnel->proyeksi_amount);
+                            $displayDateTable = $usesClosingDataTable ? $funnel->tgl_closing : ($usesWonDataTable ? $funnel->tgl_won : $funnel->proyeksi_close_date);
                         @endphp
                         <tr class="border-b border-base-300 hover:bg-base-200">
                             <td class="font-semibold text-base-content py-3">{{ $funnel->contact?->nama }}</td>
@@ -973,24 +1041,40 @@ $activityLogs = computed(function () {
         </form>
     </x-modal>
 
-    <!-- Closing Modal -->
-    <x-modal id="funnel-closing-modal" title="Catat Closing" subtitle="Kartu ini akan pindah ke kolom Closing setelah dicatat — uang investor sudah masuk PT." without-trap-focus>
-        <form x-on:submit.prevent="submitClosing()" class="space-y-4">
+    <!-- Won Modal (wajib diisi, gak bisa ditutup sebelum disimpan) -->
+    <x-modal id="funnel-won-modal" title="Catat Won (Komitmen)" subtitle="Tanggal & nominal komitmen investor wajib diisi. Form ini gak bisa ditutup sebelum disimpan." persistent wire:ignore.self>
+        <form wire:submit="submitWon" class="space-y-4">
+            <div>
+                <div class="flex items-center justify-between mb-0.5">
+                    <span class="fieldset-legend text-sm font-medium">Tanggal Won</span>
+                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setWonToday()" />
+                </div>
+                <x-input type="date" wire:model="wonTanggal" required />
+            </div>
+
+            <x-input label="Nominal Komitmen (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="wonNominal" placeholder="Cth: 250.000.000" hint="Nominal yang disepakati saat komitmen — bisa beda dari nominal final di Closing." required />
+
+            <div class="modal-action">
+                <x-button label="Simpan" type="submit" class="btn-primary w-full" spinner="submitWon" />
+            </div>
+        </form>
+    </x-modal>
+
+    <!-- Closing Modal (wajib diisi, gak bisa ditutup sebelum disimpan) -->
+    <x-modal id="funnel-closing-modal" title="Catat Closing" subtitle="Uang investor sudah masuk PT — tanggal & nominal final wajib diisi. Form ini gak bisa ditutup sebelum disimpan." persistent wire:ignore.self>
+        <form wire:submit="submitClosing" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
                     <span class="fieldset-legend text-sm font-medium">Tanggal Closing</span>
                     <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setClosingToday()" />
                 </div>
-                <x-input type="date" x-model="closingForm.tanggal" required />
+                <x-input type="date" wire:model="closingTanggal" required />
             </div>
 
-            <x-input label="Nominal Investasi (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="closingForm.amount" placeholder="Cth: 250.000.000" hint="Otomatis diformat, cth: 250.000.000 untuk Rp 250 Juta" required />
+            <x-input label="Nominal Investasi Final (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="closingNominal" placeholder="Cth: 250.000.000" hint="Nominal final yang beneran masuk ke perusahaan." required />
 
             <div class="modal-action">
-                <form method="dialog">
-                    <x-button label="Batal" class="btn-ghost" />
-                </form>
-                <x-button label="Simpan" type="submit" class="btn-primary" />
+                <x-button label="Simpan" type="submit" class="btn-primary w-full" spinner="submitClosing" />
             </div>
         </form>
     </x-modal>
@@ -1151,7 +1235,6 @@ $activityLogs = computed(function () {
         followUpForm: { funnelId: null, tanggal: '', catatan: '' },
         followUpMovesStage: false,
         editFollowUpForm: { id: null, tanggal: '', catatan: '' },
-        closingForm: { funnelId: null, tanggal: '', amount: '' },
         lostForm: { funnelId: null, tanggal: '', reason: '' },
 
         filteredContactOptions() {
@@ -1241,9 +1324,14 @@ $activityLogs = computed(function () {
                 $wire.openAkadModal(this.draggingId).then(() => {
                     document.getElementById('funnel-akad-modal').showModal();
                 });
+            } else if (stage === 'won') {
+                $wire.openWonModal(this.draggingId).then(() => {
+                    document.getElementById('funnel-won-modal').showModal();
+                });
             } else if (stage === 'closing') {
-                this.closingForm = { funnelId: this.draggingId, tanggal: new Date().toISOString().slice(0, 10), amount: '' };
-                document.getElementById('funnel-closing-modal').showModal();
+                $wire.openClosingModal(this.draggingId).then(() => {
+                    document.getElementById('funnel-closing-modal').showModal();
+                });
             } else if (stage === 'lost') {
                 this.lostForm = { funnelId: this.draggingId, tanggal: '', reason: '' };
                 document.getElementById('funnel-lost-modal').showModal();
@@ -1282,6 +1370,14 @@ $activityLogs = computed(function () {
             $wire.set('akadTanggal', new Date().toISOString().slice(0, 10));
         },
 
+        setWonToday() {
+            $wire.set('wonTanggal', new Date().toISOString().slice(0, 10));
+        },
+
+        setClosingToday() {
+            $wire.set('closingTanggal', new Date().toISOString().slice(0, 10));
+        },
+
         submitFollowUp() {
             if (!this.followUpForm.tanggal) {
                 return;
@@ -1313,19 +1409,6 @@ $activityLogs = computed(function () {
             $wire.openActivityLog(id).then(() => {
                 document.getElementById('funnel-followup-log-modal').showModal();
             });
-        },
-
-        setClosingToday() {
-            this.closingForm.tanggal = new Date().toISOString().slice(0, 10);
-        },
-
-        submitClosing() {
-            if (!this.closingForm.tanggal) {
-                return;
-            }
-
-            $wire.logClosingAndMove(this.closingForm.funnelId, this.closingForm.tanggal, normalizeCurrency(this.closingForm.amount));
-            document.getElementById('funnel-closing-modal').close();
         },
 
         setLostToday() {

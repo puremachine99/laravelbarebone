@@ -30,6 +30,7 @@ class FoFunnel extends Model
         'tgl_won' => 'date',
         'tgl_closing' => 'date',
         'proyeksi_amount' => 'decimal:2',
+        'nominal_won' => 'decimal:2',
         'nominal_investasi' => 'decimal:2',
     ];
 

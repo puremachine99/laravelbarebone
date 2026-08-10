@@ -263,7 +263,7 @@ test('moving to pitching logs an activity and updates the stage', function () {
     ]);
 });
 
-test('moving to won only marks commitment, without touching closing data', function () {
+test('submitting won requires both tanggal and nominal', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
@@ -271,16 +271,58 @@ test('moving to won only marks commitment, without touching closing data', funct
     $this->actingAs($user);
 
     Volt::test('investors.funnel-index')
-        ->call('logWonAndMove', $funnel->id)
+        ->call('openWonModal', $funnel->id)
+        ->set('wonTanggal', '')
+        ->set('wonNominal', null)
+        ->call('submitWon')
+        ->assertHasErrors(['wonTanggal', 'wonNominal']);
+
+    expect($funnel->refresh()->stage)->toBe('followup');
+});
+
+test('moving to won records the commitment date and nominal separately from closing', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('openWonModal', $funnel->id)
+        ->set('wonTanggal', '2026-09-01')
+        ->set('wonNominal', 400_000_000)
+        ->call('submitWon')
         ->assertHasNoErrors();
 
     $funnel->refresh();
     expect($funnel->stage)->toBe('won')
+        ->and($funnel->tgl_won->format('Y-m-d'))->toBe('2026-09-01')
+        ->and((float) $funnel->nominal_won)->toBe(400_000_000.0)
         ->and($funnel->status_closing)->toBeNull()
         ->and($funnel->tgl_closing)->toBeNull()
         ->and($funnel->nominal_investasi)->toBeNull();
 
     expect($user->notifications()->count())->toBe(0);
+});
+
+test('a won card in the kanban shows the committed nominal, not the original proyeksi amount', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create([
+        'employee_id' => $employee->id,
+        'stage' => 'won',
+        'tgl_won' => '2026-09-01',
+        'nominal_won' => 400_000_000,
+        'proyeksi_amount' => 999_000_000,
+    ]);
+    $this->actingAs($user);
+
+    // proyeksi_amount (999 Jt) is also summed into the column header total, so only assert that
+    // the committed nominal_won (400 Jt) shows up somewhere — that's what the card itself must use.
+    Volt::test('investors.funnel-index')
+        ->set('viewMode', 'kanban')
+        ->assertSee('Rp 400');
 });
 
 test('a plain fo cannot move another fo funnel to won', function () {
@@ -293,10 +335,27 @@ test('a plain fo cannot move another fo funnel to won', function () {
     $this->actingAs($user);
 
     Volt::test('investors.funnel-index')
-        ->call('logWonAndMove', $otherFunnel->id)
+        ->call('openWonModal', $otherFunnel->id)
         ->assertStatus(403);
 
     expect($otherFunnel->refresh()->stage)->toBe('followup');
+});
+
+test('submitting closing requires both tanggal and nominal', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('openClosingModal', $funnel->id)
+        ->set('closingTanggal', '')
+        ->set('closingNominal', null)
+        ->call('submitClosing')
+        ->assertHasErrors(['closingTanggal', 'closingNominal']);
+
+    expect($funnel->refresh()->stage)->toBe('won');
 });
 
 test('moving to closing logs the closing date and amount', function () {
@@ -307,7 +366,10 @@ test('moving to closing logs the closing date and amount', function () {
     $this->actingAs($user);
 
     Volt::test('investors.funnel-index')
-        ->call('logClosingAndMove', $funnel->id, '2026-09-10', 500_000_000)
+        ->call('openClosingModal', $funnel->id)
+        ->set('closingTanggal', '2026-09-10')
+        ->set('closingNominal', 500_000_000)
+        ->call('submitClosing')
         ->assertHasNoErrors();
 
     $funnel->refresh();
@@ -333,7 +395,10 @@ test('moving a funding deal to closing notifies investor admins and the owning f
     $partnershipManager->givePermissionTo(Permission::findOrCreate('verify-manager'));
 
     Volt::test('investors.funnel-index')
-        ->call('logClosingAndMove', $funnel->id, '2026-09-10', 500_000_000)
+        ->call('openClosingModal', $funnel->id)
+        ->set('closingTanggal', '2026-09-10')
+        ->set('closingNominal', 500_000_000)
+        ->call('submitClosing')
         ->assertHasNoErrors();
 
     expect($investorAdmin->notifications()->count())->toBe(1);
@@ -354,7 +419,7 @@ test('a plain fo cannot move another fo funnel to closing', function () {
     $this->actingAs($user);
 
     Volt::test('investors.funnel-index')
-        ->call('logClosingAndMove', $otherFunnel->id, '2026-09-10', 500_000_000)
+        ->call('openClosingModal', $otherFunnel->id)
         ->assertStatus(403);
 
     expect($otherFunnel->refresh()->stage)->toBe('won');
