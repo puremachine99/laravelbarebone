@@ -49,11 +49,14 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
-     * Get the public URL of the user's avatar, if one has been uploaded.
+     * Get a temporary, signed URL for the user's avatar, if one has been uploaded.
+     *
+     * The "nakama-dashboard" bucket is private, so a plain public URL 403s —
+     * mirrors FoFunnel::dokumenAkadUrl()'s presigned-URL approach.
      */
     public function avatarUrl(): ?string
     {
-        return $this->avatar_path ? Storage::disk('s3')->url($this->avatar_path) : null;
+        return $this->avatar_path ? Storage::disk('s3')->temporaryUrl($this->avatar_path, now()->addMinutes(15)) : null;
     }
 
     /**
