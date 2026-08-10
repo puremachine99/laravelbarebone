@@ -233,7 +233,8 @@ $leaderboard = computed(function () {
 
                 <div class="w-44">
                     <x-input type="date" label="Tanggal Kerja" wire:model.live="selectedDate" max="{{ now()->toDateString() }}"
-                        class="input-sm" readonly onkeydown="event.preventDefault()" />
+                        class="input-sm" onkeydown="event.preventDefault()" onpaste="event.preventDefault()"
+                        onclick="this.showPicker && this.showPicker()" onfocus="this.showPicker && this.showPicker()" />
                 </div>
 
                 @if ($selectedDate !== now()->toDateString())

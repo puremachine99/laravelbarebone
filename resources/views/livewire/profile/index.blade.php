@@ -60,7 +60,7 @@ new #[Layout('layouts.app')] class extends Component {
     public function uploadAvatar(): void
     {
         $this->validate([
-            'avatar' => ['required', 'image', 'max:2048'],
+            'avatar' => ['required', 'image', 'max:1024'],
         ]);
 
         $user = auth()->user();
