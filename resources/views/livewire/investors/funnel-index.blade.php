@@ -153,7 +153,17 @@ $funnels = computed(function () {
 });
 
 $stageSum = function ($stage) {
-    return (float) $this->funnels->where('stage', $stage)->sum('proyeksi_amount');
+    return (float) $this->funnels->where('stage', $stage)->sum(function ($funnel) {
+        if (in_array($funnel->stage, FoFunnel::CLOSED_STAGES, true) && $funnel->nominal_investasi) {
+            return $funnel->nominal_investasi;
+        }
+
+        if ($funnel->stage === 'won' && $funnel->nominal_won) {
+            return $funnel->nominal_won;
+        }
+
+        return $funnel->proyeksi_amount;
+    });
 };
 
 $historyFunnel = computed(function () {
@@ -1302,6 +1312,8 @@ $closeActivityLog = function () {
             this.dragOverStage = null;
         },
 
+        stageOrder: { leads: 0, ql: 1, pitching: 2, followup: 3, won: 4, lost: 4, closing: 5, akad: 6 },
+
         onDrop(stage) {
             if (!this.draggingId || this.draggingStage === stage) {
                 this.draggingId = null;
@@ -1311,6 +1323,17 @@ $closeActivityLog = function () {
 
             if (stage === 'akad' && !this.isAdminFo) {
                 alert('Hanya Admin FO / Super Admin yang bisa memindahkan kartu ke Akad.');
+                this.draggingId = null;
+                this.dragOverStage = null;
+                return;
+            }
+
+            // Mundur ke stage sebelumnya gak perlu isi form lagi — form cuma
+            // muncul kalau majuin kartu (lagi) ke stage yang sama ke depannya.
+            const isMovingBackward = this.stageOrder[stage] < this.stageOrder[this.draggingStage];
+
+            if (isMovingBackward) {
+                $wire.moveStage(this.draggingId, stage);
                 this.draggingId = null;
                 this.dragOverStage = null;
                 return;

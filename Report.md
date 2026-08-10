@@ -409,3 +409,26 @@ Halaman ini dirasa lemot pas dibuka, jadi dibedah & dibenerin 5 titik yang palin
 
 ---
 
+## 10/08/2026 (Sesi 3) Checklist Perbaikan Foto Profil & Datepicker Dashboard Harian
+
+### Foto Profil — Bug Akses Ditolak
+- [x] Ketemu di production: foto profil yang udah keupload gak bisa dibuka, MinIO nunjukin `AccessDenied` — ternyata bucket `nakama-dashboard` emang privat, sedangkan kode-nya masih generate URL publik biasa
+- [x] Dibenerin dengan pakai "kunci sementara" (presigned URL, berlaku 15 menit) buat foto profil — polanya disamain persis kayak link dokumen Akad yang udah lebih dulu kena masalah sama & udah dibenerin (lihat sesi 15/07/2026)
+- [x] Ukuran maksimal upload foto profil diturunin dari 2MB jadi **1MB**, biar filenya gak kegedean
+
+### Dashboard Harian (Funding) — Input Tanggal Kerja
+- [x] Ketemu bug: kalau kolom "Tanggal Kerja" diketik manual & belum lengkap (misal tanggal/bulan/tahunnya sempat "0"), halaman langsung error 500
+- [x] Diperbaiki dua lapis: (1) input tanggal dipaksa gak bisa diketik/paste manual (harus lewat kalender bawaan browser), (2) validasi cadangan di backend — kalau somehow nilainya tetap gak valid, otomatis balik ke tanggal hari ini, bukan nge-crash halaman
+- [x] Sempat kepakai atribut `readonly` buat blokir ketikan manual, tapi ternyata di Chrome/Edge itu malah mematikan kalender-nya juga (regresi) — dibenerin, sekarang klik di mana pun pada field-nya (bukan cuma icon kalender) otomatis manggil kalender lewat `showPicker()`, sementara ketik/paste manual tetap diblokir
+
+### Cross-check Modul Investors (FO Contacts) — belum ada perubahan kode, sebatas jawaban audit
+- Input No HP: **sudah** dibatasi angka saja (mask + validasi server, 9–15 digit)
+- Profesi & No HP wajib diisi: **belum** — keduanya masih opsional (`nullable`), nunggu konfirmasi business rule dulu
+- Penanganan kontak yang dihapus tapi masih dipakai di Funnel: **sudah** — soft delete, histori Funnel tetap utuh
+
+### Pending
+- Full test suite belum di-run ulang setelah semua perbaikan sesi ini (foto profil & datepicker) — perlu diverifikasi
+- Business rule buat wajib/tidaknya field Profesi & No HP di form Contacts belum dikonfirmasi
+
+---
+
