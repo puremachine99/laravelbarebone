@@ -597,6 +597,16 @@ $closeActivityLog = function () {
 ?>
 
 <div class="space-y-6" x-data="funnelUi(@js($this->contactOptions), @js($this->isAdminFo))">
+    <style>
+        @keyframes funnel-card-drag-wiggle {
+            0%, 100% { transform: rotate(-3deg) scale(1.05); }
+            50% { transform: rotate(3deg) scale(1.05); }
+        }
+        .funnel-card-dragging {
+            animation: funnel-card-drag-wiggle 0.3s ease-in-out infinite;
+        }
+    </style>
+
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
         <h2 class="text-xl font-bold text-base-content">Funnel</h2>
         <p class="text-sm text-base-content/50 mt-1">
@@ -648,12 +658,12 @@ $closeActivityLog = function () {
 
     <!-- Kanban Mode -->
     @if ($viewMode === 'kanban')
-    <div class="flex items-start gap-4 overflow-auto pb-2 max-h-[70vh]">
+    <div class="flex items-stretch gap-4 overflow-x-auto pb-2 h-[70vh]">
         @foreach ($stages as $stage)
             <div
-                class="w-72 shrink-0 bg-base-200 rounded-2xl p-3 flex flex-col gap-3 transition-colors"
+                class="w-72 shrink-0 bg-base-200 rounded-2xl p-3 flex flex-col gap-3 transition-colors overflow-hidden"
                 x-on:dragover.prevent="dragOverStage = ('{{ $stage['key'] }}' === 'akad' && !isAdminFo) ? null : '{{ $stage['key'] }}'"
-                x-on:dragleave="dragOverStage = null"
+                x-on:dragleave="if (!$el.contains($event.relatedTarget)) { dragOverStage = null }"
                 x-on:drop="onDrop('{{ $stage['key'] }}')"
                 :class="dragOverStage === '{{ $stage['key'] }}' && 'ring-2 ring-primary/50 bg-primary/5'"
             >
@@ -670,7 +680,7 @@ $closeActivityLog = function () {
                     <span class="text-xs font-bold text-primary"><x-currency-abbr :value="$this->stageSum($stage['key'])" /></span>
                 </div>
 
-                <div class="flex flex-col gap-2 min-h-[80px]">
+                <div class="flex flex-col gap-2 min-h-[80px] overflow-y-auto flex-1">
                     @forelse ($this->funnels->where('stage', $stage['key']) as $funnel)
                         <div
                             draggable="true"
@@ -680,7 +690,7 @@ $closeActivityLog = function () {
                             x-transition:enter-start="opacity-0 scale-90 -translate-y-2"
                             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                             :class="{
-                                'opacity-40': draggingId === {{ $funnel->id }},
+                                'opacity-70 funnel-card-dragging': draggingId === {{ $funnel->id }},
                                 'ring-2 ring-primary/60 shadow-lg': justMovedId === {{ $funnel->id }},
                             }"
                             class="relative card bg-base-100 border border-base-300 shadow-sm p-3 space-y-2 cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-300"
@@ -1055,7 +1065,7 @@ $closeActivityLog = function () {
     </x-modal>
 
     <!-- Won Modal (wajib diisi, gak bisa ditutup sebelum disimpan) -->
-    <x-modal id="funnel-won-modal" title="Catat Won (Komitmen)" subtitle="Tanggal & nominal komitmen investor wajib diisi. Form ini gak bisa ditutup sebelum disimpan." persistent wire:ignore.self>
+    <x-modal id="funnel-won-modal" title="Catat Won (Komitmen)" subtitle="Tanggal & nominal komitmen investor wajib diisi. Form ini gak bisa ditutup sebelum disimpan." persistent without-trap-focus wire:ignore.self>
         <form wire:submit="submitWon" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
@@ -1074,7 +1084,7 @@ $closeActivityLog = function () {
     </x-modal>
 
     <!-- Closing Modal (wajib diisi, gak bisa ditutup sebelum disimpan) -->
-    <x-modal id="funnel-closing-modal" title="Catat Closing" subtitle="Uang investor sudah masuk PT — tanggal & nominal final wajib diisi. Form ini gak bisa ditutup sebelum disimpan." persistent wire:ignore.self>
+    <x-modal id="funnel-closing-modal" title="Catat Closing" subtitle="Uang investor sudah masuk PT — tanggal & nominal final wajib diisi. Form ini gak bisa ditutup sebelum disimpan." persistent without-trap-focus wire:ignore.self>
         <form wire:submit="submitClosing" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
