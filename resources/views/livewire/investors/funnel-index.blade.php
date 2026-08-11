@@ -597,16 +597,6 @@ $closeActivityLog = function () {
 ?>
 
 <div class="space-y-6" x-data="funnelUi(@js($this->contactOptions), @js($this->isAdminFo))">
-    <style>
-        @keyframes funnel-card-drag-wiggle {
-            0%, 100% { transform: rotate(-3deg) scale(1.05); }
-            50% { transform: rotate(3deg) scale(1.05); }
-        }
-        .funnel-card-dragging {
-            animation: funnel-card-drag-wiggle 0.3s ease-in-out infinite;
-        }
-    </style>
-
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
         <h2 class="text-xl font-bold text-base-content">Funnel</h2>
         <p class="text-sm text-base-content/50 mt-1">
@@ -687,14 +677,14 @@ $closeActivityLog = function () {
                             draggable="true"
                             x-on:dragstart="onDragStart({{ $funnel->id }}, '{{ $funnel->stage }}')"
                             x-on:dragend="onDragEnd()"
-                            x-on:touchstart="onTouchStart({{ $funnel->id }}, '{{ $funnel->stage }}')"
+                            x-on:touchstart="onTouchStart($event, {{ $funnel->id }}, '{{ $funnel->stage }}')"
                             x-on:touchmove="onTouchMove($event)"
                             x-on:touchend="onTouchEnd()"
                             x-transition:enter="transition ease-out duration-300"
                             x-transition:enter-start="opacity-0 scale-90 -translate-y-2"
                             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                             :class="{
-                                'opacity-70 funnel-card-dragging': draggingId === {{ $funnel->id }},
+                                'opacity-40': draggingId === {{ $funnel->id }},
                                 'ring-2 ring-primary/60 shadow-lg': justMovedId === {{ $funnel->id }},
                             }"
                             class="relative card bg-base-100 border border-base-300 shadow-sm p-3 space-y-2 cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-300 touch-none"
@@ -1325,23 +1315,37 @@ $closeActivityLog = function () {
 
         // HTML5 drag events (dragstart/dragover/drop) don't fire on touch devices, so mobile
         // needs its own gesture handling that mirrors the same draggingId/dragOverStage state
-        // and reuses onDrop() for the actual stage-move logic.
+        // and reuses onDrop() for the actual stage-move logic. A small movement threshold
+        // keeps a normal tap/scroll from being mistaken for a drag.
         touchDragging: false,
+        touchPending: null,
 
-        onTouchStart(id, stage) {
-            this.draggingId = id;
-            this.draggingStage = stage;
-            this.touchDragging = true;
+        onTouchStart(event, id, stage) {
+            const touch = event.touches[0];
+            this.touchPending = { id, stage, startX: touch.clientX, startY: touch.clientY };
         },
 
         onTouchMove(event) {
-            if (!this.touchDragging) {
+            if (!this.touchPending && !this.touchDragging) {
                 return;
+            }
+
+            const touch = event.touches[0];
+
+            if (!this.touchDragging) {
+                const distance = Math.hypot(touch.clientX - this.touchPending.startX, touch.clientY - this.touchPending.startY);
+
+                if (distance < 12) {
+                    return;
+                }
+
+                this.draggingId = this.touchPending.id;
+                this.draggingStage = this.touchPending.stage;
+                this.touchDragging = true;
             }
 
             event.preventDefault();
 
-            const touch = event.touches[0];
             const column = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('[data-stage-key]');
             const stageKey = column?.dataset.stageKey ?? null;
 
@@ -1349,13 +1353,15 @@ $closeActivityLog = function () {
         },
 
         onTouchEnd() {
-            if (!this.touchDragging) {
-                return;
-            }
+            const wasDragging = this.touchDragging;
+            const stage = this.dragOverStage;
 
+            this.touchPending = null;
             this.touchDragging = false;
 
-            const stage = this.dragOverStage;
+            if (!wasDragging) {
+                return;
+            }
 
             if (stage) {
                 this.onDrop(stage);
