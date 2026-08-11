@@ -662,6 +662,7 @@ $closeActivityLog = function () {
         @foreach ($stages as $stage)
             <div
                 class="w-72 shrink-0 bg-base-200 rounded-2xl p-3 flex flex-col gap-3 transition-colors overflow-hidden"
+                data-stage-key="{{ $stage['key'] }}"
                 x-on:dragover.prevent="dragOverStage = ('{{ $stage['key'] }}' === 'akad' && !isAdminFo) ? null : '{{ $stage['key'] }}'"
                 x-on:dragleave="if (!$el.contains($event.relatedTarget)) { dragOverStage = null }"
                 x-on:drop="onDrop('{{ $stage['key'] }}')"
@@ -686,6 +687,9 @@ $closeActivityLog = function () {
                             draggable="true"
                             x-on:dragstart="onDragStart({{ $funnel->id }}, '{{ $funnel->stage }}')"
                             x-on:dragend="onDragEnd()"
+                            x-on:touchstart="onTouchStart({{ $funnel->id }}, '{{ $funnel->stage }}')"
+                            x-on:touchmove="onTouchMove($event)"
+                            x-on:touchend="onTouchEnd()"
                             x-transition:enter="transition ease-out duration-300"
                             x-transition:enter-start="opacity-0 scale-90 -translate-y-2"
                             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
@@ -693,14 +697,30 @@ $closeActivityLog = function () {
                                 'opacity-70 funnel-card-dragging': draggingId === {{ $funnel->id }},
                                 'ring-2 ring-primary/60 shadow-lg': justMovedId === {{ $funnel->id }},
                             }"
-                            class="relative card bg-base-100 border border-base-300 shadow-sm p-3 space-y-2 cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-300"
+                            class="relative card bg-base-100 border border-base-300 shadow-sm p-3 space-y-2 cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-300 touch-none"
                         >
                             <div class="dropdown dropdown-end absolute top-1 right-1">
-                                <div tabindex="0" role="button" draggable="false" x-on:mousedown.stop x-on:click.stop class="btn btn-ghost btn-xs btn-circle">
+                                <div tabindex="0" role="button" draggable="false" x-on:mousedown.stop x-on:click.stop x-on:touchstart.stop class="btn btn-ghost btn-xs btn-circle">
                                     <x-icon name="o-ellipsis-vertical" class="w-4 h-4" />
                                 </div>
-                                <ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box shadow-lg border border-base-300 w-32 z-20">
+                                <ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box shadow-lg border border-base-300 w-44 z-20">
                                     <li><a x-on:click="editCard({{ $funnel->id }}, '{{ $funnel->proyeksi_close_date?->format('Y-m-d') }}', {{ $funnel->proyeksi_amount ?? 'null' }}, '{{ $funnel->sumber }}')">Edit</a></li>
+                                    <li>
+                                        <details>
+                                            <summary>Pindah Stage</summary>
+                                            <ul>
+                                                @foreach ($stages as $moveStageOption)
+                                                    @continue($moveStageOption['key'] === $funnel->stage)
+                                                    @continue($moveStageOption['key'] === 'akad' && ! $this->isAdminFo)
+                                                    <li>
+                                                        <a x-on:click="moveCardTo({{ $funnel->id }}, '{{ $funnel->stage }}', '{{ $moveStageOption['key'] }}')">
+                                                            {{ $moveStageOption['label'] }}
+                                                        </a>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </details>
+                                    </li>
                                     <li><a class="text-error" x-on:click="deleteCard({{ $funnel->id }})">Hapus</a></li>
                                 </ul>
                             </div>
@@ -739,6 +759,7 @@ $closeActivityLog = function () {
                                     class="badge badge-sm badge-primary badge-outline w-full truncate"
                                     x-on:mousedown.stop
                                     x-on:click.stop
+                                    x-on:touchstart.stop
                                     title="{{ $funnel->dokumen_akad_nama }}"
                                 >
                                     <x-icon name="o-paper-clip" class="w-3 h-3" /> {{ $funnel->dokumen_akad_nama }}
@@ -760,6 +781,7 @@ $closeActivityLog = function () {
                                         wire:click="openHistory({{ $funnel->id }})"
                                         x-on:mousedown.stop
                                         x-on:click.stop
+                                        x-on:touchstart.stop
                                     >
                                         {{ $fuCount }}x Follow Up
                                     </button>
@@ -903,9 +925,6 @@ $closeActivityLog = function () {
             <x-select label="Sumber" x-model="addForm.sumber" :options="$sumberOptions" placeholder="Pilih Sumber" required />
 
             <div class="modal-action">
-                <form method="dialog">
-                    <x-button label="Batal" class="btn-ghost" />
-                </form>
                 <x-button label="Simpan" type="submit" class="btn-primary" />
             </div>
         </form>
@@ -922,9 +941,6 @@ $closeActivityLog = function () {
             <x-select label="Sumber" x-model="editForm.sumber" :options="$sumberOptions" placeholder="Pilih Sumber" required />
 
             <div class="modal-action">
-                <form method="dialog">
-                    <x-button label="Batal" class="btn-ghost" />
-                </form>
                 <x-button label="Simpan" type="submit" class="btn-primary" />
             </div>
         </form>
@@ -944,9 +960,6 @@ $closeActivityLog = function () {
             <x-textarea label="Catatan Kegiatan" x-model="pitchForm.catatan" placeholder="Ringkasan kegiatan pitching hari ini..." rows="4" />
 
             <div class="modal-action">
-                <form method="dialog">
-                    <x-button label="Batal" class="btn-ghost" />
-                </form>
                 <x-button label="Simpan" type="submit" class="btn-primary" />
             </div>
         </form>
@@ -966,9 +979,6 @@ $closeActivityLog = function () {
             <x-textarea label="Catatan" x-model="followUpForm.catatan" placeholder="Ringkasan hasil follow up..." rows="4" />
 
             <div class="modal-action">
-                <form method="dialog">
-                    <x-button label="Batal" class="btn-ghost" />
-                </form>
                 <x-button label="Simpan" type="submit" class="btn-primary" />
             </div>
         </form>
@@ -988,9 +998,6 @@ $closeActivityLog = function () {
             <x-textarea label="Catatan" x-model="editFollowUpForm.catatan" placeholder="Ringkasan hasil follow up..." rows="4" />
 
             <div class="modal-action">
-                <form method="dialog">
-                    <x-button label="Batal" class="btn-ghost" />
-                </form>
                 <x-button label="Simpan" type="submit" class="btn-primary" />
             </div>
         </form>
@@ -1056,9 +1063,6 @@ $closeActivityLog = function () {
             <x-file label="Dokumen Akad" wire:model="akadFile" accept=".doc,.docx,.pdf" hint="Format DOC, DOCX, atau PDF. Maksimal 5MB." required />
 
             <div class="modal-action">
-                <form method="dialog">
-                    <x-button label="Batal" class="btn-ghost" />
-                </form>
                 <x-button label="Simpan" type="submit" class="btn-primary" spinner="submitAkad" />
             </div>
         </form>
@@ -1116,9 +1120,6 @@ $closeActivityLog = function () {
             <x-textarea label="Lost Reason" x-model="lostForm.reason" placeholder="Kenapa lead ini gagal closing..." rows="4" />
 
             <div class="modal-action">
-                <form method="dialog">
-                    <x-button label="Batal" class="btn-ghost" />
-                </form>
                 <x-button label="Simpan" type="submit" class="btn-primary" />
             </div>
         </form>
@@ -1322,7 +1323,57 @@ $closeActivityLog = function () {
             this.dragOverStage = null;
         },
 
+        // HTML5 drag events (dragstart/dragover/drop) don't fire on touch devices, so mobile
+        // needs its own gesture handling that mirrors the same draggingId/dragOverStage state
+        // and reuses onDrop() for the actual stage-move logic.
+        touchDragging: false,
+
+        onTouchStart(id, stage) {
+            this.draggingId = id;
+            this.draggingStage = stage;
+            this.touchDragging = true;
+        },
+
+        onTouchMove(event) {
+            if (!this.touchDragging) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const touch = event.touches[0];
+            const column = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('[data-stage-key]');
+            const stageKey = column?.dataset.stageKey ?? null;
+
+            this.dragOverStage = (stageKey === 'akad' && !this.isAdminFo) ? null : stageKey;
+        },
+
+        onTouchEnd() {
+            if (!this.touchDragging) {
+                return;
+            }
+
+            this.touchDragging = false;
+
+            const stage = this.dragOverStage;
+
+            if (stage) {
+                this.onDrop(stage);
+            } else {
+                this.draggingId = null;
+                this.dragOverStage = null;
+            }
+        },
+
         stageOrder: { leads: 0, ql: 1, pitching: 2, followup: 3, won: 4, lost: 4, closing: 5, akad: 6 },
+
+        // Dropdown "Pindah Stage" shortcut — reuses onDrop() so it goes through the exact
+        // same rules as drag-and-drop (Akad admin lock, backward-move shortcut, stage modals).
+        moveCardTo(id, fromStage, toStage) {
+            this.draggingId = id;
+            this.draggingStage = fromStage;
+            this.onDrop(toStage);
+        },
 
         onDrop(stage) {
             if (!this.draggingId || this.draggingStage === stage) {
