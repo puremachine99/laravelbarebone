@@ -1,0 +1,40 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('activity_logs', function (Blueprint $table) {
+            $table->id();
+            // Polymorphic subject (FoFunnel, FoContact, FoTarget, dst) — gak dikasih FK karena tabelnya
+            // beda-beda; subject yang udah dihapus tetap harus punya jejak log-nya (audit trail).
+            $table->string('loggable_type');
+            $table->unsignedBigInteger('loggable_id');
+            $table->foreignId('causer_id')->nullable()->constrained('users')->nullOnDelete();
+            // Denormalized dari $loggable->employee_id (kalau ada) buat scoping akses "punya siapa" —
+            // FoTarget bisa beneran di-hard-delete waktu reset, jadi gak bisa diandalkan lewat join/relasi.
+            $table->unsignedBigInteger('owner_employee_id')->nullable();
+            $table->string('action');
+            $table->json('changes')->nullable();
+            $table->timestamps();
+
+            $table->index(['loggable_type', 'loggable_id', 'id']);
+            $table->index(['owner_employee_id', 'created_at']);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('activity_logs');
+    }
+};

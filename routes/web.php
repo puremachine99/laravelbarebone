@@ -90,6 +90,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Volt::route('/investors/contacts', 'investors.contact-index')->name('investors.contacts');
         Volt::route('/investors/funnel', 'investors.funnel-index')->name('investors.funnel');
         Volt::route('/investors/management-fo', 'investors.management-fo')->name('investors.management-fo');
+        Volt::route('/investors/activity-log', 'investors.activity-log-index')->name('investors.activity-log');
     });
 });
 

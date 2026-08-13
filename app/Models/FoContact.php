@@ -18,4 +18,9 @@ class FoContact extends Model
     {
         return $this->belongsTo(Employee::class);
     }
+
+    public function logs()
+    {
+        return $this->morphMany(ActivityLog::class, 'loggable')->latest('id');
+    }
 }

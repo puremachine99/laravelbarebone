@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\ActivityLogAction;
+use App\Models\ActivityLog;
 use App\Models\Employee;
 use App\Models\FoContact;
 use App\Models\FoFunnel;
@@ -215,7 +217,7 @@ $createLead = function ($contactId, $proyeksiCloseDate, $proyeksiAmount, $sumber
         return;
     }
 
-    FoFunnel::create([
+    $funnel = FoFunnel::create([
         'fo_contact_id' => $contact->id,
         'employee_id' => $contact->employee_id,
         'stage' => 'leads',
@@ -224,6 +226,10 @@ $createLead = function ($contactId, $proyeksiCloseDate, $proyeksiAmount, $sumber
         'proyeksi_close_date' => $proyeksiCloseDate ?: null,
         'proyeksi_amount' => $proyeksiAmount ?: null,
     ]);
+
+    ActivityLog::record($funnel, ActivityLogAction::LeadCreated, after: $funnel->only([
+        'fo_contact_id', 'employee_id', 'sumber', 'proyeksi_close_date', 'proyeksi_amount',
+    ]));
 
     $this->success('Lead berhasil ditambahkan!');
 };
@@ -243,11 +249,17 @@ $updateLead = function ($funnelId, $proyeksiCloseDate, $proyeksiAmount, $sumber)
         return;
     }
 
+    $before = $funnel->only(['proyeksi_close_date', 'proyeksi_amount', 'sumber']);
+
     $funnel->update([
         'proyeksi_close_date' => $proyeksiCloseDate ?: null,
         'proyeksi_amount' => $proyeksiAmount ?: null,
         'sumber' => $sumber,
     ]);
+
+    ActivityLog::record($funnel, ActivityLogAction::LeadUpdated, $before, $funnel->only([
+        'proyeksi_close_date', 'proyeksi_amount', 'sumber',
+    ]));
 
     $this->success('Data funnel berhasil diperbarui.');
 };
@@ -258,6 +270,10 @@ $deleteFunnel = function ($funnelId) {
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
         abort(403);
     }
+
+    ActivityLog::record($funnel, ActivityLogAction::LeadDeleted, before: $funnel->only([
+        'stage', 'sumber', 'proyeksi_close_date', 'proyeksi_amount',
+    ]));
 
     $funnel->delete();
 
@@ -275,7 +291,11 @@ $moveStage = function ($funnelId, $stage) {
         abort(403);
     }
 
+    $previousStage = $funnel->stage;
+
     $funnel->update(['stage' => $stage]);
+
+    ActivityLog::record($funnel, ActivityLogAction::StageMoved, ['stage' => $previousStage], ['stage' => $stage]);
 };
 
 $openAkadModal = function ($funnelId) {
@@ -320,6 +340,12 @@ $submitAkad = function () {
         'dokumen_akad_nama' => $this->akadFile->getClientOriginalName(),
     ]);
 
+    ActivityLog::record($funnel, ActivityLogAction::AkadProcessed, after: [
+        'tgl_closing' => $validated['akadTanggal'],
+        'nominal_investasi' => $validated['akadNominal'],
+        'dokumen_akad_nama' => $this->akadFile->getClientOriginalName(),
+    ]);
+
     FundingDealAkadNotification::sendToOwner($funnel);
 
     $this->reset(['akadFunnelId', 'akadTanggal', 'akadNominal', 'akadFile']);
@@ -336,13 +362,15 @@ $logPitchingAndMove = function ($funnelId, $tanggal, $catatan) {
 
     $funnel->update(['stage' => 'pitching']);
 
-    FoFunnelActivity::create([
+    $activity = FoFunnelActivity::create([
         'fo_funnel_id' => $funnel->id,
         'employee_id' => $this->currentEmployee?->id,
         'stage' => 'pitching',
         'tanggal' => $tanggal ?: now()->toDateString(),
         'catatan' => $catatan ?: null,
     ]);
+
+    ActivityLog::record($funnel, ActivityLogAction::PitchingLogged, after: $activity->only(['tanggal', 'catatan']));
 
     $this->success('Sesi pitching berhasil dicatat.');
 };
@@ -378,6 +406,11 @@ $submitWon = function () {
 
     $funnel->update([
         'stage' => 'won',
+        'tgl_won' => $validated['wonTanggal'],
+        'nominal_won' => $validated['wonNominal'],
+    ]);
+
+    ActivityLog::record($funnel, ActivityLogAction::WonLogged, after: [
         'tgl_won' => $validated['wonTanggal'],
         'nominal_won' => $validated['wonNominal'],
     ]);
@@ -423,6 +456,11 @@ $submitClosing = function () {
         'nominal_investasi' => $validated['closingNominal'],
     ]);
 
+    ActivityLog::record($funnel, ActivityLogAction::ClosingLogged, after: [
+        'tgl_closing' => $validated['closingTanggal'],
+        'nominal_investasi' => $validated['closingNominal'],
+    ]);
+
     FundingDealClosedNotification::sendToAdmins($funnel);
     FundingDealClosedNotification::sendToOwner($funnel);
 
@@ -445,6 +483,8 @@ $logLostAndMove = function ($funnelId, $tanggal, $reason) {
         'lost_reason' => $reason ?: null,
     ]);
 
+    ActivityLog::record($funnel, ActivityLogAction::LostLogged, after: $funnel->only(['tgl_closing', 'lost_reason']));
+
     FundingDealLostNotification::sendToOwner($funnel);
 
     $this->success('Data Lost berhasil dicatat.');
@@ -461,13 +501,15 @@ $logFollowUp = function ($funnelId, $tanggal, $catatan, $moveStage = false) {
         $funnel->update(['stage' => 'followup']);
     }
 
-    FoFunnelActivity::create([
+    $activity = FoFunnelActivity::create([
         'fo_funnel_id' => $funnel->id,
         'employee_id' => $this->currentEmployee?->id,
         'stage' => 'followup',
         'tanggal' => $tanggal ?: now()->toDateString(),
         'catatan' => $catatan ?: null,
     ]);
+
+    ActivityLog::record($funnel, ActivityLogAction::FollowUpLogged, after: $activity->only(['tanggal', 'catatan']));
 
     $this->success('Follow up berhasil dicatat.');
 };
@@ -491,12 +533,15 @@ $updateFollowUp = function ($activityId, $tanggal, $catatan) {
         return;
     }
 
+    $oldTanggal = $activity->tanggal;
+    $oldCatatan = $activity->catatan;
+
     FoFunnelActivityLog::create([
         'fo_funnel_activity_id' => $activity->id,
         'changed_by_user_id' => auth()->id(),
-        'old_tanggal' => $activity->tanggal,
+        'old_tanggal' => $oldTanggal,
         'new_tanggal' => $newTanggal,
-        'old_catatan' => $activity->catatan,
+        'old_catatan' => $oldCatatan,
         'new_catatan' => $newCatatan,
     ]);
 
@@ -504,6 +549,13 @@ $updateFollowUp = function ($activityId, $tanggal, $catatan) {
         'tanggal' => $newTanggal,
         'catatan' => $newCatatan,
     ]);
+
+    ActivityLog::record(
+        $funnel,
+        ActivityLogAction::FollowUpUpdated,
+        ['tanggal' => $oldTanggal, 'catatan' => $oldCatatan],
+        ['tanggal' => $newTanggal, 'catatan' => $newCatatan],
+    );
 
     $this->success('Follow up berhasil diperbarui.');
 };
@@ -530,6 +582,8 @@ $deleteFollowUp = function ($activityId) {
         abort(403);
     }
 
+    ActivityLog::record($activity->funnel, ActivityLogAction::FollowUpDeleted, before: $activity->only(['tanggal', 'catatan']));
+
     $activity->delete();
 
     $this->success('Follow up dihapus. Bisa dipulihkan lewat "Lihat Terhapus".');
@@ -543,6 +597,8 @@ $restoreFollowUp = function ($activityId) {
     }
 
     $activity->restore();
+
+    ActivityLog::record($activity->funnel, ActivityLogAction::FollowUpRestored, after: $activity->only(['tanggal', 'catatan']));
 
     $this->success('Follow up berhasil dipulihkan.');
 };

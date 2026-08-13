@@ -1,10 +1,11 @@
 <?php
 
+use App\Enums\ActivityLogAction;
+use App\Models\ActivityLog;
 use App\Models\Employee;
 use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
 use App\Models\FoTarget;
-use App\Models\FoTargetLog;
 use App\Notifications\FoTargetUpdatedNotification;
 use App\Support\Money;
 
@@ -233,15 +234,16 @@ $proyeksiFor = function ($employeeId, $metricKey) {
 };
 
 // Catat siapa yang ubah, target siapa, metrik apa, nilai sebelum & sesudah — buat audit trail.
-$logTargetChange = function ($employeeId, $metricKey, $oldValue, $newValue) {
-    FoTargetLog::create([
-        'employee_id' => $employeeId,
-        'changed_by_user_id' => auth()->id(),
-        'year' => now()->year,
-        'metric_key' => $metricKey,
-        'old_value' => $oldValue,
-        'new_value' => $newValue,
-    ]);
+// employee_id & metric_key disimpan di payload-nya sendiri (bukan cuma diambil dari relasi $target)
+// karena reset target beneran hapus baris FoTarget-nya — relasi loggable bakal null setelah itu,
+// tapi histori "target siapa yang direset" tetap harus kebaca.
+$logTargetChange = function ($target, $employeeId, $metricKey, $oldValue, $newValue) {
+    ActivityLog::record(
+        $target,
+        ActivityLogAction::TargetUpdated,
+        $oldValue !== null ? ['employee_id' => $employeeId, 'metric_key' => $metricKey, 'yearly_target' => $oldValue] : null,
+        $newValue !== null ? ['employee_id' => $employeeId, 'metric_key' => $metricKey, 'yearly_target' => $newValue] : null,
+    );
 };
 
 // Persist satu metrik target (dipanggil per-metrik dari saveTargets() saat tombol Simpan ditekan).
@@ -260,12 +262,12 @@ $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
         ->where('metric_key', $metricKey)
         ->first();
 
-    FoTarget::updateOrCreate(
+    $target = FoTarget::updateOrCreate(
         ['employee_id' => $employeeId, 'year' => now()->year, 'metric_key' => $metricKey],
         ['yearly_target' => $value],
     );
 
-    $this->logTargetChange($employeeId, $metricKey, $existing?->yearly_target, $value);
+    $this->logTargetChange($target, $employeeId, $metricKey, $existing?->yearly_target, $value);
 
     return ['from' => $existing?->yearly_target, 'to' => $value];
 };
@@ -354,9 +356,10 @@ $resetYearlyTarget = function ($employeeId, $metricKey) {
         return;
     }
 
+    $oldValue = $existing->yearly_target;
     $existing->delete();
 
-    $this->logTargetChange($employeeId, $metricKey, $existing->yearly_target, null);
+    $this->logTargetChange($existing, $employeeId, $metricKey, $oldValue, null);
 
     $this->loadTargetInputs();
 
@@ -364,12 +367,30 @@ $resetYearlyTarget = function ($employeeId, $metricKey) {
 };
 
 // Riwayat perubahan target — terbaru duluan, dipakai buat audit "siapa ubah apa".
+// employee_id diambil dari payload changes (bukan relasi loggable), karena reset target beneran
+// hapus baris FoTarget-nya — relasi ke situ udah gak ada meski logn-nya sendiri tetap harus kebaca.
 $targetChangeLogs = computed(function () {
-    return FoTargetLog::with(['employee.user', 'changedBy'])
-        ->where('year', now()->year)
+    $logs = ActivityLog::with('causer')
+        ->where('loggable_type', FoTarget::class)
+        ->where('action', ActivityLogAction::TargetUpdated)
+        ->whereYear('created_at', now()->year)
         ->latest()
         ->limit(30)
         ->get();
+
+    $employeeIds = $logs
+        ->map(fn ($log) => $log->changes['before']['employee_id'] ?? $log->changes['after']['employee_id'] ?? null)
+        ->filter()
+        ->unique();
+
+    $employeesById = Employee::with('user')->whereIn('id', $employeeIds)->get()->keyBy('id');
+
+    return $logs->map(function ($log) use ($employeesById) {
+        $employeeId = $log->changes['before']['employee_id'] ?? $log->changes['after']['employee_id'] ?? null;
+        $log->targetOwnerName = $employeesById->get($employeeId)?->user?->name;
+
+        return $log;
+    });
 });
 
 // Rekap performa 6 bulan terakhir buat FO yang lagi dipilih di dropdown "Atur Target Tahunan".
@@ -695,30 +716,33 @@ $foRanking = computed(function () {
                 <tbody>
                     @forelse ($this->targetChangeLogs as $log)
                         @php
-                            $logMetric = collect($metrics)->firstWhere('key', $log->metric_key);
+                            $logMetricKey = $log->changes['before']['metric_key'] ?? $log->changes['after']['metric_key'] ?? null;
+                            $logOldValue = $log->changes['before']['yearly_target'] ?? null;
+                            $logNewValue = $log->changes['after']['yearly_target'] ?? null;
+                            $logMetric = collect($metrics)->firstWhere('key', $logMetricKey);
                             $logIsCurrency = $logMetric && $logMetric['type'] === 'currency';
                         @endphp
                         <tr class="border-b border-base-300">
                             <td class="whitespace-nowrap">{{ $log->created_at->format('d/m/Y H:i') }}</td>
-                            <td>{{ $log->changedBy?->name ?? '-' }}</td>
-                            <td>{{ $log->employee?->user?->name ?? '-' }}</td>
-                            <td>{{ $logMetric['label'] ?? $log->metric_key }}</td>
+                            <td>{{ $log->causer?->name ?? '-' }}</td>
+                            <td>{{ $log->targetOwnerName ?? '-' }}</td>
+                            <td>{{ $logMetric['label'] ?? $logMetricKey }}</td>
                             <td class="text-right text-base-content/50">
-                                @if (is_null($log->old_value))
+                                @if (is_null($logOldValue))
                                     Auto suggestion
                                 @elseif ($logIsCurrency)
-                                    <x-currency-abbr :value="$log->old_value" />
+                                    <x-currency-abbr :value="$logOldValue" />
                                 @else
-                                    {{ number_format($log->old_value) }}
+                                    {{ number_format($logOldValue) }}
                                 @endif
                             </td>
                             <td class="text-right font-medium text-base-content">
-                                @if (is_null($log->new_value))
+                                @if (is_null($logNewValue))
                                     Auto suggestion (reset)
                                 @elseif ($logIsCurrency)
-                                    <x-currency-abbr :value="$log->new_value" />
+                                    <x-currency-abbr :value="$logNewValue" />
                                 @else
-                                    {{ number_format($log->new_value) }}
+                                    {{ number_format($logNewValue) }}
                                 @endif
                             </td>
                         </tr>

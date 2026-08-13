@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\ActivityLogAction;
+use App\Models\ActivityLog;
 use App\Models\Employee;
 use App\Models\FoContact;
 
@@ -137,7 +139,10 @@ $saveContact = function () {
         ? ($this->employee_id ?: null)
         : $this->currentEmployee?->id;
 
-    FoContact::updateOrCreate(
+    $isNew = is_null($this->contact_id);
+    $before = $isNew ? null : FoContact::find($this->contact_id)?->only(['nama', 'profesi', 'no_telepon', 'employee_id', 'catatan']);
+
+    $contact = FoContact::updateOrCreate(
         ['id' => $this->contact_id],
         [
             'nama' => $this->nama,
@@ -148,7 +153,13 @@ $saveContact = function () {
         ],
     );
 
-    $isNew = is_null($this->contact_id);
+    ActivityLog::record(
+        $contact,
+        $isNew ? ActivityLogAction::ContactCreated : ActivityLogAction::ContactUpdated,
+        $before,
+        $contact->only(['nama', 'profesi', 'no_telepon', 'employee_id', 'catatan']),
+    );
+
     $this->resetForm();
     $this->showContactModal = false;
     session()->flash('success', $isNew ? 'Kontak berhasil ditambahkan!' : 'Kontak berhasil diperbarui!');
@@ -174,6 +185,10 @@ $deleteContact = function ($id = null) {
         if (! $this->isAdminFo && $contact->employee_id !== $this->currentEmployee?->id) {
             abort(403);
         }
+
+        ActivityLog::record($contact, ActivityLogAction::ContactDeleted, before: $contact->only([
+            'nama', 'profesi', 'no_telepon', 'employee_id', 'catatan',
+        ]));
 
         $contact->delete();
         session()->flash('error', 'Kontak berhasil dihapus.');

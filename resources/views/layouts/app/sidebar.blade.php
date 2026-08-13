@@ -295,6 +295,10 @@
                                             <a @class(['menu-item', 'active' => request()->routeIs('investors.management-fo')]) href="{{ route('investors.management-fo') }}" wire:navigate>
                                                 <span class="grow">Management FO</span>
                                             </a>
+                                            <a @class(['menu-item', 'active' => request()->routeIs('investors.activity-log')]) href="{{ route('investors.activity-log') }}" wire:navigate>
+                                                <span class="grow">Activity Log</span>
+                                                <span class="badge badge-warning badge-xs">Beta</span>
+                                            </a>
                                         @endhasanyrole
                                     </div>
                                 </div>

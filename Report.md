@@ -432,3 +432,28 @@ Halaman ini dirasa lemot pas dibuka, jadi dibedah & dibenerin 5 titik yang palin
 
 ---
 
+## 13/08/2026 Checklist Target FO Dua Arah (Tahunan/Bulanan/Harian) & Full English UI Modul Investors
+
+### Target FO — sekarang bisa diedit dari periode manapun, bukan cuma Tahunan
+- Sebelumnya form "Atur Target" di halaman Management FO selalu isi & simpan angka tahunan doang, walau lagi buka tab Bulanan/Harian — sekarang form-nya ngikutin tab yang lagi aktif
+- Edit dari tab **Bulanan** → otomatis dikonversi balik ke tahunan (x12) sebelum disimpan; edit dari tab **Harian** → dikonversi balik juga (x12x25 hari kerja) — jadi target manapun yang diedit, dua periode lainnya ikut nyesuain otomatis karena satu-satunya yang tersimpan di database tetap `yearly_target`
+- Ganti tab periode sekarang otomatis refresh angka di form sesuai pecahan periode itu (misal tahunan 120 → otomatis kebaca 10 pas pindah ke tab Bulanan)
+- Ketemu & dibenerin bug laten: proses baca angka input sebelumnya makai fungsi masking uang (`Money::normalize`) buat semua jenis metrik, padahal fungsi itu bakal ngestrip titik desimal — kalau gak dibenerin, target harian pecahan kayak "0.4 leads/hari" bakal kebaca jadi "4" pas disimpan. Sekarang dipisah: metrik nominal (Nilai Closing/Deal Value) tetap pakai masking, metrik hitungan (Leads/QL/dst.) pakai parsing angka biasa yang aman buat desimal
+
+### Full English — seluruh teks tampilan modul Investors
+- 6 halaman (Dashboard, Monthly Achievement, Monthly Conversion, Contacts, Funnel/Kanban, Management FO) diterjemahin total ke Bahasa Inggris buat semua teks yang kelihatan user: heading, label, tombol, tooltip, placeholder, empty-state, badge, sampai pesan konfirmasi/alert di JS
+- Logika PHP, nama variabel/method, key state internal (`tahunan`/`bulanan`/`harian`, stage `pitching`/`followup`/`won`/dst.), nama route & kolom database sengaja **gak** diubah — biar gak ada risiko nyenggol logic yang jalan
+- Toast/notifikasi dari server (`$this->success(...)` dkk.) juga sengaja belum disentuh — di luar cakupan sesi ini, nyusul kalau diminta
+- "Nilai Closing" konsisten diganti jadi **"Deal Value"** di semua tabel/kartu/label metrik
+
+### Test
+- 4 test baru buat skenario edit dua arah (Bulanan→Tahunan, Harian→Tahunan, currency masking, ganti tab reload buffer) — `ManagementFoTest`
+- 8 assertion test lama (`assertSee`/`assertDontSee`) di 5 file test disesuaikan ke teks Inggris yang baru
+- Full suite modul Investors: 124/126 pass (2 gagal pre-existing di modul Partnership yang beda, `ilike` gak didukung SQLite, gak berkaitan sama kerjaan sesi ini)
+
+### Pending
+- Toast/notifikasi server-side & pesan validasi masih Bahasa Indonesia — belum diterjemahin (di luar minta user sesi ini)
+- Full test suite project (semua modul, bukan cuma Investors) belum di-run ulang setelah sesi ini
+
+---
+

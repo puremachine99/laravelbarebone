@@ -49,6 +49,11 @@ class FoFunnel extends Model
         return $this->hasMany(FoFunnelActivity::class);
     }
 
+    public function logs()
+    {
+        return $this->morphMany(ActivityLog::class, 'loggable')->latest('id');
+    }
+
     public function dokumenAkadUrl(): ?string
     {
         if (! $this->dokumen_akad_path) {

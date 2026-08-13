@@ -1,12 +1,13 @@
 <?php
 
+use App\Enums\ActivityLogAction;
+use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\FoContact;
 use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
 use App\Models\FoTarget;
-use App\Models\FoTargetLog;
 use App\Models\User;
 use App\Notifications\FoTargetUpdatedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -184,12 +185,18 @@ test('save targets only persists metrics whose buffered input actually changed',
         'metric_key' => 'leads',
         'yearly_target' => 120.00,
     ]);
-    expect(FoTargetLog::where('employee_id', $admin->id)->where('metric_key', 'leads')->count())->toBe(1);
+
+    $targetChangeLogs = fn () => ActivityLog::where('action', ActivityLogAction::TargetUpdated)
+        ->where('changes->after->employee_id', $admin->id)
+        ->where('changes->after->metric_key', 'leads')
+        ->count();
+
+    expect($targetChangeLogs())->toBe(1);
 
     // Submit lagi tanpa mengubah nilai apa pun — gak boleh nambah log baru.
     $component->call('saveTargets')->assertHasNoErrors();
 
-    expect(FoTargetLog::where('employee_id', $admin->id)->where('metric_key', 'leads')->count())->toBe(1);
+    expect($targetChangeLogs())->toBe(1);
 });
 
 test('saving a changed target notifies the owning fo with the old and new values', function () {
@@ -281,28 +288,34 @@ test('updating a yearly target writes an audit log with who, whose, and old/new 
         ->call('updateYearlyTarget', $target->id, 'leads', 100)
         ->assertHasNoErrors();
 
-    $this->assertDatabaseHas('fo_target_logs', [
-        'employee_id' => $target->id,
-        'changed_by_user_id' => $admin->user->id,
-        'metric_key' => 'leads',
-        'old_value' => null,
-        'new_value' => 100.00,
-    ]);
+    $log = ActivityLog::where('action', ActivityLogAction::TargetUpdated)
+        ->where('changes->after->employee_id', $target->id)
+        ->latest('id')
+        ->first();
 
-    // Diubah lagi — kali ini ada nilai lama (100) yang harus kecatat sebagai old_value.
+    expect($log)->not->toBeNull()
+        ->and($log->causer_id)->toBe($admin->user->id)
+        ->and($log->changes['before'] ?? null)->toBeNull()
+        ->and((float) $log->changes['after']['yearly_target'])->toBe(100.0);
+
+    // Diubah lagi — kali ini ada nilai lama (100) yang harus kecatat sebagai before.
     Volt::test('investors.management-fo')
         ->call('updateYearlyTarget', $target->id, 'leads', 150)
         ->assertHasNoErrors();
 
-    $this->assertDatabaseHas('fo_target_logs', [
-        'employee_id' => $target->id,
-        'changed_by_user_id' => $admin->user->id,
-        'metric_key' => 'leads',
-        'old_value' => 100.00,
-        'new_value' => 150.00,
-    ]);
+    $log = ActivityLog::where('action', ActivityLogAction::TargetUpdated)
+        ->where('changes->after->employee_id', $target->id)
+        ->latest('id')
+        ->first();
 
-    expect(FoTargetLog::where('employee_id', $target->id)->count())->toBe(2);
+    expect($log->causer_id)->toBe($admin->user->id)
+        ->and((float) $log->changes['before']['yearly_target'])->toBe(100.0)
+        ->and((float) $log->changes['after']['yearly_target'])->toBe(150.0);
+
+    expect(ActivityLog::where('action', ActivityLogAction::TargetUpdated)
+        ->where(fn ($q) => $q->where('changes->after->employee_id', $target->id)
+            ->orWhere('changes->before->employee_id', $target->id))
+        ->count())->toBe(2);
 });
 
 test('resetting a yearly target logs the old value with a null new value', function () {
@@ -315,13 +328,15 @@ test('resetting a yearly target logs the old value with a null new value', funct
         ->call('resetYearlyTarget', $admin->id, 'leads')
         ->assertHasNoErrors();
 
-    $this->assertDatabaseHas('fo_target_logs', [
-        'employee_id' => $admin->id,
-        'changed_by_user_id' => $admin->user->id,
-        'metric_key' => 'leads',
-        'old_value' => 999.00,
-        'new_value' => null,
-    ]);
+    $log = ActivityLog::where('action', ActivityLogAction::TargetUpdated)
+        ->where('changes->before->employee_id', $admin->id)
+        ->latest('id')
+        ->first();
+
+    expect($log)->not->toBeNull()
+        ->and($log->causer_id)->toBe($admin->user->id)
+        ->and((float) $log->changes['before']['yearly_target'])->toBe(999.0)
+        ->and($log->changes['after'] ?? null)->toBeNull();
 });
 
 test('resetting a yearly target deletes the override and falls back to the suggestion again', function () {
