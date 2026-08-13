@@ -54,7 +54,7 @@ $foEmployees = computed(function () {
 });
 
 $viewAsOptions = computed(function () {
-    return collect([['id' => '', 'name' => 'Admin (Semua FO)']])
+    return collect([['id' => '', 'name' => 'Admin (All FOs)']])
         ->merge($this->foEmployees)
         ->values()
         ->all();
@@ -145,9 +145,9 @@ $statusFor = function (?float $overall) {
     }
 
     return match (true) {
-        $overall >= $rataRata => ['label' => '≥ rata-rata', 'class' => 'badge-success'],
-        $overall / $rataRata >= 0.8 => ['label' => 'mendekati', 'class' => 'badge-warning'],
-        default => ['label' => 'di bawah', 'class' => 'badge-error'],
+        $overall >= $rataRata => ['label' => '≥ average', 'class' => 'badge-success'],
+        $overall / $rataRata >= 0.8 => ['label' => 'near average', 'class' => 'badge-warning'],
+        default => ['label' => 'below average', 'class' => 'badge-error'],
     };
 };
 
@@ -205,7 +205,7 @@ $funnelKumulatif = computed(function () {
     $total = $this->totalRow;
 
     $data = [
-        ['label' => 'Lead Baru', 'value' => $total['lead']],
+        ['label' => 'New Leads', 'value' => $total['lead']],
         ['label' => 'Qualified Lead', 'value' => $total['ql']],
         ['label' => 'Pitching', 'value' => $total['pitching']],
         ['label' => 'Won', 'value' => $total['won']],
@@ -223,18 +223,18 @@ $funnelKumulatif = computed(function () {
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
         <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
             <div>
-                <h2 class="text-xl font-bold text-base-content">Konversi Bulanan</h2>
-                <p class="text-sm text-base-content/50 mt-1">Funnel konversi tim + ringkasan tahun berjalan.</p>
+                <h2 class="text-xl font-bold text-base-content">Monthly Conversion</h2>
+                <p class="text-sm text-base-content/50 mt-1">Team conversion funnel + year-to-date summary.</p>
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
                 @if ($this->isAdminFo)
                     <div class="w-56">
-                        <x-select label="Masuk sebagai" wire:model.live="viewAsEmployeeId" :options="$this->viewAsOptions" class="select-sm" />
+                        <x-select label="View as" wire:model.live="viewAsEmployeeId" :options="$this->viewAsOptions" class="select-sm" />
                     </div>
                 @else
                     <div class="text-sm text-base-content/50">
-                        Masuk sebagai <span class="font-semibold text-base-content">{{ $this->currentEmployee?->user?->name }}</span>
+                        Viewing as <span class="font-semibold text-base-content">{{ $this->currentEmployee?->user?->name }}</span>
                     </div>
                 @endif
             </div>
@@ -243,26 +243,26 @@ $funnelKumulatif = computed(function () {
 
     <div class="alert bg-info/10 border border-info/30 text-info text-sm">
         <x-icon name="o-information-circle" class="w-5 h-5" />
-        <span>Seluruh angka dihitung otomatis dari modul Funnel (Pipeline) — halaman ini read-only, tidak ada input manual.</span>
+        <span>All figures are calculated automatically from the Funnel (Pipeline) module — this page is read-only, with no manual input.</span>
     </div>
 
-    <!-- Tabel konversi bulanan -->
+    <!-- Monthly conversion table -->
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
         <p class="text-xs text-base-content/50 mb-3">
-            Read-only. Baris bulanan pakai persentase per-bulan; baris Total pakai kumulatif (SUM/SUM).
+            Read-only. Monthly rows use per-month percentages; the Total row uses a cumulative (SUM/SUM) calculation.
         </p>
 
         <div class="overflow-x-auto">
             <table class="table table-zebra w-full text-base-content/70">
                 <thead>
                     <tr class="text-base-content/50 border-b border-base-300">
-                        <th>Bulan</th>
+                        <th>Month</th>
                         <th>Lead</th>
                         <th>QL</th>
                         <th>Pitching</th>
                         <th>Won</th>
                         <th>Closing</th>
-                        <th>Nilai Closing</th>
+                        <th>Deal Value</th>
                         <th>Lead→QL</th>
                         <th>QL→Pitch</th>
                         <th>Pitch→Won</th>
@@ -292,7 +292,7 @@ $funnelKumulatif = computed(function () {
 
                     @php $total = $this->totalRow; @endphp
                     <x-investors.conversion-row
-                        :month="'Total ('.$total['active_months'].' bulan aktif)'"
+                        :month="'Total ('.$total['active_months'].' active months)'"
                         :is-total="true"
                         has-data
                         :lead="$total['lead']"
@@ -312,50 +312,50 @@ $funnelKumulatif = computed(function () {
         </div>
 
         <p class="text-xs text-base-content/40 mt-3">
-            ≥ rata-rata: overall bulan ≥ rata-rata tahun berjalan ({{ number_format($this->rataRata, 1) }}%). Mendekati: 80–100% dari rata-rata. Di bawah: &lt;80% dari rata-rata.
+            ≥ average: monthly overall ≥ year-to-date average ({{ number_format($this->rataRata, 1) }}%). Near average: 80–100% of the average. Below average: &lt;80% of the average.
         </p>
     </div>
 
-    <!-- Ringkasan -->
+    <!-- Summary -->
     <div>
-        <h3 class="text-base font-bold text-base-content mb-3">Ringkasan Konversi Tahun Berjalan</h3>
+        <h3 class="text-base font-bold text-base-content mb-3">Year-to-Date Conversion Summary</h3>
 
         @php $r = $this->ringkasan; @endphp
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            <x-stat-card label="Konversi Kumulatif" value="{{ number_format($r['konversi_kumulatif'], 1) }}%" accent="border-t-primary">
-                {{ $r['total_closing'] }} closing dari {{ $r['total_lead'] }} lead
+            <x-stat-card label="Cumulative Conversion" value="{{ number_format($r['konversi_kumulatif'], 1) }}%" accent="border-t-primary">
+                {{ $r['total_closing'] }} closing from {{ $r['total_lead'] }} leads
             </x-stat-card>
 
-            <x-stat-card label="Bulan Terbaik" value="{{ $r['bulan_terbaik']['month'] ?? '-' }}" accent="border-t-success">
+            <x-stat-card label="Best Month" value="{{ $r['bulan_terbaik']['month'] ?? '-' }}" accent="border-t-success">
                 @if ($r['bulan_terbaik'])
                     Overall {{ number_format($r['bulan_terbaik']['overall'], 1) }}%
                 @else
-                    Belum ada data
+                    No data yet
                 @endif
             </x-stat-card>
 
-            <x-stat-card label="Bulan Terlemah" value="{{ $r['bulan_terlemah']['month'] ?? '-' }}" accent="border-t-error">
+            <x-stat-card label="Weakest Month" value="{{ $r['bulan_terlemah']['month'] ?? '-' }}" accent="border-t-error">
                 @if ($r['bulan_terlemah'])
                     Overall {{ number_format($r['bulan_terlemah']['overall'], 1) }}%
                 @else
-                    Belum ada data
+                    No data yet
                 @endif
             </x-stat-card>
 
             <x-stat-card label="Bottleneck" value="{{ $r['bottleneck']['label'] ?? '-' }}" accent="border-t-warning">
                 @if ($r['bottleneck'])
-                    Rata-rata {{ number_format($r['bottleneck']['average'], 1) }}%
+                    Average {{ number_format($r['bottleneck']['average'], 1) }}%
                 @else
-                    Belum ada data
+                    No data yet
                 @endif
             </x-stat-card>
         </div>
     </div>
 
-    <!-- Funnel kumulatif -->
+    <!-- Cumulative funnel -->
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
-        <h3 class="text-base font-bold text-base-content">Funnel Kumulatif</h3>
-        <p class="text-xs text-base-content/50 mt-1 mb-4">Total dari seluruh bulan yang sudah berjalan.</p>
+        <h3 class="text-base font-bold text-base-content">Cumulative Funnel</h3>
+        <p class="text-xs text-base-content/50 mt-1 mb-4">Total across all months elapsed so far.</p>
         <div wire:ignore id="chart-conversion-funnel" style="min-height:280px;"></div>
     </div>
 
@@ -387,7 +387,7 @@ $funnelKumulatif = computed(function () {
         const opts = {
             ...baseOpts(),
             chart: { ...baseOpts().chart, type: 'bar', height: 280 },
-            series: [{ name: 'Jumlah', data: d.map((row) => row.value) }],
+            series: [{ name: 'Count', data: d.map((row) => row.value) }],
             xaxis: {
                 categories: d.map((row) => row.label),
                 labels: { style: { fontSize: '12px', colors: tc } },

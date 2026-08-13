@@ -45,8 +45,8 @@ test('page is rendered for authorized users', function () {
 
     Volt::test('investors.monthly-index')
         ->assertOk()
-        ->assertSee('Capaian Bulanan')
-        ->assertSee('Total Tim');
+        ->assertSee('Monthly Achievement')
+        ->assertSee('Team Total');
 });
 
 test('a plain funding officer is locked to their own data', function () {

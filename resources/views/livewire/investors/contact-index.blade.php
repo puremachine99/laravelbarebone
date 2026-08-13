@@ -234,18 +234,18 @@ $statsPic = computed(function () {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Card 1: Total Kontak -->
         <div class="card bg-base-100 border border-base-300 p-6 space-y-2 shadow-sm rounded-2xl">
-            <h3 class="text-xs text-base-content/50 font-bold uppercase tracking-wider">TOTAL KONTAK</h3>
-            <h2 class="text-2xl mt-1 font-extrabold text-base-content">{{ $this->contactsCount }} Kontak</h2>
-            <p class="text-xs text-base-content/40 mt-0.5">Total kontak calon investor/mitra funding yang tercatat.</p>
+            <h3 class="text-xs text-base-content/50 font-bold uppercase tracking-wider">TOTAL CONTACTS</h3>
+            <h2 class="text-2xl mt-1 font-extrabold text-base-content">{{ $this->contactsCount }} Contacts</h2>
+            <p class="text-xs text-base-content/40 mt-0.5">Total recorded contacts of prospective investors/funding partners.</p>
         </div>
 
         <!-- Card 2: PIC Terbanyak -->
         <div class="card bg-base-100 border border-base-300 p-6 space-y-4 flex flex-col justify-between shadow-sm rounded-2xl">
             <div>
-                <h3 class="text-xs text-base-content/50 font-bold uppercase tracking-wider">PIC TERBANYAK</h3>
+                <h3 class="text-xs text-base-content/50 font-bold uppercase tracking-wider">TOP PIC</h3>
                 <h2 class="text-xl mt-1 font-extrabold text-base-content">{{ $this->statsPic['top_name'] }}</h2>
                 <p class="text-xs text-base-content/40 mt-0.5">
-                    Memegang {{ $this->statsPic['top_percentage'] }}% dari total kontak yang memiliki PIC.
+                    Holds {{ $this->statsPic['top_percentage'] }}% of all contacts with an assigned PIC.
                 </p>
             </div>
 
@@ -253,7 +253,7 @@ $statsPic = computed(function () {
                 @foreach ($this->statsPic['pics']->take(3) as $row)
                     <div class="flex items-center justify-between text-xs">
                         <span class="font-medium text-base-content/70">{{ $row->employee?->user?->name ?? '-' }}</span>
-                        <span class="text-base-content/50 font-semibold">{{ $row->count }} Kontak</span>
+                        <span class="text-base-content/50 font-semibold">{{ $row->count }} Contacts</span>
                     </div>
                 @endforeach
             </div>
@@ -263,20 +263,20 @@ $statsPic = computed(function () {
     <div class="card bg-base-100 border border-base-300 p-6 space-y-6 shadow-sm rounded-2xl">
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="text-xl font-bold text-base-content">FO Kontak</h2>
-                <p class="text-sm text-base-content/50 mt-1">Kelola data kontak calon investor/mitra funding.</p>
+                <h2 class="text-xl font-bold text-base-content">FO Contacts</h2>
+                <p class="text-sm text-base-content/50 mt-1">Manage contact data for prospective investors/funding partners.</p>
             </div>
-            <x-button variant="primary" icon="o-plus" size="btn-sm" label="Tambah Kontak" wire:click="showCreate" />
+            <x-button variant="primary" icon="o-plus" size="btn-sm" label="Add Contact" wire:click="showCreate" />
         </div>
 
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div class="w-full sm:w-64">
-                <x-input wire:model.live.debounce.300ms="search" placeholder="Cari nama, profesi, no HP..." icon="o-magnifying-glass" clearable />
+                <x-input wire:model.live.debounce.300ms="search" placeholder="Search name, profession, phone number..." icon="o-magnifying-glass" clearable />
             </div>
             @if ($this->isAdminFo)
                 <div class="w-full sm:w-56">
                     @php $picFilterOpts = $this->employeeOptions->map(fn ($e) => ['id' => $e->id, 'name' => $e->user?->name]); @endphp
-                    <x-select wire:model.live="filterEmployee" :options="$picFilterOpts" placeholder="Semua PIC" placeholder-value="" />
+                    <x-select wire:model.live="filterEmployee" :options="$picFilterOpts" placeholder="All PICs" placeholder-value="" />
                 </div>
             @endif
         </div>
@@ -287,24 +287,24 @@ $statsPic = computed(function () {
                     <tr class="text-base-content/50 border-b border-base-300">
                         <th class="cursor-pointer py-3" wire:click="sort('nama')">
                             <div class="flex items-center gap-1">
-                                <span>Nama</span>
+                                <span>Name</span>
                                 @if ($sortBy === 'nama')
                                     <x-icon name="{{ $sortDirection === 'asc' ? 'o-chevron-up' : 'o-chevron-down' }}" class="w-3 h-3" />
                                 @endif
                             </div>
                         </th>
                         <th>PIC (FO)</th>
-                        <th>Profesi / Institusi</th>
+                        <th>Profession / Institution</th>
                         <th class="cursor-pointer" wire:click="sort('no_telepon')">
                             <div class="flex items-center gap-1">
-                                <span>No HP</span>
+                                <span>Phone</span>
                                 @if ($sortBy === 'no_telepon')
                                     <x-icon name="{{ $sortDirection === 'asc' ? 'o-chevron-up' : 'o-chevron-down' }}" class="w-3 h-3" />
                                 @endif
                             </div>
                         </th>
                         <th>Note</th>
-                        <th class="text-right">Aksi</th>
+                        <th class="text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -345,7 +345,7 @@ $statsPic = computed(function () {
                     @empty
                         <tr>
                             <td colspan="6" class="text-center text-base-content/50 py-8">
-                                Belum ada data kontak.
+                                No contacts recorded yet.
                             </td>
                         </tr>
                     @endforelse
@@ -359,36 +359,36 @@ $statsPic = computed(function () {
     </div>
 
     <!-- Contact Form Modal -->
-    <x-modal wire:model="showContactModal" title="{{ $isEdit ? 'Edit Kontak' : 'Tambah Kontak' }}" subtitle="Silakan isi informasi kontak dengan lengkap.">
+    <x-modal wire:model="showContactModal" title="{{ $isEdit ? 'Edit Contact' : 'Add Contact' }}" subtitle="Please fill in the contact information completely.">
         <form wire:submit.prevent="saveContact" class="space-y-4">
-            <x-input label="Nama Lengkap" wire:model="nama" placeholder="Cth: John Doe" icon="o-user" required />
+            <x-input label="Full Name" wire:model="nama" placeholder="e.g. John Doe" icon="o-user" required />
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <x-input label="Profesi / Institusi" wire:model="profesi" placeholder="Cth: Direktur PT ABC" icon="o-briefcase" maxlength="255" required/>
-                <x-input label="No HP" wire:model="no_telepon" type="text" inputmode="numeric" x-mask="99999999999999" placeholder="Cth: 08123456789" icon="o-phone" hint="Angka saja, 9-15 digit." required />
+                <x-input label="Profession / Institution" wire:model="profesi" placeholder="e.g. Director at PT ABC" icon="o-briefcase" maxlength="255" required/>
+                <x-input label="Phone" wire:model="no_telepon" type="text" inputmode="numeric" x-mask="99999999999999" placeholder="e.g. 08123456789" icon="o-phone" hint="Numbers only, 9-15 digits." required />
             </div>
 
             @if ($this->isAdminFo)
                 @php $picFormOpts = $this->employeeOptions->map(fn ($e) => ['id' => $e->id, 'name' => $e->user?->name]); @endphp
-                <x-select label="PIC (Funding Officer)" wire:model="employee_id" :options="$picFormOpts" icon="o-user-circle" placeholder="Pilih PIC..." />
+                <x-select label="PIC (Funding Officer)" wire:model="employee_id" :options="$picFormOpts" icon="o-user-circle" placeholder="Select PIC..." />
             @else
-                <x-input label="PIC (Funding Officer)" value="{{ $this->currentEmployee?->user?->name ?? '-' }}" icon="o-user-circle" readonly hint="Kontak ini otomatis tercatat atas nama kamu." />
+                <x-input label="PIC (Funding Officer)" value="{{ $this->currentEmployee?->user?->name ?? '-' }}" icon="o-user-circle" readonly hint="This contact will automatically be recorded under your name." />
             @endif
 
-            <x-textarea label="Note" wire:model="catatan" placeholder="Catatan tambahan tentang kontak ini" rows="3" />
+            <x-textarea label="Note" wire:model="catatan" placeholder="Additional notes about this contact" rows="3" />
 
             <div class="flex justify-end gap-2 pt-4 border-t border-base-300">
-                <x-button label="Batal" wire:click="$set('showContactModal', false)" class="btn-ghost" />
-                <x-button label="Simpan" type="submit" class="btn-primary" spinner="saveContact" />
+                <x-button label="Cancel" wire:click="$set('showContactModal', false)" class="btn-ghost" />
+                <x-button label="Save" type="submit" class="btn-primary" spinner="saveContact" />
             </div>
         </form>
     </x-modal>
 
     <!-- Confirmation Modal -->
-    <x-modal wire:model="showDeleteModal" title="Hapus Kontak?" subtitle="Kontak akan dihapus dari daftar aktif, namun histori pipeline yang terkait tetap tersimpan.">
+    <x-modal wire:model="showDeleteModal" title="Delete Contact?" subtitle="The contact will be removed from the active list, but related pipeline history will be kept.">
         <div class="flex justify-end gap-2 pt-4">
-            <x-button label="Batal" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
-            <x-button label="Ya, Hapus" wire:click="deleteContact" class="btn-error text-white" />
+            <x-button label="Cancel" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
+            <x-button label="Yes, Delete" wire:click="deleteContact" class="btn-error text-white" />
         </div>
     </x-modal>
 </div>

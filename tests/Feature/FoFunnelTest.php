@@ -57,12 +57,12 @@ test('view mode toggle renders only the active mode server-side', function () {
     $component = Volt::test('investors.funnel-index');
 
     expect($component->get('viewMode'))->toBe('kanban');
-    $component->assertSee('Tidak ada kartu')->assertDontSee('Belum ada data funnel.');
+    $component->assertSee('No cards')->assertDontSee('No funnel data yet.');
 
     $component->set('viewMode', 'table');
 
     expect($component->get('viewMode'))->toBe('table');
-    $component->assertSee('Belum ada data funnel.')->assertDontSee('Tidak ada kartu');
+    $component->assertSee('No funnel data yet.')->assertDontSee('No cards');
 });
 
 test('a fo can create a lead for their own contact', function () {

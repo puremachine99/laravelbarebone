@@ -37,8 +37,8 @@ test('a plain funding officer can view management fo but not the target form', f
 
     Volt::test('investors.management-fo')
         ->assertOk()
-        ->assertSee('Management FO')
-        ->assertDontSee('Simpan Target');
+        ->assertSee('FO Management')
+        ->assertDontSee('Save Target');
 });
 
 test('a plain funding officer cannot save or reset a target', function () {
@@ -61,9 +61,9 @@ test('investor admin can access management fo and sees the fo list', function ()
 
     Volt::test('investors.management-fo')
         ->assertOk()
-        ->assertSee('Management FO')
+        ->assertSee('FO Management')
         ->assertSee('Leads')
-        ->assertSee('Nilai Closing');
+        ->assertSee('Deal Value');
 });
 
 test('super admin can access management fo', function () {
@@ -94,6 +94,79 @@ test('updating a yearly target persists it to the database and recalculates the 
     $component->set('activePeriod', 'bulanan');
 
     expect((float) $component->instance()->targetFor($admin->id, 'leads'))->toBe(10.0);
+});
+
+test('editing the target from the bulanan tab converts the input back into a yearly target', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    $component = Volt::test('investors.management-fo')
+        ->set('targetSettingEmployeeId', $admin->id)
+        ->set('activePeriod', 'bulanan')
+        ->set('targetInputs.leads', '10')
+        ->call('saveTargets')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('fo_targets', [
+        'employee_id' => $admin->id,
+        'metric_key' => 'leads',
+        'yearly_target' => 120.00,
+    ]);
+
+    expect((float) $component->instance()->yearlyTargetFor($admin->id, 'leads'))->toBe(120.0);
+});
+
+test('editing the target from the harian tab converts the input back into a yearly target', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    Volt::test('investors.management-fo')
+        ->set('targetSettingEmployeeId', $admin->id)
+        ->set('activePeriod', 'harian')
+        ->set('targetInputs.leads', '2')
+        ->call('saveTargets')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('fo_targets', [
+        'employee_id' => $admin->id,
+        'metric_key' => 'leads',
+        'yearly_target' => 600.00, // 2 leads/hari * 25 hari kerja * 12 bulan
+    ]);
+});
+
+test('editing a currency target from the bulanan tab converts the masked input back into a yearly target', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    Volt::test('investors.management-fo')
+        ->set('targetSettingEmployeeId', $admin->id)
+        ->set('activePeriod', 'bulanan')
+        ->set('targetInputs.nilai_closing', '100.000.000')
+        ->call('saveTargets')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('fo_targets', [
+        'employee_id' => $admin->id,
+        'metric_key' => 'nilai_closing',
+        'yearly_target' => 1_200_000_000.00,
+    ]);
+});
+
+test('switching period tabs reloads the target input buffer with the split value', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    FoTarget::create(['employee_id' => $admin->id, 'year' => now()->year, 'metric_key' => 'leads', 'yearly_target' => 120]);
+
+    $component = Volt::test('investors.management-fo')
+        ->set('targetSettingEmployeeId', $admin->id)
+        ->set('activePeriod', 'bulanan');
+
+    expect($component->get('targetInputs.leads'))->toBe('10');
+
+    $component->set('activePeriod', 'harian');
+
+    expect($component->get('targetInputs.leads'))->toBe('0.4');
 });
 
 test('save targets only persists metrics whose buffered input actually changed', function () {

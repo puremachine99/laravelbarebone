@@ -19,10 +19,10 @@ state([
     'selectedYear' => (int) now()->year,
 
     'bulanOptions' => [
-        ['id' => 1, 'name' => 'Januari'], ['id' => 2, 'name' => 'Februari'], ['id' => 3, 'name' => 'Maret'],
-        ['id' => 4, 'name' => 'April'], ['id' => 5, 'name' => 'Mei'], ['id' => 6, 'name' => 'Juni'],
-        ['id' => 7, 'name' => 'Juli'], ['id' => 8, 'name' => 'Agustus'], ['id' => 9, 'name' => 'September'],
-        ['id' => 10, 'name' => 'Oktober'], ['id' => 11, 'name' => 'November'], ['id' => 12, 'name' => 'Desember'],
+        ['id' => 1, 'name' => 'January'], ['id' => 2, 'name' => 'February'], ['id' => 3, 'name' => 'March'],
+        ['id' => 4, 'name' => 'April'], ['id' => 5, 'name' => 'May'], ['id' => 6, 'name' => 'June'],
+        ['id' => 7, 'name' => 'July'], ['id' => 8, 'name' => 'August'], ['id' => 9, 'name' => 'September'],
+        ['id' => 10, 'name' => 'October'], ['id' => 11, 'name' => 'November'], ['id' => 12, 'name' => 'December'],
     ],
 ]);
 
@@ -52,7 +52,7 @@ $foEmployees = computed(function () {
 });
 
 $viewAsOptions = computed(function () {
-    return collect([['id' => '', 'name' => 'Admin (Semua FO)']])
+    return collect([['id' => '', 'name' => 'Admin (All FOs)']])
         ->merge($this->foEmployees)
         ->values()
         ->all();
@@ -180,18 +180,18 @@ $monthlyTrend = computed(function () {
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
         <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
             <div>
-                <h2 class="text-xl font-bold text-base-content">Capaian Bulanan</h2>
-                <p class="text-sm text-base-content/50 mt-1">Rekap realisasi per FO per bulan (otomatis dari Pipeline).</p>
+                <h2 class="text-xl font-bold text-base-content">Monthly Achievement</h2>
+                <p class="text-sm text-base-content/50 mt-1">Realization summary per FO per month (automatically generated from the Pipeline).</p>
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
                 @if ($this->isAdminFo)
                     <div class="w-56">
-                        <x-select label="Masuk sebagai" wire:model.live="viewAsEmployeeId" :options="$this->viewAsOptions" class="select-sm" />
+                        <x-select label="View as" wire:model.live="viewAsEmployeeId" :options="$this->viewAsOptions" class="select-sm" />
                     </div>
                 @else
                     <div class="text-sm text-base-content/50">
-                        Masuk sebagai <span class="font-semibold text-base-content">{{ $this->currentEmployee?->user?->name }}</span>
+                        Viewing as <span class="font-semibold text-base-content">{{ $this->currentEmployee?->user?->name }}</span>
                     </div>
                 @endif
             </div>
@@ -200,21 +200,21 @@ $monthlyTrend = computed(function () {
 
     <div class="alert bg-info/10 border border-info/30 text-info text-sm">
         <x-icon name="o-information-circle" class="w-5 h-5" />
-        <span>Seluruh angka dihitung otomatis dari modul Funnel (Pipeline) — halaman ini read-only, tidak ada input manual.</span>
+        <span>All figures are calculated automatically from the Funnel (Pipeline) module — this page is read-only, with no manual input.</span>
     </div>
 
-    <!-- Filter bulan/tahun -->
+    <!-- Month/year filter -->
     <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
         <div class="flex flex-wrap items-end gap-3">
             <div class="w-40">
-                <x-select label="Bulan" wire:model.live="selectedMonth" :options="$bulanOptions" class="select-sm" />
+                <x-select label="Month" wire:model.live="selectedMonth" :options="$bulanOptions" class="select-sm" />
             </div>
             <div class="w-32">
-                <x-select label="Tahun" wire:model.live="selectedYear" :options="$this->tahunOptions" class="select-sm" />
+                <x-select label="Year" wire:model.live="selectedYear" :options="$this->tahunOptions" class="select-sm" />
             </div>
         </div>
         <p class="text-xs text-base-content/40 mt-3">
-            Read-only — hasil agregasi otomatis dari Pipeline (Funnel) bulan {{ collect($bulanOptions)->firstWhere('id', $selectedMonth)['name'] }} {{ $selectedYear }}. Tidak ada mode edit manual.
+            Read-only — automatically aggregated from the Pipeline (Funnel) for {{ collect($bulanOptions)->firstWhere('id', $selectedMonth)['name'] }} {{ $selectedYear }}. No manual edit mode available.
         </p>
     </div>
 
@@ -225,14 +225,14 @@ $monthlyTrend = computed(function () {
                 <thead>
                     <tr class="text-base-content/50 border-b border-base-300">
                         <th>FO</th>
-                        <th class="text-right">Lead Baru</th>
+                        <th class="text-right">New Leads</th>
                         <th class="text-right">QL</th>
                         <th class="text-right">Pitching</th>
                         <th class="text-right">Follow Up</th>
                         <th class="text-right">Won</th>
                         <th class="text-right">Closing</th>
-                        <th class="text-right">Nilai Closing</th>
-                        <th class="text-right">Konversi Lead→Closing</th>
+                        <th class="text-right">Deal Value</th>
+                        <th class="text-right">Lead→Closing Conversion</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -250,14 +250,14 @@ $monthlyTrend = computed(function () {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center text-base-content/50 py-6">Belum ada FO aktif.</td>
+                            <td colspan="9" class="text-center text-base-content/50 py-6">No active FOs yet.</td>
                         </tr>
                     @endforelse
                 </tbody>
                 @php $total = $this->totalTim; @endphp
                 <tfoot>
                     <tr class="border-t-2 border-base-300 font-semibold text-base-content">
-                        <td>Total Tim</td>
+                        <td>Team Total</td>
                         <td class="text-right">{{ number_format($total['leads']) }}</td>
                         <td class="text-right">{{ number_format($total['ql']) }}</td>
                         <td class="text-right">{{ number_format($total['pitching']) }}</td>
@@ -274,9 +274,9 @@ $monthlyTrend = computed(function () {
 
     <!-- Tren Bulanan -->
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
-        <h3 class="text-base font-bold text-base-content">Tren Bulanan Tim</h3>
+        <h3 class="text-base font-bold text-base-content">Team Monthly Trend</h3>
         <p class="text-xs text-base-content/50 mt-1 mb-4">
-            Total realisasi {{ $viewAsEmployeeId ? 'FO terpilih' : 'seluruh FO' }} per bulan (tahun {{ $selectedYear }}).
+            Total realization for {{ $viewAsEmployeeId ? 'the selected FO' : 'all FOs' }} per month (year {{ $selectedYear }}).
         </p>
         <div wire:ignore id="chart-trend-bulanan" style="min-height:300px;"></div>
     </div>
@@ -310,7 +310,7 @@ $monthlyTrend = computed(function () {
             ...baseOpts(),
             chart: { ...baseOpts().chart, type: 'bar', height: 300 },
             series: [
-                { name: 'Lead Baru', data: d.map((row) => row.leads) },
+                { name: 'New Leads', data: d.map((row) => row.leads) },
                 { name: 'Won', data: d.map((row) => row.won) },
                 { name: 'Closing', data: d.map((row) => row.closing) },
             ],

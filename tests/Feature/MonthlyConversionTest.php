@@ -45,9 +45,9 @@ test('page is rendered for authorized users', function () {
 
     Volt::test('investors.conversion-index')
         ->assertOk()
-        ->assertSee('Konversi Bulanan')
-        ->assertSee('Ringkasan Konversi Tahun Berjalan')
-        ->assertSee('Funnel Kumulatif');
+        ->assertSee('Monthly Conversion')
+        ->assertSee('Year-to-Date Conversion Summary')
+        ->assertSee('Cumulative Funnel');
 });
 
 test('a plain funding officer is locked to their own data', function () {
@@ -212,9 +212,9 @@ test('status badges are relative to the year-to-date average, not a fixed thresh
 
     $byOverall = $rows->keyBy('overall');
 
-    expect($component->statusFor($byOverall[100.0]['overall'])['label'])->toBe('≥ rata-rata')
-        ->and($component->statusFor($byOverall[20.0]['overall'])['label'])->toBe('di bawah')
-        ->and($component->statusFor($byOverall[50.0]['overall'])['label'])->toBe('mendekati');
+    expect($component->statusFor($byOverall[100.0]['overall'])['label'])->toBe('≥ average')
+        ->and($component->statusFor($byOverall[20.0]['overall'])['label'])->toBe('below average')
+        ->and($component->statusFor($byOverall[50.0]['overall'])['label'])->toBe('near average');
 })->skip(fn () => now()->month < 3, 'Needs two previous months within the same year');
 
 test('bottleneck identifies the funnel stage with the lowest average conversion', function () {

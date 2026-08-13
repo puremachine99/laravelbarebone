@@ -29,7 +29,7 @@ $metricsData = [
     ['key' => 'ql', 'label' => 'QL', 'icon' => 'o-check-badge', 'type' => 'count'],
     ['key' => 'pitching', 'label' => 'Pitching', 'icon' => 'o-presentation-chart-line', 'type' => 'count'],
     ['key' => 'closing', 'label' => 'Closing', 'icon' => 'o-trophy', 'type' => 'count'],
-    ['key' => 'nilai_closing', 'label' => 'Nilai Closing', 'icon' => 'o-banknotes', 'type' => 'currency'],
+    ['key' => 'nilai_closing', 'label' => 'Deal Value', 'icon' => 'o-banknotes', 'type' => 'currency'],
 ];
 
 state(['metrics' => $metricsData]);
@@ -39,13 +39,18 @@ $canManageTargets = computed(function () {
     return auth()->user()->hasRole(['Investor Admin', 'Super Admin']);
 });
 
-// Isi ulang buffer input target (dan snapshot-nya) sesuai FO yang lagi dipilih, biar form gak "nyangkut"
-// nilai FO sebelumnya dan biar saveTargets() bisa tau metrik mana aja yang beneran diubah user.
+// Isi ulang buffer input target (dan snapshot-nya) sesuai FO yang lagi dipilih & tab periode aktif, biar
+// form gak "nyangkut" nilai sebelumnya dan biar saveTargets() bisa tau metrik mana aja yang beneran diubah.
+// Nilai yang ditampilkan mengikuti tab aktif (tahunan/bulanan/harian), hasil pecahan dari yearly_target.
 $loadTargetInputs = function () {
     $values = collect($this->metrics)
-        ->mapWithKeys(fn ($metric) => [
-            $metric['key'] => (string) $this->yearlyTargetFor($this->targetSettingEmployeeId, $metric['key']),
-        ])
+        ->mapWithKeys(function ($metric) {
+            $yearly = $this->yearlyTargetFor($this->targetSettingEmployeeId, $metric['key']);
+            $value = $this->splitTarget($yearly)[$this->activePeriod];
+            $value = $metric['type'] === 'currency' ? round($value) : round($value, 2);
+
+            return [$metric['key'] => (string) $value];
+        })
         ->all();
 
     $this->targetInputs = $values;
@@ -60,6 +65,11 @@ mount(function () {
 });
 
 $updatedTargetSettingEmployeeId = function () {
+    $this->loadTargetInputs();
+};
+
+// Ganti tab periode → buffer input harus ikut ganti ke nilai pecahan periode itu juga.
+$updatedActivePeriod = function () {
     $this->loadTargetInputs();
 };
 
@@ -103,13 +113,42 @@ $suggestedYearlyTarget = function ($employeeId, $metricKey) {
     return round($allTimeTotal * $annualizeFactor);
 };
 
-// Rekomendasi 
+// Rekomendasi
 $splitTarget = function ($yearly) {
     return [
         'tahunan' => $yearly,
         'bulanan' => $yearly / 12,
         'harian' => $yearly / 12 / 25,
     ];
+};
+
+// Kebalikan dari splitTarget() — dipakai saat user ngedit target langsung dari tab Bulanan/Harian,
+// biar yearly_target (satu-satunya yang disimpan di DB) tetap jadi sumber kebenaran yang konsisten.
+$toYearly = function ($value, $period) {
+    if ($value === null) {
+        return null;
+    }
+
+    return match ($period) {
+        'bulanan' => $value * 12,
+        'harian' => $value * 12 * 25,
+        default => $value,
+    };
+};
+
+// Parse nilai mentah dari input form sesuai tipe metrik. Currency pakai Money::normalize (input bermasking,
+// tanpa desimal). Metrik hitungan (count) bisa berupa pecahan waktu diedit dari tab Bulanan/Harian, jadi
+// gak boleh lewat Money::normalize (itu bakal ngestrip titik desimalnya dan bikin nilainya salah total).
+$parseInputValue = function ($value, $type) {
+    if ($type === 'currency') {
+        return Money::normalize($value);
+    }
+
+    if ($value === null || $value === '' || ! is_numeric($value)) {
+        return null;
+    }
+
+    return (float) $value;
 };
 
 // Target 
@@ -206,14 +245,11 @@ $logTargetChange = function ($employeeId, $metricKey, $oldValue, $newValue) {
 };
 
 // Persist satu metrik target (dipanggil per-metrik dari saveTargets() saat tombol Simpan ditekan).
+// $value di sini udah berupa angka tahunan bersih (hasil parseInputValue() + toYearly() dari saveTargets()).
 // Return array from/to sukses (dipakai buat detail notifikasi FO), atau false kalau nilainya invalid,
 // biar saveTargets() bisa kumpulin nilai yang invalid tanpa spam toast per-field.
 $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
     abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin']), 403);
-
-    // Input nominal (nilai_closing) dikirim dari input bermasking (mis. "3.500.000.000") — normalize dulu.
-    // Aman juga dipakai buat metrik hitungan biasa (leads, ql, dst) karena isinya cuma digit tanpa pemisah.
-    $value = Money::normalize($value);
 
     if ($value === null || $value < 0) {
         return false;
@@ -235,7 +271,9 @@ $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
 };
 
 // Tombol "Simpan Target" — cuma metrik yang nilainya beneran berubah dari snapshot terakhir yang di-submit,
-// biar gak nulis FoTarget/FoTargetLog buat metrik yang gak disentuh user.
+// biar gak nulis FoTarget/FoTargetLog buat metrik yang gak disentuh user. Input di form ngikutin tab periode
+// aktif (tahunan/bulanan/harian), jadi sebelum disimpan nilainya dikonversi balik ke tahunan dulu — apa pun
+// tab yang lagi dipakai buat ngedit, yearly_target di DB yang jadi sumber kebenaran tunggalnya.
 $saveTargets = function () {
     abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin']), 403);
 
@@ -249,15 +287,17 @@ $saveTargets = function () {
 
     foreach ($this->metrics as $metric) {
         $key = $metric['key'];
-        $newValue = $this->targetInputs[$key] ?? null;
+        $rawValue = $this->targetInputs[$key] ?? null;
 
-        if ((string) $newValue === (string) ($this->targetInputsSnapshot[$key] ?? null)) {
+        if ((string) $rawValue === (string) ($this->targetInputsSnapshot[$key] ?? null)) {
             continue;
         }
 
         $changed = true;
 
-        $result = $this->updateYearlyTarget($this->targetSettingEmployeeId, $key, $newValue);
+        $yearlyValue = $this->toYearly($this->parseInputValue($rawValue, $metric['type']), $this->activePeriod);
+
+        $result = $this->updateYearlyTarget($this->targetSettingEmployeeId, $key, $yearlyValue);
 
         if ($result) {
             $changes[] = [
@@ -265,7 +305,8 @@ $saveTargets = function () {
                 'type' => $metric['type'],
                 // Pakai nilai yang tadinya tampil di form (bisa jadi saran otomatis, bukan cuma target
                 // tersimpan di DB), biar FO lihat perbandingan yang sama persis kayak yang Admin lihat.
-                'from' => Money::normalize($this->targetInputsSnapshot[$key] ?? null),
+                // Dikonversi ke tahunan juga biar konsisten sama $result['to'] yang selalu dalam satuan tahunan.
+                'from' => $this->toYearly($this->parseInputValue($this->targetInputsSnapshot[$key] ?? null, $metric['type']), $this->activePeriod),
                 'to' => $result['to'],
             ];
         } else {
@@ -379,26 +420,30 @@ $foRanking = computed(function () {
 
 <div class="space-y-4">
     <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
-        <h2 class="text-lg font-bold text-base-content">Management FO</h2>
+        <h2 class="text-lg font-bold text-base-content">FO Management</h2>
         <p class="text-xs text-base-content/50">
-            Atur & pantau target kerja Funding Officer — target tahunan otomatis dipecah ke bulanan & harian.
+            Set & monitor Funding Officer work targets — edit from the Yearly, Monthly, or Daily tab, everything else adjusts automatically.
         </p>
-        <div class="badge badge-warning badge-outline badge-sm mt-1.5">Saran target dari data historis · bisa diubah manual · Realisasi & Proyeksi dari data funnel asli</div>
+        <div class="badge badge-warning badge-outline badge-sm mt-1.5">Suggested target based on historical data · can be edited manually · Realization & Projection from real funnel data</div>
     </div>
 
-    <!-- Periode (full width) -->
+    <!-- Period (full width) -->
     <div class="card bg-base-100 border border-base-300 p-3 rounded-xl">
         <div role="tablist" class="tabs tabs-boxed tabs-sm w-fit">
-            <a role="tab" wire:click="$set('activePeriod', 'tahunan')" @class(['tab', 'tab-active' => $activePeriod === 'tahunan'])>Tahunan</a>
-            <a role="tab" wire:click="$set('activePeriod', 'bulanan')" @class(['tab', 'tab-active' => $activePeriod === 'bulanan'])>Bulanan</a>
-            <a role="tab" wire:click="$set('activePeriod', 'harian')" @class(['tab', 'tab-active' => $activePeriod === 'harian'])>Harian</a>
+            <a role="tab" wire:click="$set('activePeriod', 'tahunan')" @class(['tab', 'tab-active' => $activePeriod === 'tahunan'])>Yearly</a>
+            <a role="tab" wire:click="$set('activePeriod', 'bulanan')" @class(['tab', 'tab-active' => $activePeriod === 'bulanan'])>Monthly</a>
+            <a role="tab" wire:click="$set('activePeriod', 'harian')" @class(['tab', 'tab-active' => $activePeriod === 'harian'])>Daily</a>
         </div>
     </div>
 
+    @php
+        $periodLabels = ['tahunan' => 'Yearly', 'bulanan' => 'Monthly', 'harian' => 'Daily'];
+    @endphp
+
     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-        <!-- Kiri: setting target -->
+        <!-- Left: target setting -->
         <div class="card bg-base-100 border border-base-300 p-4 rounded-xl md:col-span-4">
-            <div class="text-sm font-semibold text-base-content mb-3">Atur Target Tahunan</div>
+            <div class="text-sm font-semibold text-base-content mb-3">Set {{ $periodLabels[$activePeriod] }} Target</div>
 
             <x-select wire:model.live="targetSettingEmployeeId" :options="$this->foEmployees" class="select-sm mb-3" />
 
@@ -420,23 +465,24 @@ $foRanking = computed(function () {
                                 <x-input
                                     :label="$metric['label']"
                                     type="number"
+                                    step="any"
                                     wire:model="targetInputs.{{ $metric['key'] }}"
                                     class="input-sm"
-                                    wire:key="target-input-{{ $targetSettingEmployeeId }}-{{ $metric['key'] }}"
+                                    wire:key="target-input-{{ $targetSettingEmployeeId }}-{{ $metric['key'] }}-{{ $activePeriod }}"
                                 />
                             @endif
                             @if ($this->hasSavedTarget($targetSettingEmployeeId, $metric['key']))
                                 <x-button
                                     icon="o-arrow-path"
                                     class="btn-ghost btn-xs text-base-content/50 mb-1.5"
-                                    tooltip="Reset ke saran otomatis"
+                                    tooltip="Reset to auto suggestion"
                                     wire:click="resetYearlyTarget({{ $targetSettingEmployeeId }}, '{{ $metric['key'] }}')"
                                 />
                             @endif
                         </div>
                     @endforeach
-                    <div class="text-[11px] text-base-content/40">Angka tanpa tombol reset = saran otomatis dari data historis, belum diisi manual. Perubahan baru tersimpan setelah klik Simpan.</div>
-                    <x-button label="Simpan Target" type="submit" icon="o-check" class="btn-primary btn-sm w-full mt-1" spinner="saveTargets" />
+                    <div class="text-[11px] text-base-content/40">A value without a reset button = auto suggestion from historical data, not manually set yet. Changes are only saved after clicking Save.</div>
+                    <x-button label="Save Target" type="submit" icon="o-check" class="btn-primary btn-sm w-full mt-1" spinner="saveTargets" />
                 </form>
             @else
                 <div class="space-y-2">
@@ -445,19 +491,19 @@ $foRanking = computed(function () {
                             <span class="text-base-content/60">{{ $metric['label'] }}</span>
                             <span class="font-medium text-base-content">
                                 @if ($metric['type'] === 'currency')
-                                    <x-currency-abbr :value="$this->yearlyTargetFor($targetSettingEmployeeId, $metric['key'])" />
+                                    <x-currency-abbr :value="$this->targetFor($targetSettingEmployeeId, $metric['key'])" />
                                 @else
-                                    {{ number_format($this->yearlyTargetFor($targetSettingEmployeeId, $metric['key'])) }}
+                                    {{ number_format($this->targetFor($targetSettingEmployeeId, $metric['key']), $activePeriod === 'harian' ? 1 : 0) }}
                                 @endif
                             </span>
                         </div>
                     @endforeach
-                    <div class="text-[11px] text-base-content/40 pt-1">Cuma Admin FO / Super Admin yang bisa mengubah target.</div>
+                    <div class="text-[11px] text-base-content/40 pt-1">Only FO Admin / Super Admin can change the target.</div>
                 </div>
             @endif
         </div>
 
-        <!-- Kanan: data saat ini -->
+        <!-- Right: current data -->
         <div class="md:col-span-8 space-y-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 @foreach ($this->foEmployees as $fo)
@@ -474,20 +520,20 @@ $foRanking = computed(function () {
                                     $realisasi = $this->realisasiFor($fo['id'], $metric['key']);
                                     $gap = $realisasi - $target;
                                     $fmt = fn ($v) => $isCurrency ? Money::abbreviate($v) : number_format($v, $activePeriod === 'harian' ? 1 : 0);
-                                    $exactSuffix = fn ($v) => $isCurrency ? ' Nilai: '.Money::exact($v).'.' : '';
+                                    $exactSuffix = fn ($v) => $isCurrency ? ' Value: '.Money::exact($v).'.' : '';
                                 @endphp
                                 <div class="flex items-center justify-between gap-1 text-xs">
                                     <span class="text-base-content/50 shrink-0">{{ $metric['label'] }}</span>
                                     <span class="text-right">
-                                        <span class="tooltip tooltip-left" data-tip="Realisasi — yang udah beneran terjadi di periode ini. {{ $gap >= 0 ? 'Hijau = udah capai/lewat target.' : 'Merah = masih di bawah target.' }}{{ $exactSuffix($realisasi) }}">
+                                        <span class="tooltip tooltip-left" data-tip="Realization — what has actually happened in this period. {{ $gap >= 0 ? 'Green = target reached/exceeded.' : 'Red = still below target.' }}{{ $exactSuffix($realisasi) }}">
                                             <span class="font-medium {{ $gap >= 0 ? 'text-success' : 'text-error' }}">{{ $fmt($realisasi) }}</span>
                                         </span>
                                         @if ($hasProyeksi)
-                                            <span class="tooltip tooltip-left" data-tip="Proyeksi — perkiraan tambahan dari funnel yang masih jalan (Pitching/Follow Up), belum pasti closing.{{ $exactSuffix($proyeksi) }}">
+                                            <span class="tooltip tooltip-left" data-tip="Projection — additional estimate from funnels still in progress (Pitching/Follow Up), not yet a confirmed closing.{{ $exactSuffix($proyeksi) }}">
                                                 <span class="text-warning">({{ $fmt($proyeksi) }})</span>
                                             </span>
                                         @endif
-                                        <span class="tooltip tooltip-left" data-tip="Target — angka target {{ $activePeriod }} (manual kalau udah diisi admin, atau saran otomatis dari data historis kalau belum).{{ $exactSuffix($target) }}">
+                                        <span class="tooltip tooltip-left" data-tip="Target — the {{ $periodLabels[$activePeriod] }} target figure (manual if already set by an admin, or an auto suggestion from historical data if not).{{ $exactSuffix($target) }}">
                                             <span class="text-base-content/30">/ {{ $fmt($target) }}</span>
                                         </span>
                                     </span>
@@ -497,7 +543,7 @@ $foRanking = computed(function () {
                             @php $wonRealisasi = $this->realisasiFor($fo['id'], 'won'); @endphp
                             <div class="flex items-center justify-between gap-1 text-xs">
                                 <span class="text-base-content/50 shrink-0">Won</span>
-                                <span class="tooltip tooltip-left" data-tip="Won — calon investor yang sudah komitmen verbal, belum tentu uangnya sudah masuk (lihat Closing).">
+                                <span class="tooltip tooltip-left" data-tip="Won — a prospective investor who has verbally committed, but the money hasn't necessarily been received yet (see Closing).">
                                     <span class="font-medium text-base-content">{{ number_format($wonRealisasi, $activePeriod === 'harian' ? 1 : 0) }}</span>
                                 </span>
                             </div>
@@ -506,11 +552,11 @@ $foRanking = computed(function () {
                 @endforeach
             </div>
 
-            <div class="text-xs text-base-content/40 px-1">Format: Realisasi <span class="text-warning">(Proyeksi)</span> / Target — hijau/merah nunjukin udah lewat/belum lewat target</div>
+            <div class="text-xs text-base-content/40 px-1">Format: Realization <span class="text-warning">(Projection)</span> / Target — green/red shows whether the target has been exceeded</div>
 
-            <!-- Ringkasan Semua FO -->
+            <!-- All FO Summary -->
             <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
-                <div class="text-xs font-semibold text-base-content/50 mb-2">Total Semua FO</div>
+                <div class="text-xs font-semibold text-base-content/50 mb-2">Total All FO</div>
                 <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
                     @foreach ($metrics as $metric)
                         @php
@@ -546,15 +592,15 @@ $foRanking = computed(function () {
         </div>
     </div>
 
-    <!-- Rekap Bulanan (FO yang lagi dipilih di dropdown kiri) -->
+    <!-- Last 6 Months Recap (FO selected in the left dropdown) -->
     <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
-        <div class="text-sm font-semibold text-base-content mb-1">Rekap 6 Bulan Terakhir — {{ collect($this->foEmployees)->firstWhere('id', $targetSettingEmployeeId)['name'] ?? '-' }}</div>
-        <p class="text-xs text-base-content/50 mb-3">Tren realisasi bulanan, bukan snapshot periode aktif di atas.</p>
+        <div class="text-sm font-semibold text-base-content mb-1">Last 6 Months Recap — {{ collect($this->foEmployees)->firstWhere('id', $targetSettingEmployeeId)['name'] ?? '-' }}</div>
+        <p class="text-xs text-base-content/50 mb-3">Monthly realization trend, not a snapshot of the active period above.</p>
         <div class="overflow-x-auto">
             <table class="table table-sm table-zebra w-full text-base-content/70">
                 <thead>
                     <tr class="text-base-content/50 border-b border-base-300">
-                        <th>Bulan</th>
+                        <th>Month</th>
                         @foreach ($metrics as $metric)
                             <th class="text-right">{{ $metric['label'] }}</th>
                         @endforeach
@@ -578,7 +624,7 @@ $foRanking = computed(function () {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ count($metrics) + 2 }}" class="text-center text-base-content/50 py-4">Pilih FO dulu di panel kiri.</td>
+                            <td colspan="{{ count($metrics) + 2 }}" class="text-center text-base-content/50 py-4">Select an FO in the left panel first.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -586,19 +632,19 @@ $foRanking = computed(function () {
         </div>
     </div>
 
-    <!-- Ranking Semua FO (tahun berjalan) -->
+    <!-- All FO Ranking (current year) -->
     <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
-        <div class="text-sm font-semibold text-base-content mb-1">Ranking FO Tahun Ini</div>
-        <p class="text-xs text-base-content/50 mb-3">Dibandingkan berdasarkan Nilai Closing tahun berjalan vs target tahunan.</p>
+        <div class="text-sm font-semibold text-base-content mb-1">FO Ranking This Year</div>
+        <p class="text-xs text-base-content/50 mb-3">Compared by current-year Deal Value vs. the yearly target.</p>
         <div class="overflow-x-auto">
             <table class="table table-sm table-zebra w-full text-base-content/70">
                 <thead>
                     <tr class="text-base-content/50 border-b border-base-300">
                         <th>#</th>
-                        <th>Nama FO</th>
+                        <th>FO Name</th>
                         <th class="text-right">Won</th>
                         <th class="text-right">Closing</th>
-                        <th class="text-right">Nilai Closing</th>
+                        <th class="text-right">Deal Value</th>
                         <th class="text-right">Target</th>
                         <th class="text-right">Achievement</th>
                     </tr>
@@ -622,7 +668,7 @@ $foRanking = computed(function () {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center text-base-content/50 py-4">Belum ada data FO.</td>
+                            <td colspan="7" class="text-center text-base-content/50 py-4">No FO data yet.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -630,20 +676,20 @@ $foRanking = computed(function () {
         </div>
     </div>
 
-    <!-- Riwayat Perubahan Target (audit trail) -->
+    <!-- Target Change History (audit trail) -->
     <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
-        <div class="text-sm font-semibold text-base-content mb-1">Riwayat Perubahan Target</div>
-        <p class="text-xs text-base-content/50 mb-3">30 perubahan terakhir tahun ini — siapa ubah, target siapa, metrik apa, dari berapa ke berapa.</p>
+        <div class="text-sm font-semibold text-base-content mb-1">Target Change History</div>
+        <p class="text-xs text-base-content/50 mb-3">Last 30 changes this year — who changed it, whose target, which metric, from what to what.</p>
         <div class="overflow-x-auto">
             <table class="table table-sm table-zebra w-full text-base-content/70">
                 <thead>
                     <tr class="text-base-content/50 border-b border-base-300">
-                        <th>Waktu</th>
-                        <th>Diubah Oleh</th>
-                        <th>Target Milik</th>
-                        <th>Metrik</th>
-                        <th class="text-right">Dari</th>
-                        <th class="text-right">Ke</th>
+                        <th>Time</th>
+                        <th>Changed By</th>
+                        <th>Target Owner</th>
+                        <th>Metric</th>
+                        <th class="text-right">From</th>
+                        <th class="text-right">To</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -659,7 +705,7 @@ $foRanking = computed(function () {
                             <td>{{ $logMetric['label'] ?? $log->metric_key }}</td>
                             <td class="text-right text-base-content/50">
                                 @if (is_null($log->old_value))
-                                    Saran otomatis
+                                    Auto suggestion
                                 @elseif ($logIsCurrency)
                                     <x-currency-abbr :value="$log->old_value" />
                                 @else
@@ -668,7 +714,7 @@ $foRanking = computed(function () {
                             </td>
                             <td class="text-right font-medium text-base-content">
                                 @if (is_null($log->new_value))
-                                    Saran otomatis (di-reset)
+                                    Auto suggestion (reset)
                                 @elseif ($logIsCurrency)
                                     <x-currency-abbr :value="$log->new_value" />
                                 @else
@@ -678,7 +724,7 @@ $foRanking = computed(function () {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-base-content/50 py-4">Belum ada perubahan target tahun ini.</td>
+                            <td colspan="6" class="text-center text-base-content/50 py-4">No target changes this year yet.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -55,10 +55,10 @@ state([
     'closingNominal' => null,
 
     'bulanOptions' => [
-        ['id' => 1, 'name' => 'Januari'], ['id' => 2, 'name' => 'Februari'], ['id' => 3, 'name' => 'Maret'],
-        ['id' => 4, 'name' => 'April'], ['id' => 5, 'name' => 'Mei'], ['id' => 6, 'name' => 'Juni'],
-        ['id' => 7, 'name' => 'Juli'], ['id' => 8, 'name' => 'Agustus'], ['id' => 9, 'name' => 'September'],
-        ['id' => 10, 'name' => 'Oktober'], ['id' => 11, 'name' => 'November'], ['id' => 12, 'name' => 'Desember'],
+        ['id' => 1, 'name' => 'January'], ['id' => 2, 'name' => 'February'], ['id' => 3, 'name' => 'March'],
+        ['id' => 4, 'name' => 'April'], ['id' => 5, 'name' => 'May'], ['id' => 6, 'name' => 'June'],
+        ['id' => 7, 'name' => 'July'], ['id' => 8, 'name' => 'August'], ['id' => 9, 'name' => 'September'],
+        ['id' => 10, 'name' => 'October'], ['id' => 11, 'name' => 'November'], ['id' => 12, 'name' => 'December'],
     ],
 
     'sumberOptions' => [
@@ -600,7 +600,7 @@ $closeActivityLog = function () {
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
         <h2 class="text-xl font-bold text-base-content">Funnel</h2>
         <p class="text-sm text-base-content/50 mt-1">
-            Tahapan funnel investor/mitra funding — geser kartu antar kolom untuk mengubah tahap.
+            Investor/funding partner funnel stages — drag cards between columns to change stage.
         </p>
     </div>
 
@@ -609,19 +609,19 @@ $closeActivityLog = function () {
         <div class="flex flex-col sm:flex-row sm:items-end gap-4">
             <div class="shrink-0">
                 <div class="fieldset-legend mb-0.5 invisible">&nbsp;</div>
-                <x-button label="Tambah Leads" icon="o-plus" class="btn-primary btn-sm" x-on:click="showCreate()" />
+                <x-button label="Add Lead" icon="o-plus" class="btn-primary btn-sm" x-on:click="showCreate()" />
             </div>
 
             @if ($this->isAdminFo)
                 <div class="w-full sm:w-56">
-                    <x-select label="Funding Officer" wire:model.live="filterFo" :options="$this->foOptions" placeholder="Semua FO" placeholder-value="" />
+                    <x-select label="Funding Officer" wire:model.live="filterFo" :options="$this->foOptions" placeholder="All FOs" placeholder-value="" />
                 </div>
             @endif
             <div class="w-full sm:w-44">
-                <x-select label="Bulan" wire:model.live="filterBulan" :options="$bulanOptions" placeholder="Semua Bulan" placeholder-value="" />
+                <x-select label="Month" wire:model.live="filterBulan" :options="$bulanOptions" placeholder="All Months" placeholder-value="" />
             </div>
             <div class="w-full sm:w-32">
-                <x-select label="Tahun" wire:model.live="filterTahun" :options="$this->tahunOptions" placeholder="Semua Tahun" placeholder-value="" />
+                <x-select label="Year" wire:model.live="filterTahun" :options="$this->tahunOptions" placeholder="All Years" placeholder-value="" />
             </div>
             <div class="shrink-0">
                 <div class="fieldset-legend mb-0.5 invisible">&nbsp;</div>
@@ -629,7 +629,7 @@ $closeActivityLog = function () {
             </div>
 
             <div class="w-full sm:w-72 sm:ms-auto">
-                <x-input label="Cari" wire:model.live.debounce.300ms="search" placeholder="Nama, profesi, no HP, PIC, sumber..." icon="o-magnifying-glass" clearable />
+                <x-input label="Search" wire:model.live.debounce.300ms="search" placeholder="Name, profession, phone number, PIC, source..." icon="o-magnifying-glass" clearable />
             </div>
         </div>
     </div>
@@ -662,7 +662,7 @@ $closeActivityLog = function () {
                     <div class="flex items-center gap-2">
                         <span class="{{ $stage['badge'] }} badge badge-sm">{{ $stage['label'] }}</span>
                         @if ($stage['key'] === 'akad' && ! $this->isAdminFo)
-                            <div class="tooltip" data-tip="Hanya Admin FO / Super Admin yang bisa memindahkan ke sini">
+                            <div class="tooltip" data-tip="Only Admin FO / Super Admin can move cards here">
                                 <x-icon name="o-lock-closed" class="w-3 h-3 text-base-content/30" />
                             </div>
                         @endif
@@ -697,7 +697,7 @@ $closeActivityLog = function () {
                                     <li><a x-on:click="editCard({{ $funnel->id }}, '{{ $funnel->proyeksi_close_date?->format('Y-m-d') }}', {{ $funnel->proyeksi_amount ?? 'null' }}, '{{ $funnel->sumber }}')">Edit</a></li>
                                     <li>
                                         <details>
-                                            <summary>Pindah Stage</summary>
+                                            <summary>Move Stage</summary>
                                             <ul>
                                                 @foreach ($stages as $moveStageOption)
                                                     @continue($moveStageOption['key'] === $funnel->stage)
@@ -711,7 +711,7 @@ $closeActivityLog = function () {
                                             </ul>
                                         </details>
                                     </li>
-                                    <li><a class="text-error" x-on:click="deleteCard({{ $funnel->id }})">Hapus</a></li>
+                                    <li><a class="text-error" x-on:click="deleteCard({{ $funnel->id }})">Delete</a></li>
                                 </ul>
                             </div>
 
@@ -736,9 +736,9 @@ $closeActivityLog = function () {
                                 <span class="badge badge-xs badge-outline shrink-0">{{ $funnel->sumber }}</span>
                             </div>
                             @if ($showWonComparison)
-                                <div class="tooltip w-full" data-tip="Nominal komitmen (Won) vs nominal final (Closing) beda.">
+                                <div class="tooltip w-full" data-tip="Committed amount (Won) differs from final amount (Closing).">
                                     <div class="text-[11px] text-warning/80 bg-warning/10 rounded-lg px-2 py-1 truncate">
-                                        Komit: <x-currency-abbr :value="$funnel->nominal_won" />
+                                        Committed: <x-currency-abbr :value="$funnel->nominal_won" />
                                     </div>
                                 </div>
                             @endif
@@ -764,7 +764,7 @@ $closeActivityLog = function () {
                             @endif
                             @php $fuCount = $funnel->followup_count; @endphp
                             @if ($fuCount > 0)
-                                <div class="tooltip" data-tip="Tampilkan detail">
+                                <div class="tooltip" data-tip="Show details">
                                     <button
                                         type="button"
                                         class="badge badge-sm badge-secondary cursor-pointer w-full"
@@ -780,7 +780,7 @@ $closeActivityLog = function () {
                         </div>
                     @empty
                         <div class="text-xs text-base-content/30 text-center py-6 border-2 border-dashed border-base-300 rounded-xl">
-                            Tidak ada kartu
+                            No cards
                         </div>
                     @endforelse
                 </div>
@@ -796,17 +796,17 @@ $closeActivityLog = function () {
             <table class="table table-zebra w-full text-base-content/70">
                 <thead>
                     <tr class="text-base-content/50 border-b border-base-300">
-                        <th>Nama</th>
-                        <th>Profesi / Institusi</th>
-                        <th>Proyeksi Amount</th>
+                        <th>Name</th>
+                        <th>Profession / Institution</th>
+                        <th>Projected Amount</th>
                         <th>PIC (FO)</th>
-                        <th>Sumber</th>
-                        <th>Tahap</th>
-                        <th>Proyeksi Close</th>
+                        <th>Source</th>
+                        <th>Stage</th>
+                        <th>Projected Close</th>
                         <th>Follow Up</th>
-                        <th>Dokumen Akad</th>
+                        <th>Akad Document</th>
                         <th>Lost Reason</th>
-                        <th class="text-right">Aksi</th>
+                        <th class="text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -831,7 +831,7 @@ $closeActivityLog = function () {
                             <td>
                                 @php $fuCountTable = $funnel->followup_count; @endphp
                                 @if ($fuCountTable > 0)
-                                    <div class="tooltip" data-tip="Tampilkan detail">
+                                    <div class="tooltip" data-tip="Show details">
                                         <button type="button" class="badge badge-sm badge-secondary" wire:click="openHistory({{ $funnel->id }})">
                                             {{ $fuCountTable }}x
                                         </button>
@@ -843,7 +843,7 @@ $closeActivityLog = function () {
                             <td>
                                 @if ($funnel->dokumen_akad_path)
                                     <a href="{{ $funnel->dokumenAkadUrl() }}" target="_blank" class="link link-primary text-xs" title="{{ $funnel->dokumen_akad_nama }}">
-                                        <x-icon name="o-paper-clip" class="w-3 h-3 inline" /> Lihat
+                                        <x-icon name="o-paper-clip" class="w-3 h-3 inline" /> View
                                     </a>
                                 @else
                                     <span class="text-base-content/30">-</span>
@@ -866,7 +866,7 @@ $closeActivityLog = function () {
                     @empty
                         <tr>
                             <td colspan="11" class="text-center text-base-content/50 py-8">
-                                Belum ada data funnel.
+                                No funnel data yet.
                             </td>
                         </tr>
                     @endforelse
@@ -877,12 +877,12 @@ $closeActivityLog = function () {
     @endif
 
     <!-- Add Lead Modal -->
-    <x-modal id="funnel-add-modal" title="Tambah Leads" without-trap-focus>
+    <x-modal id="funnel-add-modal" title="Add Lead" without-trap-focus>
         <form x-on:submit.prevent="submitCreate()" class="space-y-4">
             <div class="relative" x-on:click.outside="contactDropdownOpen = false">
                 <x-input
-                    label="Kontak"
-                    placeholder="Cari nama kontak milikmu..."
+                    label="Contact"
+                    placeholder="Search your contacts by name..."
                     x-model="contactSearchText"
                     x-on:focus="contactDropdownOpen = true"
                     x-on:input="contactDropdownOpen = true; addForm.contactId = null"
@@ -901,108 +901,108 @@ $closeActivityLog = function () {
 
                     <template x-if="filteredContactOptions().length === 0">
                         <div class="px-3 py-2 text-xs text-base-content/40">
-                            Tidak ada kontak ditemukan. Tambahkan dulu di halaman Contacts.
+                            No contacts found. Add one first on the Contacts page.
                         </div>
                     </template>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <x-input label="Proyeksi Close Date" type="date" x-model="addForm.tanggal" />
-                <x-input label="Proyeksi Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="addForm.proyeksiAmount" placeholder="Cth: 250.000.000" hint="Otomatis diformat, cth: 250.000.000 untuk Rp 250 Juta" />
+                <x-input label="Projected Close Date" type="date" x-model="addForm.tanggal" />
+                <x-input label="Projected Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="addForm.proyeksiAmount" placeholder="e.g. 250.000.000" hint="Automatically formatted, e.g. 250.000.000 for Rp 250 Million" />
             </div>
 
-            <x-select label="Sumber" x-model="addForm.sumber" :options="$sumberOptions" placeholder="Pilih Sumber" required />
+            <x-select label="Source" x-model="addForm.sumber" :options="$sumberOptions" placeholder="Select Source" required />
 
             <div class="modal-action">
-                <x-button label="Simpan" type="submit" class="btn-primary" />
+                <x-button label="Save" type="submit" class="btn-primary" />
             </div>
         </form>
     </x-modal>
 
     <!-- Edit Modal -->
-    <x-modal id="funnel-edit-modal" title="Edit Data Funnel" without-trap-focus>
+    <x-modal id="funnel-edit-modal" title="Edit Funnel Data" without-trap-focus>
         <form x-on:submit.prevent="submitEdit()" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <x-input label="Proyeksi Close Date" type="date" x-model="editForm.tanggal" />
-                <x-input label="Proyeksi Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="editForm.proyeksiAmount" placeholder="Cth: 250.000.000" hint="Otomatis diformat, cth: 250.000.000 untuk Rp 250 Juta" />
+                <x-input label="Projected Close Date" type="date" x-model="editForm.tanggal" />
+                <x-input label="Projected Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="editForm.proyeksiAmount" placeholder="e.g. 250.000.000" hint="Automatically formatted, e.g. 250.000.000 for Rp 250 Million" />
             </div>
 
-            <x-select label="Sumber" x-model="editForm.sumber" :options="$sumberOptions" placeholder="Pilih Sumber" required />
+            <x-select label="Source" x-model="editForm.sumber" :options="$sumberOptions" placeholder="Select Source" required />
 
             <div class="modal-action">
-                <x-button label="Simpan" type="submit" class="btn-primary" />
+                <x-button label="Save" type="submit" class="btn-primary" />
             </div>
         </form>
     </x-modal>
 
     <!-- Pitching Log Modal -->
-    <x-modal id="funnel-pitch-modal" title="Catat Sesi Pitching" subtitle="Kartu ini akan pindah ke kolom Pitching setelah dicatat." without-trap-focus>
+    <x-modal id="funnel-pitch-modal" title="Log Pitching Session" subtitle="This card will move to the Pitching column once logged." without-trap-focus>
         <form x-on:submit.prevent="submitPitch()" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
-                    <span class="fieldset-legend text-sm font-medium">Tanggal Pitching</span>
-                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setPitchToday()" />
+                    <span class="fieldset-legend text-sm font-medium">Pitching Date</span>
+                    <x-button label="Today" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setPitchToday()" />
                 </div>
                 <x-input type="date" x-model="pitchForm.tanggal" required />
             </div>
 
-            <x-textarea label="Catatan Kegiatan" x-model="pitchForm.catatan" placeholder="Ringkasan kegiatan pitching hari ini..." rows="4" />
+            <x-textarea label="Activity Notes" x-model="pitchForm.catatan" placeholder="Summary of today's pitching activity..." rows="4" />
 
             <div class="modal-action">
-                <x-button label="Simpan" type="submit" class="btn-primary" />
+                <x-button label="Save" type="submit" class="btn-primary" />
             </div>
         </form>
     </x-modal>
 
     <!-- Follow Up Log Modal -->
-    <x-modal id="funnel-followup-modal" title="Catat Follow Up" subtitle="Follow up bisa dicatat berkali-kali untuk funnel yang sama." without-trap-focus>
+    <x-modal id="funnel-followup-modal" title="Log Follow Up" subtitle="Follow-ups can be logged multiple times for the same funnel." without-trap-focus>
         <form x-on:submit.prevent="submitFollowUp()" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
-                    <span class="fieldset-legend text-sm font-medium">Tanggal Follow Up</span>
-                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setFollowUpToday()" />
+                    <span class="fieldset-legend text-sm font-medium">Follow Up Date</span>
+                    <x-button label="Today" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setFollowUpToday()" />
                 </div>
                 <x-input type="date" x-model="followUpForm.tanggal" required />
             </div>
 
-            <x-textarea label="Catatan" x-model="followUpForm.catatan" placeholder="Ringkasan hasil follow up..." rows="4" />
+            <x-textarea label="Notes" x-model="followUpForm.catatan" placeholder="Summary of the follow-up outcome..." rows="4" />
 
             <div class="modal-action">
-                <x-button label="Simpan" type="submit" class="btn-primary" />
+                <x-button label="Save" type="submit" class="btn-primary" />
             </div>
         </form>
     </x-modal>
 
     <!-- Edit Follow Up Modal -->
-    <x-modal id="funnel-followup-edit-modal" title="Edit Follow Up" subtitle="Perubahan akan disimpan ke log perubahan." without-trap-focus>
+    <x-modal id="funnel-followup-edit-modal" title="Edit Follow Up" subtitle="Changes will be recorded in the change log." without-trap-focus>
         <form x-on:submit.prevent="submitEditFollowUp()" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
-                    <span class="fieldset-legend text-sm font-medium">Tanggal Follow Up</span>
-                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setEditFollowUpToday()" />
+                    <span class="fieldset-legend text-sm font-medium">Follow Up Date</span>
+                    <x-button label="Today" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setEditFollowUpToday()" />
                 </div>
                 <x-input type="date" x-model="editFollowUpForm.tanggal" required />
             </div>
 
-            <x-textarea label="Catatan" x-model="editFollowUpForm.catatan" placeholder="Ringkasan hasil follow up..." rows="4" />
+            <x-textarea label="Notes" x-model="editFollowUpForm.catatan" placeholder="Summary of the follow-up outcome..." rows="4" />
 
             <div class="modal-action">
-                <x-button label="Simpan" type="submit" class="btn-primary" />
+                <x-button label="Save" type="submit" class="btn-primary" />
             </div>
         </form>
     </x-modal>
 
     <!-- Follow Up Change Log Modal -->
-    <x-modal id="funnel-followup-log-modal" title="Log Perubahan Follow Up" subtitle="Terbaru ke terlama." without-trap-focus>
+    <x-modal id="funnel-followup-log-modal" title="Follow Up Change Log" subtitle="Newest to oldest." without-trap-focus>
         <div class="overflow-x-auto">
             <table class="table table-sm table-zebra w-full text-base-content/70">
                 <thead>
                     <tr class="text-base-content/50 border-b border-base-300">
-                        <th>Waktu</th>
-                        <th>Diubah Oleh</th>
-                        <th>Tanggal</th>
-                        <th>Catatan</th>
+                        <th>Time</th>
+                        <th>Changed By</th>
+                        <th>Date</th>
+                        <th>Notes</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1016,14 +1016,14 @@ $closeActivityLog = function () {
                                 {{ $log->new_tanggal?->format('d M Y') ?? '-' }}
                             </td>
                             <td class="text-xs max-w-[220px]">
-                                <div class="text-base-content/50 truncate" title="{{ $log->old_catatan }}">{{ $log->old_catatan ?? 'Tidak ada catatan.' }}</div>
+                                <div class="text-base-content/50 truncate" title="{{ $log->old_catatan }}">{{ $log->old_catatan ?? 'No notes.' }}</div>
                                 <x-icon name="o-arrow-down" class="w-3 h-3 text-base-content/30" />
-                                <div class="truncate" title="{{ $log->new_catatan }}">{{ $log->new_catatan ?? 'Tidak ada catatan.' }}</div>
+                                <div class="truncate" title="{{ $log->new_catatan }}">{{ $log->new_catatan ?? 'No notes.' }}</div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center text-base-content/50 py-4">Belum ada perubahan tercatat.</td>
+                            <td colspan="4" class="text-center text-base-content/50 py-4">No changes recorded yet.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -1032,85 +1032,85 @@ $closeActivityLog = function () {
 
         <div class="modal-action">
             <form method="dialog">
-                <x-button label="Tutup" class="btn-ghost" wire:click="closeActivityLog" />
+                <x-button label="Close" class="btn-ghost" wire:click="closeActivityLog" />
             </form>
         </div>
     </x-modal>
 
     <!-- Akad Modal (Admin FO / Super Admin only) -->
-    <x-modal id="funnel-akad-modal" title="Proses Akad" subtitle="Kartu ini akan pindah ke kolom Akad setelah dokumen tersimpan." without-trap-focus wire:ignore.self>
+    <x-modal id="funnel-akad-modal" title="Process Akad" subtitle="This card will move to the Akad column once the document is saved." without-trap-focus wire:ignore.self>
         <form wire:submit="submitAkad" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
-                    <span class="fieldset-legend text-sm font-medium">Tanggal Akad</span>
-                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setAkadToday()" />
+                    <span class="fieldset-legend text-sm font-medium">Akad Date</span>
+                    <x-button label="Today" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setAkadToday()" />
                 </div>
                 <x-input type="date" wire:model="akadTanggal" required />
             </div>
 
-            <x-input label="Nominal Investasi (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="akadNominal" placeholder="Cth: 250.000.000" hint="Otomatis diformat, cth: 250.000.000 untuk Rp 250 Juta" required />
+            <x-input label="Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="akadNominal" placeholder="e.g. 250.000.000" hint="Automatically formatted, e.g. 250.000.000 for Rp 250 Million" required />
 
-            <x-file label="Dokumen Akad" wire:model="akadFile" accept=".doc,.docx,.pdf" hint="Format DOC, DOCX, atau PDF. Maksimal 5MB." required />
+            <x-file label="Akad Document" wire:model="akadFile" accept=".doc,.docx,.pdf" hint="Format DOC, DOCX, or PDF. Maximum 5MB." required />
 
             <div class="modal-action">
-                <x-button label="Simpan" type="submit" class="btn-primary" spinner="submitAkad" />
+                <x-button label="Save" type="submit" class="btn-primary" spinner="submitAkad" />
             </div>
         </form>
     </x-modal>
 
-    <!-- Won Modal (wajib diisi, gak bisa ditutup sebelum disimpan) -->
-    <x-modal id="funnel-won-modal" title="Catat Won (Komitmen)" subtitle="Tanggal & nominal komitmen investor wajib diisi. Form ini gak bisa ditutup sebelum disimpan." persistent without-trap-focus wire:ignore.self>
+    <!-- Won Modal (required, cannot be closed until saved) -->
+    <x-modal id="funnel-won-modal" title="Log Won (Commitment)" subtitle="Investor commitment date and amount are required. This form cannot be closed until saved." persistent without-trap-focus wire:ignore.self>
         <form wire:submit="submitWon" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
-                    <span class="fieldset-legend text-sm font-medium">Tanggal Won</span>
-                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setWonToday()" />
+                    <span class="fieldset-legend text-sm font-medium">Won Date</span>
+                    <x-button label="Today" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setWonToday()" />
                 </div>
                 <x-input type="date" wire:model="wonTanggal" required />
             </div>
 
-            <x-input label="Nominal Komitmen (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="wonNominal" placeholder="Cth: 250.000.000" hint="Nominal yang disepakati saat komitmen — bisa beda dari nominal final di Closing." required />
+            <x-input label="Commitment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="wonNominal" placeholder="e.g. 250.000.000" hint="Amount agreed upon at commitment — may differ from the final amount at Closing." required />
 
             <div class="modal-action">
-                <x-button label="Simpan" type="submit" class="btn-primary w-full" spinner="submitWon" />
+                <x-button label="Save" type="submit" class="btn-primary w-full" spinner="submitWon" />
             </div>
         </form>
     </x-modal>
 
-    <!-- Closing Modal (wajib diisi, gak bisa ditutup sebelum disimpan) -->
-    <x-modal id="funnel-closing-modal" title="Catat Closing" subtitle="Uang investor sudah masuk PT — tanggal & nominal final wajib diisi. Form ini gak bisa ditutup sebelum disimpan." persistent without-trap-focus wire:ignore.self>
+    <!-- Closing Modal (required, cannot be closed until saved) -->
+    <x-modal id="funnel-closing-modal" title="Log Closing" subtitle="Investor funds have been received by the company — final date and amount are required. This form cannot be closed until saved." persistent without-trap-focus wire:ignore.self>
         <form wire:submit="submitClosing" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
-                    <span class="fieldset-legend text-sm font-medium">Tanggal Closing</span>
-                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setClosingToday()" />
+                    <span class="fieldset-legend text-sm font-medium">Closing Date</span>
+                    <x-button label="Today" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setClosingToday()" />
                 </div>
                 <x-input type="date" wire:model="closingTanggal" required />
             </div>
 
-            <x-input label="Nominal Investasi Final (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="closingNominal" placeholder="Cth: 250.000.000" hint="Nominal final yang beneran masuk ke perusahaan." required />
+            <x-input label="Final Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="closingNominal" placeholder="e.g. 250.000.000" hint="The final amount actually received by the company." required />
 
             <div class="modal-action">
-                <x-button label="Simpan" type="submit" class="btn-primary w-full" spinner="submitClosing" />
+                <x-button label="Save" type="submit" class="btn-primary w-full" spinner="submitClosing" />
             </div>
         </form>
     </x-modal>
 
     <!-- Lost Modal -->
-    <x-modal id="funnel-lost-modal" title="Catat Lost" subtitle="Kartu ini akan pindah ke kolom Lost setelah dicatat." without-trap-focus>
+    <x-modal id="funnel-lost-modal" title="Log Lost" subtitle="This card will move to the Lost column once logged." without-trap-focus>
         <form x-on:submit.prevent="submitLost()" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
-                    <span class="fieldset-legend text-sm font-medium">Tanggal Lost</span>
-                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setLostToday()" />
+                    <span class="fieldset-legend text-sm font-medium">Lost Date</span>
+                    <x-button label="Today" icon="o-calendar-days" class="btn-ghost btn-xs" x-on:click="setLostToday()" />
                 </div>
                 <x-input type="date" x-model="lostForm.tanggal" required />
             </div>
 
-            <x-textarea label="Lost Reason" x-model="lostForm.reason" placeholder="Kenapa lead ini gagal closing..." rows="4" />
+            <x-textarea label="Lost Reason" x-model="lostForm.reason" placeholder="Why this lead failed to close..." rows="4" />
 
             <div class="modal-action">
-                <x-button label="Simpan" type="submit" class="btn-primary" />
+                <x-button label="Save" type="submit" class="btn-primary" />
             </div>
         </form>
     </x-modal>
@@ -1132,12 +1132,12 @@ $closeActivityLog = function () {
                 <div class="flex items-start justify-between gap-2">
                     <div>
                         <h3 class="font-bold text-lg text-base-content">{{ $this->historyFunnel->contact?->nama }}</h3>
-                        <p class="text-xs text-base-content/50">Histori Follow Up</p>
+                        <p class="text-xs text-base-content/50">Follow Up History</p>
                     </div>
                     <x-button icon="o-x-mark" class="btn-ghost btn-sm btn-circle" wire:click="closeHistory" />
                 </div>
 
-                <x-button label="Tambah Follow Up" icon="o-plus" class="btn-primary btn-sm w-full" x-on:click="addFollowUpFromHistory()" />
+                <x-button label="Add Follow Up" icon="o-plus" class="btn-primary btn-sm w-full" x-on:click="addFollowUpFromHistory()" />
 
                 <div class="space-y-3">
                     @forelse ($this->historyFunnel->activities as $activity)
@@ -1146,7 +1146,7 @@ $closeActivityLog = function () {
                                 <div class="text-sm font-semibold text-base-content">{{ $activity->tanggal->format('d M Y') }}</div>
                                 <div class="flex items-center gap-1 shrink-0">
                                     @if ($activity->logs_count > 0)
-                                        <div class="tooltip" data-tip="Log Perubahan ({{ $activity->logs_count }})">
+                                        <div class="tooltip" data-tip="Change Log ({{ $activity->logs_count }})">
                                             <button
                                                 type="button"
                                                 class="btn btn-ghost btn-xs btn-circle"
@@ -1172,15 +1172,15 @@ $closeActivityLog = function () {
                                     </button>
                                 </div>
                             </div>
-                            <div class="text-sm text-base-content/70">{{ $activity->catatan ?? 'Tidak ada catatan.' }}</div>
+                            <div class="text-sm text-base-content/70">{{ $activity->catatan ?? 'No notes.' }}</div>
                         </div>
                     @empty
-                        <div class="text-sm text-base-content/40 text-center py-8">Belum ada follow up tercatat.</div>
+                        <div class="text-sm text-base-content/40 text-center py-8">No follow-ups logged yet.</div>
                     @endforelse
                 </div>
 
                 <x-button
-                    :label="$showDeletedFollowUps ? 'Sembunyikan Terhapus' : 'Lihat Terhapus'"
+                    :label="$showDeletedFollowUps ? 'Hide Deleted' : 'View Deleted'"
                     icon="o-archive-box"
                     class="btn-ghost btn-xs w-full text-base-content/50"
                     wire:click="toggleDeletedFollowUps"
@@ -1188,12 +1188,12 @@ $closeActivityLog = function () {
 
                 @if ($showDeletedFollowUps)
                     <div class="space-y-3">
-                        <div class="text-xs font-semibold text-base-content/40 uppercase tracking-wide">Follow Up Terhapus</div>
+                        <div class="text-xs font-semibold text-base-content/40 uppercase tracking-wide">Deleted Follow Ups</div>
                         @forelse ($this->deletedFollowUps as $activity)
                             <div class="card bg-base-200/50 border border-dashed border-base-300 p-3 space-y-1">
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="text-sm font-semibold text-base-content/60 line-through">{{ $activity->tanggal->format('d M Y') }}</div>
-                                    <div class="tooltip" data-tip="Pulihkan">
+                                    <div class="tooltip" data-tip="Restore">
                                         <button
                                             type="button"
                                             class="btn btn-ghost btn-xs btn-circle text-success"
@@ -1203,11 +1203,11 @@ $closeActivityLog = function () {
                                         </button>
                                     </div>
                                 </div>
-                                <div class="text-sm text-base-content/50">{{ $activity->catatan ?? 'Tidak ada catatan.' }}</div>
-                                <div class="text-[11px] text-base-content/30">Dihapus {{ $activity->deleted_at->diffForHumans() }}</div>
+                                <div class="text-sm text-base-content/50">{{ $activity->catatan ?? 'No notes.' }}</div>
+                                <div class="text-[11px] text-base-content/30">Deleted {{ $activity->deleted_at->diffForHumans() }}</div>
                             </div>
                         @empty
-                            <div class="text-sm text-base-content/40 text-center py-4">Tidak ada follow up terhapus.</div>
+                            <div class="text-sm text-base-content/40 text-center py-4">No deleted follow-ups.</div>
                         @endforelse
                     </div>
                 @endif
@@ -1292,13 +1292,13 @@ $closeActivityLog = function () {
         },
 
         deleteCard(id) {
-            if (confirm('Hapus data funnel ini?')) {
+            if (confirm('Delete this funnel data?')) {
                 $wire.deleteFunnel(id);
             }
         },
 
         deleteFollowUp(id) {
-            if (confirm('Hapus follow up ini? Masih bisa dipulihkan lewat tombol "Lihat Terhapus".')) {
+            if (confirm('Delete this follow-up? It can still be restored via the "View Deleted" button.')) {
                 $wire.deleteFollowUp(id);
             }
         },
@@ -1389,7 +1389,7 @@ $closeActivityLog = function () {
             }
 
             if (stage === 'akad' && !this.isAdminFo) {
-                alert('Hanya Admin FO / Super Admin yang bisa memindahkan kartu ke Akad.');
+                alert('Only Admin FO / Super Admin can move cards to Akad.');
                 this.draggingId = null;
                 this.dragOverStage = null;
                 return;

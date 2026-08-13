@@ -46,9 +46,9 @@ test('dashboard is rendered for authorized users', function () {
 
     Volt::test('investors.dashboard-index')
         ->assertOk()
-        ->assertSee('Dashboard Harian')
-        ->assertSee('Realisasi per FO')
-        ->assertSee('Papan Peringkat FO');
+        ->assertSee('Daily Dashboard')
+        ->assertSee('Realization per FO')
+        ->assertSee('FO Leaderboard');
 });
 
 test('a plain funding officer is locked to their own data with no masuk sebagai selector', function () {

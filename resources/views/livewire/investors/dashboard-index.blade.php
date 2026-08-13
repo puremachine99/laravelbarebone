@@ -20,10 +20,10 @@ state([
 ]);
 
 $metricsData = [
-    ['key' => 'leads', 'label' => 'Lead Baru'],
+    ['key' => 'leads', 'label' => 'New Leads'],
     ['key' => 'ql', 'label' => 'Qualified Lead'],
     ['key' => 'pitching', 'label' => 'Pitching'],
-    ['key' => 'won', 'label' => 'Won (Komitmen)'],
+    ['key' => 'won', 'label' => 'Won (Committed)'],
     ['key' => 'closing', 'label' => 'Closing (Deal)'],
 ];
 
@@ -70,7 +70,7 @@ $foEmployees = computed(function () {
 });
 
 $viewAsOptions = computed(function () {
-    return collect([['id' => '', 'name' => 'Admin (Semua FO)']])
+    return collect([['id' => '', 'name' => 'Admin (All FOs)']])
         ->merge($this->foEmployees)
         ->values()
         ->all();
@@ -118,10 +118,10 @@ $realisasiForFo = function ($employeeId, $metricKey, $date) {
 
 $statusFor = function (?float $percent) {
     return match (true) {
-        $percent === null => ['label' => 'MERAH', 'class' => 'badge-error'],
-        $percent >= 100 => ['label' => 'HIJAU', 'class' => 'badge-success'],
-        $percent >= 50 => ['label' => 'KUNING', 'class' => 'badge-warning'],
-        default => ['label' => 'MERAH', 'class' => 'badge-error'],
+        $percent === null => ['label' => 'RED', 'class' => 'badge-error'],
+        $percent >= 100 => ['label' => 'GREEN', 'class' => 'badge-success'],
+        $percent >= 50 => ['label' => 'YELLOW', 'class' => 'badge-warning'],
+        default => ['label' => 'RED', 'class' => 'badge-error'],
     };
 };
 
@@ -146,7 +146,7 @@ $todaySummary = computed(function () {
     }
 
     $summary['nilai_closing'] = [
-        'label' => 'Nilai Closing',
+        'label' => 'Deal Value',
         'realisasi' => collect($employeeIds)->sum(fn ($id) => $this->realisasiForFo($id, 'nilai_closing', $selectedDate)),
     ];
 
@@ -214,31 +214,31 @@ $leaderboard = computed(function () {
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
         <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
             <div>
-                <h2 class="text-xl font-bold text-base-content">Dashboard Harian</h2>
+                <h2 class="text-xl font-bold text-base-content">Daily Dashboard</h2>
                 <p class="text-sm text-base-content/50 mt-1">
-                    Ringkasan capaian tim pada tanggal terpilih, tren 14 hari & papan peringkat — read-only, otomatis dari Pipeline.
+                    Summary of team achievement for the selected date, 14-day trend & leaderboard — read-only, automatically sourced from the Pipeline.
                 </p>
             </div>
 
             <div class="flex flex-wrap items-end gap-3">
                 @if ($this->isAdminFo)
                     <div class="w-56">
-                        <x-select label="Masuk sebagai" wire:model.live="viewAsEmployeeId" :options="$this->viewAsOptions" class="select-sm" />
+                        <x-select label="View as" wire:model.live="viewAsEmployeeId" :options="$this->viewAsOptions" class="select-sm" />
                     </div>
                 @else
                     <div class="text-sm text-base-content/50 pb-2.5">
-                        Masuk sebagai <span class="font-semibold text-base-content">{{ $this->currentEmployee?->user?->name }}</span>
+                        Viewing as <span class="font-semibold text-base-content">{{ $this->currentEmployee?->user?->name }}</span>
                     </div>
                 @endif
 
                 <div class="w-44">
-                    <x-input type="date" label="Tanggal Kerja" wire:model.live="selectedDate" max="{{ now()->toDateString() }}"
+                    <x-input type="date" label="Work Date" wire:model.live="selectedDate" max="{{ now()->toDateString() }}"
                         class="input-sm" onkeydown="event.preventDefault()" onpaste="event.preventDefault()"
                         onclick="this.showPicker && this.showPicker()" onfocus="this.showPicker && this.showPicker()" />
                 </div>
 
                 @if ($selectedDate !== now()->toDateString())
-                    <x-button label="Hari Ini" icon="o-calendar-days" class="btn-ghost btn-sm" wire:click="$set('selectedDate', '{{ now()->toDateString() }}')" />
+                    <x-button label="Today" icon="o-calendar-days" class="btn-ghost btn-sm" wire:click="$set('selectedDate', '{{ now()->toDateString() }}')" />
                 @endif
             </div>
         </div>
@@ -246,7 +246,7 @@ $leaderboard = computed(function () {
 
     <div class="alert bg-info/10 border border-info/30 text-info text-sm">
         <x-icon name="o-information-circle" class="w-5 h-5" />
-        <span>Seluruh angka dihitung otomatis dari modul Funnel (Pipeline) — halaman ini read-only, tidak ada input manual.</span>
+        <span>All figures are calculated automatically from the Funnel (Pipeline) module — this page is read-only, with no manual input.</span>
     </div>
 
     <!-- Stat cards -->
@@ -265,30 +265,30 @@ $leaderboard = computed(function () {
 
         @php $nc = $this->todaySummary['nilai_closing']; @endphp
         <div class="card bg-base-100 border border-success/40 p-4 rounded-xl">
-            <div class="text-xs font-semibold text-base-content/40 uppercase tracking-wide">Nilai Closing</div>
+            <div class="text-xs font-semibold text-base-content/40 uppercase tracking-wide">Deal Value</div>
             <div class="text-2xl font-bold text-base-content mt-1"><x-currency-abbr :value="$nc['realisasi']" /></div>
             <div class="text-xs text-base-content/40 mt-2">{{ Carbon::parse($selectedDate)->translatedFormat('d M Y') }}</div>
         </div>
     </div>
 
-    <!-- Realisasi per FO -->
+    <!-- Realization per FO -->
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
-        <h3 class="text-base font-bold text-base-content">Realisasi per FO — {{ Carbon::parse($selectedDate)->translatedFormat('l, d F Y') }}</h3>
+        <h3 class="text-base font-bold text-base-content">Realization per FO — {{ Carbon::parse($selectedDate)->translatedFormat('l, d F Y') }}</h3>
         <p class="text-xs text-base-content/50 mt-1 mb-4">
-            Dihitung otomatis dari perpindahan stage di Pipeline pada tanggal terpilih. Read-only — tidak ada input manual.
+            Calculated automatically from stage transitions in the Pipeline for the selected date. Read-only — no manual input.
         </p>
         <div class="overflow-x-auto">
             <table class="table table-zebra w-full text-base-content/70">
                 <thead>
                     <tr class="text-base-content/50 border-b border-base-300">
                         <th>FO</th>
-                        <th class="text-right">Lead Baru</th>
+                        <th class="text-right">New Leads</th>
                         <th class="text-right">QL</th>
                         <th class="text-right">Pitching</th>
                         <th class="text-right">Follow Up</th>
                         <th class="text-right">Won</th>
                         <th class="text-right">Closing</th>
-                        <th class="text-right">Nilai Closing</th>
+                        <th class="text-right">Deal Value</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -307,7 +307,7 @@ $leaderboard = computed(function () {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center text-base-content/50 py-6">Belum ada FO aktif.</td>
+                            <td colspan="9" class="text-center text-base-content/50 py-6">No active FOs yet.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -320,24 +320,24 @@ $leaderboard = computed(function () {
             $perFoTarget = $foCount > 0 ? round($teamLeadsTarget / $foCount, 1) : 0;
         @endphp
         <p class="text-xs text-base-content/40 mt-3">
-            Target individu = target tim ÷ jumlah FO aktif ({{ number_format($teamLeadsTarget, 1) }} ÷ {{ $foCount }} = {{ $perFoTarget }} Lead Baru/hari).
-            Target diatur per FO per tahun di halaman Management FO.
+            Individual target = team target ÷ number of active FOs ({{ number_format($teamLeadsTarget, 1) }} ÷ {{ $foCount }} = {{ $perFoTarget }} New Leads/day).
+            Targets are set per FO per year on the FO Management page.
         </p>
     </div>
 
-    <!-- Tren 14 Hari -->
+    <!-- 14-Day Trend -->
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
-        <h3 class="text-base font-bold text-base-content">Tren 14 Hari Terakhir</h3>
+        <h3 class="text-base font-bold text-base-content">Last 14 Days Trend</h3>
         <p class="text-xs text-base-content/50 mt-1 mb-4">
-            Total harian {{ $viewAsEmployeeId ? 'FO terpilih' : 'seluruh tim' }} per tahap funnel.
+            Daily total for {{ $viewAsEmployeeId ? 'the selected FO' : 'the entire team' }} per funnel stage.
         </p>
         <div wire:ignore id="chart-trend-harian" style="min-height:300px;"></div>
     </div>
 
-    <!-- Papan Peringkat FO -->
+    <!-- FO Leaderboard -->
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
-        <h3 class="text-base font-bold text-base-content">Papan Peringkat FO</h3>
-        <p class="text-xs text-base-content/50 mt-1 mb-4">Diurutkan dari nilai closing kumulatif tertinggi (all-time).</p>
+        <h3 class="text-base font-bold text-base-content">FO Leaderboard</h3>
+        <p class="text-xs text-base-content/50 mt-1 mb-4">Sorted by highest cumulative deal value (all-time).</p>
         <div class="overflow-x-auto">
             <table class="table table-zebra w-full text-base-content/70">
                 <thead>
@@ -347,7 +347,7 @@ $leaderboard = computed(function () {
                         <th class="text-right">Lead</th>
                         <th class="text-right">Won</th>
                         <th class="text-right">Closing</th>
-                        <th class="text-right">Nilai Closing Kumulatif</th>
+                        <th class="text-right">Cumulative Deal Value</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -362,7 +362,7 @@ $leaderboard = computed(function () {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-base-content/50 py-6">Belum ada data FO.</td>
+                            <td colspan="6" class="text-center text-base-content/50 py-6">No FO data yet.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -399,7 +399,7 @@ $leaderboard = computed(function () {
             ...baseOpts(),
             chart: { ...baseOpts().chart, type: 'area', height: 300 },
             series: [
-                { name: 'Lead Baru', data: d.map((row) => row.leads) },
+                { name: 'New Leads', data: d.map((row) => row.leads) },
                 { name: 'Won', data: d.map((row) => row.won) },
                 { name: 'Closing', data: d.map((row) => row.closing) },
             ],
