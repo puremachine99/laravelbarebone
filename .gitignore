@@ -7,6 +7,15 @@
 /storage/*.key
 /storage/pail
 /vendor
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+!/storage/framework/cache/.gitignore
+!/storage/framework/sessions/.gitignore
+!/storage/framework/testing/.gitignore
+!/storage/framework/views/.gitignore
+/storage/framework/lsp-*.php
 .env
 .env.backup
 .env.production
