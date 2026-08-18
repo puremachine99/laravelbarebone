@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin;
 
-use Flux\Flux;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Spatie\Permission\Models\Role;
@@ -21,6 +20,10 @@ class RoleManagement extends Component
     public array $rolePermissions = [];
 
     public bool $isEdit = false;
+
+    public bool $showRoleModal = false;
+
+    public bool $showDeleteModal = false;
 
     public ?int $deleteTargetId = null;
 
@@ -97,7 +100,7 @@ class RoleManagement extends Component
         $this->rolePermissions = $role->permissions->pluck('name')->toArray();
         $this->isEdit = true;
 
-        Flux::modal('role-modal')->show();
+        $this->showRoleModal = true;
     }
 
     public function saveRole()
@@ -116,7 +119,9 @@ class RoleManagement extends Component
             'roleName.unique' => 'Nama role sudah terdaftar.',
         ]);
 
-        if ($this->isEdit) {
+        $isEdit = $this->isEdit;
+
+        if ($isEdit) {
             $role = Role::findOrFail($this->roleId);
             $role->update(['name' => $this->roleName]);
         } else {
@@ -127,19 +132,15 @@ class RoleManagement extends Component
         $role->syncPermissions($this->rolePermissions);
 
         $this->resetForm();
-        Flux::modal('role-modal')->close();
+        $this->showRoleModal = false;
 
-        Flux::toast(
-            variant: 'success',
-            heading: $this->isEdit ? 'Peran Diperbarui' : 'Peran Ditambahkan',
-            text: $this->isEdit ? 'Hak akses peran berhasil disimpan.' : 'Peran baru berhasil didaftarkan.',
-        );
+        session()->flash('success', $isEdit ? 'Hak akses peran berhasil disimpan.' : 'Peran baru berhasil didaftarkan.');
     }
 
     public function confirmDelete(int $id)
     {
         $this->deleteTargetId = $id;
-        Flux::modal('confirm-delete-role')->show();
+        $this->showDeleteModal = true;
     }
 
     public function delete()
@@ -150,8 +151,8 @@ class RoleManagement extends Component
             $this->deleteTargetId = null;
         }
 
-        Flux::modal('confirm-delete-role')->close();
-        Flux::toast(variant: 'danger', text: 'Peran berhasil dihapus.');
+        $this->showDeleteModal = false;
+        session()->flash('error', 'Peran berhasil dihapus.');
     }
 
     public function render()
