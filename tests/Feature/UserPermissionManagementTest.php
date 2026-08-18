@@ -1,8 +1,12 @@
 <?php
 
+use App\Enums\UserStatus;
 use App\Livewire\Admin\UserManagement;
 use App\Models\User;
+use App\Notifications\UserInvitedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -56,7 +60,9 @@ test('admin can assign roles and permissions dynamically to a user', function ()
     expect($targetUser->hasRole('Partnership Admin'))->toBeTrue();
 });
 
-test('admin can create a new user with roles', function () {
+test('admin invites a new user with roles instead of setting a password directly', function () {
+    Notification::fake();
+
     $admin = User::factory()->create();
     $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
     Role::findOrCreate('Partnership Admin');
@@ -67,7 +73,6 @@ test('admin can create a new user with roles', function () {
         ->call('openCreate')
         ->set('name', 'New Employee')
         ->set('email', 'new.employee@example.com')
-        ->set('password', 'password123')
         ->set('userRoles', ['Partnership Admin'])
         ->call('saveUser')
         ->assertHasNoErrors();
@@ -76,7 +81,11 @@ test('admin can create a new user with roles', function () {
 
     expect($newUser)->not->toBeNull()
         ->and($newUser->name)->toBe('New Employee')
+        ->and($newUser->status)->toBe(UserStatus::Invited)
+        ->and($newUser->invited_by)->toBe($admin->id)
         ->and($newUser->hasRole('Partnership Admin'))->toBeTrue();
+
+    Notification::assertSentTo($newUser, UserInvitedNotification::class);
 });
 
 test('admin can update an existing user profile fields', function () {
@@ -111,4 +120,58 @@ test('admin can delete a user', function () {
         ->call('delete');
 
     expect(User::find($targetUser->id))->toBeNull();
+});
+
+test('admin can resend an invite to a user who has not yet activated their account', function () {
+    Notification::fake();
+
+    $admin = User::factory()->create();
+    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+
+    $invitedUser = User::factory()->invited()->create();
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserManagement::class)
+        ->call('resendInvite', $invitedUser->id);
+
+    Notification::assertSentTo($invitedUser, UserInvitedNotification::class);
+});
+
+test('admin can suspend an active user and their sessions are invalidated', function () {
+    $admin = User::factory()->create();
+    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+
+    $targetUser = User::factory()->create();
+
+    DB::table('sessions')->insert([
+        'id' => 'test-session-id',
+        'user_id' => $targetUser->id,
+        'ip_address' => '127.0.0.1',
+        'user_agent' => 'test',
+        'payload' => base64_encode('payload'),
+        'last_activity' => now()->timestamp,
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserManagement::class)
+        ->call('suspend', $targetUser->id);
+
+    $targetUser->refresh();
+    expect($targetUser->status)->toBe(UserStatus::Suspended);
+    expect(DB::table('sessions')->where('user_id', $targetUser->id)->exists())->toBeFalse();
+});
+
+test('admin cannot suspend themselves', function () {
+    $admin = User::factory()->create();
+    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserManagement::class)
+        ->call('suspend', $admin->id);
+
+    $admin->refresh();
+    expect($admin->status)->toBe(UserStatus::Active);
 });

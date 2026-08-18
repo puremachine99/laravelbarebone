@@ -39,6 +39,7 @@
                 <thead>
                     <tr class="text-base-content/50 border-b border-base-300">
                         <th class="py-3">Nama & Email</th>
+                        <th>Status</th>
                         <th>Departemen</th>
                         <th>Jabatan Struktural</th>
                         <th>Roles Aktif</th>
@@ -51,6 +52,19 @@
                             <td class="py-3">
                                 <div class="font-medium text-base-content">{{ $user->name }}</div>
                                 <div class="text-xs text-base-content/50">{{ $user->email }}</div>
+                            </td>
+                            <td>
+                                <span class="badge badge-sm {{ match ($user->status) {
+                                    \App\Enums\UserStatus::Active => 'badge-success',
+                                    \App\Enums\UserStatus::Invited => 'badge-warning',
+                                    \App\Enums\UserStatus::Suspended => 'badge-error',
+                                } }}">
+                                    {{ match ($user->status) {
+                                        \App\Enums\UserStatus::Active => 'Aktif',
+                                        \App\Enums\UserStatus::Invited => 'Menunggu Aktivasi',
+                                        \App\Enums\UserStatus::Suspended => 'Dinonaktifkan',
+                                    } }}
+                                </span>
                             </td>
                             <td>{{ $user->employee?->department?->name ?? '-' }}</td>
                             <td>{{ $user->employee?->positionStruktural?->name ?? '-' }}</td>
@@ -65,6 +79,13 @@
                             </td>
                             <td class="text-right" wire:click.stop>
                                 <div class="flex gap-2 justify-end">
+                                    @if ($user->isInvited())
+                                        <x-button label="Kirim Ulang" class="btn-ghost btn-xs text-warning" wire:click="resendInvite({{ $user->id }})" />
+                                    @elseif ($user->isSuspended())
+                                        <x-button label="Aktifkan" class="btn-ghost btn-xs text-success" wire:click="activate({{ $user->id }})" />
+                                    @elseif ($user->id !== auth()->id())
+                                        <x-button label="Nonaktifkan" class="btn-ghost btn-xs text-warning" wire:click="suspend({{ $user->id }})" />
+                                    @endif
                                     <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="openEdit({{ $user->id }})" />
                                     @if ($user->id !== auth()->id())
                                         <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete({{ $user->id }})" />
@@ -74,7 +95,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-base-content/50 py-8">
+                            <td colspan="6" class="text-center text-base-content/50 py-8">
                                 Tidak ada data pengguna ditemukan.
                             </td>
                         </tr>
@@ -89,7 +110,7 @@
     </div>
 
     <!-- Create/Edit User Modal -->
-    <x-modal wire:model="showUserModal" title="{{ $isEdit ? 'Edit Pengguna' : 'Tambah Pengguna Baru' }}" subtitle="Kelola data akun serta peran dan hak akses dinamis untuk pengguna.">
+    <x-modal wire:model="showUserModal" title="{{ $isEdit ? 'Edit Pengguna' : 'Undang Pengguna Baru' }}" subtitle="{{ $isEdit ? 'Kelola data akun serta peran dan hak akses dinamis untuk pengguna.' : 'Pengguna akan menerima email berisi link untuk membuat password sendiri dan mengaktifkan akunnya.' }}">
         <form wire:submit.prevent="saveUser" class="space-y-4">
             @if ($isEdit && $selectedUser)
                 <div class="card bg-base-200/50 border border-base-300 p-3 rounded-lg text-xs text-base-content/50 space-y-1">
@@ -100,12 +121,6 @@
 
             <x-input label="Nama" wire:model="name" placeholder="Nama lengkap" required />
             <x-input label="Email" type="email" wire:model="email" placeholder="nama@email.com" required />
-            <x-input
-                label="{{ $isEdit ? 'Password Baru (opsional)' : 'Password' }}"
-                type="password"
-                wire:model="password"
-                placeholder="{{ $isEdit ? 'Kosongkan jika tidak diubah' : 'Minimal 8 karakter' }}"
-            />
             <x-select label="Departemen" wire:model="formDepartmentId" :options="$departments" placeholder="Tanpa Departemen" placeholder-value="" />
 
             <div class="divider my-1"></div>
@@ -125,7 +140,7 @@
 
             <div class="flex items-center justify-end gap-2 pt-4 border-t border-base-300">
                 <x-button label="Batal" wire:click="$set('showUserModal', false)" class="btn-ghost" />
-                <x-button label="Simpan Perubahan" type="submit" class="btn-primary" />
+                <x-button label="{{ $isEdit ? 'Simpan Perubahan' : 'Kirim Undangan' }}" type="submit" class="btn-primary" />
             </div>
         </form>
     </x-modal>

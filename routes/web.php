@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\Debug\ErrorLogController;
 use App\Livewire\Admin\RoleManagement;
 use App\Livewire\Admin\UserManagement;
@@ -22,7 +23,10 @@ Route::view('/tech', 'pages.tech')->name('tech');
 
 Route::view('/documentation', 'pages.documentation')->name('documentation');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::get('/set-password/{token}', [SetPasswordController::class, 'create'])->name('password.setup');
+Route::post('/set-password/{token}', [SetPasswordController::class, 'store'])->name('password.setup.store');
+
+Route::middleware(['auth', 'verified', 'active'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
     Volt::route('/profile', 'profile.index')->name('profile.show');

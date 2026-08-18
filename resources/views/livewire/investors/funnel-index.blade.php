@@ -933,7 +933,7 @@ $closeActivityLog = function () {
     @endif
 
     <!-- Add Lead Modal -->
-    <x-modal id="funnel-add-modal" title="Add Lead" without-trap-focus>
+    <x-modal id="funnel-add-modal" title="Add Lead" persistent without-trap-focus>
         <form x-on:submit.prevent="submitCreate()" class="space-y-4">
             <div class="relative" x-on:click.outside="contactDropdownOpen = false">
                 <x-input
@@ -970,14 +970,15 @@ $closeActivityLog = function () {
 
             <x-select label="Source" x-model="addForm.sumber" :options="$sumberOptions" placeholder="Select Source" required />
 
-            <div class="modal-action">
-                <x-button label="Save" type="submit" class="btn-primary" />
+            <div class="modal-action gap-2">
+                <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
+                <x-button label="Save" type="submit" class="btn-primary flex-1" />
             </div>
         </form>
     </x-modal>
 
     <!-- Edit Modal -->
-    <x-modal id="funnel-edit-modal" title="Edit Funnel Data" without-trap-focus>
+    <x-modal id="funnel-edit-modal" title="Edit Funnel Data" persistent without-trap-focus>
         <form x-on:submit.prevent="submitEdit()" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <x-input label="Projected Close Date" type="date" x-model="editForm.tanggal" />
@@ -986,14 +987,15 @@ $closeActivityLog = function () {
 
             <x-select label="Source" x-model="editForm.sumber" :options="$sumberOptions" placeholder="Select Source" required />
 
-            <div class="modal-action">
-                <x-button label="Save" type="submit" class="btn-primary" />
+            <div class="modal-action gap-2">
+                <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
+                <x-button label="Save" type="submit" class="btn-primary flex-1" />
             </div>
         </form>
     </x-modal>
 
     <!-- Pitching Log Modal -->
-    <x-modal id="funnel-pitch-modal" title="Log Pitching Session" subtitle="This card will move to the Pitching column once logged." without-trap-focus>
+    <x-modal id="funnel-pitch-modal" title="Log Pitching Session" subtitle="This card will move to the Pitching column once logged." persistent without-trap-focus>
         <form x-on:submit.prevent="submitPitch()" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
@@ -1005,14 +1007,15 @@ $closeActivityLog = function () {
 
             <x-textarea label="Activity Notes" x-model="pitchForm.catatan" placeholder="Summary of today's pitching activity..." rows="4" />
 
-            <div class="modal-action">
-                <x-button label="Save" type="submit" class="btn-primary" />
+            <div class="modal-action gap-2">
+                <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
+                <x-button label="Save" type="submit" class="btn-primary flex-1" />
             </div>
         </form>
     </x-modal>
 
     <!-- Follow Up Log Modal -->
-    <x-modal id="funnel-followup-modal" title="Log Follow Up" subtitle="Follow-ups can be logged multiple times for the same funnel." without-trap-focus>
+    <x-modal id="funnel-followup-modal" title="Log Follow Up" subtitle="Follow-ups can be logged multiple times for the same funnel." persistent without-trap-focus>
         <form x-on:submit.prevent="submitFollowUp()" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
@@ -1024,14 +1027,15 @@ $closeActivityLog = function () {
 
             <x-textarea label="Notes" x-model="followUpForm.catatan" placeholder="Summary of the follow-up outcome..." rows="4" />
 
-            <div class="modal-action">
-                <x-button label="Save" type="submit" class="btn-primary" />
+            <div class="modal-action gap-2">
+                <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
+                <x-button label="Save" type="submit" class="btn-primary flex-1" />
             </div>
         </form>
     </x-modal>
 
     <!-- Edit Follow Up Modal -->
-    <x-modal id="funnel-followup-edit-modal" title="Edit Follow Up" subtitle="Changes will be recorded in the change log." without-trap-focus>
+    <x-modal id="funnel-followup-edit-modal" title="Edit Follow Up" subtitle="Changes will be recorded in the change log." persistent without-trap-focus>
         <form x-on:submit.prevent="submitEditFollowUp()" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
@@ -1043,14 +1047,15 @@ $closeActivityLog = function () {
 
             <x-textarea label="Notes" x-model="editFollowUpForm.catatan" placeholder="Summary of the follow-up outcome..." rows="4" />
 
-            <div class="modal-action">
-                <x-button label="Save" type="submit" class="btn-primary" />
+            <div class="modal-action gap-2">
+                <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
+                <x-button label="Save" type="submit" class="btn-primary flex-1" />
             </div>
         </form>
     </x-modal>
 
     <!-- Follow Up Change Log Modal -->
-    <x-modal id="funnel-followup-log-modal" title="Follow Up Change Log" subtitle="Newest to oldest." without-trap-focus>
+    <x-modal id="funnel-followup-log-modal" title="Follow Up Change Log" subtitle="Newest to oldest." persistent without-trap-focus>
         <div class="overflow-x-auto">
             <table class="table table-sm table-zebra w-full text-base-content/70">
                 <thead>
@@ -1094,7 +1099,7 @@ $closeActivityLog = function () {
     </x-modal>
 
     <!-- Akad Modal (Admin FO / Super Admin only) -->
-    <x-modal id="funnel-akad-modal" title="Process Akad" subtitle="This card will move to the Akad column once the document is saved." without-trap-focus wire:ignore.self>
+    <x-modal id="funnel-akad-modal" title="Process Akad" subtitle="This card will move to the Akad column once the document is saved." persistent without-trap-focus wire:ignore.self>
         <form wire:submit="submitAkad" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
@@ -1108,14 +1113,15 @@ $closeActivityLog = function () {
 
             <x-file label="Akad Document" wire:model="akadFile" accept=".doc,.docx,.pdf" hint="Format DOC, DOCX, or PDF. Maximum 5MB." required />
 
-            <div class="modal-action">
-                <x-button label="Save" type="submit" class="btn-primary" spinner="submitAkad" />
+            <div class="modal-action gap-2">
+                <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
+                <x-button label="Save" type="submit" class="btn-primary flex-1" spinner="submitAkad" />
             </div>
         </form>
     </x-modal>
 
-    <!-- Won Modal (required, cannot be closed until saved) -->
-    <x-modal id="funnel-won-modal" title="Log Won (Commitment)" subtitle="Investor commitment date and amount are required. This form cannot be closed until saved." persistent without-trap-focus wire:ignore.self>
+    <!-- Won Modal (persistent: backdrop click/Escape are disabled so the closing amount isn't lost by accident, but Close is still available below) -->
+    <x-modal id="funnel-won-modal" title="Log Won (Commitment)" subtitle="Investor commitment date and amount are required." persistent without-trap-focus wire:ignore.self>
         <form wire:submit="submitWon" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
@@ -1127,14 +1133,15 @@ $closeActivityLog = function () {
 
             <x-input label="Commitment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="wonNominal" placeholder="e.g. 250.000.000" hint="Amount agreed upon at commitment — may differ from the final amount at Closing." required />
 
-            <div class="modal-action">
-                <x-button label="Save" type="submit" class="btn-primary w-full" spinner="submitWon" />
+            <div class="modal-action gap-2">
+                <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
+                <x-button label="Save" type="submit" class="btn-primary flex-1" spinner="submitWon" />
             </div>
         </form>
     </x-modal>
 
-    <!-- Closing Modal (required, cannot be closed until saved) -->
-    <x-modal id="funnel-closing-modal" title="Log Closing" subtitle="Investor funds have been received by the company — final date and amount are required. This form cannot be closed until saved." persistent without-trap-focus wire:ignore.self>
+    <!-- Closing Modal (persistent: backdrop click/Escape are disabled so the closing amount isn't lost by accident, but Close is still available below) -->
+    <x-modal id="funnel-closing-modal" title="Log Closing" subtitle="Investor funds have been received by the company — final date and amount are required." persistent without-trap-focus wire:ignore.self>
         <form wire:submit="submitClosing" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
@@ -1146,14 +1153,15 @@ $closeActivityLog = function () {
 
             <x-input label="Final Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="closingNominal" placeholder="e.g. 250.000.000" hint="The final amount actually received by the company." required />
 
-            <div class="modal-action">
-                <x-button label="Save" type="submit" class="btn-primary w-full" spinner="submitClosing" />
+            <div class="modal-action gap-2">
+                <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
+                <x-button label="Save" type="submit" class="btn-primary flex-1" spinner="submitClosing" />
             </div>
         </form>
     </x-modal>
 
     <!-- Lost Modal -->
-    <x-modal id="funnel-lost-modal" title="Log Lost" subtitle="This card will move to the Lost column once logged." without-trap-focus>
+    <x-modal id="funnel-lost-modal" title="Log Lost" subtitle="This card will move to the Lost column once logged." persistent without-trap-focus>
         <form x-on:submit.prevent="submitLost()" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-0.5">
@@ -1165,8 +1173,9 @@ $closeActivityLog = function () {
 
             <x-textarea label="Lost Reason" x-model="lostForm.reason" placeholder="Why this lead failed to close..." rows="4" />
 
-            <div class="modal-action">
-                <x-button label="Save" type="submit" class="btn-primary" />
+            <div class="modal-action gap-2">
+                <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
+                <x-button label="Save" type="submit" class="btn-primary flex-1" />
             </div>
         </form>
     </x-modal>

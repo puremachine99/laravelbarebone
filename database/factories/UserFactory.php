@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -33,6 +34,7 @@ class UserFactory extends Factory
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
+            'status' => UserStatus::Active,
         ];
     }
 
@@ -43,6 +45,27 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the user was invited by an admin and has not yet set a password.
+     */
+    public function invited(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => UserStatus::Invited,
+            'invited_at' => now(),
+        ]);
+    }
+
+    /**
+     * Indicate that the user's account has been suspended.
+     */
+    public function suspended(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => UserStatus::Suspended,
         ]);
     }
 

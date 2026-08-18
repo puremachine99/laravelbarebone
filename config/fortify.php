@@ -161,7 +161,8 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Registration is intentionally disabled: this is an internal app where accounts
+        // are created exclusively by an admin invite (see App\Actions\Users\InviteUser).
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([

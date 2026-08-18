@@ -155,4 +155,34 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - Run tests: `php artisan test --compact` or filter: `php artisan test --compact --filter=testName`.
 - Do NOT delete tests without approval.
 
+# CLAUDE.md — SmartID Dashboard (Nakama)
+
+Panduan ini melengkapi `.ai/guidelines.blade.php` (Laravel Boost) — hanya berisi hal yang menyimpang dari default Laravel/Boost atau spesifik ke project ini. Jangan duplikasi apa yang sudah dicover Boost.
+
+## Konteks Domain
+- Aplikasi internal perusahaan (finance & investor data) — bukan produk publik.
+- Ada konsep `department_id` di tabel `users`, dipakai untuk scoping approval dan akses per-departemen.
+- Sedang dalam proses redesign alur registrasi jadi approval-gated (lihat dokumen terpisah). Jangan asumsikan `/register` masih self-service aktif tanpa approval kalau sedang mengerjakan task terkait auth.
+
+## Struktur Non-Default
+- (isi kalau ada: mis. `app/Actions/` untuk single-action classes, `app/Services/` untuk business logic, `app/Support/` untuk helper)
+- (isi kalau ada: konvensi Livewire — Volt functional style atau class-based? cek `resources/views/livewire/`)
+
+## Role & Permission
+- Pakai `spatie/permission`, trait `HasRoles` di model `User`.
+- Role di-assign saat admin approve registrasi, bukan saat user mendaftar — jangan pernah beri role default saat `CreateNewUser`.
+
+## Auth Flow (status project saat ini)
+- Kolom `users.status` (`pending`, `invited`, `active`, `rejected`, `suspended`) sedang/akan ditambahkan — cek migration terbaru sebelum asumsi kolom ini ada.
+- Guard login harus menolak status selain `active` di layer Fortify (`LoginResponse` / `authenticateUsing`), bukan hanya middleware.
+
+## Testing
+- Prioritaskan feature test untuk flow approval/registrasi (banyak edge case: race condition approval ganda, token expired, duplicate pending).
+- Jangan skip test untuk perubahan di auth flow meski kecil — ini area sensitif keamanan.
+
+## Yang TIDAK perlu Claude lakukan tanpa diminta
+- Jangan generate dokumentasi (`.md`) baru kecuali diminta eksplisit.
+- Jangan jalankan migration di environment manapun tanpa konfirmasi.
+- Jangan ubah `MAIL_MAILER` atau env production tanpa persetujuan.
+
 </laravel-boost-guidelines>

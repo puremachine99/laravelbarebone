@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Admin;
 
+use App\Actions\Users\InviteUser;
+use App\Enums\UserStatus;
 use App\Models\Department;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -28,8 +30,6 @@ class UserManagement extends Component
     public string $name = '';
 
     public string $email = '';
-
-    public string $password = '';
 
     public string $formDepartmentId = '';
 
@@ -58,7 +58,7 @@ class UserManagement extends Component
 
     public function resetForm()
     {
-        $this->reset(['userId', 'name', 'email', 'password', 'formDepartmentId', 'userRoles', 'isEdit', 'selectedUser']);
+        $this->reset(['userId', 'name', 'email', 'formDepartmentId', 'userRoles', 'isEdit', 'selectedUser']);
         $this->resetValidation();
     }
 
@@ -85,7 +85,7 @@ class UserManagement extends Component
         $this->showUserModal = true;
     }
 
-    public function saveUser()
+    public function saveUser(InviteUser $inviteUser)
     {
         $rules = [
             'name' => ['required', 'string', 'max:255'],
@@ -96,7 +96,6 @@ class UserManagement extends Component
                 'max:255',
                 $this->userId ? Rule::unique('users', 'email')->ignore($this->userId) : Rule::unique('users', 'email'),
             ],
-            'password' => [$this->isEdit ? 'nullable' : 'required', 'string', 'min:8'],
             'formDepartmentId' => ['nullable', 'exists:departments,id'],
         ];
 
@@ -104,35 +103,64 @@ class UserManagement extends Component
             'name.required' => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.unique' => 'Email sudah terdaftar.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min' => 'Password minimal 8 karakter.',
         ]);
 
-        $data = [
-            'name' => $this->name,
-            'email' => $this->email,
-            'department_id' => $this->formDepartmentId !== '' ? $this->formDepartmentId : null,
-        ];
-
-        if (filled($this->password)) {
-            $data['password'] = Hash::make($this->password);
-        }
+        $departmentId = $this->formDepartmentId !== '' ? (int) $this->formDepartmentId : null;
 
         if ($this->isEdit) {
             $user = User::findOrFail($this->userId);
-            $user->update($data);
+            $user->update([
+                'name' => $this->name,
+                'email' => $this->email,
+                'department_id' => $departmentId,
+            ]);
+            $user->syncRoles($this->userRoles);
+
+            $message = 'Data dan hak akses pengguna berhasil diperbarui.';
         } else {
-            $data['password'] = $data['password'] ?? Hash::make($this->password);
-            $user = User::create($data);
+            $inviteUser->handle($this->name, $this->email, $departmentId, $this->userRoles, auth()->user());
+
+            $message = "Undangan berhasil dikirim ke {$this->email}.";
         }
 
-        $user->syncRoles($this->userRoles);
-
-        $isEdit = $this->isEdit;
         $this->resetForm();
         $this->showUserModal = false;
 
-        session()->flash('success', $isEdit ? 'Data dan hak akses pengguna berhasil diperbarui.' : 'Pengguna baru berhasil didaftarkan.');
+        session()->flash('success', $message);
+    }
+
+    public function resendInvite(InviteUser $inviteUser, int $userId): void
+    {
+        $user = User::findOrFail($userId);
+
+        if (! $user->isInvited()) {
+            return;
+        }
+
+        $inviteUser->resend($user);
+
+        session()->flash('success', 'Undangan berhasil dikirim ulang.');
+    }
+
+    public function suspend(int $userId): void
+    {
+        if ($userId === auth()->id()) {
+            return;
+        }
+
+        $user = User::findOrFail($userId);
+        $user->update(['status' => UserStatus::Suspended]);
+
+        DB::table('sessions')->where('user_id', $userId)->delete();
+
+        session()->flash('error', 'Pengguna berhasil dinonaktifkan dan sesi aktifnya diputus.');
+    }
+
+    public function activate(int $userId): void
+    {
+        User::whereKey($userId)->update(['status' => UserStatus::Active]);
+
+        session()->flash('success', 'Pengguna berhasil diaktifkan kembali.');
     }
 
     public function confirmDelete(int $id)
@@ -144,6 +172,7 @@ class UserManagement extends Component
     public function delete()
     {
         if ($this->deleteTargetId && $this->deleteTargetId !== auth()->id()) {
+            DB::table('sessions')->where('user_id', $this->deleteTargetId)->delete();
             User::findOrFail($this->deleteTargetId)->delete();
         }
 

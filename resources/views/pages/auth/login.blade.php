@@ -13,6 +13,7 @@
  <!-- Email Address -->
  <x-input
  name="email"
+ errorField="email"
  label="{{ __('Email address') }}"
  value="{{ old('email') }}"
  type="email"
@@ -58,10 +59,5 @@
  </x-button>
  </div>
  </form>
-
- <div class="space-x-1 text-sm text-center rtl:space-x-reverse text-base-content/70">
- <span>{{ __('Don\'t have an account?') }}</span>
- <a class="link link-primary" href="{{ route('register') }}" wire:navigate>{{ __('Sign up') }}</a>
- </div>
  </div>
 </x-layouts::auth>

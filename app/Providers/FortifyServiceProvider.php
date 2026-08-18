@@ -2,14 +2,17 @@
 
 namespace App\Providers;
 
-use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Enums\UserStatus;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\Http\Requests\LoginRequest as FortifyLoginRequest;
 
@@ -39,7 +42,26 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureActions(): void
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
-        Fortify::createUsersUsing(CreateNewUser::class);
+
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = User::where(Fortify::username(), $request->input(Fortify::username()))->first();
+
+            if (! $user || ! Hash::check($request->input('password'), $user->password)) {
+                return null;
+            }
+
+            if (! $user->isActive()) {
+                throw ValidationException::withMessages([
+                    Fortify::username() => [match ($user->status) {
+                        UserStatus::Invited => __('Akun Anda belum diaktifkan. Silakan cek email undangan untuk membuat password.'),
+                        UserStatus::Suspended => __('Akun Anda telah dinonaktifkan. Hubungi admin untuk informasi lebih lanjut.'),
+                        default => trans('auth.failed'),
+                    }],
+                ]);
+            }
+
+            return $user;
+        });
     }
 
     /**
@@ -51,7 +73,6 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::verifyEmailView(fn () => view('pages::auth.verify-email'));
         Fortify::twoFactorChallengeView(fn () => view('pages::auth.two-factor-challenge'));
         Fortify::confirmPasswordView(fn () => view('pages::auth.confirm-password'));
-        Fortify::registerView(fn () => view('pages::auth.register'));
         Fortify::resetPasswordView(fn () => view('pages::auth.reset-password'));
         Fortify::requestPasswordResetLinkView(fn () => view('pages::auth.forgot-password'));
     }

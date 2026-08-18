@@ -99,6 +99,15 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+
+        // Reuses the same token table as "users" but with a longer expiry, since an admin
+        // invite link needs to stay valid far longer than a self-service password reset.
+        'invites' => [
+            'provider' => 'users',
+            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 4320,
+            'throttle' => 60,
+        ],
     ],
 
     /*

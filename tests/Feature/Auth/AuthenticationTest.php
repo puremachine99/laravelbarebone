@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserStatus;
 use App\Models\User;
 use Laravel\Fortify\Features;
 
@@ -38,7 +39,7 @@ test('users can not authenticate with invalid password', function () {
 });
 
 test('users can not authenticate with an email missing a top-level domain', function () {
-    $response = $this->post(route('login.store'), [
+    $response = $this->from(route('login'))->post(route('login.store'), [
         'email' => 'user@domain',
         'password' => 'password',
     ]);
@@ -46,6 +47,50 @@ test('users can not authenticate with an email missing a top-level domain', func
     $response->assertSessionHasErrors('email');
 
     $this->assertGuest();
+});
+
+test('invalid email format error message is displayed on the login page', function () {
+    $this->from(route('login'))->post(route('login.store'), [
+        'email' => 'user@domain',
+        'password' => 'password',
+    ]);
+
+    $this->get(route('login'))
+        ->assertSee(__('validation.email', ['attribute' => 'email']));
+});
+
+test('session cookie does not persist after the browser closes when remember me is unchecked', function () {
+    $user = User::factory()->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $sessionCookie = $response->headers->getCookies()[array_search(
+        config('session.cookie'),
+        array_map(fn ($cookie) => $cookie->getName(), $response->headers->getCookies())
+    )];
+
+    expect($sessionCookie->getExpiresTime())->toBe(0);
+    expect($response->headers->getCookies())
+        ->not->toContain(fn ($cookie) => str_starts_with($cookie->getName(), 'remember_web_'));
+});
+
+test('remember me keeps the user authenticated beyond the session cookie lifetime', function () {
+    $user = User::factory()->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+        'remember' => 'on',
+    ]);
+
+    $rememberCookie = collect($response->headers->getCookies())
+        ->first(fn ($cookie) => str_starts_with($cookie->getName(), 'remember_web_'));
+
+    expect($rememberCookie)->not->toBeNull();
+    expect($rememberCookie->getExpiresTime())->toBeGreaterThan(now()->addYear()->timestamp);
 });
 
 test('failed login shows a generic message regardless of whether the email is registered', function () {
@@ -93,5 +138,44 @@ test('users can logout', function () {
 
     $response->assertRedirect(route('home'));
 
+    $this->assertGuest();
+});
+
+test('there is no public registration route', function () {
+    $this->get('/register')->assertNotFound();
+});
+
+test('an invited user who has not set a password cannot log in', function () {
+    $user = User::factory()->invited()->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $response->assertSessionHasErrors('email');
+    $this->assertGuest();
+});
+
+test('a suspended user cannot log in', function () {
+    $user = User::factory()->suspended()->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $response->assertSessionHasErrors('email');
+    $this->assertGuest();
+});
+
+test('a suspended user is logged out of an existing session on their next request', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('dashboard'))->assertOk();
+
+    $user->update(['status' => UserStatus::Suspended]);
+
+    $this->get(route('dashboard'))->assertRedirect(route('login'));
     $this->assertGuest();
 });

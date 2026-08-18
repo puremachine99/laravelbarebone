@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -16,7 +17,7 @@ use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'department_id', 'avatar_path'])]
+#[Fillable(['name', 'email', 'password', 'department_id', 'avatar_path', 'status', 'invited_by', 'invited_at'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -33,6 +34,8 @@ class User extends Authenticatable implements PasskeyUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => UserStatus::class,
+            'invited_at' => 'datetime',
         ];
     }
 
@@ -81,5 +84,28 @@ class User extends Authenticatable implements PasskeyUser
     public function isReadOnlyViewer(): bool
     {
         return $this->hasRole('Direksi');
+    }
+
+    /**
+     * Get the admin who invited this user, if the account originated from an invite.
+     */
+    public function invitedBy()
+    {
+        return $this->belongsTo(User::class, 'invited_by');
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === UserStatus::Active;
+    }
+
+    public function isInvited(): bool
+    {
+        return $this->status === UserStatus::Invited;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->status === UserStatus::Suspended;
     }
 }

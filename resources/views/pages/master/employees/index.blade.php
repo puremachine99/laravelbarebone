@@ -1,6 +1,7 @@
 <?php
 
 use function Livewire\Volt\{state, layout, computed, usesPagination};
+use App\Actions\Users\InviteUser;
 use App\Models\Employee;
 use App\Models\Department;
 use App\Models\Position;
@@ -157,23 +158,34 @@ $resetForm = function () {
  $this->resetValidation();
 };
 
-$save = function () {
+$save = function (InviteUser $inviteUser) {
+ $isNew = is_null($this->employee_id);
+
  $this->validate([
 'name' => ['required','string','max:255'],
 'email' => ['required','email', Rule::unique('users','email')->ignore(
- $this->employee_id
- ? Employee::find($this->employee_id)?->user_id
- : null
+ $isNew ? null : Employee::find($this->employee_id)?->user_id
  )],
-'password' => [$this->isEdit ?'nullable' :'required','string','min:8'],
+'password' => ['nullable','string','min:8'],
 'department_id' => ['nullable','exists:departments,id'],
 'position_struktural_id' => ['nullable','exists:positions,id'],
 'position_fungsional_id' => ['nullable','exists:positions,id'],
 'employment_status' => ['nullable','in:PKWT,PKWTT,Internship,Mitra Strategis,Bond Agreement'],
  ]);
 
- $isNew = is_null($this->employee_id);
+ $employeeData = [
+'department_id' => $this->department_id ?: null,
+'position_struktural_id' => $this->position_struktural_id ?: null,
+'position_fungsional_id' => $this->position_fungsional_id ?: null,
+'employment_status' => $this->employment_status ?: null,
+'is_cltp' => (bool) $this->is_cltp,
+ ];
 
+ if ($isNew) {
+ $user = $inviteUser->handle($this->name, $this->email, null, [], auth()->user());
+ Employee::create(array_merge($employeeData, ['user_id' => $user->id]));
+ } else {
+ $employee = Employee::findOrFail($this->employee_id);
  $userData = [
 'name' => $this->name,
 'email' => $this->email,
@@ -181,28 +193,13 @@ $save = function () {
  if ($this->password) {
  $userData['password'] = Hash::make($this->password);
  }
-
- $employeeData = [
-'department_id' => $this->department_id ?: null,
-'position_struktural_id' => $this->position_struktural_id ?: null,
-'position_fungsional_id' => $this->position_fungsional_id ?: null,
-'employment_status' => $this->employment_status ?: null,
-'is_cltp' => $this->is_cltp,
- ];
-
- if ($isNew) {
- $userData['password'] = Hash::make($this->password);
- $user = \App\Models\User::create($userData);
- Employee::create(array_merge($employeeData, ['user_id' => $user->id]));
- } else {
- $employee = Employee::findOrFail($this->employee_id);
  $employee->user->update($userData);
  $employee->update($employeeData);
  }
 
  $this->resetForm();
  $this->showEmployeeModal = false;
- session()->flash('success', $isNew ?'Karyawan berhasil ditambahkan!' :'Data karyawan berhasil diperbarui!');
+ session()->flash('success', $isNew ?"Undangan berhasil dikirim ke {$this->email}." :'Data karyawan berhasil diperbarui!');
 };
 
 $edit = function (Employee $employee) {
@@ -604,13 +601,17 @@ $delete = function () {
  </div>
 
  <!-- Modals -->
- <x-modal wire:model="showEmployeeModal" title="{{ $isEdit ?'Edit Karyawan' :'Tambah Karyawan Baru' }}" subtitle="Isi data karyawan dengan lengkap dan benar." class="md:w-[560px]">
+ <x-modal wire:model="showEmployeeModal" title="{{ $isEdit ?'Edit Karyawan' :'Tambah Karyawan Baru' }}" subtitle="Isi data karyawan dengan lengkap dan benar." box-class="md:w-[560px]">
  <form wire:submit.prevent="save" class="space-y-4">
  <h4 class="font-bold text-base-content/50 text-xs uppercase">Informasi Dasar</h4>
 
  <x-input label="Nama Lengkap" wire:model="name" placeholder="Cth: Budi Santoso, S.AP." required />
  <x-input label="Email" type="email" wire:model="email" placeholder="email@domain.com" required />
- <x-input label="{{ $isEdit ?'Password Baru (kosongkan jika tidak diubah)' :'Password' }}" type="password" wire:model="password" placeholder="{{ $isEdit ?'Kosongkan jika tidak diubah' :'Min. 8 karakter' }}" />
+ @if ($isEdit)
+ <x-input label="Password Baru (kosongkan jika tidak diubah)" type="password" wire:model="password" placeholder="Kosongkan jika tidak diubah" />
+ @else
+ <p class="text-xs text-base-content/50 -mt-2">Karyawan akan menerima email undangan berisi link untuk membuat password sendiri dan mengaktifkan akunnya.</p>
+ @endif
 
  <hr class="border-base-300 my-2" />
  <h4 class="font-bold text-base-content/50 text-xs uppercase">Struktur Organisasi</h4>
