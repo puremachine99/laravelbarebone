@@ -106,6 +106,21 @@ test('filtering by actor scopes the results to that causer only', function () {
     expect($logs->pluck('causer_id')->unique()->all())->toBe([$actingFo->id]);
 });
 
+test('actor options include super admins even without a finance department', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+
+    $superAdmin = User::factory()->create(['name' => 'Super Admin Nakama']);
+    $superAdmin->assignRole(Role::findOrCreate('Super Admin'));
+    Employee::create(['user_id' => $superAdmin->id]);
+
+    $this->actingAs($admin);
+
+    $options = Volt::test('investors.activity-log-index')->instance()->actorOptions;
+
+    expect(collect($options)->pluck('id'))->toContain($superAdmin->id);
+});
+
 test('filtering by month and year scopes the results to that period', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));
@@ -127,6 +142,29 @@ test('filtering by month and year scopes the results to that period', function (
 
     expect($logs->pluck('id'))->toContain($julyLog->id)
         ->and($logs->pluck('id'))->not->toContain($augustLog->id);
+});
+
+test('filtering by time range scopes the results to that window', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id]);
+    $this->actingAs($user);
+
+    $morningLog = ActivityLog::record($funnel, ActivityLogAction::StageMoved, ['stage' => 'leads'], ['stage' => 'ql']);
+    $morningLog->forceFill(['created_at' => '2026-08-15 08:00:00'])->save();
+
+    $eveningLog = ActivityLog::record($funnel, ActivityLogAction::StageMoved, ['stage' => 'ql'], ['stage' => 'pitching']);
+    $eveningLog->forceFill(['created_at' => '2026-08-15 20:00:00'])->save();
+
+    $logs = Volt::test('investors.activity-log-index')
+        ->set('filterTimeStart', '2026-08-15T07:00')
+        ->set('filterTimeEnd', '2026-08-15T12:00')
+        ->instance()
+        ->logs;
+
+    expect($logs->pluck('id'))->toContain($morningLog->id)
+        ->and($logs->pluck('id'))->not->toContain($eveningLog->id);
 });
 
 test('the page exposes no mutating actions', function () {

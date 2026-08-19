@@ -101,15 +101,15 @@ $realisasiForFo = function ($employeeId, $metricKey, $date) {
         'ql' => FoFunnel::where('employee_id', $employeeId)->whereNotNull('tgl_qualified')->whereDate('tgl_qualified', $date)->count(),
         'pitching' => FoFunnelActivity::where('stage', 'pitching')
             ->whereDate('tanggal', $date)
-            ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId))
+            ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId)->stageAtLeast('pitching'))
             ->distinct('fo_funnel_id')
             ->count('fo_funnel_id'),
         'followup' => FoFunnelActivity::where('stage', 'followup')
             ->whereDate('tanggal', $date)
-            ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId))
+            ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId)->stageAtLeast('followup'))
             ->distinct('fo_funnel_id')
             ->count('fo_funnel_id'),
-        'won' => FoFunnel::where('employee_id', $employeeId)->whereDate('tgl_won', $date)->count(),
+        'won' => FoFunnel::where('employee_id', $employeeId)->stageAtLeast('won')->whereDate('tgl_won', $date)->count(),
         'closing' => FoFunnel::where('employee_id', $employeeId)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereDate('tgl_closing', $date)->count(),
         'nilai_closing' => (float) FoFunnel::where('employee_id', $employeeId)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereDate('tgl_closing', $date)->sum('nominal_investasi'),
         default => 0,
@@ -186,7 +186,7 @@ $trend = computed(function () {
         return [
             'label' => $date->format('d/m'),
             'leads' => collect($employeeIds)->sum(fn ($id) => FoFunnel::where('employee_id', $id)->whereDate('tgl_leads', $date)->count()),
-            'won' => collect($employeeIds)->sum(fn ($id) => FoFunnel::where('employee_id', $id)->whereDate('tgl_won', $date)->count()),
+            'won' => collect($employeeIds)->sum(fn ($id) => FoFunnel::where('employee_id', $id)->stageAtLeast('won')->whereDate('tgl_won', $date)->count()),
             'closing' => collect($employeeIds)->sum(fn ($id) => FoFunnel::where('employee_id', $id)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereDate('tgl_closing', $date)->count()),
         ];
     })->values()->all();

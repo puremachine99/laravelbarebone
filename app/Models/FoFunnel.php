@@ -21,6 +21,24 @@ class FoFunnel extends Model
      */
     public const CLOSED_STAGES = ['closing', 'akad'];
 
+    /**
+     * Pipeline stage progression order, used to check whether a funnel's current stage
+     * is still at or past a given milestone (so achievement metrics stay in sync with
+     * the current stage instead of a stale "ever reached" marker).
+     *
+     * @var array<string, int>
+     */
+    public const STAGE_ORDER = [
+        'leads' => 0,
+        'ql' => 1,
+        'pitching' => 2,
+        'followup' => 3,
+        'won' => 4,
+        'lost' => 4,
+        'closing' => 5,
+        'akad' => 6,
+    ];
+
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -52,6 +70,18 @@ class FoFunnel extends Model
     public function logs()
     {
         return $this->morphMany(ActivityLog::class, 'loggable')->latest('id');
+    }
+
+    public function scopeStageAtLeast($query, string $stage)
+    {
+        $minRank = self::STAGE_ORDER[$stage];
+
+        $qualifyingStages = collect(self::STAGE_ORDER)
+            ->filter(fn ($rank) => $rank >= $minRank)
+            ->keys()
+            ->all();
+
+        return $query->whereIn('stage', $qualifyingStages);
     }
 
     public function dokumenAkadUrl(): ?string

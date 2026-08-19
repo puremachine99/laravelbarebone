@@ -100,7 +100,7 @@ $suggestedYearlyTarget = function ($employeeId, $metricKey) {
         'leads' => FoFunnel::where('employee_id', $employeeId)->count(),
         'ql' => FoFunnel::where('employee_id', $employeeId)->whereNotNull('tgl_qualified')->count(),
         'pitching' => FoFunnelActivity::where('stage', 'pitching')
-            ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId))
+            ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId)->stageAtLeast('pitching'))
             ->pluck('fo_funnel_id')
             ->unique()
             ->count(),
@@ -185,16 +185,18 @@ $realisasiInRange = function ($employeeId, $metricKey, $start, $end) {
             ->whereBetween('tgl_leads', [$start, $end])
             ->count(),
         'ql' => FoFunnel::where('employee_id', $employeeId)
+            
             ->whereNotNull('tgl_qualified')
             ->whereBetween('tgl_qualified', [$start, $end])
             ->count(),
         'pitching' => FoFunnelActivity::where('stage', 'pitching')
             ->whereBetween('tanggal', [$start, $end])
-            ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId))
+            ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId)->stageAtLeast('pitching'))
             ->pluck('fo_funnel_id')
             ->unique()
             ->count(),
         'won' => FoFunnel::where('employee_id', $employeeId)
+            ->stageAtLeast('won')
             ->whereBetween('tgl_won', [$start, $end])
             ->count(),
         'closing' => FoFunnel::where('employee_id', $employeeId)

@@ -183,6 +183,40 @@ test('switching the selected month changes the realisasi figures', function () {
     expect($lastMonthRow['leads'])->toBe(1);
 });
 
+test('pitching count drops once the funnel is moved back to a stage before pitching', function () {
+    $admin = makeMonthlyFoEmployee('Investor Admin');
+    $fo = makeMonthlyFoEmployee('Funding Officer');
+    $contact = FoContact::factory()->create(['employee_id' => $fo->id]);
+
+    $funnel = FoFunnel::factory()->create([
+        'fo_contact_id' => $contact->id,
+        'employee_id' => $fo->id,
+        'stage' => 'pitching',
+    ]);
+
+    FoFunnelActivity::factory()->create([
+        'fo_funnel_id' => $funnel->id,
+        'stage' => 'pitching',
+        'tanggal' => now()->startOfMonth()->addDays(1)->toDateString(),
+    ]);
+
+    $this->actingAs($admin->user);
+
+    $rowWhilePitching = collect(
+        Volt::test('investors.monthly-index')->instance()->realisasiPerFo()
+    )->firstWhere('name', $fo->user->name);
+
+    expect($rowWhilePitching['pitching'])->toBe(1);
+
+    $funnel->update(['stage' => 'ql']);
+
+    $rowAfterMovingBack = collect(
+        Volt::test('investors.monthly-index')->instance()->realisasiPerFo()
+    )->firstWhere('name', $fo->user->name);
+
+    expect($rowAfterMovingBack['pitching'])->toBe(0);
+});
+
 test('pitching and follow up count distinct funnels once within the month even with multiple activity logs', function () {
     $admin = makeMonthlyFoEmployee('Investor Admin');
     $fo = makeMonthlyFoEmployee('Funding Officer');

@@ -76,6 +76,35 @@ test('a month with no leads is marked as having no data', function () {
         ->and($january['overall'])->toBeNull();
 })->skip(fn () => now()->month < 2, 'Needs at least 2 elapsed months in the year to have an empty leading month');
 
+test('a month shows data when an existing funnel is moved into it without a new lead', function () {
+    $admin = makeConversionFoEmployee('Investor Admin');
+    $fo = makeConversionFoEmployee('Funding Officer');
+    $contact = FoContact::factory()->create(['employee_id' => $fo->id]);
+
+    $lastMonth = now()->subMonth()->startOfMonth()->toDateString();
+    $currentMonth = now()->startOfMonth()->addDays(2)->toDateString();
+
+    $funnel = FoFunnel::factory()->create([
+        'fo_contact_id' => $contact->id,
+        'employee_id' => $fo->id,
+        'tgl_leads' => $lastMonth,
+    ]);
+
+    $this->actingAs($admin->user);
+
+    $rowBefore = collect(Volt::test('investors.conversion-index')->instance()->monthlyRows())->last();
+    expect($rowBefore['hasData'])->toBeFalse();
+
+    $funnel->update(['stage' => 'closing', 'tgl_won' => $currentMonth, 'tgl_closing' => $currentMonth, 'nominal_investasi' => 100_000_000]);
+
+    $rowAfter = collect(Volt::test('investors.conversion-index')->instance()->monthlyRows())->last();
+
+    expect($rowAfter['hasData'])->toBeTrue()
+        ->and($rowAfter['lead'])->toBe(0)
+        ->and($rowAfter['won'])->toBe(1)
+        ->and($rowAfter['closing'])->toBe(1);
+})->skip(fn () => now()->month < 2, 'Needs a previous month within the same year');
+
 test('monthly conversion percentages are computed stage by stage', function () {
     $admin = makeConversionFoEmployee('Investor Admin');
     $fo = makeConversionFoEmployee('Funding Officer');
@@ -94,6 +123,8 @@ test('monthly conversion percentages are computed stage by stage', function () {
 
     // 4 distinct funnels get a pitching session logged.
     $funnels->take(4)->each(function (FoFunnel $f) use ($monthDate) {
+        $f->update(['stage' => 'pitching']);
+
         FoFunnelActivity::factory()->create([
             'fo_funnel_id' => $f->id,
             'stage' => 'pitching',
@@ -231,11 +262,15 @@ test('bottleneck identifies the funnel stage with the lowest average conversion'
     ]);
 
     $funnels->take(5)->each(fn (FoFunnel $f) => $f->update(['tgl_qualified' => $monthDate]));
-    $funnels->take(4)->each(fn (FoFunnel $f) => FoFunnelActivity::factory()->create([
-        'fo_funnel_id' => $f->id,
-        'stage' => 'pitching',
-        'tanggal' => $monthDate,
-    ]));
+    $funnels->take(4)->each(function (FoFunnel $f) use ($monthDate) {
+        $f->update(['stage' => 'pitching']);
+
+        FoFunnelActivity::factory()->create([
+            'fo_funnel_id' => $f->id,
+            'stage' => 'pitching',
+            'tanggal' => $monthDate,
+        ]);
+    });
     $funnels->first()->update(['stage' => 'closing', 'tgl_won' => $monthDate, 'tgl_closing' => $monthDate, 'nominal_investasi' => 100_000_000]);
 
     $this->actingAs($admin->user);
