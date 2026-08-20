@@ -241,10 +241,7 @@ $funnelKumulatif = computed(function () {
         </div>
     </div>
 
-    <div class="alert bg-info/10 border border-info/30 text-info text-sm">
-        <x-icon name="o-information-circle" class="w-5 h-5" />
-        <span>All figures are calculated automatically from the Funnel (Pipeline) module — this page is read-only, with no manual input.</span>
-    </div>
+  
 
     <!-- Monthly conversion table -->
     <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">

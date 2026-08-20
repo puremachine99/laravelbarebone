@@ -222,24 +222,67 @@ test('leaderboard is sorted by cumulative nilai closing regardless of masuk seba
         ->and($leaderboard[1]['name'])->toBe($foLow->user->name);
 });
 
+test('leaderboard only counts deals closed in the selected month, not all-time', function () {
+    $admin = makeDashboardFoEmployee('Investor Admin');
+    $fo = makeDashboardFoEmployee('Funding Officer');
+    $contact = FoContact::factory()->create(['employee_id' => $fo->id]);
+
+    FoFunnel::factory()->create([
+        'fo_contact_id' => $contact->id,
+        'employee_id' => $fo->id,
+        'stage' => 'closing',
+        'tgl_closing' => now()->subMonths(3)->toDateString(),
+        'nominal_investasi' => 900_000_000,
+    ]);
+
+    $this->actingAs($admin->user);
+
+    $leaderboard = collect(Volt::test('investors.dashboard-index')->instance()->leaderboard())->keyBy('name');
+
+    expect($leaderboard[$fo->user->name]['closing'])->toBe(0)
+        ->and($leaderboard[$fo->user->name]['nilai_closing'])->toBe(0.0);
+});
+
+test('reset filter button restores the default month, day and view-as scope', function () {
+    $admin = makeDashboardFoEmployee('Investor Admin');
+    $fo = makeDashboardFoEmployee('Funding Officer');
+    $this->actingAs($admin->user);
+
+    $component = Volt::test('investors.dashboard-index')
+        ->set('selectedMonth', 1)
+        ->set('selectedYear', now()->year - 1)
+        ->set('selectedDay', 15)
+        ->set('viewAsEmployeeId', $fo->id)
+        ->call('resetFilters');
+
+    expect($component->get('selectedMonth'))->toBe((int) now()->month)
+        ->and($component->get('selectedYear'))->toBe((int) now()->year)
+        ->and($component->get('selectedDay'))->toBe((int) now()->day)
+        ->and($component->get('viewAsEmployeeId'))->toBeNull();
+});
+
 test('selectedDate defaults to today', function () {
     $admin = makeDashboardFoEmployee('Investor Admin');
     $this->actingAs($admin->user);
 
     $component = Volt::test('investors.dashboard-index');
 
-    expect($component->get('selectedDate'))->toBe(now()->toDateString());
+    expect($component->get('selectedYear'))->toBe((int) now()->year)
+        ->and($component->get('selectedMonth'))->toBe((int) now()->month)
+        ->and($component->get('selectedDay'))->toBe((int) now()->day)
+        ->and($component->instance()->selectedDate())->toBe(now()->toDateString());
 });
 
-test('switching the date picker recalculates realisasi for the newly selected day', function () {
+test('clicking a day in the Activity Tracker drills down realisasi to that day', function () {
     $admin = makeDashboardFoEmployee('Investor Admin');
     $fo = makeDashboardFoEmployee('Funding Officer');
     $contact = FoContact::factory()->create(['employee_id' => $fo->id]);
 
-    $threeDaysAgo = now()->subDays(3)->toDateString();
+    // Guaranteed to stay within the current month regardless of when the test runs.
+    $otherDay = now()->day > 3 ? now()->subDays(3) : now()->addDays(3);
 
     FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'tgl_leads' => now()->toDateString()]);
-    FoFunnel::factory()->count(2)->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'tgl_leads' => $threeDaysAgo]);
+    FoFunnel::factory()->count(2)->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'tgl_leads' => $otherDay->toDateString()]);
 
     $this->actingAs($admin->user);
 
@@ -247,7 +290,7 @@ test('switching the date picker recalculates realisasi for the newly selected da
 
     expect($component->instance()->todaySummary()['leads']['realisasi'])->toBe(1);
 
-    $component->set('selectedDate', $threeDaysAgo);
+    $component->call('selectDay', $otherDay->day);
 
     $rows = collect($component->instance()->realisasiPerFo())->keyBy('name');
 
@@ -255,28 +298,33 @@ test('switching the date picker recalculates realisasi for the newly selected da
         ->and($rows[$fo->user->name]['leads'])->toBe(2);
 });
 
-test('14-day trend ends at the selected date rather than always today', function () {
+test('monthly trend covers the whole month of the selected date, not always the current month', function () {
     $admin = makeDashboardFoEmployee('Investor Admin');
     $fo = makeDashboardFoEmployee('Funding Officer');
     $contact = FoContact::factory()->create(['employee_id' => $fo->id]);
 
-    $selectedDate = now()->subDays(20)->toDateString();
+    $pastMonth = now()->subMonths(2)->startOfMonth()->addDays(4);
+    $selectedDate = $pastMonth->toDateString();
 
-    // This lead sits well within the 14-day window ending at $selectedDate, but far outside a window ending today.
+    // This lead sits in a month far in the past — should only show up if the trend
+    // actually follows the selected month, not always the current month.
     FoFunnel::factory()->create([
         'fo_contact_id' => $contact->id,
         'employee_id' => $fo->id,
-        'tgl_leads' => now()->subDays(20)->toDateString(),
+        'tgl_leads' => $selectedDate,
     ]);
 
     $this->actingAs($admin->user);
 
-    $component = Volt::test('investors.dashboard-index')->set('selectedDate', $selectedDate);
+    $component = Volt::test('investors.dashboard-index')
+        ->set('selectedYear', $pastMonth->year)
+        ->set('selectedMonth', $pastMonth->month)
+        ->set('selectedDay', $pastMonth->day);
 
-    $trend = collect($component->instance()->trend());
+    $trend = collect($component->instance()->monthlyTrend());
 
-    expect($trend)->toHaveCount(14)
-        ->and($trend->last()['label'])->toBe(now()->subDays(20)->format('d/m'))
+    expect($trend)->toHaveCount($pastMonth->daysInMonth)
+        ->and($trend[4]['leads'])->toBe(1)
         ->and($trend->sum('leads'))->toBe(1);
 });
 
@@ -294,9 +342,9 @@ test('daily target year is derived from the selected date, not the current date'
     $this->actingAs($admin->user);
 
     $component = Volt::test('investors.dashboard-index')
-        ->set('selectedDate', now()->subYear()->toDateString());
+        ->set('selectedYear', now()->subYear()->year);
 
-    // 1200 / 12 / 25 = 4 leads/day, only visible when selectedDate falls in last year.
+    // 1200 / 12 / 25 = 4 leads/day, only visible when selectedYear falls in last year.
     expect((float) $component->instance()->todaySummary()['leads']['target'])->toBe(4.0);
 });
 
@@ -327,4 +375,39 @@ test('pitching and follow up count distinct funnels once per day even with multi
     $summary = Volt::test('investors.dashboard-index')->instance()->todaySummary();
 
     expect($summary['pitching']['realisasi'])->toBe(1);
+});
+
+test('activity tracker heatmap renders and buckets counts by day of the selected month', function () {
+    $admin = makeDashboardFoEmployee('Investor Admin');
+    $fo = makeDashboardFoEmployee('Funding Officer');
+    $contact = FoContact::factory()->create(['employee_id' => $fo->id]);
+
+    $day5 = now()->startOfMonth()->addDays(4)->toDateString();
+    $day10 = now()->startOfMonth()->addDays(9)->toDateString();
+
+    FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'tgl_leads' => $day5]);
+    FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'tgl_leads' => $day5]);
+    FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'tgl_leads' => $day10]);
+
+    FoFunnel::factory()->create([
+        'fo_contact_id' => $contact->id,
+        'employee_id' => $fo->id,
+        'stage' => 'won',
+        'tgl_leads' => $day5,
+        'tgl_won' => $day10,
+    ]);
+
+    $this->actingAs($admin->user);
+
+    $component = Volt::test('investors.dashboard-index')->assertSee('Activity Tracker');
+
+    $heatmap = $component->instance()->activityHeatmap();
+    $leadsRow = collect($heatmap['rows'])->firstWhere('key', 'leads');
+    $wonRow = collect($heatmap['rows'])->firstWhere('key', 'won');
+
+    expect($leadsRow['counts'][5])->toBe(3)
+        ->and($leadsRow['counts'][10])->toBe(1)
+        ->and($leadsRow['total'])->toBe(4)
+        ->and($wonRow['counts'][10])->toBe(1)
+        ->and($wonRow['total'])->toBe(1);
 });
