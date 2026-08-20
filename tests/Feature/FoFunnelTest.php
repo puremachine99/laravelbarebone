@@ -606,15 +606,50 @@ test('search finds a funnel by contact name, profesi, phone, pic name, or sumber
     expect($idsFor('tidak ada yang cocok sama sekali'))->toBeEmpty();
 });
 
-test('filterBulan and filterTahun scope funnels by proyeksi close date', function () {
+test('filterBulan and filterTahun scope funnels by the date relevant to their current stage', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
 
-    $matching = FoFunnel::factory()->create(['employee_id' => $employee->id, 'proyeksi_close_date' => '2026-08-15']);
-    $otherMonth = FoFunnel::factory()->create(['employee_id' => $employee->id, 'proyeksi_close_date' => '2026-09-15']);
-    $otherYear = FoFunnel::factory()->create(['employee_id' => $employee->id, 'proyeksi_close_date' => '2025-08-15']);
-    $noDate = FoFunnel::factory()->create(['employee_id' => $employee->id, 'proyeksi_close_date' => null]);
+    // Pipeline card with no won/closing date yet — falls back to tgl_leads.
+    $activePipeline = FoFunnel::factory()->create([
+        'employee_id' => $employee->id,
+        'tgl_leads' => '2026-08-01',
+        'tgl_qualified' => null,
+        'tgl_won' => null,
+        'tgl_closing' => null,
+        'proyeksi_close_date' => null,
+    ]);
+
+    $outsideMonth = FoFunnel::factory()->create(['employee_id' => $employee->id, 'tgl_leads' => '2026-09-01']);
+    $outsideYear = FoFunnel::factory()->create(['employee_id' => $employee->id, 'tgl_leads' => '2025-08-01']);
+
+    // Won card whose original lead date is stale/out of range — the won date must take priority.
+    $wonOverridesStaleLead = FoFunnel::factory()->create([
+        'employee_id' => $employee->id,
+        'stage' => 'won',
+        'tgl_leads' => '2026-01-01',
+        'tgl_won' => '2026-08-15',
+    ]);
+
+    // Closing card whose won date is stale — tgl_closing must take priority over tgl_won.
+    $closingOverridesWon = FoFunnel::factory()->create([
+        'employee_id' => $employee->id,
+        'stage' => 'closing',
+        'tgl_won' => '2026-01-01',
+        'tgl_closing' => '2026-08-20',
+    ]);
+
+    // Legacy imported card: stage is still 'won', but tgl_closing was populated from the
+    // original CSV's closing info and belongs to a different month. tgl_won (in range) must
+    // win, not tgl_closing (out of range) — matching how Monthly Conversion/Achievement
+    // bucket this same row by tgl_won.
+    $wonWithStaleClosingDate = FoFunnel::factory()->create([
+        'employee_id' => $employee->id,
+        'stage' => 'won',
+        'tgl_won' => '2026-08-05',
+        'tgl_closing' => '2026-06-17',
+    ]);
 
     $this->actingAs($user);
 
@@ -626,10 +661,9 @@ test('filterBulan and filterTahun scope funnels by proyeksi close date', functio
         ->pluck('id')
         ->all();
 
-    expect($ids)->toContain($matching->id)
-        ->and($ids)->not->toContain($otherMonth->id)
-        ->and($ids)->not->toContain($otherYear->id)
-        ->and($ids)->not->toContain($noDate->id);
+    expect($ids)->toContain($activePipeline->id, $wonOverridesStaleLead->id, $closingOverridesWon->id, $wonWithStaleClosingDate->id)
+        ->and($ids)->not->toContain($outsideMonth->id)
+        ->and($ids)->not->toContain($outsideYear->id);
 });
 
 test('logging a follow up from drag-drop moves the stage and records history', function () {

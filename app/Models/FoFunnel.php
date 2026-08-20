@@ -84,6 +84,54 @@ class FoFunnel extends Model
         return $query->whereIn('stage', $qualifyingStages);
     }
 
+    /**
+     * SQL expression for "the date that actually matters for this funnel right now" —
+     * proyeksi_close_date is only a projection and is null for most rows, so filtering
+     * the whole board by it alone (regardless of stage) hides almost everything.
+     *
+     * Must branch on the current `stage`, not just pick whichever date column happens to
+     * be non-null: legacy imported rows can have tgl_closing populated (from the original
+     * CSV's closing info) even though the record's current stage is still 'won', not
+     * 'closing' — a plain COALESCE would misfile those under their stale tgl_closing month
+     * instead of the tgl_won month the other reports (Monthly Conversion/Achievement,
+     * Management FO) use for the same rows.
+     */
+    public static function relevantDateExpression(string $driver): string
+    {
+        return "COALESCE(
+            CASE
+                WHEN stage = 'won' THEN tgl_won
+                WHEN stage IN ('lost', 'closing', 'akad') THEN tgl_closing
+                WHEN stage = 'ql' THEN tgl_qualified
+                WHEN stage IN ('pitching', 'followup') THEN tgl_qualified
+                ELSE NULL
+            END,
+            tgl_leads
+        )";
+    }
+
+    public function scopeWhereRelevantMonth($query, int $month)
+    {
+        $driver = $query->getConnection()->getDriverName();
+        $date = self::relevantDateExpression($driver);
+        $expr = $driver === 'sqlite'
+            ? "CAST(strftime('%m', {$date}) AS INTEGER)"
+            : "EXTRACT(MONTH FROM {$date})";
+
+        return $query->whereRaw("{$expr} = ?", [$month]);
+    }
+
+    public function scopeWhereRelevantYear($query, int $year)
+    {
+        $driver = $query->getConnection()->getDriverName();
+        $date = self::relevantDateExpression($driver);
+        $expr = $driver === 'sqlite'
+            ? "CAST(strftime('%Y', {$date}) AS INTEGER)"
+            : "EXTRACT(YEAR FROM {$date})";
+
+        return $query->whereRaw("{$expr} = ?", [$year]);
+    }
+
     public function dokumenAkadUrl(): ?string
     {
         if (! $this->dokumen_akad_path) {

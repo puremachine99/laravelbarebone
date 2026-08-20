@@ -103,12 +103,13 @@ $foOptions = computed(function () {
 $tahunOptions = computed(function () {
     return Cache::remember('fo-funnel:tahun-options', 60, function () {
         // EXTRACT(YEAR ...) itu sintaks Postgres/MySQL; SQLite (dipakai di test) butuh strftime.
-        $yearExpression = FoFunnel::query()->getConnection()->getDriverName() === 'sqlite'
-            ? "CAST(strftime('%Y', proyeksi_close_date) AS INTEGER)"
-            : 'CAST(EXTRACT(YEAR FROM proyeksi_close_date) AS INTEGER)';
+        $driver = FoFunnel::query()->getConnection()->getDriverName();
+        $date = FoFunnel::relevantDateExpression($driver);
+        $yearExpression = $driver === 'sqlite'
+            ? "CAST(strftime('%Y', {$date}) AS INTEGER)"
+            : "CAST(EXTRACT(YEAR FROM {$date}) AS INTEGER)";
 
         return FoFunnel::query()
-            ->whereNotNull('proyeksi_close_date')
             ->selectRaw("{$yearExpression} as year")
             ->distinct()
             ->orderByDesc('year')
@@ -132,8 +133,8 @@ $funnels = computed(function () {
         ->where(fn ($q) => $q->where('stage', '!=', 'leads')->orWhereHas('contact'))
         ->when(! $isAdmin, fn ($q) => $q->where('employee_id', $ownEmployeeId))
         ->when($isAdmin && $this->filterFo, fn ($q) => $q->where('employee_id', $this->filterFo))
-        ->when($this->filterBulan, fn ($q) => $q->whereMonth('proyeksi_close_date', (int) $this->filterBulan))
-        ->when($this->filterTahun, fn ($q) => $q->whereYear('proyeksi_close_date', (int) $this->filterTahun))
+        ->when($this->filterBulan, fn ($q) => $q->whereRelevantMonth((int) $this->filterBulan))
+        ->when($this->filterTahun, fn ($q) => $q->whereRelevantYear((int) $this->filterTahun))
         ->when($search !== '', function ($q) use ($search) {
             $like = "%{$search}%";
 
