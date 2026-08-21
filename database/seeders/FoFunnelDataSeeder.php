@@ -146,7 +146,7 @@ class FoFunnelDataSeeder extends Seeder
         $userId = (int) trim($row[0] ?? '');
         $nama = trim($row[1] ?? '');
         $profesi = trim($row[2] ?? '') ?: null;
-        $noTelp = $this->sanitizePhone($row[3] ?? '');
+        [$noTelp, $contactNote] = $this->parseContactMethod($row[3] ?? '');
         $sumber = $this->normalizeSumber($row[4] ?? '');
 
         if (! $userId || $nama === '') {
@@ -161,7 +161,7 @@ class FoFunnelDataSeeder extends Seeder
 
         $contact = FoContact::firstOrCreate(
             ['employee_id' => $employee->id, 'nama' => $nama],
-            ['profesi' => $profesi, 'no_telepon' => $noTelp],
+            ['profesi' => $profesi, 'no_telepon' => $noTelp, 'catatan' => $contactNote],
         );
 
         $tglLeads = $this->parseDmy($row[5] ?? '');
@@ -259,7 +259,7 @@ class FoFunnelDataSeeder extends Seeder
         $userId = (int) trim($row[0] ?? '');
         $nama = trim($row[1] ?? '');
         $profesi = trim($row[2] ?? '') ?: null;
-        $noTelp = $this->sanitizePhone($row[3] ?? '');
+        [$noTelp, $contactNote] = $this->parseContactMethod($row[3] ?? '');
         $sumber = $this->normalizeSumber($row[4] ?? '');
 
         if (! $userId || $nama === '') {
@@ -274,7 +274,7 @@ class FoFunnelDataSeeder extends Seeder
 
         $contact = FoContact::firstOrCreate(
             ['employee_id' => $employee->id, 'nama' => $nama],
-            ['profesi' => $profesi, 'no_telepon' => $noTelp],
+            ['profesi' => $profesi, 'no_telepon' => $noTelp, 'catatan' => $contactNote],
         );
 
         $tglLeads = $this->parseHariBulanTahun($row[5] ?? '', $row[6] ?? '');
@@ -362,19 +362,34 @@ class FoFunnelDataSeeder extends Seeder
     }
 
     /**
-     * A handful of source rows have an email address in the "No. Telp" column instead of a
-     * phone number — too long for fo_contacts.no_telepon (varchar 30) and not a phone number
-     * anyway, so drop it rather than fail the whole contact/funnel import over it.
+     * A handful of source rows put an Instagram handle, email address, or other non-phone
+     * text in the "No. Telp" column instead of a phone number — not valid for
+     * fo_contacts.no_telepon (varchar 30, meant to hold an actual phone number), so route it
+     * into the contact's catatan instead of dropping it or failing the whole row over it.
+     *
+     * @return array{0: ?string, 1: ?string} [no_telepon, catatan]
      */
-    private function sanitizePhone(string $value): ?string
+    private function parseContactMethod(string $value): array
     {
         $value = trim($value);
 
-        if ($value === '' || str_contains($value, '@') || strlen($value) > 30) {
-            return null;
+        if ($value === '') {
+            return [null, null];
         }
 
-        return $value;
+        $looksLikePhone = preg_match('/^[0-9+\-\s()\/]+$/', $value) === 1;
+
+        if ($looksLikePhone && strlen($value) <= 30) {
+            return [$value, null];
+        }
+
+        $note = match (true) {
+            str_starts_with($value, '@') => "IG: {$value}",
+            str_contains($value, '@') => "Email: {$value}",
+            default => $value,
+        };
+
+        return [null, $note];
     }
 
     private function normalizeSumber(string $value): string
