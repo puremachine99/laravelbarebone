@@ -138,6 +138,7 @@
                                         </div>
                                     </a>
                                 </li>
+                                {{-- switch untuk darkmode, --}}
                                 <hr class="border-base-300 my-1">
                                 <li>
                                     
