@@ -350,6 +350,7 @@ $delete = function () {
  <table class="table table-zebra w-full text-base-content/70">
  <thead>
  <tr class="text-base-content/50 border-b border-base-300">
+ <th>ID</th>
  <th class="cursor-pointer py-3" wire:click="sort('name')">
  <div class="flex items-center gap-1">
  <span>Nama</span>
@@ -377,6 +378,7 @@ $delete = function () {
  <tbody>
  @forelse ($this->employees as $emp)
  <tr class="border-b border-base-300 hover:bg-base-200 cursor-pointer" wire:click="showDetail('{{ $emp->id }}')">
+ <td class="text-base-content/50">{{ $emp->id }}</td>
  <td class="font-semibold text-base-content py-3">{{ $emp->user->name }}</td>
  <td>{{ $emp->department?->name ??'-' }}</td>
  <td>{{ $emp->positionStruktural?->name ??'-' }}</td>
@@ -417,7 +419,7 @@ $delete = function () {
  </tr>
  @empty
  <tr>
- <td colspan="8" class="text-center text-base-content/50 py-8">
+ <td colspan="9" class="text-center text-base-content/50 py-8">
  Belum ada data yang ditampilkan.
  </td>
  </tr>
