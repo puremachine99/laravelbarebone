@@ -319,6 +319,14 @@ $statsPic = computed(function () {
                             </div>
                         </th>
                         <th>Note</th>
+                        <th class="cursor-pointer" wire:click="sort('created_at')">
+                            <div class="flex items-center gap-1">
+                                <span>Created At</span>
+                                @if ($sortBy === 'created_at')
+                                    <x-icon name="{{ $sortDirection === 'asc' ? 'o-chevron-up' : 'o-chevron-down' }}" class="w-3 h-3" />
+                                @endif
+                            </div>
+                        </th>
                         <th class="text-right">Actions</th>
                     </tr>
                 </thead>
@@ -350,6 +358,7 @@ $statsPic = computed(function () {
                             <td class="max-w-[200px] truncate text-base-content/50" title="{{ $contact->catatan ?? '-' }}">
                                 {{ $contact->catatan ?? '-' }}
                             </td>
+                            <td class="text-base-content/50 whitespace-nowrap">{{ $contact->created_at?->format('d M Y H:i') }}</td>
                             <td class="text-right">
                                 <div class="flex gap-2 justify-end">
                                     <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="editContact({{ $contact->id }})" />
@@ -359,7 +368,7 @@ $statsPic = computed(function () {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-base-content/50 py-8">
+                            <td colspan="7" class="text-center text-base-content/50 py-8">
                                 No contacts recorded yet.
                             </td>
                         </tr>
