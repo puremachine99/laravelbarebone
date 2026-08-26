@@ -42,7 +42,6 @@ class DatabaseSeeder extends Seeder
             RencanaPitchingCardSeeder::class,
             FundingOfficerSeeder::class,
             FoFunnelDataSeeder::class,
-            DailyReportFollowUpSeeder::class,
         ]);
     }
 }
