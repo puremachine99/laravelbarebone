@@ -12,7 +12,7 @@
 <script>
     function applyGlobalTheme() {
         let theme = localStorage.getItem('theme');
-        let isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        let isDark = theme === 'dark' || ((!theme || theme === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches);
         
         if (isDark) {
             document.documentElement.classList.add('dark');

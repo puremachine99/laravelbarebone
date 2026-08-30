@@ -71,6 +71,30 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * Organizational tier derived from the employee's position, used to color-code
+     * avatar rings and position badges consistently across the app.
+     */
+    public function positionTier(): ?string
+    {
+        $employee = $this->employee;
+        $position = $employee?->positionStruktural ?? $employee?->positionFungsional;
+
+        if (! $position) {
+            return null;
+        }
+
+        $isCLevel = Str::contains(Str::lower($position->name), [
+            'chief', 'direksi', 'komisaris', 'dewan penasihat', 'presiden direktur', 'vice president',
+        ]);
+
+        if ($isCLevel) {
+            return 'c-level';
+        }
+
+        return $employee->positionStruktural ? 'struktural' : 'fungsional';
+    }
+
+    /**
      * Get the department this user belongs to (synced from their Employee record).
      */
     public function department()

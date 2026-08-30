@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             RoleAndPermissionSeeder::class,
             RegionProvinceRegencySeeder::class,
             EmployeesSeeder::class,
+            DepartmentCodeSeeder::class,
             UrusanSeeder::class,
             OpdSeeder::class,
             ProductSeeder::class,

@@ -28,6 +28,8 @@
                     </a>
                 </div>
                 @auth
+                    <x-dark-mode-toggle />
+
                     <livewire:notification-bell />
 
                     <div class="dropdown dropdown-end">
@@ -41,23 +43,13 @@
                                 <a href="{{ route('profile.show') }}" wire:navigate
                                     class="flex items-center gap-3 px-3 py-2 h-auto">
                                     <x-user-avatar size="size-12" />
-                                    <div class="flex flex-col min-w-0">
-                                        <span
-                                            class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</span>
-                                        <span
-                                            class="text-base-content/50 text-xs truncate">{{ auth()->user()->email }}</span>
-                                        @if (
-                                            $jabatan =
-                                                auth()->user()->employee?->positionStruktural?->name ?? auth()->user()->employee?->positionFungsional?->name)
-                                            <span class="text-base-content/50 text-xs truncate">{{ $jabatan }}</span>
-                                        @endif
-                                        @if ($roleNames = auth()->user()->getRoleNames())
-                                            <div class="flex flex-wrap gap-1 mt-1">
-                                                @foreach ($roleNames as $roleName)
-                                                    <span class="badge badge-ghost badge-xs">{{ $roleName }}</span>
-                                                @endforeach
-                                            </div>
-                                        @endif
+                                    <div class="flex flex-col min-w-0 gap-1">
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span
+                                                class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</span>
+                                            <x-department-badge :user="auth()->user()" />
+                                        </div>
+                                        <x-position-badge :user="auth()->user()" class="w-fit" />
                                     </div>
                                 </a>
                             </li>
@@ -109,6 +101,8 @@
 
                 @auth
                     <div class="flex items-center gap-1.5">
+                        <x-dark-mode-toggle />
+
                         <livewire:notification-bell />
 
                         <div class="dropdown dropdown-end">
@@ -122,19 +116,13 @@
                                     <a href="{{ route('profile.show') }}" wire:navigate
                                         class="flex items-center gap-3 px-3 py-2 h-auto">
                                         <x-user-avatar size="size-12" />
-                                        <div class="flex flex-col min-w-0">
-                                            <span
-                                                class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</span>
-                                            <span
-                                                class="text-base-content/50 text-xs truncate">{{ auth()->user()->email }}</span>
-                                            @if ($roleNames = auth()->user()->getRoleNames())
-                                                <div class="flex flex-wrap gap-1 mt-1">
-                                                    @foreach ($roleNames as $roleName)
-                                                        <span
-                                                            class="badge badge-primary badge-sm">{{ $roleName }}</span>
-                                                    @endforeach
-                                                </div>
-                                            @endif
+                                        <div class="flex flex-col min-w-0 gap-1">
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <span
+                                                    class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</span>
+                                                <x-department-badge :user="auth()->user()" />
+                                            </div>
+                                            <x-position-badge :user="auth()->user()" class="w-fit" />
                                         </div>
                                     </a>
                                 </li>

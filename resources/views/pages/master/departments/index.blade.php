@@ -11,6 +11,8 @@ layout('layouts.app');
 state([
 'dept_id' => null,
 'name' =>'',
+'code' =>'',
+'color' =>'',
 'isEdit' => false,
 'deleteTargetId' => null,
 'showDeptModal' => false,
@@ -33,12 +35,22 @@ $sort = function ($column) {
 
 $isSuperAdmin = computed(fn() => auth()->user()?->can('modify-master-data'));
 
+$colorOptions = computed(fn() => [
+'amber' =>'Gold',
+'violet' =>'Violet',
+'rose' =>'Rose',
+'fuchsia' =>'Fuchsia',
+'cyan' =>'Cyan',
+'orange' =>'Orange',
+'teal' =>'Teal',
+]);
+
 $departments = computed(function () {
  return Department::query()->when($this->sortBy, fn($query) => $query->orderBy($this->sortBy, $this->sortDirection))->paginate(10);
 });
 
 $resetForm = function () {
- $this->reset(['dept_id','name','isEdit']);
+ $this->reset(['dept_id','name','code','color','isEdit']);
  $this->resetValidation();
 };
 
@@ -48,11 +60,17 @@ $save = function () {
  }
  $this->validate([
 'name' => ['required','string','max:100', Rule::unique('departments','name')->ignore($this->dept_id)],
+'code' => ['nullable','string','max:3'],
+'color' => ['nullable','string', Rule::in(array_keys($this->colorOptions))],
  ]);
 
  $isNew = is_null($this->dept_id);
 
- Department::updateOrCreate(['id' => $this->dept_id], ['name' => $this->name]);
+ Department::updateOrCreate(['id' => $this->dept_id], [
+'name' => $this->name,
+'code' => $this->code !=='' ? strtoupper($this->code) : null,
+'color' => $this->color !=='' ? $this->color : null,
+ ]);
 
  $this->resetForm();
  $this->showDeptModal = false;
@@ -67,6 +85,8 @@ $edit = function (Department $department) {
  $this->resetValidation();
  $this->dept_id = $department->id;
  $this->name = $department->name;
+ $this->code = $department->code ??'';
+ $this->color = $department->color ??'';
  $this->isEdit = true;
  $this->showDeptModal = true;
 };
@@ -128,6 +148,7 @@ $delete = function () {
  @endif
  </div>
  </th>
+ <th>Code</th>
  <th class="text-right">Aksi</th>
  </tr>
  </thead>
@@ -135,6 +156,7 @@ $delete = function () {
  @forelse ($this->departments as $dept)
  <tr class="border-b border-base-300 hover:bg-base-200">
  <td class="font-semibold text-base-content py-3">{{ $dept->name }}</td>
+ <td><x-department-code :department="$dept" /></td>
  <td class="text-right">
  <div class="flex gap-2 justify-end">
  @if ($this->isSuperAdmin)
@@ -146,7 +168,7 @@ $delete = function () {
  </tr>
  @empty
  <tr>
- <td colspan="2" class="text-center text-base-content/50 py-8">
+ <td colspan="3" class="text-center text-base-content/50 py-8">
  Belum ada data yang ditampilkan.
  </td>
  </tr>
@@ -164,6 +186,40 @@ $delete = function () {
  <x-modal wire:model="showDeptModal" title="{{ $isEdit ?'Edit Departemen' :'Tambah Departemen Baru' }}" subtitle="Pastikan nama departemen sesuai dengan struktur organisasi.">
  <form wire:submit.prevent="save" class="space-y-4">
  <x-input label="Nama Departemen" wire:model="name" placeholder="Cth: Finance" required />
+
+ <div>
+ <label class="label"><span class="label-text text-sm">Warna Badge</span></label>
+ <div class="flex flex-wrap gap-2">
+ @foreach ($this->colorOptions as $key => $label)
+ @php
+ $dotClass = match ($key) {
+'amber' =>'bg-amber-400',
+'violet' =>'bg-violet-500',
+'rose' =>'bg-rose-500',
+'fuchsia' =>'bg-fuchsia-500',
+'cyan' =>'bg-cyan-500',
+'orange' =>'bg-orange-500',
+'teal' =>'bg-teal-500',
+ default =>'bg-base-300',
+ };
+ @endphp
+ <button type="button" wire:click="$set('color', '{{ $key }}')"
+ class="btn btn-xs gap-1.5 {{ $color === $key ?'btn-outline btn-primary' :'btn-ghost' }}">
+ <span class="inline-block w-3 h-3 rounded-full {{ $dotClass }}"></span>
+ {{ $label }}
+ </button>
+ @endforeach
+ </div>
+ </div>
+
+ <div class="flex items-end gap-3">
+ <x-input label="Code" wire:model.blur="code" placeholder="Cth: FF" maxlength="3" class="uppercase w-28" />
+ <div class="flex items-center gap-2 pb-2.5">
+ <span class="text-xs text-base-content/50">Preview:</span>
+ <x-department-code :department="(object) ['name' => $name ?:'Departemen', 'code' => $code, 'color' => $color]" />
+ </div>
+ </div>
+
  <div class="flex justify-end gap-2 pt-4 border-t border-base-300">
  <x-button label="Batal" wire:click="$set('showDeptModal', false)" class="btn-ghost" />
  <x-button label="Simpan Data" type="submit" class="btn-primary" />
