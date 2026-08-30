@@ -1,11 +1,44 @@
 <div
-    class="flex h-[calc(100vh-5.5rem)] lg:h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-base-300 bg-base-100">
+    class="flex h-[calc(100vh-5.5rem)] lg:h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-base-300 bg-base-100"
+    x-data="{
+        activeConversationChannel: null,
+        handledMessageIds: new Set(),
+        handleIncoming(messageId, conversationId) {
+            if (this.handledMessageIds.has(messageId)) {
+                return;
+            }
+            this.handledMessageIds.add(messageId);
+            $wire.handleBroadcastMessage(conversationId);
+        },
+        joinConversation(conversationId) {
+            if (this.activeConversationChannel) {
+                Echo.leave(this.activeConversationChannel);
+                this.activeConversationChannel = null;
+            }
+            if (!conversationId) {
+                return;
+            }
+            this.activeConversationChannel = 'conversation.' + conversationId;
+            Echo.private(this.activeConversationChannel).listen('.MessageSent', (e) => this.handleIncoming(e.message_id, e.conversation_id));
+        },
+    }"
+    x-init="
+        Echo.private('chat.{{ auth()->id() }}').listen('.MessageSent', (e) => handleIncoming(e.message_id, e.conversation_id));
+        joinConversation({{ $selectedConversationId ?? 'null' }});
+    "
+    x-on:conversation-selected.window="joinConversation($event.detail.conversationId)">
 
     {{-- Contact list --}}
     <div
-        class="w-full sm:w-72 lg:w-80 shrink-0 border-e border-base-300 flex flex-col min-h-0 {{ $selectedUserId ? 'hidden sm:flex' : 'flex' }}">
+        class="w-full sm:w-72 lg:w-80 shrink-0 border-e border-base-300 flex flex-col min-h-0 {{ $selectedConversationId ? 'hidden sm:flex' : 'flex' }}">
         <div class="p-4 border-b border-base-300 space-y-3 shrink-0">
-            <h2 class="text-lg font-semibold text-base-content">{{ __('Chat') }}</h2>
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-base-content">{{ __('Chat') }}</h2>
+                <button type="button" wire:click="openNewChatModal" title="{{ __('Chat Baru') }}"
+                    class="btn btn-primary btn-circle btn-sm">
+                    <x-icon name="o-plus" class="w-4 h-4" />
+                </button>
+            </div>
 
             <label class="input input-sm input-bordered flex items-center gap-2 bg-base-200/60 w-full">
                 <x-icon name="o-magnifying-glass" class="w-4 h-4 text-base-content/40 shrink-0" />
@@ -15,35 +48,34 @@
         </div>
 
         <div class="flex-1 min-h-0 overflow-y-auto divide-y divide-base-300">
-            @forelse ($this->users as $user)
+            @forelse ($this->conversations as $conversation)
                 @php
-                    $lastMessage = isset($conversations[$user->id]) ? end($conversations[$user->id]) : null;
-                    $unread = $unreadCounts[$user->id] ?? 0;
+                    $otherUser = $conversation->participants->first();
+                    $lastMessage = $conversation->latestMessage;
+                    $unread = $conversation->unread_count;
                 @endphp
-                <button type="button" wire:click="selectUser({{ $user->id }})"
-                    class="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-base-200 transition-colors cursor-pointer {{ $selectedUserId === $user->id ? 'bg-base-200' : '' }}">
-                    <x-user-avatar :user="$user" size="size-10" />
+                @continue(! $otherUser)
+                <button type="button" wire:click="selectConversation({{ $conversation->id }})"
+                    class="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-base-200 transition-colors cursor-pointer {{ $selectedConversationId === $conversation->id ? 'bg-base-200' : '' }}">
+                    <x-user-avatar :user="$otherUser" size="size-10" department class="mb-1" />
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-1.5 min-w-0">
-                                <span
-                                    class="text-sm truncate {{ $unread > 0 ? 'font-bold text-base-content' : 'font-semibold text-base-content' }}">{{ $user->name }}</span>
-                                <x-department-badge :user="$user" size="badge-xs" class="shrink-0" />
-                            </div>
+                            <span
+                                class="text-sm truncate {{ $unread > 0 ? 'font-bold text-base-content' : 'font-semibold text-base-content' }}">{{ $otherUser->name }}</span>
                             @if ($lastMessage)
                                 <span
-                                    class="text-[10px] shrink-0 {{ $unread > 0 ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-base-content/40' }}">{{ $this->lastMessageLabel($user->id) }}</span>
+                                    class="text-[10px] shrink-0 {{ $unread > 0 ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-base-content/40' }}">{{ $this->lastMessageLabel($lastMessage->created_at) }}</span>
                             @endif
                         </div>
                         <div class="flex items-center justify-between gap-2">
                             <p class="text-xs truncate {{ $unread > 0 ? 'text-base-content/80 font-medium' : 'text-base-content/50' }}">
                                 @if ($lastMessage)
-                                    @if ($lastMessage['from'] === 'me')
+                                    @if ($lastMessage->user_id === auth()->id())
                                         <span class="text-base-content/40">{{ __('Anda:') }}</span>
                                     @endif
-                                    {{ $lastMessage['text'] ?? __('📎 Lampiran') }}
+                                    {{ $lastMessage->body ?? __('📎 Lampiran') }}
                                 @else
-                                    {{ $user->email }}
+                                    {{ $otherUser->email }}
                                 @endif
                             </p>
                             @if ($unread > 0)
@@ -54,62 +86,80 @@
                     </div>
                 </button>
             @empty
-                <div class="px-4 py-8 text-center text-xs text-base-content/50">
-                    {{ __('Tidak ada user ditemukan.') }}
+                <div class="px-4 py-8 text-center text-xs text-base-content/50 space-y-2">
+                    <p>{{ $search ? __('Tidak ada kontak yang cocok.') : __('Belum ada percakapan.') }}</p>
+                    @unless ($search)
+                        <button type="button" wire:click="openNewChatModal" class="btn btn-primary btn-xs">
+                            {{ __('Mulai Chat Baru') }}
+                        </button>
+                    @endunless
                 </div>
             @endforelse
         </div>
     </div>
 
     {{-- Conversation canvas --}}
-    <div class="flex-1 flex flex-col min-w-0 min-h-0 {{ $selectedUserId ? 'flex' : 'hidden sm:flex' }}">
-        @if ($this->selectedUser)
+    <div class="flex-1 flex flex-col min-w-0 min-h-0 {{ $selectedConversationId ? 'flex' : 'hidden sm:flex' }}">
+        @if ($this->selectedConversation && $this->selectedOtherUser)
             <button type="button" wire:click="$toggle('showProfile')"
                 class="flex items-center gap-3 px-4 py-3 border-b border-base-300 bg-base-100 shrink-0 text-left hover:bg-base-200/60 transition-colors cursor-pointer">
-                <span wire:click.stop="$set('selectedUserId', null)"
+                <span wire:click.stop="closeConversation"
                     class="btn btn-ghost btn-circle btn-sm sm:hidden">
                     <x-icon name="o-arrow-left" class="w-4 h-4" />
                 </span>
-                <x-user-avatar :user="$this->selectedUser" size="size-9" />
+                <x-user-avatar :user="$this->selectedOtherUser" size="size-9" department class="mb-1" />
                 <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-1.5">
-                        <span class="font-semibold text-sm text-base-content truncate">{{ $this->selectedUser->name }}</span>
-                        <x-department-badge :user="$this->selectedUser" size="badge-xs" class="shrink-0" />
-                    </div>
+                    <div class="font-semibold text-sm text-base-content truncate">{{ $this->selectedOtherUser->name }}</div>
                     <div class="text-xs text-base-content/50 truncate">{{ __('Lihat profil') }}</div>
                 </div>
                 <x-icon name="o-information-circle" class="w-5 h-5 text-base-content/30 shrink-0" />
             </button>
 
             <div class="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3 bg-base-200/40"
-                wire:key="thread-{{ $selectedUserId }}">
-                @foreach ($conversations[$selectedUserId] ?? [] as $message)
-                    <div class="flex {{ $message['from'] === 'me' ? 'justify-end' : 'justify-start' }}">
+                wire:key="thread-{{ $selectedConversationId }}"
+                x-data="{ scrollToBottom() { $nextTick(() => { $el.scrollTop = $el.scrollHeight }) } }"
+                x-init="scrollToBottom()"
+                x-on:message-sent.window="scrollToBottom()">
+                @php $lastDate = null; @endphp
+                @foreach ($this->selectedConversation->messages as $message)
+                    @php $dateKey = $message->created_at->toDateString(); @endphp
+                    @if ($dateKey !== $lastDate)
+                        @php $lastDate = $dateKey; @endphp
+                        <div class="flex justify-center py-1">
+                            <span class="badge badge-sm bg-base-300/70 text-base-content/60 border-0 font-medium px-3">
+                                {{ $this->dateSeparatorLabel($message->created_at) }}
+                            </span>
+                        </div>
+                    @endif
+                    @php $isMine = $message->user_id === auth()->id(); @endphp
+                    <div class="flex {{ $isMine ? 'justify-end' : 'justify-start' }}">
                         <div
-                            class="max-w-[75%] sm:max-w-sm rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm {{ $message['from'] === 'me'
+                            class="max-w-[75%] sm:max-w-sm rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm {{ $isMine
                                 ? 'bg-indigo-600 text-white rounded-br-sm'
                                 : 'bg-base-100 text-base-content border border-base-300 rounded-bl-sm' }}">
-                            @if (! empty($message['attachment']))
-                                @if ($message['attachment']['is_image'])
-                                    <img src="{{ $message['attachment']['url'] }}"
-                                        alt="{{ $message['attachment']['name'] }}"
-                                        class="rounded-lg mb-1 max-h-48 w-full object-cover">
+                            @if ($message->attachment_path)
+                                @if ($message->isImage())
+                                    <img src="{{ $message->previewUrl() }}"
+                                        alt="{{ $message->attachment_name }}"
+                                        class="js-chat-image rounded-lg mb-1 max-h-48 w-full object-cover cursor-pointer"
+                                        data-original-url="{{ $message->attachmentUrl() }}"
+                                        data-original-name="{{ $message->attachment_name }}">
                                 @else
-                                    <div
-                                        class="flex items-center gap-2 mb-1 rounded-lg px-2 py-1.5 {{ $message['from'] === 'me' ? 'bg-white/15' : 'bg-base-200' }}">
+                                    <a href="{{ $message->attachmentUrl() }}" target="_blank"
+                                        class="flex items-center gap-2 mb-1 rounded-lg px-2 py-1.5 {{ $isMine ? 'bg-white/15' : 'bg-base-200' }}">
                                         <x-icon name="o-document" class="w-4 h-4 shrink-0" />
-                                        <span class="text-xs truncate">{{ $message['attachment']['name'] }}</span>
-                                    </div>
+                                        <span class="text-xs truncate">{{ $message->attachment_name }}</span>
+                                    </a>
                                 @endif
                             @endif
 
-                            @if (! empty($message['text']))
-                                <p>{{ $message['text'] }}</p>
+                            @if ($message->body)
+                                <p>{{ $message->body }}</p>
                             @endif
 
                             <span
-                                class="block text-[10px] mt-1 text-right {{ $message['from'] === 'me' ? 'text-indigo-100/80' : 'text-base-content/40' }}">
-                                {{ $message['time'] }}
+                                class="block text-[10px] mt-1 text-right {{ $isMine ? 'text-indigo-100/80' : 'text-base-content/40' }}">
+                                {{ $message->created_at->format('H:i') }}
                             </span>
                         </div>
                     </div>
@@ -143,15 +193,32 @@
                     <p class="px-4 pt-2 text-xs text-error">{{ $message }}</p>
                 @enderror
 
-                <form wire:submit="sendMessage" class="flex items-center gap-2 px-4 py-3">
+                <form wire:submit="sendMessage" class="flex items-end gap-2 px-4 py-3"
+                    x-data="{
+                        resize() {
+                            const el = $refs.messageInput;
+                            el.style.height = 'auto';
+                            el.style.height = Math.min(el.scrollHeight, 128) + 'px';
+                        },
+                    }"
+                    x-on:message-sent.window="resize()">
                     <label
                         class="btn btn-ghost btn-circle btn-sm shrink-0 cursor-pointer"
                         wire:loading.class="opacity-50 pointer-events-none" wire:target="attachment">
                         <x-icon name="o-paper-clip" class="w-4 h-4" />
                         <input type="file" wire:model="attachment" class="hidden" />
                     </label>
-                    <input type="text" wire:model="messageInput" placeholder="{{ __('Tulis pesan...') }}"
-                        class="input input-bordered input-sm flex-1 bg-base-200/60" autocomplete="off" />
+                    <textarea
+                        x-ref="messageInput"
+                        wire:model="messageInput"
+                        x-init="resize()"
+                        x-on:input="resize()"
+                        x-on:keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); $wire.sendMessage(); }"
+                        rows="1"
+                        placeholder="{{ __('Tulis pesan... (Shift+Enter untuk baris baru)') }}"
+                        class="textarea textarea-bordered textarea-sm flex-1 bg-base-200/60 resize-none leading-snug py-2 max-h-32 overflow-y-auto"
+                        autocomplete="off"
+                    ></textarea>
                     <button type="submit" class="btn btn-primary btn-circle btn-sm shrink-0">
                         <x-icon name="o-paper-airplane" class="w-4 h-4" />
                     </button>
@@ -167,7 +234,7 @@
     </div>
 
     {{-- Profile sidebar --}}
-    @if ($showProfile && $this->selectedUser)
+    @if ($showProfile && $this->selectedOtherUser)
         <div class="w-72 shrink-0 border-s border-base-300 flex flex-col min-h-0 bg-base-100">
             <div class="flex items-center justify-between px-4 py-3 border-b border-base-300 shrink-0">
                 <span class="font-semibold text-sm text-base-content">{{ __('Profil') }}</span>
@@ -177,14 +244,11 @@
             </div>
 
             <div class="flex-1 min-h-0 overflow-y-auto p-5 flex flex-col items-center text-center gap-4">
-                <x-user-avatar :user="$this->selectedUser" size="size-20" />
+                <x-user-avatar :user="$this->selectedOtherUser" size="size-20" department class="mb-1.5" />
 
                 <div>
-                    <div class="flex items-center justify-center gap-1.5 flex-wrap">
-                        <span class="font-bold text-base text-base-content">{{ $this->selectedUser->name }}</span>
-                        <x-department-badge :user="$this->selectedUser" size="badge-xs" />
-                    </div>
-                    @if ($roleNames = $this->selectedUser->getRoleNames())
+                    <div class="font-bold text-base text-base-content">{{ $this->selectedOtherUser->name }}</div>
+                    @if ($roleNames = $this->selectedOtherUser->getRoleNames())
                         <div class="flex flex-wrap justify-center gap-1 mt-1.5">
                             @foreach ($roleNames as $roleName)
                                 <span class="badge badge-primary badge-sm">{{ $roleName }}</span>
@@ -194,7 +258,7 @@
                 </div>
 
                 <div class="w-full space-y-3 text-left">
-                    @if ($jabatan = $this->selectedUser->employee?->positionStruktural?->name ?? $this->selectedUser->employee?->positionFungsional?->name)
+                    @if ($jabatan = $this->selectedOtherUser->employee?->positionStruktural?->name ?? $this->selectedOtherUser->employee?->positionFungsional?->name)
                         <div class="flex items-start gap-3">
                             <x-icon name="o-identification" class="w-4 h-4 text-base-content/40 mt-0.5 shrink-0" />
                             <div>
@@ -207,4 +271,84 @@
             </div>
         </div>
     @endif
+
+    {{-- New chat picker --}}
+    <x-modal wire:model="showNewChatModal" title="{{ __('Chat Baru') }}" subtitle="{{ __('Pilih kontak untuk memulai percakapan.') }}"
+        without-trap-focus>
+        <div class="space-y-3">
+            <label class="input input-sm input-bordered flex items-center gap-2 bg-base-200/60 w-full">
+                <x-icon name="o-magnifying-glass" class="w-4 h-4 text-base-content/40 shrink-0" />
+                <input type="search" wire:model.live.debounce.300ms="newChatSearch" placeholder="{{ __('Cari nama...') }}"
+                    class="grow bg-transparent focus:outline-none text-sm" />
+            </label>
+
+            <div class="max-h-80 overflow-y-auto divide-y divide-base-300 -mx-4">
+                @forelse ($this->allUsers as $user)
+                    <button type="button" wire:click="startNewChat({{ $user->id }})"
+                        class="w-full text-left flex items-center gap-3 px-4 py-2.5 hover:bg-base-200 transition-colors cursor-pointer">
+                        <x-user-avatar :user="$user" size="size-9" department class="mb-1" />
+                        <div class="min-w-0">
+                            <div class="text-sm font-semibold text-base-content truncate">{{ $user->name }}</div>
+                            <div class="text-xs text-base-content/50 truncate">{{ $user->email }}</div>
+                        </div>
+                    </button>
+                @empty
+                    <div class="px-4 py-8 text-center text-xs text-base-content/50">
+                        {{ __('Tidak ada user ditemukan.') }}
+                    </div>
+                @endforelse
+            </div>
+        </div>
+    </x-modal>
 </div>
+
+@script
+<script>
+(function () {
+    let menu = null;
+
+    const closeMenu = () => {
+        menu?.remove();
+        menu = null;
+    };
+
+    document.addEventListener('contextmenu', (event) => {
+        const image = event.target.closest('.js-chat-image');
+
+        if (!image) {
+            closeMenu();
+
+            return;
+        }
+
+        event.preventDefault();
+        closeMenu();
+
+        menu = document.createElement('div');
+        menu.className = 'menu bg-base-100 rounded-box shadow-lg border border-base-300 p-1 fixed z-50 text-sm';
+        menu.style.left = `${event.clientX}px`;
+        menu.style.top = `${event.clientY}px`;
+
+        const download = document.createElement('button');
+        download.type = 'button';
+        download.className = 'btn btn-ghost btn-sm justify-start gap-2 whitespace-nowrap';
+        download.textContent = @json(__('Unduh gambar asli'));
+        download.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.href = image.dataset.originalUrl;
+            link.download = image.dataset.originalName || '';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            closeMenu();
+        });
+
+        menu.appendChild(download);
+        document.body.appendChild(menu);
+    });
+
+    document.addEventListener('click', closeMenu);
+    document.addEventListener('scroll', closeMenu, true);
+})();
+</script>
+@endscript

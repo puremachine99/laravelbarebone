@@ -42,13 +42,10 @@
                             <li>
                                 <a href="{{ route('profile.show') }}" wire:navigate
                                     class="flex items-center gap-3 px-3 py-2 h-auto">
-                                    <x-user-avatar size="size-12" />
+                                    <x-user-avatar size="size-12" department class="mb-1" />
                                     <div class="flex flex-col min-w-0 gap-1">
-                                        <div class="flex items-center gap-1.5 flex-wrap">
-                                            <span
-                                                class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</span>
-                                            <x-department-badge :user="auth()->user()" />
-                                        </div>
+                                        <span
+                                            class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</span>
                                         <x-position-badge :user="auth()->user()" class="w-fit" />
                                     </div>
                                 </a>
@@ -115,13 +112,10 @@
                                 <li>
                                     <a href="{{ route('profile.show') }}" wire:navigate
                                         class="flex items-center gap-3 px-3 py-2 h-auto">
-                                        <x-user-avatar size="size-12" />
+                                        <x-user-avatar size="size-12" department class="mb-1" />
                                         <div class="flex flex-col min-w-0 gap-1">
-                                            <div class="flex items-center gap-1.5 flex-wrap">
-                                                <span
-                                                    class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</span>
-                                                <x-department-badge :user="auth()->user()" />
-                                            </div>
+                                            <span
+                                                class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</span>
                                             <x-position-badge :user="auth()->user()" class="w-fit" />
                                         </div>
                                     </a>

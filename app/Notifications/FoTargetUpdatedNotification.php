@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\Employee;
 use App\Support\Money;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 class FoTargetUpdatedNotification extends Notification
@@ -33,7 +34,7 @@ class FoTargetUpdatedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     /**
@@ -61,5 +62,10 @@ class FoTargetUpdatedNotification extends Notification
         }
 
         return $type === 'currency' ? Money::exact($value) : (string) (int) $value;
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toDatabase($notifiable));
     }
 }

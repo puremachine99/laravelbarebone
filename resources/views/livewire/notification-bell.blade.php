@@ -17,9 +17,15 @@ $markAllAsRead = function () {
     auth()->user()->unreadNotifications->markAsRead();
 };
 
+$receiveBroadcast = function () {
+    unset($this->notifications, $this->unreadCount);
+};
+
 ?>
 
-<div class="dropdown dropdown-end" wire:poll.15s>
+<div class="dropdown dropdown-end"
+    x-data
+    x-init="Echo.private('App.Models.User.{{ auth()->id() }}').notification(() => $wire.receiveBroadcast())">
     <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm relative cursor-pointer">
         <x-icon name="o-bell" class="w-4 h-4" />
         @if ($this->unreadCount > 0)

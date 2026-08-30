@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\FoFunnel;
 use App\Support\NotificationRecipients;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Notification as NotificationFacade;
 
@@ -29,7 +30,7 @@ class FundingDealClosedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     /**
@@ -47,5 +48,10 @@ class FundingDealClosedNotification extends Notification
             'message' => "{$foName} berhasil closing investasi dari {$contactName}.",
             'url' => route('investors.funnel'),
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toDatabase($notifiable));
     }
 }

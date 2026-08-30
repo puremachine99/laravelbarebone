@@ -118,6 +118,16 @@ class User extends Authenticatable implements PasskeyUser
         return $this->belongsTo(User::class, 'invited_by');
     }
 
+    /**
+     * Conversations (chat threads) this user participates in.
+     */
+    public function conversations()
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_participants')
+            ->withPivot('last_read_at')
+            ->withTimestamps();
+    }
+
     public function isActive(): bool
     {
         return $this->status === UserStatus::Active;

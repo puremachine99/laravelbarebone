@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\FoFunnel;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 class FundingDealLostNotification extends Notification
@@ -22,7 +23,7 @@ class FundingDealLostNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     /**
@@ -39,5 +40,10 @@ class FundingDealLostNotification extends Notification
             'message' => "Prospek investasi dari {$contactName} dicatat sebagai lost.",
             'url' => route('investors.funnel'),
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toDatabase($notifiable));
     }
 }

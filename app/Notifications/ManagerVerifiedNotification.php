@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Card;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 class ManagerVerifiedNotification extends Notification
@@ -26,7 +27,7 @@ class ManagerVerifiedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     /**
@@ -41,5 +42,10 @@ class ManagerVerifiedNotification extends Notification
             'message' => "Prospek \"{$this->card->title}\" kamu telah diverifikasi oleh Manager.",
             'url' => route('partnership.realisasi', ['card' => $this->card->id]),
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toDatabase($notifiable));
     }
 }

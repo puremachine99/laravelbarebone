@@ -2,9 +2,15 @@
 
 namespace App\Livewire\Chat;
 
+use App\Events\Chat\MessageSent;
+use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\User;
+use App\Services\ImagePreviewGenerator;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -15,7 +21,11 @@ class ChatIndex extends Component
 
     public string $search = '';
 
-    public ?int $selectedUserId = null;
+    public bool $showNewChatModal = false;
+
+    public string $newChatSearch = '';
+
+    public ?int $selectedConversationId = null;
 
     public bool $showProfile = false;
 
@@ -24,75 +34,145 @@ class ChatIndex extends Component
     public $attachment = null;
 
     /**
-     * Dummy in-memory conversations keyed by the other user's id, seeded lazily on first open.
-     *
-     * @var array<int, array<int, array{from: string, text: ?string, time: string, attachment: ?array}>>
+     * My conversations, newest activity first, annotated with `unread_count` (an in-memory
+     * attribute, not a column) and the eager-loaded `latestMessage`/`participants` (the other
+     * participant only, since `participants` is constrained to exclude me).
      */
-    public array $conversations = [];
-
-    /** @var array<int, int> unix timestamp of the last message per conversation, drives contact-list ordering */
-    public array $lastMessageAt = [];
-
-    /** @var array<int, int> unread message count per conversation, cleared when the thread is opened */
-    public array $unreadCounts = [];
-
-    public function mount(): void
+    #[Computed]
+    public function conversations(): Collection
     {
-        $demoUsers = User::where('id', '!=', auth()->id())->orderBy('id')->limit(3)->get();
+        $conversations = Conversation::query()
+            ->whereHas('participants', fn ($query) => $query->where('users.id', auth()->id()))
+            ->with([
+                'participants' => fn ($query) => $query
+                    ->where('users.id', '!=', auth()->id())
+                    ->with('employee.department', 'employee.positionStruktural', 'employee.positionFungsional'),
+                'latestMessage',
+            ])
+            ->when($this->search, fn ($query) => $query->whereHas(
+                'participants',
+                fn ($q) => $q->where('users.id', '!=', auth()->id())->where('name', 'ilike', "%{$this->search}%")
+            ))
+            ->orderByDesc('last_message_at')
+            ->get();
 
-        // Seed a couple of contacts with recent, unread activity so the priority/badge
-        // sort order is visible immediately, without requiring the user to send anything first.
-        $demoSeeds = [
-            ['minutesAgo' => 4, 'unread' => 2],
-            ['minutesAgo' => 55, 'unread' => 1],
-            ['minutesAgo' => 60 * 26, 'unread' => 0],
-        ];
-
-        foreach ($demoUsers as $index => $user) {
-            $seed = $demoSeeds[$index] ?? null;
-
-            if (! $seed) {
-                continue;
-            }
-
-            $this->conversations[$user->id] = $this->seedDummyMessages($user, endsUnread: $seed['unread'] > 0);
-            $this->lastMessageAt[$user->id] = now()->subMinutes($seed['minutesAgo'])->timestamp;
-            $this->unreadCounts[$user->id] = $seed['unread'];
+        if ($conversations->isEmpty()) {
+            return $conversations;
         }
+
+        $conversationIds = $conversations->pluck('id');
+
+        $myReadAt = DB::table('conversation_participants')
+            ->where('user_id', auth()->id())
+            ->whereIn('conversation_id', $conversationIds)
+            ->pluck('last_read_at', 'conversation_id');
+
+        $unreadCounts = Message::query()
+            ->whereIn('conversation_id', $conversationIds)
+            ->where('user_id', '!=', auth()->id())
+            ->get(['conversation_id', 'created_at'])
+            ->groupBy('conversation_id')
+            ->map(function (Collection $messages, $conversationId) use ($myReadAt) {
+                $readAt = $myReadAt[$conversationId] ?? null;
+
+                return $readAt
+                    ? $messages->where('created_at', '>', Carbon::parse($readAt))->count()
+                    : $messages->count();
+            });
+
+        return $conversations->each(function (Conversation $conversation) use ($unreadCounts) {
+            $conversation->unread_count = $unreadCounts[$conversation->id] ?? 0;
+        });
     }
 
+    /**
+     * Full directory used by the new-chat picker modal.
+     */
     #[Computed]
-    public function users(): Collection
+    public function allUsers(): Collection
     {
         return User::query()
+            ->with('employee.department', 'employee.positionStruktural', 'employee.positionFungsional')
             ->where('id', '!=', auth()->id())
-            ->when($this->search, fn ($query) => $query->where('name', 'like', "%{$this->search}%"))
+            ->when($this->newChatSearch, fn ($query) => $query->where('name', 'ilike', "%{$this->newChatSearch}%"))
             ->orderBy('name')
-            ->get()
-            ->sortByDesc(fn (User $user) => $this->lastMessageAt[$user->id] ?? -1)
-            ->values();
+            ->get();
     }
 
     #[Computed]
-    public function selectedUser(): ?User
+    public function selectedConversation(): ?Conversation
     {
-        return $this->selectedUserId
-            ? User::with('employee.department', 'employee.positionStruktural', 'employee.positionFungsional')->find($this->selectedUserId)
+        return $this->selectedConversationId
+            ? Conversation::with([
+                'messages' => fn ($query) => $query->oldest(),
+                'participants' => fn ($query) => $query
+                    ->where('users.id', '!=', auth()->id())
+                    ->with('employee.department', 'employee.positionStruktural', 'employee.positionFungsional'),
+            ])->find($this->selectedConversationId)
             : null;
     }
 
-    public function selectUser(int $userId): void
+    #[Computed]
+    public function selectedOtherUser(): ?User
     {
-        $this->selectedUserId = $userId;
+        return $this->selectedConversation?->participants->first();
+    }
+
+    public function openNewChatModal(): void
+    {
+        $this->newChatSearch = '';
+        $this->showNewChatModal = true;
+    }
+
+    public function startNewChat(int $userId): void
+    {
+        $otherUser = User::findOrFail($userId);
+        $conversation = Conversation::findOrCreateDirect(auth()->user(), $otherUser);
+
+        $this->showNewChatModal = false;
+        $this->newChatSearch = '';
+
+        $this->selectConversation($conversation->id);
+    }
+
+    public function selectConversation(int $conversationId): void
+    {
+        $conversation = Conversation::findOrFail($conversationId);
+        $this->authorize('view', $conversation);
+
+        $this->selectedConversationId = $conversationId;
         $this->messageInput = '';
         $this->showProfile = false;
-        $this->unreadCounts[$userId] = 0;
         $this->removeAttachment();
 
-        if (! isset($this->conversations[$userId])) {
-            $this->conversations[$userId] = $this->seedDummyMessages(User::findOrFail($userId));
-            $this->lastMessageAt[$userId] = now()->timestamp;
+        $conversation->participants()->updateExistingPivot(auth()->id(), ['last_read_at' => now()]);
+
+        unset($this->conversations);
+
+        $this->dispatch('message-sent');
+        $this->dispatch('conversation-selected', conversationId: $conversationId);
+    }
+
+    public function closeConversation(): void
+    {
+        $this->selectedConversationId = null;
+        $this->dispatch('conversation-selected', conversationId: null);
+    }
+
+    public function handleBroadcastMessage(int $conversationId): void
+    {
+        unset($this->conversations);
+
+        if ($this->selectedConversationId !== $conversationId) {
+            return;
         }
+
+        $conversation = $this->selectedConversation;
+        $conversation?->participants()->updateExistingPivot(auth()->id(), ['last_read_at' => now()]);
+
+        unset($this->selectedConversation);
+
+        $this->dispatch('message-sent');
     }
 
     public function removeAttachment(): void
@@ -108,9 +188,13 @@ class ChatIndex extends Component
             'attachment' => ['nullable', 'file', 'max:10240'],
         ]);
 
-        if (! $this->selectedUserId) {
+        $conversation = $this->selectedConversation;
+
+        if (! $conversation) {
             return;
         }
+
+        $this->authorize('update', $conversation);
 
         $text = trim($this->messageInput);
 
@@ -120,57 +204,58 @@ class ChatIndex extends Component
             return;
         }
 
-        $this->conversations[$this->selectedUserId][] = [
-            'from' => 'me',
-            'text' => $text !== '' ? $text : null,
-            'time' => now()->format('H:i'),
-            'attachment' => $this->attachment ? [
-                'url' => $this->attachment->temporaryUrl(),
-                'name' => $this->attachment->getClientOriginalName(),
-                'is_image' => str_starts_with((string) $this->attachment->getMimeType(), 'image/'),
-            ] : null,
-        ];
+        $attachmentPath = $this->attachment?->store('chat-attachments', 'public');
+        $isImage = $this->attachment && str_starts_with((string) $this->attachment->getMimeType(), 'image/');
+        $previewPath = $isImage ? app(ImagePreviewGenerator::class)->generate($this->attachment) : null;
 
-        $this->lastMessageAt[$this->selectedUserId] = now()->timestamp;
+        $message = $conversation->messages()->create([
+            'user_id' => auth()->id(),
+            'body' => $text !== '' ? $text : null,
+            'attachment_path' => $attachmentPath,
+            'attachment_name' => $this->attachment?->getClientOriginalName(),
+            'attachment_mime' => $this->attachment?->getMimeType(),
+            'attachment_preview_path' => $previewPath,
+        ]);
+
+        MessageSent::dispatch($message);
+
+        $conversation->update(['last_message_at' => now()]);
+        $conversation->participants()->updateExistingPivot(auth()->id(), ['last_read_at' => now()]);
 
         $this->messageInput = '';
         $this->attachment = null;
+
+        unset($this->conversations, $this->selectedConversation);
+
+        $this->dispatch('message-sent');
     }
 
     /**
      * Human label for a contact row's last-activity time, WhatsApp-style: time-of-day if today, otherwise a date.
      */
-    public function lastMessageLabel(int $userId): ?string
+    public function lastMessageLabel(?CarbonInterface $at): ?string
     {
-        if (! isset($this->lastMessageAt[$userId])) {
+        if (! $at) {
             return null;
         }
-
-        $at = Carbon::createFromTimestamp($this->lastMessageAt[$userId]);
 
         return $at->isToday() ? $at->format('H:i') : $at->format('d/m/y');
     }
 
     /**
-     * @return array<int, array{from: string, text: ?string, time: string, attachment: ?array}>
+     * Human label for a date separator between messages, WhatsApp-style.
      */
-    protected function seedDummyMessages(User $user, bool $endsUnread = false): array
+    public function dateSeparatorLabel(CarbonInterface $at): string
     {
-        $firstName = explode(' ', $user->name)[0];
-
-        $messages = [
-            ['from' => 'them', 'text' => "Halo, ini {$firstName}!", 'time' => '09:12', 'attachment' => null],
-            ['from' => 'me', 'text' => 'Halo juga, ada yang bisa dibantu?', 'time' => '09:13', 'attachment' => null],
-            ['from' => 'them', 'text' => 'Mau tanya progress laporan minggu ini sudah sampai mana ya.', 'time' => '09:14', 'attachment' => null],
-        ];
-
-        if ($endsUnread) {
-            $messages[] = ['from' => 'them', 'text' => 'Halo, masih di sana? Ditunggu ya kabarnya 🙏', 'time' => '09:16', 'attachment' => null];
-        } else {
-            $messages[] = ['from' => 'me', 'text' => 'Lagi saya cek, nanti saya update di sini.', 'time' => '09:15', 'attachment' => null];
+        if ($at->isToday()) {
+            return __('Hari Ini');
         }
 
-        return $messages;
+        if ($at->isYesterday()) {
+            return __('Kemarin');
+        }
+
+        return $at->translatedFormat('l, d F Y');
     }
 
     public function render()

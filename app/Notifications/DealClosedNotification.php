@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\Card;
 use App\Support\NotificationRecipients;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Notification as NotificationFacade;
 
@@ -24,7 +25,7 @@ class DealClosedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     /**
@@ -41,5 +42,10 @@ class DealClosedNotification extends Notification
             'message' => "{$pmoName} berhasil closing prospek \"{$this->card->title}\".",
             'url' => route('partnership.realisasi', ['card' => $this->card->id]),
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toDatabase($notifiable));
     }
 }
