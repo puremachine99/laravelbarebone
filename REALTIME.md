@@ -20,90 +20,169 @@ Supaya data chat dan notifikasi tidak tercampur, masing-masing punya jalur (chan
 
 Aturan akses tiap channel didefinisikan di `routes/channels.php`.
 
-## Menjalankan di Lokal / Staging
+## Dua Jalur Koneksi yang Berbeda
 
-1. Pastikan `.env` sudah berisi konfigurasi berikut (sudah otomatis terisi oleh proses instalasi):
+Ini bagian yang paling sering bikin bingung, jadi disebutkan eksplisit di sini:
+
+- **Browser → Reverb**: lewat internet publik, harus lewat domain asli + HTTPS (`wss://domain-kalian/app/...`), diteruskan Nginx ke proses Reverb di `127.0.0.1:8080`.
+- **Aplikasi Laravel (PHP) → Reverb**: ini terjadi *di dalam server yang sama*, jadi sebaiknya langsung ke `127.0.0.1:8080`, tidak perlu keluar-masuk lewat domain publik/Nginx/Cloudflare segala.
+
+Karena itu ada 2 set variabel `.env` yang terpisah — lihat bagian **Setup Production** di bawah. Kalau cuma pakai satu set (nilai yang sama buat keduanya), aplikasi tetap bisa jalan, tapi jadi bergantung pada Nginx/Cloudflare yang harus selalu bisa "memutar balik" ke dirinya sendiri — lebih rapuh dan lebih lambat dibanding koneksi langsung.
+
+## Setup Awal (Clone Baru)
+
+Paket Reverb sudah tercantum di `composer.json` dan `package.json`, jadi `composer install` dan `npm install` standar sudah otomatis membawanya.
+
+1. Salin `.env.example` ke `.env`.
+2. Buat kunci koneksi websocket secara otomatis:
+   ```bash
+   php artisan reverb:install --no-interaction
    ```
-   BROADCAST_CONNECTION=reverb
-   REVERB_APP_ID=...
-   REVERB_APP_KEY=...
-   REVERB_APP_SECRET=...
-   REVERB_HOST=localhost
-   REVERB_PORT=8080
-   REVERB_SCHEME=http
-   ```
-2. Compile ulang aset frontend (sekali saja, atau setiap kali ada perubahan JS):
+   Ini menambahkan `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET`, dan `VITE_REVERB_*` ke `.env` dengan nilai acak yang aman dipakai langsung.
+
+   > Kalau perintah ini dijalankan lebih dari sekali, kadang muncul baris duplikat. Buka `.env`, sisakan satu set saja per variabel.
+3. Compile aset frontend supaya nilai `VITE_REVERB_*` ikut terbaca browser:
    ```bash
    npm run build
    ```
-3. Jalankan server websocket-nya (proses ini harus tetap terbuka di terminal/tab terpisah):
+4. Jalankan migrasi seperti biasa — tabel chat (`conversations`, `messages`, dst.) sudah termasuk.
+5. Jalankan dua proses bersamaan (dua tab terminal):
    ```bash
+   php artisan serve
    php artisan reverb:start
    ```
-4. Buka aplikasi seperti biasa (`php artisan serve` atau lewat Laragon). Chat dan notifikasi sekarang realtime.
 
-Kalau langkah 3 tidak dijalankan, aplikasi tetap berfungsi normal — hanya saja chat/notifikasi kembali terasa "diam" sampai halaman di-refresh manual, karena tidak ada server yang mengirim update secara instan.
+Default `.env.example` (`REVERB_HOST=localhost`) sudah cukup untuk kebutuhan lokal ini — tidak perlu ubah apa-apa lagi.
 
-## Menjalankan di Production
+## Setup Production / Staging (server publik)
 
-Proses `php artisan reverb:start` **tidak boleh** dijalankan manual di terminal seperti di lokal — kalau terminal ditutup atau server restart, proses ikut mati dan realtime berhenti. Karena itu, di production proses ini harus di-supervisi supaya otomatis menyala kembali kalau mati.
+Ini bagian yang beda dari lokal, karena browser mengakses lewat domain publik, bukan `localhost`.
 
-### 1. Jalankan lewat Supervisor
+### 1. Isi `.env` — dua set variabel, jangan disamakan
 
-Contoh konfigurasi `/etc/supervisor/conf.d/reverb.conf`:
+```env
+# Dipakai BROWSER (lewat domain publik, HTTPS)
+REVERB_HOST=domain-kalian.com
+REVERB_PORT=443
+REVERB_SCHEME=https
 
-```ini
-[program:reverb]
-command=php /path/ke/project/artisan reverb:start
-autostart=true
-autorestart=true
-user=www-data
-redirect_stderr=true
-stdout_logfile=/path/ke/project/storage/logs/reverb.log
+# Dipakai APLIKASI LARAVEL sendiri buat publish event (langsung ke proses Reverb, tanpa lewat Nginx)
+REVERB_SERVER_HOST=127.0.0.1
+REVERB_SERVER_PORT=8080
+REVERB_SERVER_SCHEME=http
 ```
 
-Lalu:
+**Jangan pakai tanda kutip** di nilai-nilai ini (`REVERB_HOST=domain-kalian.com`, bukan `REVERB_HOST="domain-kalian.com"`). Satu karakter kutip yang tidak seimbang saja bisa membuat browser gagal connect dengan pesan error yang membingungkan.
+
+Setelah mengubah `.env`, **wajib** build ulang — nilai `VITE_REVERB_*` di-"bakar" ke file JS saat build, bukan dibaca saat runtime:
 ```bash
-supervisorctl reread
-supervisorctl update
-supervisorctl start reverb
+npm run build
 ```
 
-### 2. Reverse proxy lewat Nginx
+### 2. Jalankan proses Reverb, tetap hidup walau SSH ditutup
 
-Port websocket (default `8080`) **tidak boleh** diakses langsung dari internet. Harus lewat Nginx dengan domain & SSL yang sama dengan aplikasi utama:
+Kalau punya akses `sudo`, pakai **systemd** (bawaan OS, tidak perlu install apa-apa):
+
+```bash
+sudo nano /etc/systemd/system/reverb.service
+```
+```ini
+[Unit]
+Description=Laravel Reverb WebSocket Server
+After=network.target
+
+[Service]
+Type=simple
+User=namauser
+WorkingDirectory=/path/ke/project
+ExecStart=/path/ke/php artisan reverb:start
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+```
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable reverb
+sudo systemctl start reverb
+sudo systemctl status reverb
+```
+
+**Kalau tidak punya akses `sudo`** (kasus umum di shared hosting/Virtualmin), pakai watchdog cron milik user sendiri — sudah terbukti jalan di server staging kami:
+
+```bash
+nano /path/ke/project/reverb-watchdog.sh
+```
+```bash
+#!/bin/bash
+cd /path/ke/project
+if ! pgrep -f "artisan reverb:start" > /dev/null; then
+    nohup /path/ke/php artisan reverb:start >> storage/logs/reverb.log 2>&1 &
+fi
+```
+```bash
+chmod +x /path/ke/project/reverb-watchdog.sh
+/path/ke/project/reverb-watchdog.sh
+crontab -e
+```
+Tambahkan baris ini di crontab:
+```
+* * * * * /path/ke/project/reverb-watchdog.sh
+```
+Cron mengecek tiap 1 menit — kalau proses Reverb mati (crash/server reboot), otomatis dihidupkan lagi. Delay pemulihan maksimal 1 menit, cukup aman untuk kebutuhan internal seperti ini.
+
+### 3. Reverse proxy Nginx — wajib, butuh akses admin server
+
+Tanpa ini, browser tidak akan pernah bisa menembus ke proses Reverb, walau `.env` dan proses Reverb sudah benar. **Ini satu-satunya bagian yang butuh akses root/admin** — kalau kalian developer tanpa akses `sudo`, minta DevOps menambahkan blok ini ke server block domain kalian:
 
 ```nginx
-location /app {
+location /app/ {
     proxy_pass http://127.0.0.1:8080;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
 }
 ```
+Lalu reload Nginx (`sudo systemctl reload nginx`). Port `8080` tidak boleh dibuka langsung ke internet — hanya diakses Nginx di server yang sama.
 
-Pastikan port `8080` ditutup di firewall server dari akses luar — hanya boleh diakses oleh Nginx di server yang sama.
+Kalau domain kalian di belakang Cloudflare (proxy/"orange cloud"), pastikan WebSocket tidak diblokir — pada dasarnya Cloudflare mendukung WebSocket secara default, biasanya tidak perlu setting tambahan.
 
-### 3. Kapan harus restart proses Reverb?
+## Cara Menguji Apakah Sudah Realtime
+
+1. Buka aplikasi di dua browser berbeda (atau satu Incognito), login dengan **2 akun berbeda**.
+2. Buka `/chat` di kedua browser, mulai percakapan antar 2 akun itu.
+3. Kirim pesan dari satu akun — harus langsung muncul di browser satunya **tanpa refresh**.
+4. Untuk notifikasi: picu aksi yang menghasilkan notifikasi, cek ikon lonceng di penerima — badge harus bertambah **tanpa refresh**.
+5. Buka Console browser (F12) — kalau ada baris merah `WebSocket connection ... failed`, berarti ada yang belum benar (lihat Troubleshooting).
+
+## Kapan Harus Restart Proses Reverb?
 
 | Perubahan | Perlu restart Reverb? |
 |---|---|
 | Kode Livewire/Controller biasa | Tidak |
 | `routes/channels.php` | Ya |
-| `config/reverb.php` atau `.env` (`REVERB_*`, `BROADCAST_CONNECTION`) | Ya |
-| Kalau proses crash | Otomatis oleh Supervisor, tidak perlu manual |
+| `config/reverb.php`, `config/broadcasting.php`, atau `.env` (`REVERB_*`, `BROADCAST_CONNECTION`) | Ya |
+| Ubah `.env` lalu perlu `npm run build` juga (kalau menyangkut `VITE_REVERB_*`) | Ya + build ulang |
+| Proses crash | Otomatis (systemd/cron watchdog) |
 
-Jika proses direstart, user yang sedang online akan terputus sesaat lalu otomatis tersambung lagi dalam hitungan detik — tidak perlu refresh manual.
+Kalau proses direstart, user yang sedang online cuma terputus sesaat lalu otomatis tersambung lagi — tidak perlu refresh manual.
 
 ## Ringkasan Keamanan
 
 - Semua channel privat divalidasi lewat sesi login (`routes/channels.php`) — tidak sembarang orang bisa mendengarkan percakapan orang lain.
-- Trafik websocket dari luar tetap lewat HTTPS/SSL (via Nginx), bukan koneksi polos.
-- Port asli Reverb tidak pernah diekspos langsung ke publik.
+- Trafik websocket dari browser tetap lewat HTTPS/SSL (via Nginx), bukan koneksi polos.
+- Port asli Reverb (`8080`) tidak pernah diekspos langsung ke publik.
 
-## Troubleshooting Singkat
+## Troubleshooting
 
-- **Chat/notifikasi tidak realtime**: cek apakah proses `reverb:start` sedang berjalan (`supervisorctl status reverb`).
-- **Error di browser console soal koneksi websocket gagal**: cek konfigurasi reverse proxy Nginx dan pastikan `VITE_REVERB_*` di `.env` sesuai domain yang dipakai, lalu `npm run build` ulang.
-- **Setelah ganti `routes/channels.php` tidak berefek**: restart proses Reverb, karena file ini hanya dibaca sekali saat proses dimulai.
+- **Console browser: `WebSocket connection to 'wss://localhost:8080/...' failed`** — `.env` di server masih pakai `REVERB_HOST=localhost` (nilai default lokal). Ganti ke domain publik, lalu `npm run build` ulang.
+- **URL di error ada karakter aneh/tanda kutip nyelip** (mis. `domain.com"/app/...`) — ada tanda kutip tidak seimbang di nilai `REVERB_HOST` pada `.env`. Pastikan nilainya polos tanpa kutip sama sekali.
+- **URL sudah bersih tapi tetap `WebSocket connection failed`** — hampir pasti Nginx belum diberi blok reverse proxy untuk path `/app/` (lihat bagian Setup Production #3). Ini butuh akses admin server.
+- **Sudah ubah `.env` tapi browser masih connect ke nilai lama** — lupa `npm run build`, atau browser masih memakai file JS lama dari cache (hard refresh: Ctrl+Shift+R).
+- **Ganti `routes/channels.php` tidak berefek** — restart proses Reverb, file ini hanya dibaca sekali saat proses dimulai.
+- **Chat/notifikasi tiba-tiba diam lagi** — cek proses Reverb masih hidup: `ps aux | grep reverb` (kalau pakai cron watchdog) atau `sudo systemctl status reverb` (kalau pakai systemd).
