@@ -34,10 +34,32 @@
         <div class="p-4 border-b border-base-300 space-y-3 shrink-0">
             <div class="flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-base-content">{{ __('Chat') }}</h2>
-                <button type="button" wire:click="openNewChatModal" title="{{ __('Chat Baru') }}"
-                    class="btn btn-primary btn-circle btn-sm">
-                    <x-icon name="o-plus" class="w-4 h-4" />
-                </button>
+                <div class="flex items-center gap-2">
+                    <div class="dropdown dropdown-end">
+                        <div tabindex="0" role="button"
+                            class="btn btn-ghost btn-sm gap-1.5 normal-case"
+                            title="{{ __('Ubah status') }}">
+                            <span class="w-2 h-2 rounded-full {{ auth()->user()->presence_status->dotColorClass() }}"></span>
+                            <span class="text-xs text-base-content/70">{{ auth()->user()->presence_status->label() }}</span>
+                        </div>
+                        <ul tabindex="0"
+                            class="dropdown-content menu menu-sm p-2 shadow-xl bg-base-100 border border-base-300 rounded-box w-44 z-50">
+                            @foreach (\App\Enums\ChatPresenceStatus::cases() as $status)
+                                <li>
+                                    <button type="button" wire:click="updateMyStatus('{{ $status->value }}')"
+                                        class="flex items-center gap-2 text-sm {{ auth()->user()->presence_status === $status ? 'font-semibold text-base-content' : 'text-base-content/70' }}">
+                                        <span class="w-2 h-2 rounded-full {{ $status->dotColorClass() }}"></span>
+                                        <span>{{ $status->label() }}</span>
+                                    </button>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    <button type="button" wire:click="openNewChatModal" title="{{ __('Chat Baru') }}"
+                        class="btn btn-primary btn-circle btn-sm">
+                        <x-icon name="o-plus" class="w-4 h-4" />
+                    </button>
+                </div>
             </div>
 
             <label class="input input-sm input-bordered flex items-center gap-2 bg-base-200/60 w-full">
@@ -60,8 +82,11 @@
                     <x-user-avatar :user="$otherUser" size="size-10" department class="mb-1" />
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2">
-                            <span
-                                class="text-sm truncate {{ $unread > 0 ? 'font-bold text-base-content' : 'font-semibold text-base-content' }}">{{ $otherUser->name }}</span>
+                            <span class="flex items-center gap-1.5 min-w-0">
+                                <x-chat.presence-dot :user="$otherUser" />
+                                <span
+                                    class="text-sm truncate {{ $unread > 0 ? 'font-bold text-base-content' : 'font-semibold text-base-content' }}">{{ $otherUser->name }}</span>
+                            </span>
                             @if ($lastMessage)
                                 <span
                                     class="text-[10px] shrink-0 {{ $unread > 0 ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-base-content/40' }}">{{ $this->lastMessageLabel($lastMessage->created_at) }}</span>
@@ -109,8 +134,21 @@
                 </span>
                 <x-user-avatar :user="$this->selectedOtherUser" size="size-9" department class="mb-1" />
                 <div class="min-w-0 flex-1">
-                    <div class="font-semibold text-sm text-base-content truncate">{{ $this->selectedOtherUser->name }}</div>
-                    <div class="text-xs text-base-content/50 truncate">{{ __('Lihat profil') }}</div>
+                    <div class="font-semibold text-sm text-base-content truncate flex items-center gap-1.5">
+                        <x-chat.presence-dot :user="$this->selectedOtherUser" />
+                        {{ $this->selectedOtherUser->name }}
+                    </div>
+                    <div
+                        x-data
+                        class="text-xs truncate"
+                        x-bind:class="$store.presence.statusOf({{ $this->selectedOtherUser->id }}) === 'online' ? 'text-green-600 dark:text-green-400 font-medium' : 'text-base-content/50'"
+                        x-text="({
+                            online: @js(__('Online')),
+                            away: @js(__('Pergi Sebentar')),
+                            busy: @js(__('Sibuk')),
+                            offline: @js(__('Lihat profil')),
+                        })[$store.presence.statusOf({{ $this->selectedOtherUser->id }})]"
+                    ></div>
                 </div>
                 <x-icon name="o-information-circle" class="w-5 h-5 text-base-content/30 shrink-0" />
             </button>
@@ -247,7 +285,10 @@
                 <x-user-avatar :user="$this->selectedOtherUser" size="size-20" department class="mb-1.5" />
 
                 <div>
-                    <div class="font-bold text-base text-base-content">{{ $this->selectedOtherUser->name }}</div>
+                    <div class="font-bold text-base text-base-content flex items-center justify-center gap-1.5">
+                        <x-chat.presence-dot :user="$this->selectedOtherUser" />
+                        {{ $this->selectedOtherUser->name }}
+                    </div>
                     @if ($roleNames = $this->selectedOtherUser->getRoleNames())
                         <div class="flex flex-wrap justify-center gap-1 mt-1.5">
                             @foreach ($roleNames as $roleName)

@@ -46,7 +46,7 @@ class ImagePreviewGenerator
         imagedestroy($source);
 
         $path = $directory.'/'.uniqid('', true).'.webp';
-        Storage::disk('public')->put($path, $contents);
+        Storage::disk('s3')->put($path, $contents);
 
         return $path;
     }

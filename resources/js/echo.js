@@ -12,3 +12,37 @@ window.Echo = new Echo({
     forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
     enabledTransports: ['ws', 'wss'],
 });
+
+/**
+ * Global "who's online" presence, shared by every authenticated page via a single Alpine
+ * store. Joined once here (not per-component) so navigating between pages doesn't churn the
+ * presence channel membership. `online` maps userId -> their chosen status (online/away/busy);
+ * a user with no entry is offline (disconnected). Consumers read it via `$store.presence.statusOf(userId)`.
+ */
+document.addEventListener('alpine:init', () => {
+    Alpine.store('presence', {
+        online: new Map(),
+        statusOf(userId) {
+            return this.online.get(Number(userId)) ?? 'offline';
+        },
+    });
+
+    window.Echo.join('online')
+        .here((users) => {
+            Alpine.store('presence').online = new Map(users.map((user) => [user.id, user.status]));
+        })
+        .joining((user) => {
+            const store = Alpine.store('presence');
+            store.online = new Map(store.online).set(user.id, user.status);
+        })
+        .leaving((user) => {
+            const store = Alpine.store('presence');
+            const online = new Map(store.online);
+            online.delete(user.id);
+            store.online = online;
+        })
+        .listen('.UserStatusChanged', (event) => {
+            const store = Alpine.store('presence');
+            store.online = new Map(store.online).set(event.id, event.status);
+        });
+});

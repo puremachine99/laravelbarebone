@@ -113,3 +113,50 @@
 -[x] note : selisih hitungan "won" tetap ada by design kalau ada deal yang lanjut stage dalam periode berjalan (misal Won -> Closing bulan yang sama) -> Monthly Conversion/Achievement/Management FO sengaja kumulatif (`scopeStageAtLeast('won')`, ikut hitung lost/closing/akad juga selama `tgl_won` masuk range) biar rasio konversi Pitching→Won & Won→Closing tetap konsisten; Funnel kanban tetap snapshot stage saat ini doang -> dikonfirmasi ke user, dibiarin gak disamain
 -[x] test : `SyncFoFunnelStageDatesTest` (3 test baru) + `FoFunnelTest` filter Bulan/Tahun disesuaikan & ditambah kasus stage-aware (won dgn tgl_closing basi, closing dgn tgl_won basi)
 -[ ] pending : belum di-commit & belum dijalanin ke staging/production (`app:sync-fo-funnel-stage-dates` nunggu konfirmasi user dulu)
+### 20/08/2026 (Sesi 2) — Heatmap Dashboard Investors & Rework Sidebar
+-[x] feat : `/investors/dashboard` penambahan heatmap + control pada heatmap yang influence data tabel di bawahnya
+-[x] refactor : `sidebar.blade.php` dirombak besar (528 baris berubah)
+-[x] test : `InvestorsDashboardTest` ditambah (~113 baris)
+-[x] chore : `Report.md` lama di root dihapus
+
+### 21/08/2026 — Maintenance Page & Reorganisasi Dokumen
+-[x] feat : halaman maintenance `errors/503.blade.php` + aset gambar
+-[x] chore : semua dokumen (`PRD.md`, `Investor.md`, `Report.md`, `agustus_report.md`, `user-registration.md`, checklist testing, dump SQL) dipindah ke folder `report/`
+-[x] feat : `/investors/contacts` tambah timestamp di list
+
+### 21/08/2026 — Seeder Pre-Production Funnel
+-[x] feat : `FoFunnelDataSeeder` diperluas + CSV `funnel/funnelcontactpic.csv` (475 baris data PIC kontak)
+-[x] fix : penyesuaian lanjutan seeder (commit #2)
+
+### 26/08/2026 — Seeder Daily Report Follow Up (dibatalkan)
+-[x] feat : `DailyReportFollowUpSeeder` + `funnel/dailyreport.csv` (481 baris)
+-[x] revert : seeder di atas dibatalkan & dihapus lagi di commit berikutnya
+-[ ] pending : `funnel/dailyreport.csv` masih tertinggal di repo padahal seeder pemakainya sudah dihapus — dipakai lagi nanti atau dibersihkan?
+
+### 30/08/2026 — Modul Chat & Kode/Warna Departemen
+-[x] feat : `app/Livewire/Chat/ChatIndex.php` — modul chat awal
+-[x] feat : kolom `code` & `color` di tabel `departments` + `DepartmentCodeSeeder`
+-[x] feat : komponen baru `department-code`, `department-badge`, `position-badge`, `dark-mode-toggle`; `user-avatar` disesuaikan
+-[x] feat : `/master/departments` bisa atur kode & warna departemen
+
+### 31/08/2026 — Realtime Chat (Reverb + Echo)
+-[x] infra : tambah dependency `laravel/reverb` & `pusher/pusher-php-server`; `laravel-echo` + `pusher-js` di frontend
+-[x] feat : tabel `conversations`, `conversation_participants`, `messages`, kolom `attachment_preview_path`
+-[x] feat : event `MessageSent` (`ShouldBroadcastNow`), model `Conversation` & `Message`, `ConversationPolicy`
+-[x] feat : `routes/channels.php` — otorisasi channel `conversation.{id}`, `chat.{userId}`, `App.Models.User.{id}`
+-[x] feat : `resources/js/echo.js` + `ImagePreviewGenerator` buat preview lampiran
+-[x] feat : notifikasi in-app ikut disiarkan — `via()` keenam notifikasi jadi `['database', 'broadcast']` + `toBroadcast()`
+-[x] feat : listener Echo dipasang di lonceng notifikasi
+-[x] test : `ChatFlowTest` (128 baris), factory `Conversation` & `Message`
+-[x] docs : `REALTIME.md` dibuat
+
+### 31/08/2026 (Sesi 2) — Deploy Reverb ke Shared Hosting & Notifikasi Realtime
+-[x] infra : Reverb jalan di production `nakama.smartid.or.id` tanpa Docker & tanpa akses root — supervisord user-level (`~/etc/supervisord.conf`, program `laravel-reverb`) dijaga cron `@reboot`; terverifikasi handshake `101` lewat Cloudflare
+-[x] fix  : `APP_ENV` di production sebelumnya masih `local`
+-[x] note : `REVERB_SERVER_HOST` **wajib** `0.0.0.0` — sempat dipersempit ke `127.0.0.1` (alasan keamanan) dan bikin seluruh websocket `502`, karena Nginx di server ini menghubungi Reverb lewat IP privat, bukan loopback. Satu variabel ini dipakai dua peran sekaligus: alamat bind (`config/reverb.php`) & alamat tujuan publish (`config/broadcasting.php`)
+-[x] fix  : notifikasi belum realtime walau kodenya sudah benar — `BroadcastNotificationCreated` bawaan Laravel `implements ShouldBroadcast` (masuk antrian), sementara server gak jalanin queue worker, jadi siarannya mengendap di tabel `jobs`. Gejalanya menipu: notif tetap tersimpan & muncul pas refresh (channel `database` sinkron), tapi lonceng gak gerak sendiri -> diperbaiki pakai `->onConnection('sync')` di `toBroadcast()` keenam notifikasi
+-[x] test : 2 test baru di `NotificationTest` — termasuk test penjaga yang gagal kalau ada notifikasi baru pakai channel `broadcast` tapi lupa `onConnection('sync')`
+-[x] docs : `REALTIME.md` ditulis ulang total ngikutin setup yang beneran terpasang (supervisord, bukan systemd/watchdog cron seperti draft awal)
+-[x] done : pending "realtime notif (Reverb)" dari entry 05–08/08 & 10/08 sekarang selesai
+-[ ] pending : dev & production masih berbagi `REVERB_APP_ID` di satu instance Reverb -> event bocor lintas environment; perlu app kedua khusus dev di `config/reverb.php` server
+-[ ] pending : listener Echo di lonceng dipasang lewat `x-init`, numpuk tiap navigasi `wire:navigate` (satu notif memicu N kali refresh komponen)

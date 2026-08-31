@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Chat;
 
+use App\Enums\ChatPresenceStatus;
 use App\Events\Chat\MessageSent;
+use App\Events\Chat\UserStatusChanged;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
@@ -118,6 +120,14 @@ class ChatIndex extends Component
         return $this->selectedConversation?->participants->first();
     }
 
+    public function updateMyStatus(string $status): void
+    {
+        $user = auth()->user();
+        $user->update(['presence_status' => ChatPresenceStatus::from($status)]);
+
+        UserStatusChanged::dispatch($user);
+    }
+
     public function openNewChatModal(): void
     {
         $this->newChatSearch = '';
@@ -204,7 +214,7 @@ class ChatIndex extends Component
             return;
         }
 
-        $attachmentPath = $this->attachment?->store('chat-attachments', 'public');
+        $attachmentPath = $this->attachment?->store('chat-attachments', 's3');
         $isImage = $this->attachment && str_starts_with((string) $this->attachment->getMimeType(), 'image/');
         $previewPath = $isImage ? app(ImagePreviewGenerator::class)->generate($this->attachment) : null;
 

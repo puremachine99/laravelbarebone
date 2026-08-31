@@ -1,11 +1,14 @@
 <?php
 
+use App\Enums\ChatPresenceStatus;
+use App\Events\Chat\UserStatusChanged;
 use App\Livewire\Chat\ChatIndex;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
@@ -85,7 +88,7 @@ test('sending an empty message without an attachment is rejected', function () {
 });
 
 test('sending an image attachment stores the original and a compressed webp preview', function () {
-    Storage::fake('public');
+    Storage::fake('s3');
 
     $me = chatUser();
     $other = User::factory()->create();
@@ -108,8 +111,8 @@ test('sending an image attachment stores the original and a compressed webp prev
         ->and($message->attachment_preview_path)->not->toBe($message->attachment_path)
         ->and($message->isImage())->toBeTrue();
 
-    Storage::disk('public')->assertExists($message->attachment_path);
-    Storage::disk('public')->assertExists($message->attachment_preview_path);
+    Storage::disk('s3')->assertExists($message->attachment_path);
+    Storage::disk('s3')->assertExists($message->attachment_preview_path);
 
     expect($message->attachmentUrl())->not->toBe($message->previewUrl());
 });
@@ -125,4 +128,18 @@ test('a user who is not a participant cannot open or post to a conversation', fu
         ->test(ChatIndex::class)
         ->call('selectConversation', $conversation->id)
         ->assertStatus(403);
+});
+
+test('a user can change their own presence status and it broadcasts to others', function () {
+    Event::fake([UserStatusChanged::class]);
+
+    $me = chatUser();
+
+    Livewire::actingAs($me)
+        ->test(ChatIndex::class)
+        ->call('updateMyStatus', 'busy');
+
+    expect($me->fresh()->presence_status)->toBe(ChatPresenceStatus::Busy);
+
+    Event::assertDispatched(UserStatusChanged::class, fn (UserStatusChanged $event) => $event->user->is($me));
 });

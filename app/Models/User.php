@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\ChatPresenceStatus;
 use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,7 +18,7 @@ use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'department_id', 'avatar_path', 'status', 'invited_by', 'invited_at'])]
+#[Fillable(['name', 'email', 'password', 'department_id', 'avatar_path', 'status', 'invited_by', 'invited_at', 'presence_status'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -36,6 +37,7 @@ class User extends Authenticatable implements PasskeyUser
             'password' => 'hashed',
             'status' => UserStatus::class,
             'invited_at' => 'datetime',
+            'presence_status' => ChatPresenceStatus::class,
         ];
     }
 

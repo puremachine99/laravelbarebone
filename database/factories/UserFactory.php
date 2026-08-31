@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ChatPresenceStatus;
 use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -35,6 +36,7 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
             'status' => UserStatus::Active,
+            'presence_status' => ChatPresenceStatus::Online,
         ];
     }
 

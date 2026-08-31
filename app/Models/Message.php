@@ -33,7 +33,7 @@ class Message extends Model
 
     public function attachmentUrl(): ?string
     {
-        return $this->attachment_path ? Storage::disk('public')->url($this->attachment_path) : null;
+        return $this->attachment_path ? Storage::disk('s3')->temporaryUrl($this->attachment_path, now()->addMinutes(15)) : null;
     }
 
     /**
@@ -43,7 +43,7 @@ class Message extends Model
     public function previewUrl(): ?string
     {
         if ($this->attachment_preview_path) {
-            return Storage::disk('public')->url($this->attachment_preview_path);
+            return Storage::disk('s3')->temporaryUrl($this->attachment_preview_path, now()->addMinutes(15));
         }
 
         return $this->attachmentUrl();
