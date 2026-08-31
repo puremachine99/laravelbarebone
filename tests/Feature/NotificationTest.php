@@ -3,10 +3,12 @@
 use App\Models\Card;
 use App\Models\Contact;
 use App\Models\Employee;
+use App\Models\FoFunnel;
 use App\Models\PipelineProfile;
 use App\Models\Region;
 use App\Models\User;
 use App\Notifications\DealClosedNotification;
+use App\Notifications\FundingDealClosedNotification;
 use App\Notifications\ManagerVerifiedNotification;
 use Database\Seeders\PipelineSeeder;
 use Database\Seeders\RoleAndPermissionSeeder;
@@ -149,4 +151,27 @@ test('notifications index page only shows the authenticated user notifications a
 
     expect($foUser->notifications()->first()->read_at)->not->toBeNull();
     expect($otherUser->notifications()->first()->read_at)->toBeNull();
+});
+
+test('broadcast notifications use the sync connection so they do not wait for a queue worker', function () {
+    $funnel = FoFunnel::factory()->create();
+    $recipient = User::factory()->create();
+
+    $message = (new FundingDealClosedNotification($funnel))->toBroadcast($recipient);
+
+    expect($message->connection)->toBe('sync');
+});
+
+test('every broadcasting notification opts out of the queue', function () {
+    // BroadcastNotificationCreated bawaan Laravel implements ShouldBroadcast, jadi
+    // tanpa onConnection('sync') siarannya mengendap di tabel jobs sampai ada queue
+    // worker. Tidak ada worker di server, jadi ini wajib untuk setiap notifikasi baru.
+    $offenders = collect(glob(app_path('Notifications/*.php')))
+        ->filter(fn (string $path) => str_contains(file_get_contents($path), "'broadcast'"))
+        ->reject(fn (string $path) => str_contains(file_get_contents($path), "onConnection('sync')"))
+        ->map(fn (string $path) => basename($path))
+        ->values()
+        ->all();
+
+    expect($offenders)->toBe([]);
 });

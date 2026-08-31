@@ -64,8 +64,14 @@ class FoTargetUpdatedNotification extends Notification
         return $type === 'currency' ? Money::exact($value) : (string) (int) $value;
     }
 
+    /**
+     * Dikirim lewat koneksi "sync" supaya siaran realtime tidak menunggu queue
+     * worker -- BroadcastNotificationCreated bawaan Laravel implements ShouldBroadcast
+     * (masuk antrian), bukan ShouldBroadcastNow.
+     */
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
-        return new BroadcastMessage($this->toDatabase($notifiable));
+        return (new BroadcastMessage($this->toDatabase($notifiable)))
+            ->onConnection('sync');
     }
 }
