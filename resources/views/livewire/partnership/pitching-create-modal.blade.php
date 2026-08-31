@@ -1,7 +1,8 @@
 <?php
 
-use function Livewire\Volt\{state, computed};
-use Flux\Flux;
+use function Livewire\Volt\{state, computed, uses};
+
+uses([\Mary\Traits\Toast::class]);
 
 state([
     'showCreateModal' => false,
@@ -113,21 +114,21 @@ $addCard = function () {
                  auth()->user()?->email === 'supernakama@smartid.co.id' ||
                  auth()->user()->hasPermissionTo('verify-manager');
     if ($this->terlaksana && $this->hasilPitching === 'won' && !$isManager) {
-        Flux::toast(variant: 'danger', text: 'Status Won memerlukan verifikasi manager.');
+        $this->error('Status Won memerlukan verifikasi manager.');
         return;
     }
 
     $activeProfile = \App\Models\PipelineProfile::where('pipeline_name', 'Pitching')->where('is_active', true)->first();
 
     if (!$activeProfile) {
-        Flux::toast(variant: 'danger', text: 'Tidak ada pipeline pitching yang aktif.');
+        $this->error('Tidak ada pipeline pitching yang aktif.');
         return;
     }
 
     $stageName = $this->terlaksana ? 'Terlaksana' : 'Rencana';
     $stage = $activeProfile->stages()->where('stage_name', $stageName)->first();
     if (!$stage) {
-        Flux::toast(variant: 'danger', text: "Tahap {$stageName} tidak ditemukan.");
+        $this->error("Tahap {$stageName} tidak ditemukan.");
         return;
     }
 
@@ -168,7 +169,7 @@ $addCard = function () {
     // Dispatch event to parent to refresh the card table
     $this->dispatch('card-added');
 
-    Flux::toast(variant: 'success', text: 'Prospek pitching baru berhasil ditambahkan!');
+    $this->success('Prospek pitching baru berhasil ditambahkan!');
 };
 
 new class {};

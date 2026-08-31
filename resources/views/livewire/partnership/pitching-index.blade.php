@@ -1,11 +1,11 @@
 <?php
 
-use function Livewire\Volt\{state, layout, computed, usesPagination, on};
+use function Livewire\Volt\{state, layout, computed, usesPagination, on, uses};
 use App\Notifications\DealClosedNotification;
-use Flux\Flux;
 
 usesPagination();
 layout('layouts.app');
+uses([\Mary\Traits\Toast::class]);
 
 state([
     'pendingDecisionCard' => null,
@@ -253,9 +253,9 @@ $executeSaveDecision = function () {
         if ($this->decisionType === 'won') {
             DealClosedNotification::sendToManagers($card);
             $this->dispatch('show-confetti');
-            Flux::toast(variant: 'success', text: 'Selamat! Kerja sama telah berhasil disepakati (Won / Deal)! 🥳🎉');
+            $this->success('Selamat! Kerja sama telah berhasil disepakati (Won / Deal)! 🥳🎉');
         } else {
-            Flux::toast(variant: 'success', text: 'Keputusan Terlaksana berhasil disimpan!');
+            $this->success('Keputusan Terlaksana berhasil disimpan!');
         }
     } else {
         $card->update([
@@ -268,7 +268,7 @@ $executeSaveDecision = function () {
             'manager_verified' => false,
         ]);
         $card->addHistoryLog('stage_changed', "Stage changed to Terlaksana with status lost (reason: {$this->negativeReason})");
-        Flux::toast(variant: 'success', text: 'Keputusan Terlaksana berhasil disimpan!');
+        $this->success('Keputusan Terlaksana berhasil disimpan!');
     }
 
     $this->showTerlaksanaModal = false;
@@ -330,7 +330,7 @@ $saveTidakTerlaksanaDecision = function () {
     $this->showTidakTerlaksanaModal = false;
     $this->pendingDecisionCard = null;
 
-    Flux::toast(variant: 'success', text: 'Keputusan Tidak Terlaksana berhasil disimpan!');
+    $this->success('Keputusan Tidak Terlaksana berhasil disimpan!');
 };
 
 $pitchingStats = computed(function () {
@@ -416,7 +416,7 @@ $toggleVerification = function (int $cardId) {
                  auth()->user()->hasPermissionTo('verify-manager');
     
     if (!$canVerify) {
-        Flux::toast(variant: 'danger', text: 'Hanya Manager atau Super Admin yang dapat memverifikasi.');
+        $this->error('Hanya Manager atau Super Admin yang dapat memverifikasi.');
         return;
     }
 
@@ -430,9 +430,9 @@ $toggleVerification = function (int $cardId) {
 
     if ($card->manager_verified && $card->status === 'won') {
         $this->dispatch('show-confetti');
-        Flux::toast(variant: 'success', text: 'Kerja sama (Won / Deal) berhasil diverifikasi oleh Manager! 🥳🎉');
+        $this->success('Kerja sama (Won / Deal) berhasil diverifikasi oleh Manager! 🥳🎉');
     } else {
-        Flux::toast(variant: 'success', text: $card->manager_verified ? 'Prospek berhasil diverifikasi oleh Manager!' : 'Verifikasi manager dibatalkan.');
+        $this->success($card->manager_verified ? 'Prospek berhasil diverifikasi oleh Manager!' : 'Verifikasi manager dibatalkan.');
     }
 };
 
@@ -466,7 +466,7 @@ $addFollowUp = function (int $cardId) {
         $this->selectedCardForDetail = \App\Models\Card::with(['stage', 'contact.regency.province', 'contact.opd', 'contact.region'])->findOrFail($cardId);
     }
 
-    Flux::toast(variant: 'success', text: 'Catatan Follow Up berhasil disimpan!');
+    $this->success('Catatan Follow Up berhasil disimpan!');
 };
 
 $confirmWonAction = function () {
@@ -583,12 +583,12 @@ $executeSaveEdit = function () {
     if ($this->editStatus === 'won') {
         if ($this->canVerify) {
             $this->dispatch('show-confetti');
-            Flux::toast(variant: 'success', text: 'Selamat! Kerja sama telah berhasil disepakati (Won / Deal)! 🥳🎉');
+            $this->success('Selamat! Kerja sama telah berhasil disepakati (Won / Deal)! 🥳🎉');
         } else {
-            Flux::toast(variant: 'success', text: 'Data pitching berhasil diperbarui & menunggu verifikasi manager!');
+            $this->success('Data pitching berhasil diperbarui & menunggu verifikasi manager!');
         }
     } else {
-        Flux::toast(variant: 'success', text: 'Data pitching berhasil diperbarui!');
+        $this->success('Data pitching berhasil diperbarui!');
     }
 
     $this->showEditModal = false;

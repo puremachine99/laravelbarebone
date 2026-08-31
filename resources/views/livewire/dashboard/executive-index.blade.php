@@ -1,21 +1,21 @@
 <div class="p-6 lg:p-8 space-y-6">
- <flux:card class="p-6 space-y-4 bg-base-100/50 border-base-300">
+ <div class="p-6 space-y-4 bg-base-100/50 border-base-300 rounded-2xl border">
  <div class="flex items-center gap-3">
  <div class="p-2 bg-indigo-50 dark:bg-indigo-950/50 rounded-lg">
- <flux:icon name="presentation-chart-bar" class="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+ <x-icon name="o-presentation-chart-bar" class="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
  </div>
  <div>
- <flux:heading level="2" class="text-xl font-semibold">Modul A: Executive BI Dashboard Overview</flux:heading>
- <flux:text class="text-sm text-base-content/50">Pusat Informasi Eksekutif & Pemantauan Kinerja Bisnis</flux:text>
+ <h2 class="text-xl font-semibold">Modul A: Executive BI Dashboard Overview</h2>
+ <p class="text-sm text-base-content/50">Pusat Informasi Eksekutif & Pemantauan Kinerja Bisnis</p>
  </div>
  </div>
  
- <flux:separator />
+ <hr class="border-base-300">
 
  <!-- Goal Section -->
  <div class="p-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 space-y-2">
  <div class="flex items-center gap-2 text-indigo-800 dark:text-indigo-300 font-semibold text-base">
- <flux:icon name="flag" class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+ <x-icon name="o-flag" class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
  <span>Upcoming Feature (Sistem HR & Dasbor Eksekutif)</span>
  </div>
  <p class="text-sm text-indigo-700 dark:text-indigo-300 leading-relaxed font-medium">
@@ -28,19 +28,19 @@
  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
  <div class="space-y-1">
  <div class="flex items-center gap-2 text-base-content/90 font-semibold text-sm">
- <flux:icon name="arrow-path" class="w-4 h-4 text-base-content/50" />
+ <x-icon name="o-arrow-path" class="w-4 h-4 text-base-content/50" />
  <span>Sinkronisasi ETL Kontak Partnership</span>
  </div>
- <flux:text class="text-xs block">Sengat (pull) data kontak dari database MySQL Partnership App luar, lalu lakukan sanitasi nomor HP, pemetaan wilayah, dan jabatan secara otomatis.</flux:text>
+ <p class="text-xs block">Sengat (pull) data kontak dari database MySQL Partnership App luar, lalu lakukan sanitasi nomor HP, pemetaan wilayah, dan jabatan secara otomatis.</p>
  </div>
  <div>
- <flux:button wire:click="syncContacts" wire:loading.attr="disabled" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs">
+ <button type="button" wire:click="syncContacts" wire:loading.attr="disabled" class="btn btn-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs">
  <span wire:loading.remove wire:target="syncContacts">Mulai Sinkronisasi</span>
  <span wire:loading wire:target="syncContacts" class="flex items-center gap-2">
- <flux:icon name="arrow-path" class="w-3.5 h-3.5 animate-spin" />
+ <x-icon name="o-arrow-path" class="w-3.5 h-3.5 animate-spin" />
  Memproses ETL...
  </span>
- </flux:button>
+ </button>
  </div>
  </div>
 
@@ -62,29 +62,29 @@
  Executive BI Dashboard dirancang khusus untuk memberikan pandangan helikopter (executive summary) secara komprehensif kepada jajaran direksi PT Ide Bangsa Mahardika (SmartID). Halaman ini menjadi gerbang utama dalam memantau kesehatan finansial serta efisiensi operasional seluruh divisi perusahaan secara real-time.
  </p>
 
- <flux:heading level="3" class="text-lg font-medium text-base-content/90 mt-6">Fitur Utama yang Akan Hadir:</flux:heading>
+ <h3 class="text-lg font-medium text-base-content/90 mt-6">Fitur Utama yang Akan Hadir:</h3>
  
  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
- <flux:card class="p-4 bg-base-100/50 border border-base-300">
- <flux:heading level="4" class="font-semibold text-indigo-600 dark:text-indigo-400 mb-1">4-Column KPI Metrics Grid</flux:heading>
- <flux:text class="text-sm">Menampilkan data Revenue YTD (Target vs Realisasi), Company KPI Average, OPEX/Revenue Efficiency Ratio, serta Spotlight jumlah karyawan berkinerja terbaik dengan pencapaian KPI > 90%.</flux:text>
- </flux:card>
+ <div class="p-4 bg-base-100/50 border border-base-300 rounded-2xl border">
+ <h4 class="font-semibold text-indigo-600 dark:text-indigo-400 mb-1">4-Column KPI Metrics Grid</h4>
+ <p class="text-sm">Menampilkan data Revenue YTD (Target vs Realisasi), Company KPI Average, OPEX/Revenue Efficiency Ratio, serta Spotlight jumlah karyawan berkinerja terbaik dengan pencapaian KPI > 90%.</p>
+ </div>
 
- <flux:card class="p-4 bg-base-100/50 border border-base-300">
- <flux:heading level="4" class="font-semibold text-indigo-600 dark:text-indigo-400 mb-1">Visualisasi & Grafik Dinamis</flux:heading>
- <flux:text class="text-sm">Dilengkapi grafik komparasi pencapaian target per departemen serta visualisasi donut chart untuk membandingkan Budget Burn Rate dengan Revenue aktual secara interaktif.</flux:text>
- </flux:card>
+ <div class="p-4 bg-base-100/50 border border-base-300 rounded-2xl border">
+ <h4 class="font-semibold text-indigo-600 dark:text-indigo-400 mb-1">Visualisasi & Grafik Dinamis</h4>
+ <p class="text-sm">Dilengkapi grafik komparasi pencapaian target per departemen serta visualisasi donut chart untuk membandingkan Budget Burn Rate dengan Revenue aktual secara interaktif.</p>
+ </div>
 
- <flux:card class="p-4 bg-base-100/50 border border-base-300">
- <flux:heading level="4" class="font-semibold text-indigo-600 dark:text-indigo-400 mb-1">Aktivitas Krusial Terbaru</flux:heading>
- <flux:text class="text-sm">Tabel pemantauan status karyawan dengan performa berstatus stalled atau in-progress berprioritas tinggi agar pimpinan dapat mengambil tindakan korektif dengan cepat.</flux:text>
- </flux:card>
+ <div class="p-4 bg-base-100/50 border border-base-300 rounded-2xl border">
+ <h4 class="font-semibold text-indigo-600 dark:text-indigo-400 mb-1">Aktivitas Krusial Terbaru</h4>
+ <p class="text-sm">Tabel pemantauan status karyawan dengan performa berstatus stalled atau in-progress berprioritas tinggi agar pimpinan dapat mengambil tindakan korektif dengan cepat.</p>
+ </div>
 
- <flux:card class="p-4 bg-base-100/50 border border-base-300">
- <flux:heading level="4" class="font-semibold text-indigo-600 dark:text-indigo-400 mb-1">Data Caching Berlapis</flux:heading>
- <flux:text class="text-sm">Optimasi query berat menggunakan mekanisme Redis Caching terintegrasi untuk menjamin performa rendering visualisasi tetap responsif tanpa membebani database utama.</flux:text>
- </flux:card>
+ <div class="p-4 bg-base-100/50 border border-base-300 rounded-2xl border">
+ <h4 class="font-semibold text-indigo-600 dark:text-indigo-400 mb-1">Data Caching Berlapis</h4>
+ <p class="text-sm">Optimasi query berat menggunakan mekanisme Redis Caching terintegrasi untuk menjamin performa rendering visualisasi tetap responsif tanpa membebani database utama.</p>
  </div>
  </div>
- </flux:card>
+ </div>
+ </div>
 </div>

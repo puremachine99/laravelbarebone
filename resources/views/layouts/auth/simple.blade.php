@@ -49,12 +49,8 @@
     </div>
 
     @persist('toast')
-        <flux:toast.group>
-            <flux:toast />
-        </flux:toast.group>
+        <x-toast />
     @endpersist
-
-    @fluxScripts
 </body>
 
 </html>

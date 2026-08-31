@@ -6,7 +6,7 @@
 
 **Codebase facts that shape the plan:**
 - Laravel 13 / PHP 8.3, Livewire ^4.3 (classic class-based components — no Volt usage in this area despite the package being installed)
-- Flux UI Pro vendored locally at `package/flux-pro/src` (namespace `FluxPro\`) + daisyui 5 + Tailwind v4 (CSS-first, no `tailwind.config.js`) — **confirmed no drawer/slide-over component exists in Flux Pro** (grepped, zero matches), so the OKR drawer needs a plain Alpine panel, not a vendored primitive.
+- Flux UI has been removed from this project entirely — use Mary UI (`robsontenorio/mary`, daisyUI-based) components and/or plain DaisyUI + Tailwind v4 (CSS-first, no `tailwind.config.js`) markup instead. Mary UI has no drawer/slide-over component either, so the OKR drawer needs a plain Alpine panel, not a vendored primitive.
 - **Laravel Reverb is not installed at all** — no `config/reverb.php`, no `REVERB_*` env vars, no `routes/channels.php`, `BROADCAST_CONNECTION=log`. Fully greenfield.
 - No OKR model exists — only `employees.target_okr` (text) and `kpi_achieved_m1`/`m2` (decimal) columns (`database/migrations/2026_06_03_093653_create_employees_table.php`). The OKR drawer must read these, not a new entity.
 - `config/filesystems.php` has one `s3` disk only — no public/private split yet.
@@ -43,7 +43,7 @@ Livewire components under `app/Livewire/Chat/`:
 - `ConversationList.php` — left column: search box (`wire:model.live.debounce`) over `User`, list of conversations ordered by `last_message_at desc` with unread indicator (compare `last_read_at` vs latest message), find-or-create a `direct` conversation on selecting a new contact.
 - `ChatCanvas.php` — right column: message list + composer. Use a Livewire `Form` object (`app/Livewire/Forms/Chat/MessageForm.php`) for the composer, not a FormRequest. `sendMessage()` creates `Message`, bumps `last_message_at`, updates sender's `last_read_at`. Temporary `wire:poll.3s` while a conversation is open (removed in Phase 2).
 
-Blades under `resources/views/livewire/chat/`: replace `chat-index.blade.php` with a real flex 2-column layout (`w-80 shrink-0` left / `flex-1 flex flex-col` right) using `<flux:card>`/`<flux:separator>`/`<flux:input>`/`<flux:textarea>`/`<flux:button>`. Extract `partials/message-bubble.blade.php` for own-vs-other styling (named PRD requirement).
+Blades under `resources/views/livewire/chat/`: replace `chat-index.blade.php` with a real flex 2-column layout (`w-80 shrink-0` left / `flex-1 flex flex-col` right) using DaisyUI/Mary UI primitives (`card`/`divider`/`input input-bordered`/`textarea textarea-bordered`/`btn`, or Mary's `<x-input>`/`<x-textarea>`/`<x-button>` where a Mary component already fits). Extract `partials/message-bubble.blade.php` for own-vs-other styling (named PRD requirement).
 
 Test: `tests/Feature/Chat/ChatFlowTest.php` via `Livewire::test(ChatIndex::class)` — start conversation, send message, non-participant gets denied.
 
@@ -72,7 +72,7 @@ Test: `tests/Feature/Chat/ChatFlowTest.php` via `Livewire::test(ChatIndex::class
 
 - No new tables. `ChatCanvas` gets `$showOkrDrawer` + `toggleOkrDrawer()`, and a `#[Computed]` `partnerEmployee` resolving `$conversation->otherParticipant($me)->employee` (handle null gracefully).
 - Drawer UI: since Flux Pro has no drawer/slide-over primitive, build a plain Alpine `x-show` + `translate-x` panel styled to match existing Flux card chrome. Shows `target_okr` text + `kpi_achieved_m1`/`m2` as stat tiles.
-- Header button: `<flux:button icon="flag" wire:click="toggleOkrDrawer">` in `chat-canvas.blade.php`.
+- Header button: `<button class="btn btn-sm" wire:click="toggleOkrDrawer"><x-icon name="o-flag" class="size-4" /></button>` in `chat-canvas.blade.php`.
 - Test: `Livewire::test` asserts drawer toggles and partner's `target_okr` renders.
 
 ## Phase 5 — Polish

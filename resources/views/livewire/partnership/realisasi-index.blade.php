@@ -1,11 +1,11 @@
 <?php
 
-use function Livewire\Volt\{state, layout, computed, usesPagination};
+use function Livewire\Volt\{state, layout, computed, usesPagination, uses};
 use App\Notifications\ManagerVerifiedNotification;
-use Flux\Flux;
 
 usesPagination();
 layout('layouts.app');
+uses([\Mary\Traits\Toast::class]);
 
 state([
     'filterFiscalYear' => (string) date('Y'),
@@ -194,7 +194,7 @@ $toggleVerification = function (int $cardId) {
                  auth()->user()->hasPermissionTo('verify-manager');
     
     if (!$canVerify) {
-        Flux::toast(variant: 'danger', text: 'Hanya Manager atau Super Admin yang dapat memverifikasi.');
+        $this->error('Hanya Manager atau Super Admin yang dapat memverifikasi.');
         return;
     }
 
@@ -210,7 +210,7 @@ $toggleVerification = function (int $cardId) {
         ManagerVerifiedNotification::sendToOwner($card);
     }
 
-    Flux::toast(variant: 'success', text: $card->manager_verified ? 'Prospek berhasil diverifikasi oleh Manager!' : 'Verifikasi manager dibatalkan.');
+    $this->success($card->manager_verified ? 'Prospek berhasil diverifikasi oleh Manager!' : 'Verifikasi manager dibatalkan.');
 };
 
 $viewCard = function (int $cardId) {
@@ -236,7 +236,7 @@ $addFollowUp = function (int $cardId) {
     $card->update(['follow_ups' => $followUps]);
     $card->addHistoryLog('follow_up_added', "Follow up PMO Pratama added for target: {$this->followUpTujuan}");
 
-    Flux::toast(variant: 'success', text: 'Catatan Follow Up berhasil disimpan!');
+    $this->success('Catatan Follow Up berhasil disimpan!');
 };
 
 $confirmWonAction = function () {
@@ -271,7 +271,7 @@ $saveTerlaksanaDecision = function () {
 
     if (in_array($this->decisionType, ['won', 'hot', 'warm'])) {
         if ($this->decisionType === 'won' && !$card->manager_verified) {
-            Flux::toast(variant: 'danger', text: 'Perubahan status ke Won memerlukan verifikasi manager.');
+            $this->error('Perubahan status ke Won memerlukan verifikasi manager.');
             return;
         }
 
@@ -314,9 +314,9 @@ $executeSaveDecision = function () {
 
         if ($this->decisionType === 'won') {
             $this->dispatch('show-confetti');
-            Flux::toast(variant: 'success', text: 'Selamat! Kerja sama telah berhasil disepakati (Won / Deal)! 🥳🎉');
+            $this->success('Selamat! Kerja sama telah berhasil disepakati (Won / Deal)! 🥳🎉');
         } else {
-            Flux::toast(variant: 'success', text: 'Tindak lanjut realisasi berhasil disimpan!');
+            $this->success('Tindak lanjut realisasi berhasil disimpan!');
         }
     } else {
         $activeProfile = \App\Models\PipelineProfile::where('pipeline_name', 'Pitching')->where('is_active', true)->first();
@@ -331,7 +331,7 @@ $executeSaveDecision = function () {
             'drive_link' => null,
         ]);
         $card->addHistoryLog('stage_changed', "Status changed to lost during Realisasi (reason: {$this->negativeReason})");
-        Flux::toast(variant: 'success', text: 'Tindak lanjut realisasi berhasil disimpan!');
+        $this->success('Tindak lanjut realisasi berhasil disimpan!');
     }
 
     $this->showTerlaksanaModal = false;
@@ -362,7 +362,7 @@ $saveEdit = function () {
     }
 
     if ($this->editStatus === 'won' && !$this->editingCard->manager_verified) {
-        Flux::toast(variant: 'danger', text: 'Perubahan status ke Won memerlukan verifikasi manager.');
+        $this->error('Perubahan status ke Won memerlukan verifikasi manager.');
         return;
     }
 
@@ -446,9 +446,9 @@ $executeSaveEdit = function () {
     
     if ($this->editStatus === 'won') {
         $this->dispatch('show-confetti');
-        Flux::toast(variant: 'success', text: 'Selamat! Kerja sama telah berhasil disepakati (Won / Deal)! 🥳🎉');
+        $this->success('Selamat! Kerja sama telah berhasil disepakati (Won / Deal)! 🥳🎉');
     } else {
-        Flux::toast(variant: 'success', text: 'Data realisasi berhasil diperbarui!');
+        $this->success('Data realisasi berhasil diperbarui!');
     }
 
     $this->showEditModal = false;
