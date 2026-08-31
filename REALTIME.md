@@ -8,6 +8,8 @@ Sebelumnya, chat dan notifikasi hanya diperbarui lewat *polling* (cek ulang tiap
 
 Konsekuensinya: ada **satu proses tambahan** yang harus selalu hidup di server, terpisah dari proses web (Nginx/PHP-FPM) yang biasa.
 
+> **Catatan penting kalau server produksi kalian shared hosting**: shared hosting (cPanel/Virtualmin tanpa root, atau hosting murah tanpa SSH) sering **tidak bisa** menjalankan proses long-running sama sekali — ini beda dari kasus "tidak punya `sudo`" yang dibahas di bawah. Baca bagian [Kalau Shared Hosting Tidak Mendukung Proses Persisten](#kalau-shared-hosting-tidak-mendukung-proses-persisten) sebelum asumsi setup ini bisa langsung dipakai di server kalian.
+
 ## Pemisahan Channel
 
 Supaya data chat dan notifikasi tidak tercampur, masing-masing punya jalur (channel) sendiri:
@@ -109,7 +111,9 @@ sudo systemctl start reverb
 sudo systemctl status reverb
 ```
 
-**Kalau tidak punya akses `sudo`** (kasus umum di shared hosting/Virtualmin), pakai watchdog cron milik user sendiri — sudah terbukti jalan di server staging kami:
+**Kalau tidak punya akses `sudo` tapi tetap punya SSH + crontab user sendiri** (kasus umum di Virtualmin/VPS terbatas), pakai watchdog cron milik user sendiri — sudah terbukti jalan di server staging kami:
+
+> Cara ini **butuh** minimal: akses SSH (atau terminal di panel hosting), `crontab -e` bisa dipakai, dan proses yang dijalankan dengan `nohup ... &` diizinkan tetap hidup setelah sesi SSH ditutup. Kalau salah satu syarat ini tidak ada — misalnya panel hosting cuma kasih File Manager + PHP versi switcher tanpa terminal — lompat ke bagian [Kalau Shared Hosting Tidak Mendukung Proses Persisten](#kalau-shared-hosting-tidak-mendukung-proses-persisten).
 
 ```bash
 nano /path/ke/project/reverb-watchdog.sh
@@ -151,6 +155,42 @@ location /app/ {
 Lalu reload Nginx (`sudo systemctl reload nginx`). Port `8080` tidak boleh dibuka langsung ke internet — hanya diakses Nginx di server yang sama.
 
 Kalau domain kalian di belakang Cloudflare (proxy/"orange cloud"), pastikan WebSocket tidak diblokir — pada dasarnya Cloudflare mendukung WebSocket secara default, biasanya tidak perlu setting tambahan.
+
+## Kalau Shared Hosting Tidak Mendukung Proses Persisten
+
+Reverb secara fundamental butuh 3 hal yang **tidak selalu tersedia** di shared hosting murni (bukan VPS):
+
+1. Proses PHP yang jalan terus-menerus (`artisan reverb:start`), bukan cuma dieksekusi per-request lewat PHP-FPM/CGI.
+2. Port TCP custom (`8080`) yang bisa didengarkan proses itu.
+3. Akses admin ke Nginx/Apache untuk reverse proxy `wss://` ke port tersebut.
+
+Sebelum asumsi salah satu setup di atas bisa dipakai, cek dulu ke provider hosting kalian:
+
+- **Ada akses SSH + `crontab`?** Kalau ya, watchdog cron di atas kemungkinan besar tetap bisa dipakai — tapi tetap tes: jalankan `nohup php artisan reverb:start &`, tutup sesi SSH, lalu cek 1-2 menit kemudian apakah prosesnya masih hidup (`ps aux | grep reverb`). Sebagian hosting mem-*kill* semua proses milik user begitu sesi shell berakhir (`login shell` cleanup) — kalau ini terjadi, cron watchdog tidak akan menolong karena proses baru pun langsung mati lagi.
+- **Ada fitur "Setup Node.js/Python App" di cPanel tapi bukan PHP daemon?** Fitur ini biasanya khusus untuk app Node/Python, bukan proses PHP artisan — kemungkinan besar tidak bisa dipakai untuk `reverb:start`.
+- **Tidak ada SSH sama sekali** (cuma File Manager + phpMyAdmin)? Reverb **tidak bisa dijalankan** di hosting seperti ini. Jangan paksakan.
+
+### Kalau memang tidak memungkinkan, dua opsi realistis:
+
+**Opsi A — Pindah ke layanan websocket terkelola (paling praktis, tanpa proses server sendiri)**
+
+Ganti broadcaster dari `reverb` ke `pusher`, lalu daftar ke layanan Pusher-compatible terkelola (mis. [Pusher Channels](https://pusher.com) tier gratis, atau Soketi versi cloud kalau ada). Tidak perlu proses long-running, port custom, atau reverse proxy — cukup kredensial API:
+
+```env
+BROADCAST_CONNECTION=pusher
+PUSHER_APP_ID=...
+PUSHER_APP_KEY=...
+PUSHER_APP_SECRET=...
+PUSHER_APP_CLUSTER=...
+```
+
+Kode Livewire/event broadcasting di aplikasi ini (channel, event class, listener JS) **tidak perlu diubah** — hanya konfigurasi broadcaster yang beda. Frontend (`resources/js/bootstrap.js` atau setara) perlu inisialisasi Echo dengan driver `pusher` alih-alih `reverb`, lalu `npm run build` ulang.
+
+**Opsi B — Upgrade ke VPS**
+
+Kalau volume chat/notifikasi cukup penting untuk selalu realtime, pertimbangkan pindah komponen backend (atau seluruh app) ke VPS kecil (DigitalOcean, Laravel Cloud, dsb.) supaya bisa pakai systemd seperti panduan di atas. Ini juga membuka opsi kembali pakai Reverb self-hosted tanpa biaya layanan pihak ketiga per-pesan.
+
+**Jangan** anggap dokumen "Setup Production" di atas otomatis berlaku di semua jenis hosting — verifikasi dulu 3 syarat fundamental di awal bagian ini.
 
 ## Cara Menguji Apakah Sudah Realtime
 
