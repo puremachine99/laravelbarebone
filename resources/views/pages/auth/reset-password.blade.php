@@ -13,11 +13,12 @@
  <!-- Email Address -->
  <x-input
  name="email"
- value="{{ request('email') }}"
+ value="{{ old('email', request('email')) }}"
  label="{{ __('Email') }}"
  type="email"
  required
  autocomplete="email"
+ error-field="email"
  />
 
  <!-- Password -->
@@ -28,6 +29,7 @@
  required
  autocomplete="new-password"
  placeholder="{{ __('Password') }}"
+ error-field="password"
  />
 
  <!-- Confirm Password -->

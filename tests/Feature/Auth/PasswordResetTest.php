@@ -3,6 +3,9 @@
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\ViewErrorBag;
 use Laravel\Fortify\Features;
 
 beforeEach(function () {
@@ -62,4 +65,30 @@ test('password can be reset with valid token', function () {
 
         return true;
     });
+});
+
+test('reset password fails with invalid token', function () {
+    $user = User::factory()->create();
+
+    $response = $this->from(route('password.reset', 'invalid-token'))->post(route('password.update'), [
+        'token' => 'invalid-token',
+        'email' => $user->email,
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ]);
+
+    $response
+        ->assertSessionHasErrors('email')
+        ->assertRedirect(route('password.reset', 'invalid-token'));
+});
+
+test('reset password view displays the validation error', function () {
+    View::share('errors', (new ViewErrorBag)->put(
+        'default',
+        new MessageBag(['email' => ['This password reset token is invalid.']])
+    ));
+
+    $html = view('pages::auth.reset-password', ['token' => 'invalid-token'])->render();
+
+    expect($html)->toContain('This password reset token is invalid.');
 });
