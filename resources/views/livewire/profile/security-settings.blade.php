@@ -207,26 +207,25 @@ new #[Title('Security settings')] class extends Component {
         @endif
 
         <form method="POST" wire:submit="updatePassword" class="space-y-6">
-            <x-input
+            <x-password
                 wire:model="current_password"
                 label="{{ __('Current password') }}"
-                type="password"
                 required
                 autocomplete="current-password"
+                right
             />
-            <x-input
+            <x-password-strength-field
                 wire:model="password"
                 label="{{ __('New password') }}"
-                type="password"
                 required
                 autocomplete="new-password"
             />
-            <x-input
+            <x-password
                 wire:model="password_confirmation"
                 label="{{ __('Confirm password') }}"
-                type="password"
                 required
                 autocomplete="new-password"
+                right
             />
 
             <div class="flex items-center gap-4">
