@@ -67,6 +67,34 @@ test('password can be reset with valid token', function () {
     });
 });
 
+test('reset password link cannot be reused after a successful reset', function () {
+    Notification::fake();
+
+    $user = User::factory()->create();
+
+    $this->post(route('password.request'), ['email' => $user->email]);
+
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+        $token = $notification->token;
+
+        $this->post(route('password.update'), [
+            'token' => $token,
+            'email' => $user->email,
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertSessionHasNoErrors();
+
+        $this->post(route('password.update'), [
+            'token' => $token,
+            'email' => $user->email,
+            'password' => 'another-password',
+            'password_confirmation' => 'another-password',
+        ])->assertSessionHasErrors('email');
+
+        return true;
+    });
+});
+
 test('reset password fails with invalid token', function () {
     $user = User::factory()->create();
 
