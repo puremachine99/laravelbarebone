@@ -27,6 +27,12 @@ document.addEventListener('alpine:init', () => {
         },
     });
 
+    const isAuthenticated = document.querySelector('meta[name="authenticated"]')?.content === '1';
+
+    if (!isAuthenticated) {
+        return;
+    }
+
     window.Echo.join('online')
         .here((users) => {
             Alpine.store('presence').online = new Map(users.map((user) => [user.id, user.status]));
