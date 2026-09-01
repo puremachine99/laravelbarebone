@@ -38,14 +38,14 @@
                             <x-user-avatar size="size-8" />
                         </div>
                         <ul tabindex="0"
-                            class="dropdown-content menu menu-sm bg-base-100 rounded-box border border-base-300 shadow-lg w-max min-w-56 max-w-xs mt-2 z-50 p-2">
+                            class="dropdown-content menu menu-sm bg-base-100 rounded-box border border-base-300 shadow-lg w-max min-w-56 max-w-sm mt-2 z-50 p-2">
                             <li>
                                 <a href="{{ route('profile.show') }}" wire:navigate
                                     class="flex items-center gap-3 px-3 py-2 h-auto">
                                     <x-user-avatar size="size-12" department class="mb-1" />
                                     <div class="flex flex-col min-w-0 gap-1">
                                         <span
-                                            class="text-sm font-semibold whitespace-nowrap">{{ auth()->user()->name }}</span>
+                                            class="text-sm font-semibold wrap-break-word">{{ auth()->user()->name }}</span>
                                         <x-position-badge :user="auth()->user()" class="w-fit" />
                                     </div>
                                 </a>
@@ -108,7 +108,7 @@
                                 <x-user-avatar size="size-8" />
                             </div>
                             <ul tabindex="0"
-                                class="dropdown-content menu bg-base-100 rounded-box border-base-300 z-50 mt-2 w-max min-w-56 max-w-xs border p-2 shadow-lg">
+                                class="dropdown-content menu bg-base-100 rounded-box border-base-300 z-50 mt-2 w-max min-w-56 max-w-sm border p-2 shadow-lg">
                                 <li>
                                     <a href="{{ route('profile.show') }}" wire:navigate
                                         class="flex items-center gap-3 px-3 py-2 h-auto">
