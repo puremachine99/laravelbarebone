@@ -39,6 +39,78 @@ test('can update name and email from the profile page', function () {
         ->email->toBe('new@example.com');
 });
 
+test('can set an optional secondary company email and username', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Volt::test('profile.index')
+        ->set('secondary_email', 'someone@smartid.co.id')
+        ->set('username', 'someone123')
+        ->call('updateProfileInformation')
+        ->assertHasNoErrors();
+
+    expect($user->refresh())
+        ->secondary_email->toBe('someone@smartid.co.id')
+        ->username->toBe('someone123');
+});
+
+test('secondary email and username are optional and can be left blank', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Volt::test('profile.index')
+        ->set('secondary_email', '')
+        ->set('username', '')
+        ->call('updateProfileInformation')
+        ->assertHasNoErrors();
+
+    expect($user->refresh())
+        ->secondary_email->toBeNull()
+        ->username->toBeNull();
+});
+
+test('secondary email must be a smartid.co.id company address', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Volt::test('profile.index')
+        ->set('secondary_email', 'someone@gmail.com')
+        ->call('updateProfileInformation')
+        ->assertHasErrors(['secondary_email']);
+});
+
+test('username must be alphanumeric with no symbols', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Volt::test('profile.index')
+        ->set('username', 'some_one-123!')
+        ->call('updateProfileInformation')
+        ->assertHasErrors(['username']);
+});
+
+test('username must be unique across users', function () {
+    User::factory()->create(['username' => 'takenname']);
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Volt::test('profile.index')
+        ->set('username', 'takenname')
+        ->call('updateProfileInformation')
+        ->assertHasErrors(['username']);
+});
+
+test('secondary email must be unique across users', function () {
+    User::factory()->create(['secondary_email' => 'dupe@smartid.co.id']);
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Volt::test('profile.index')
+        ->set('secondary_email', 'dupe@smartid.co.id')
+        ->call('updateProfileInformation')
+        ->assertHasErrors(['secondary_email']);
+});
+
 test('can upload a profile photo', function () {
     Storage::fake('s3');
 

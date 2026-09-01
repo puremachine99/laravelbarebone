@@ -12,12 +12,16 @@ new #[Layout('layouts.app')] class extends Component {
 
     public string $name = '';
     public string $email = '';
+    public ?string $secondary_email = null;
+    public ?string $username = null;
     public $avatar = null;
 
     public function mount(): void
     {
         $this->name = auth()->user()->name;
         $this->email = auth()->user()->email;
+        $this->secondary_email = auth()->user()->secondary_email;
+        $this->username = auth()->user()->username;
     }
 
     #[Computed]
@@ -38,6 +42,9 @@ new #[Layout('layouts.app')] class extends Component {
     public function updateProfileInformation(): void
     {
         $user = auth()->user();
+
+        $this->secondary_email = $this->secondary_email !== '' ? $this->secondary_email : null;
+        $this->username = $this->username !== '' ? $this->username : null;
 
         $validated = $this->validate($this->profileRules($user->id));
 
@@ -306,6 +313,12 @@ new #[Layout('layouts.app')] class extends Component {
                             autocomplete="name" />
                         <x-input wire:model="email" label="{{ __('Email') }}" type="email" required
                             autocomplete="email" />
+                        <x-input wire:model="secondary_email" label="{{ __('Secondary Email (Company)') }}"
+                            hint="{{ __('Optional. Must be a @smartid.co.id address.') }}" type="email"
+                            autocomplete="email" />
+                        <x-input wire:model="username" label="{{ __('Username') }}"
+                            hint="{{ __('Optional. Letters and numbers only, no symbols or spaces.') }}"
+                            type="text" autocomplete="username" />
 
                         <div class="flex items-center gap-4">
                             <x-button label="{{ __('Save') }}" type="submit" class="btn-primary"

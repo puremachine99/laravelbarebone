@@ -38,25 +38,45 @@ test('users can not authenticate with invalid password', function () {
     $this->assertGuest();
 });
 
-test('users can not authenticate with an email missing a top-level domain', function () {
-    $response = $this->from(route('login'))->post(route('login.store'), [
-        'email' => 'user@domain',
+test('users can authenticate using their secondary company email', function () {
+    $user = User::factory()->create(['secondary_email' => 'secondary@smartid.co.id']);
+
+    $response = $this->post(route('login.store'), [
+        'email' => 'secondary@smartid.co.id',
         'password' => 'password',
     ]);
 
-    $response->assertSessionHasErrors('email');
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('dashboard', absolute: false));
 
-    $this->assertGuest();
+    $this->assertAuthenticated();
 });
 
-test('invalid email format error message is displayed on the login page', function () {
-    $this->from(route('login'))->post(route('login.store'), [
-        'email' => 'user@domain',
+test('users can authenticate using their username', function () {
+    $user = User::factory()->create(['username' => 'someone123']);
+
+    $response = $this->post(route('login.store'), [
+        'email' => 'someone123',
         'password' => 'password',
     ]);
 
-    $this->get(route('login'))
-        ->assertSee(__('validation.email', ['attribute' => 'email']));
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('dashboard', absolute: false));
+
+    $this->assertAuthenticated();
+});
+
+test('an unrecognized identifier fails login with a generic message', function () {
+    $response = $this->post(route('login.store'), [
+        'email' => 'nobody-matches-anything',
+        'password' => 'password',
+    ]);
+
+    $response->assertSessionHasErrors(['email' => trans('auth.failed')]);
+
+    $this->assertGuest();
 });
 
 test('session cookie does not persist after the browser closes when remember me is unchecked', function () {

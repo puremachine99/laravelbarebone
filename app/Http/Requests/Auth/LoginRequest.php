@@ -15,7 +15,7 @@ class LoginRequest extends FortifyLoginRequest
     public function rules(): array
     {
         return [
-            Fortify::username() => ['required', 'string', 'email:rfc,strict'],
+            Fortify::username() => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
             'remember' => ['sometimes'],
         ];

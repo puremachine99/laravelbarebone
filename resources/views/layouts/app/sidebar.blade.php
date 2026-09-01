@@ -34,7 +34,7 @@
 
                     <div class="dropdown dropdown-end">
                         <div tabindex="0" role="button"
-                            class="btn btn-ghost btn-circle btn-sm avatar placeholder cursor-pointer">
+                            class="btn btn-ghost btn-circle btn-sm cursor-pointer">
                             <x-user-avatar size="size-8" />
                         </div>
                         <ul tabindex="0"
@@ -104,7 +104,7 @@
 
                         <div class="dropdown dropdown-end">
                             <div tabindex="0" role="button"
-                                class="btn btn-ghost btn-circle btn-sm avatar placeholder cursor-pointer">
+                                class="btn btn-ghost btn-circle btn-sm cursor-pointer">
                                 <x-user-avatar size="size-8" />
                             </div>
                             <ul tabindex="0"
