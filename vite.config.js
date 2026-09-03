@@ -6,9 +6,6 @@ import { bunny } from 'laravel-vite-plugin/fonts';
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-    build: {
-        modulePreload: false,
-    },
     plugins: [
         laravel({
             input: [
