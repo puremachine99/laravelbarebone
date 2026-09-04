@@ -65,6 +65,23 @@ test('view mode toggle renders only the active mode server-side', function () {
     $component->assertSee('No funnel data yet.')->assertDontSee('No cards');
 });
 
+test('kanban limits cards per column and load more reveals the rest', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $this->actingAs($admin);
+
+    FoFunnel::factory()->count(35)->create(['stage' => 'leads']);
+
+    $component = Volt::test('investors.funnel-index');
+
+    $component->assertSee('Load 5 more (5 left)');
+
+    $component->call('loadMoreCards', 'leads');
+
+    expect($component->get('visibleCounts'))->toBe(['leads' => 60]);
+    $component->assertDontSee('Load 5 more (5 left)');
+});
+
 test('a fo can create a lead for their own contact', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));

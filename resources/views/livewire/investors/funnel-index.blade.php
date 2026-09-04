@@ -42,6 +42,7 @@ state([
     'historyFunnelId' => null,
     'logActivityId' => null,
     'showDeletedFollowUps' => false,
+    'visibleCounts' => [],
 
     'akadFunnelId' => null,
     'akadTanggal' => '',
@@ -195,6 +196,13 @@ $resetFilters = function () {
     $this->filterFo = '';
     $this->filterBulan = '';
     $this->filterTahun = '';
+};
+
+// Kanban render semua funnel sekaligus jadi berat di DOM/main-thread kalau datanya udah ratusan
+// (lihat Lighthouse: main-thread work 5s+ di halaman ini). Tiap kolom cuma nampilin 30 kartu
+// pertama dulu, sisanya baru di-render kalau "Load more" diklik.
+$loadMoreCards = function ($stageKey) {
+    $this->visibleCounts[$stageKey] = ($this->visibleCounts[$stageKey] ?? 30) + 30;
 };
 
 $createLead = function ($contactId, $proyeksiCloseDate, $proyeksiAmount, $sumber) {
@@ -707,6 +715,12 @@ $closeActivityLog = function () {
     @if ($viewMode === 'kanban')
     <div class="flex items-stretch gap-4 overflow-x-auto pb-2 h-[70vh]">
         @foreach ($stages as $stage)
+            @php
+                $stageFunnels = $this->funnels->where('stage', $stage['key']);
+                $stageVisibleLimit = $visibleCounts[$stage['key']] ?? 30;
+                $stageVisibleFunnels = $stageFunnels->take($stageVisibleLimit);
+                $stageRemainingCount = $stageFunnels->count() - $stageVisibleFunnels->count();
+            @endphp
             <div
                 class="w-72 shrink-0 bg-base-200 rounded-2xl p-3 flex flex-col gap-3 transition-colors overflow-hidden"
                 data-stage-key="{{ $stage['key'] }}"
@@ -723,13 +737,13 @@ $closeActivityLog = function () {
                                 <x-icon name="o-lock-closed" class="w-3 h-3 text-base-content/30" />
                             </div>
                         @endif
-                        <span class="text-xs font-semibold text-base-content/40">{{ $this->funnels->where('stage', $stage['key'])->count() }}</span>
+                        <span class="text-xs font-semibold text-base-content/40">{{ $stageFunnels->count() }}</span>
                     </div>
                     <span class="text-xs font-bold text-primary"><x-currency-abbr :value="$this->stageSum($stage['key'])" /></span>
                 </div>
 
                 <div class="flex flex-col gap-2 min-h-[80px] overflow-y-auto flex-1">
-                    @forelse ($this->funnels->where('stage', $stage['key']) as $funnel)
+                    @forelse ($stageVisibleFunnels as $funnel)
                         <div
                             draggable="true"
                             x-on:dragstart="onDragStart({{ $funnel->id }}, '{{ $funnel->stage }}')"
@@ -840,6 +854,16 @@ $closeActivityLog = function () {
                             No cards
                         </div>
                     @endforelse
+
+                    @if ($stageRemainingCount > 0)
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs w-full text-base-content/50"
+                            wire:click="loadMoreCards('{{ $stage['key'] }}')"
+                        >
+                            Load {{ min($stageRemainingCount, 30) }} more ({{ $stageRemainingCount }} left)
+                        </button>
+                    @endif
                 </div>
             </div>
         @endforeach
