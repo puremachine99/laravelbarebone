@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use App\Models\Employee;
 use App\Observers\EmployeeObserver;
+use App\View\Components\AccessibleSelect;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -39,6 +41,20 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(fn ($user, $ability) => $user->hasRole('Super Admin') ? true : null);
 
         Employee::observe(EmployeeObserver::class);
+
+        $this->configureAccessibleSelect();
+    }
+
+    /**
+     * Mary UI's <x-select> renders its label as a <fieldset> <legend>, which never gets wired
+     * to the <select> itself — every <x-select> on the site fails Lighthouse's "select elements
+     * do not have associated label elements" audit. Re-point the 'select' Blade alias to our
+     * own subclass (registered once every provider — Mary's included — has booted, so this wins
+     * regardless of provider load order) instead of patching the vendor file.
+     */
+    protected function configureAccessibleSelect(): void
+    {
+        $this->app->booted(fn () => Blade::component('select', AccessibleSelect::class));
     }
 
     /**
