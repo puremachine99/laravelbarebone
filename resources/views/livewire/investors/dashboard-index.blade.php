@@ -381,7 +381,7 @@ $leaderboard = computed(function () {
             <div class="flex flex-wrap items-end gap-3">
                 @if ($this->isAdminFo)
                     <div class="w-56">
-                        <x-select label="View as" wire:model.live="viewAsEmployeeId" :options="$this->viewAsOptions" class="select-sm" />
+                        <x-select label="View as" aria-label="View as" wire:model.live="viewAsEmployeeId" :options="$this->viewAsOptions" class="select-sm" />
                     </div>
                 @else
                     <div class="text-sm text-base-content/50 pb-2.5">

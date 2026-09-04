@@ -26,7 +26,7 @@ $receiveBroadcast = function () {
 <div class="dropdown dropdown-end"
     x-data
     x-init="Echo.private('App.Models.User.{{ auth()->id() }}').notification(() => $wire.receiveBroadcast())">
-    <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm relative cursor-pointer">
+    <div tabindex="0" role="button" aria-label="{{ __('Notifikasi') }}" aria-haspopup="true" class="btn btn-ghost btn-circle btn-sm relative cursor-pointer">
         <x-icon name="o-bell" class="w-4 h-4" />
         @if ($this->unreadCount > 0)
             <span class="absolute -top-1 -right-1 badge badge-error badge-xs text-[10px] font-bold px-1">

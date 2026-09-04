@@ -15,7 +15,7 @@
             {{-- Mobile Top Bar --}}
             <div
                 class="border-base-300/80 bg-base-100 sticky -top-10 z-20 flex h-14 items-center gap-3 border-b border-dashed px-4 lg:hidden">
-                <label for="main-drawer" class="btn btn-sm btn-square btn-ghost drawer-button">
+                <label for="main-drawer" aria-label="Open sidebar" class="btn btn-sm btn-square btn-ghost drawer-button">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         class="size-5 stroke-current">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -75,6 +75,7 @@
                 class="border-base-300/80 bg-base-200 sticky top-0 z-20 hidden h-16 items-center justify-between border-b border-dashed px-6 lg:flex lg:rounded-tl-2xl">
                 <div class="flex items-center gap-3">
                     <button type="button" @click="sidebarCollapsed = !sidebarCollapsed"
+                        aria-label="Toggle sidebar"
                         class="text-base-content/60 hover:bg-base-200 hover:text-base-content flex size-8 items-center justify-center rounded-lg transition-all">
                         <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
