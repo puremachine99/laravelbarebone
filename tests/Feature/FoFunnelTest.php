@@ -557,7 +557,7 @@ test('a plain fo cannot move or edit or delete another fo funnel', function () {
         ->assertStatus(403);
 
     Volt::test('investors.funnel-index')
-        ->call('updateLead', $otherFunnel->id, '2026-08-01', 100, 'SIDS')
+        ->call('openEditModal', $otherFunnel->id)
         ->assertStatus(403);
 
     Volt::test('investors.funnel-index')
@@ -625,7 +625,11 @@ test('can update and delete a funnel entry', function () {
     $this->actingAs($user);
 
     Volt::test('investors.funnel-index')
-        ->call('updateLead', $funnel->id, '2026-09-01', 500_000_000, 'SIDS')
+        ->call('openEditModal', $funnel->id)
+        ->set('editTanggal', '2026-09-01')
+        ->set('editProyeksiAmount', 500_000_000)
+        ->set('editSumber', 'SIDS')
+        ->call('submitEditFunnel')
         ->assertHasNoErrors();
 
     $funnel->refresh();
@@ -637,6 +641,159 @@ test('can update and delete a funnel entry', function () {
 
     expect(FoFunnel::find($funnel->id))->toBeNull();
     expect(FoFunnel::withTrashed()->find($funnel->id))->not->toBeNull();
+});
+
+test('editing a won-stage funnel seeds and updates the won-specific fields', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create([
+        'employee_id' => $employee->id,
+        'stage' => 'won',
+        'tgl_won' => '2026-08-01',
+        'nominal_won' => 400_000_000,
+    ]);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('openEditModal', $funnel->id)
+        ->assertSet('editStage', 'won')
+        ->assertSet('editWonTanggal', '2026-08-01')
+        ->assertSet('editWonNominal', '400000000.00')
+        ->set('editSumber', $funnel->sumber)
+        ->set('editWonTanggal', '2026-08-15')
+        ->set('editWonNominal', 450_000_000)
+        ->call('submitEditFunnel')
+        ->assertHasNoErrors();
+
+    $funnel->refresh();
+    expect($funnel->tgl_won->format('Y-m-d'))->toBe('2026-08-15')
+        ->and((float) $funnel->nominal_won)->toBe(450_000_000.0)
+        ->and($funnel->stage)->toBe('won');
+});
+
+test('editing a closing-stage funnel updates the closing-specific fields', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $employee = Employee::create(['user_id' => User::factory()->create()->id]);
+    $funnel = FoFunnel::factory()->create([
+        'employee_id' => $employee->id,
+        'stage' => 'closing',
+        'tgl_closing' => '2026-08-10',
+        'nominal_investasi' => 500_000_000,
+    ]);
+    $this->actingAs($admin);
+
+    Volt::test('investors.funnel-index')
+        ->call('openEditModal', $funnel->id)
+        ->assertSet('editStage', 'closing')
+        ->assertSet('editClosingTanggal', '2026-08-10')
+        ->set('editSumber', $funnel->sumber)
+        ->set('editClosingTanggal', '2026-08-20')
+        ->set('editClosingNominal', 550_000_000)
+        ->call('submitEditFunnel')
+        ->assertHasNoErrors();
+
+    $funnel->refresh();
+    expect($funnel->tgl_closing->format('Y-m-d'))->toBe('2026-08-20')
+        ->and((float) $funnel->nominal_investasi)->toBe(550_000_000.0);
+});
+
+test('editing a lost-stage funnel updates the lost-specific fields', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create([
+        'employee_id' => $employee->id,
+        'stage' => 'lost',
+        'tgl_closing' => '2026-08-05',
+        'lost_reason' => 'Alasan lama',
+    ]);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('openEditModal', $funnel->id)
+        ->assertSet('editStage', 'lost')
+        ->assertSet('editLostTanggal', '2026-08-05')
+        ->assertSet('editLostReason', 'Alasan lama')
+        ->set('editSumber', $funnel->sumber)
+        ->set('editLostReason', 'Alasan baru')
+        ->call('submitEditFunnel')
+        ->assertHasNoErrors();
+
+    expect($funnel->refresh()->lost_reason)->toBe('Alasan baru');
+});
+
+test('a plain fo editing their own akad-stage funnel can only change base fields, not akad nominal or documents', function () {
+    Storage::fake('s3');
+
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create([
+        'employee_id' => $employee->id,
+        'stage' => 'akad',
+        'tgl_closing' => '2026-08-01',
+        'nominal_investasi' => 500_000_000,
+        'dokumen_akad_files' => [
+            ['tag' => 'Perjanjian A', 'path' => 'funnel-akad/existing-a.pdf', 'nama' => 'existing-a.pdf'],
+        ],
+    ]);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('openEditModal', $funnel->id)
+        ->assertSet('editStage', 'akad')
+        ->set('editSumber', 'Referral')
+        ->call('submitEditFunnel')
+        ->assertHasNoErrors();
+
+    $funnel->refresh();
+    expect($funnel->sumber)->toBe('Referral')
+        ->and((float) $funnel->nominal_investasi)->toBe(500_000_000.0)
+        ->and($funnel->dokumen_akad_files)->toBe([
+            ['tag' => 'Perjanjian A', 'path' => 'funnel-akad/existing-a.pdf', 'nama' => 'existing-a.pdf'],
+        ]);
+});
+
+test('admin fo editing an akad-stage funnel can replace or keep existing documents', function () {
+    Storage::fake('s3');
+
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $employee = Employee::create(['user_id' => User::factory()->create()->id]);
+    $funnel = FoFunnel::factory()->create([
+        'employee_id' => $employee->id,
+        'stage' => 'akad',
+        'tgl_closing' => '2026-08-01',
+        'nominal_investasi' => 500_000_000,
+        'dokumen_akad_files' => [
+            ['tag' => 'Perjanjian A', 'path' => 'funnel-akad/existing-a.pdf', 'nama' => 'existing-a.pdf'],
+        ],
+    ]);
+    $this->actingAs($admin);
+
+    $component = Volt::test('investors.funnel-index')
+        ->call('openEditModal', $funnel->id)
+        ->assertSet('editStage', 'akad')
+        ->assertSet('editAkadDocuments', [
+            ['tag' => 'Perjanjian A', 'path' => 'funnel-akad/existing-a.pdf', 'nama' => 'existing-a.pdf', 'file' => null],
+        ]);
+
+    // Keep the existing document untouched, add a second brand-new one.
+    $component->call('addEditAkadDocument')
+        ->set('editSumber', $funnel->sumber)
+        ->set('editAkadDocuments.1.tag', 'Perjanjian B')
+        ->set('editAkadDocuments.1.file', UploadedFile::fake()->create('perjanjian-b.pdf', 500, 'application/pdf'))
+        ->call('submitEditFunnel')
+        ->assertHasNoErrors();
+
+    $funnel->refresh();
+    expect($funnel->dokumen_akad_files)->toHaveCount(2)
+        ->and($funnel->dokumen_akad_files[0])->toBe(['tag' => 'Perjanjian A', 'path' => 'funnel-akad/existing-a.pdf', 'nama' => 'existing-a.pdf'])
+        ->and($funnel->dokumen_akad_files[1]['tag'])->toBe('Perjanjian B');
+
+    Storage::disk('s3')->assertExists($funnel->dokumen_akad_files[1]['path']);
 });
 
 test('search finds a funnel by contact name, profesi, phone, pic name, or sumber', function () {

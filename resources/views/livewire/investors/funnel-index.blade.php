@@ -57,6 +57,28 @@ state([
     'closingTanggal' => '',
     'closingNominal' => null,
 
+    // Form Edit (base fields) + tambahan field sesuai stage kartu SAAT INI (akad/won/closing/lost).
+    // Followup & pitching sengaja gak dapet tambahan di sini karena datanya multi-entri (banyak
+    // aktivitas per funnel), sudah punya alur edit sendiri lewat sidebar History.
+    'editFunnelId' => null,
+    'editStage' => null,
+    'editTanggal' => '',
+    'editProyeksiAmount' => null,
+    'editSumber' => '',
+
+    'editAkadTanggal' => '',
+    'editAkadNominal' => null,
+    'editAkadDocuments' => [],
+
+    'editWonTanggal' => '',
+    'editWonNominal' => null,
+
+    'editClosingTanggal' => '',
+    'editClosingNominal' => null,
+
+    'editLostTanggal' => '',
+    'editLostReason' => '',
+
     'bulanOptions' => [
         ['id' => 1, 'name' => 'January'], ['id' => 2, 'name' => 'February'], ['id' => 3, 'name' => 'March'],
         ['id' => 4, 'name' => 'April'], ['id' => 5, 'name' => 'May'], ['id' => 6, 'name' => 'June'],
@@ -243,34 +265,165 @@ $createLead = function ($contactId, $proyeksiCloseDate, $proyeksiAmount, $sumber
     $this->success('Lead berhasil ditambahkan!');
 };
 
-$updateLead = function ($funnelId, $proyeksiCloseDate, $proyeksiAmount, $sumber) {
+$openEditModal = function ($funnelId) {
     $funnel = FoFunnel::findOrFail($funnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
         abort(403);
     }
 
-    $proyeksiAmount = Money::normalize($proyeksiAmount);
+    $this->editFunnelId = $funnel->id;
+    $this->editStage = $funnel->stage;
+    $this->editTanggal = $funnel->proyeksi_close_date?->format('Y-m-d') ?? '';
+    $this->editProyeksiAmount = $funnel->proyeksi_amount;
+    $this->editSumber = $funnel->sumber;
 
-    if ($proyeksiAmount && $proyeksiAmount > 9_999_999_999_999) {
-        $this->error('Nominal proyeksi terlalu besar', 'Maksimal Rp 9.999.999.999.999.');
+    $this->editAkadTanggal = $funnel->tgl_closing?->format('Y-m-d') ?? '';
+    $this->editAkadNominal = $funnel->nominal_investasi;
 
-        return;
+    $existingAkadDocuments = $funnel->dokumen_akad_files
+        ?: ($funnel->dokumen_akad_path ? [['tag' => null, 'path' => $funnel->dokumen_akad_path, 'nama' => $funnel->dokumen_akad_nama]] : []);
+
+    $this->editAkadDocuments = collect($existingAkadDocuments)
+        ->map(fn (array $document) => [
+            'tag' => $document['tag'] ?? '',
+            'path' => $document['path'],
+            'nama' => $document['nama'],
+            'file' => null,
+        ])
+        ->values()
+        ->all();
+
+    if (empty($this->editAkadDocuments)) {
+        $this->editAkadDocuments = [['tag' => '', 'path' => null, 'nama' => null, 'file' => null]];
     }
 
-    $before = $funnel->only(['proyeksi_close_date', 'proyeksi_amount', 'sumber']);
+    $this->editWonTanggal = $funnel->tgl_won?->format('Y-m-d') ?? '';
+    $this->editWonNominal = $funnel->nominal_won;
 
-    $funnel->update([
-        'proyeksi_close_date' => $proyeksiCloseDate ?: null,
-        'proyeksi_amount' => $proyeksiAmount ?: null,
-        'sumber' => $sumber,
+    $this->editClosingTanggal = $funnel->tgl_closing?->format('Y-m-d') ?? '';
+    $this->editClosingNominal = $funnel->nominal_investasi;
+
+    $this->editLostTanggal = $funnel->tgl_closing?->format('Y-m-d') ?? '';
+    $this->editLostReason = $funnel->lost_reason;
+
+    $this->resetValidation();
+};
+
+$addEditAkadDocument = function () {
+    $this->editAkadDocuments[] = ['tag' => '', 'path' => null, 'nama' => null, 'file' => null];
+};
+
+$removeEditAkadDocument = function ($index) {
+    unset($this->editAkadDocuments[$index]);
+    $this->editAkadDocuments = array_values($this->editAkadDocuments);
+};
+
+$submitEditFunnel = function () {
+    $funnel = FoFunnel::findOrFail($this->editFunnelId);
+
+    if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
+        abort(403);
+    }
+
+    // Field nominal/dokumen Akad tetap admin-only (sama seperti submitAkad) — FO pemilik funnel
+    // masih boleh buka & submit form Edit ini buat base fields aja, bagian Akad-nya diabaikan diam-diam.
+    $editingAkadFields = $funnel->stage === 'akad' && $this->isAdminFo;
+
+    $this->editProyeksiAmount = Money::normalize($this->editProyeksiAmount);
+
+    $rules = [
+        'editTanggal' => ['nullable', 'date'],
+        'editProyeksiAmount' => ['nullable', 'numeric', 'min:1', 'max:9999999999999'],
+        'editSumber' => ['required', 'string'],
+    ];
+
+    if ($editingAkadFields) {
+        $this->editAkadNominal = Money::normalize($this->editAkadNominal);
+        $rules['editAkadTanggal'] = ['required', 'date'];
+        $rules['editAkadNominal'] = ['required', 'numeric', 'min:1', 'max:9999999999999'];
+        $rules['editAkadDocuments'] = ['required', 'array', 'min:1'];
+        $rules['editAkadDocuments.*.tag'] = ['required', 'string', 'max:255'];
+        $rules['editAkadDocuments.*.file'] = ['nullable', 'file', 'mimes:doc,docx,pdf', 'max:5120'];
+        // path/nama gak divalidasi (cuma dibawa apa adanya buat dokumen yang gak diganti file-nya),
+        // tapi tetep harus disebut di rules biar ikut ke $validated — validate() cuma nyertain key
+        // yang punya rule sendiri.
+        $rules['editAkadDocuments.*.path'] = ['nullable', 'string'];
+        $rules['editAkadDocuments.*.nama'] = ['nullable', 'string'];
+    } elseif ($funnel->stage === 'won') {
+        $this->editWonNominal = Money::normalize($this->editWonNominal);
+        $rules['editWonTanggal'] = ['required', 'date'];
+        $rules['editWonNominal'] = ['required', 'numeric', 'min:1', 'max:9999999999999'];
+    } elseif ($funnel->stage === 'closing') {
+        $this->editClosingNominal = Money::normalize($this->editClosingNominal);
+        $rules['editClosingTanggal'] = ['required', 'date'];
+        $rules['editClosingNominal'] = ['required', 'numeric', 'min:1', 'max:9999999999999'];
+    } elseif ($funnel->stage === 'lost') {
+        $rules['editLostTanggal'] = ['required', 'date'];
+    }
+
+    $validated = $this->validate($rules);
+
+    $before = $funnel->only([
+        'proyeksi_close_date', 'proyeksi_amount', 'sumber',
+        'tgl_closing', 'nominal_investasi', 'tgl_won', 'nominal_won', 'lost_reason',
     ]);
 
-    ActivityLog::record($funnel, ActivityLogAction::LeadUpdated, $before, $funnel->only([
-        'proyeksi_close_date', 'proyeksi_amount', 'sumber',
-    ]));
+    $updates = [
+        'proyeksi_close_date' => $validated['editTanggal'] ?: null,
+        'proyeksi_amount' => $validated['editProyeksiAmount'] ?: null,
+        'sumber' => $validated['editSumber'],
+    ];
+
+    if ($editingAkadFields) {
+        $documents = collect($validated['editAkadDocuments'])
+            ->map(function (array $document) {
+                if (! empty($document['file'])) {
+                    return [
+                        'tag' => $document['tag'],
+                        'path' => $document['file']->store('funnel-akad', 's3'),
+                        'nama' => $document['file']->getClientOriginalName(),
+                    ];
+                }
+
+                return [
+                    'tag' => $document['tag'],
+                    'path' => $document['path'],
+                    'nama' => $document['nama'],
+                ];
+            })
+            ->values()
+            ->all();
+
+        $updates['tgl_closing'] = $validated['editAkadTanggal'];
+        $updates['nominal_investasi'] = $validated['editAkadNominal'];
+        $updates['dokumen_akad_files'] = $documents;
+        $updates['dokumen_akad_path'] = $documents[0]['path'];
+        $updates['dokumen_akad_nama'] = $documents[0]['nama'];
+    } elseif ($funnel->stage === 'won') {
+        $updates['tgl_won'] = $validated['editWonTanggal'];
+        $updates['nominal_won'] = $validated['editWonNominal'];
+    } elseif ($funnel->stage === 'closing') {
+        $updates['tgl_closing'] = $validated['editClosingTanggal'];
+        $updates['nominal_investasi'] = $validated['editClosingNominal'];
+    } elseif ($funnel->stage === 'lost') {
+        $updates['tgl_closing'] = $validated['editLostTanggal'];
+        $updates['lost_reason'] = $this->editLostReason ?: null;
+    }
+
+    $funnel->update($updates);
+
+    ActivityLog::record($funnel, ActivityLogAction::LeadUpdated, $before, $funnel->only(array_keys($updates)));
+
+    $this->reset([
+        'editFunnelId', 'editStage', 'editTanggal', 'editProyeksiAmount', 'editSumber',
+        'editAkadTanggal', 'editAkadNominal', 'editWonTanggal', 'editWonNominal',
+        'editClosingTanggal', 'editClosingNominal', 'editLostTanggal', 'editLostReason',
+    ]);
+    $this->editAkadDocuments = [];
 
     $this->success('Data funnel berhasil diperbarui.');
+    $this->js("document.getElementById('funnel-edit-modal').close()");
 };
 
 $deleteFunnel = function ($funnelId) {
@@ -787,7 +940,7 @@ $closeActivityLog = function () {
                                     <x-icon name="o-ellipsis-vertical" class="w-4 h-4" />
                                 </div>
                                 <ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box shadow-lg border border-base-300 w-44 z-20">
-                                    <li><a x-on:click="editCard({{ $funnel->id }}, '{{ $funnel->proyeksi_close_date?->format('Y-m-d') }}', {{ $funnel->proyeksi_amount ?? 'null' }}, '{{ $funnel->sumber }}')">Edit</a></li>
+                                    <li><a x-on:click="editCard({{ $funnel->id }})">Edit</a></li>
                                     <li>
                                         <details>
                                             <summary>Move Stage</summary>
@@ -971,7 +1124,7 @@ $closeActivityLog = function () {
                             </td>
                             <td class="text-right">
                                 <div class="flex gap-2 justify-end">
-                                    <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" x-on:click="editCard({{ $funnel->id }}, '{{ $funnel->proyeksi_close_date?->format('Y-m-d') }}', {{ $funnel->proyeksi_amount ?? 'null' }}, '{{ $funnel->sumber }}')" />
+                                    <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" x-on:click="editCard({{ $funnel->id }})" />
                                     <x-button icon="o-trash" class="btn-ghost btn-xs text-error" x-on:click="deleteCard({{ $funnel->id }})" />
                                 </div>
                             </td>
@@ -1034,19 +1187,80 @@ $closeActivityLog = function () {
         </form>
     </x-modal>
 
-    <!-- Edit Modal -->
-    <x-modal id="funnel-edit-modal" title="Edit Funnel Data" persistent without-trap-focus>
-        <form x-on:submit.prevent="submitEdit()" class="space-y-4">
+    <!-- Edit Modal: base fields selalu ada; field tambahan di bawah menyesuaikan stage kartu SAAT INI
+         (akad/won/closing/lost) — followup & pitching gak dapet tambahan, diedit lewat sidebar History. -->
+    <x-modal id="funnel-edit-modal" title="Edit Funnel Data" persistent without-trap-focus wire:ignore.self>
+        <form wire:submit="submitEditFunnel" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <x-input label="Projected Close Date" type="date" x-model="editForm.tanggal" />
-                <x-input label="Projected Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="editForm.proyeksiAmount" placeholder="e.g. 250.000.000" hint="Automatically formatted, e.g. 250.000.000 for Rp 250 Million" />
+                <x-input label="Projected Close Date" type="date" wire:model="editTanggal" />
+                <x-input label="Projected Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="editProyeksiAmount" placeholder="e.g. 250.000.000" hint="Automatically formatted, e.g. 250.000.000 for Rp 250 Million" />
             </div>
 
-            <x-select label="Source" x-model="editForm.sumber" :options="$sumberOptions" placeholder="Select Source" required />
+            <x-select label="Source" wire:model="editSumber" :options="$sumberOptions" placeholder="Select Source" required />
+
+            @if ($editStage === 'akad' && $this->isAdminFo)
+                <div class="divider text-xs text-base-content/40 uppercase tracking-wide">Akad</div>
+
+                <div>
+                    <span class="fieldset-legend text-sm font-medium">Akad Date</span>
+                    <x-input type="date" wire:model="editAkadTanggal" required />
+                </div>
+
+                <x-input label="Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="editAkadNominal" placeholder="e.g. 250.000.000" required />
+
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="fieldset-legend text-sm font-medium">Akad Documents</span>
+                        <x-button label="Add" icon="o-plus" class="btn-ghost btn-xs" wire:click="addEditAkadDocument" />
+                    </div>
+
+                    @foreach ($editAkadDocuments as $editAkadDocumentIndex => $editAkadDocumentForm)
+                        <div class="flex items-start gap-2 border border-base-300 rounded-lg p-3" wire:key="edit-akad-document-{{ $editAkadDocumentIndex }}">
+                            <div class="flex-1 space-y-2">
+                                <x-input placeholder="e.g. Perjanjian A" wire:model="editAkadDocuments.{{ $editAkadDocumentIndex }}.tag" required />
+                                @if ($editAkadDocumentForm['nama'])
+                                    <div class="text-xs text-base-content/50 truncate">Current file: {{ $editAkadDocumentForm['nama'] }}</div>
+                                @endif
+                                <x-file wire:model="editAkadDocuments.{{ $editAkadDocumentIndex }}.file" accept=".doc,.docx,.pdf" hint="Leave empty to keep the current file. Format DOC, DOCX, or PDF. Maximum 5MB." />
+                            </div>
+                            @if (count($editAkadDocuments) > 1)
+                                <x-button icon="o-trash" class="btn-ghost btn-xs text-error mt-1" wire:click="removeEditAkadDocument({{ $editAkadDocumentIndex }})" />
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @elseif ($editStage === 'won')
+                <div class="divider text-xs text-base-content/40 uppercase tracking-wide">Won</div>
+
+                <div>
+                    <span class="fieldset-legend text-sm font-medium">Won Date</span>
+                    <x-input type="date" wire:model="editWonTanggal" required />
+                </div>
+
+                <x-input label="Commitment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="editWonNominal" placeholder="e.g. 250.000.000" required />
+            @elseif ($editStage === 'closing')
+                <div class="divider text-xs text-base-content/40 uppercase tracking-wide">Closing</div>
+
+                <div>
+                    <span class="fieldset-legend text-sm font-medium">Closing Date</span>
+                    <x-input type="date" wire:model="editClosingTanggal" required />
+                </div>
+
+                <x-input label="Final Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="editClosingNominal" placeholder="e.g. 250.000.000" required />
+            @elseif ($editStage === 'lost')
+                <div class="divider text-xs text-base-content/40 uppercase tracking-wide">Lost</div>
+
+                <div>
+                    <span class="fieldset-legend text-sm font-medium">Lost Date</span>
+                    <x-input type="date" wire:model="editLostTanggal" required />
+                </div>
+
+                <x-textarea label="Lost Reason" wire:model="editLostReason" rows="4" />
+            @endif
 
             <div class="modal-action gap-2">
                 <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
-                <x-button label="Save" type="submit" class="btn-primary flex-1" />
+                <x-button label="Save" type="submit" class="btn-primary flex-1" spinner="submitEditFunnel" />
             </div>
         </form>
     </x-modal>
@@ -1383,7 +1597,6 @@ $closeActivityLog = function () {
         contactDropdownOpen: false,
 
         addForm: { contactId: null, tanggal: '', proyeksiAmount: '', sumber: '' },
-        editForm: { id: null, tanggal: '', proyeksiAmount: '', sumber: '' },
         pitchForm: { funnelId: null, tanggal: '', catatan: '' },
         followUpForm: { funnelId: null, tanggal: '', catatan: '' },
         followUpMovesStage: false,
@@ -1420,14 +1633,10 @@ $closeActivityLog = function () {
             document.getElementById('funnel-add-modal').close();
         },
 
-        editCard(id, tanggal, proyeksiAmount, sumber) {
-            this.editForm = { id, tanggal: tanggal ?? '', proyeksiAmount: proyeksiAmount ?? '', sumber };
-            document.getElementById('funnel-edit-modal').showModal();
-        },
-
-        submitEdit() {
-            $wire.updateLead(this.editForm.id, this.editForm.tanggal, normalizeCurrency(this.editForm.proyeksiAmount), this.editForm.sumber);
-            document.getElementById('funnel-edit-modal').close();
+        editCard(id) {
+            $wire.openEditModal(id).then(() => {
+                document.getElementById('funnel-edit-modal').showModal();
+            });
         },
 
         deleteCard(id) {

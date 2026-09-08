@@ -58,7 +58,11 @@ test('updating a lead records before and after values of only the changed fields
     $this->actingAs($user);
 
     Volt::test('investors.funnel-index')
-        ->call('updateLead', $funnel->id, '2026-09-01', 500_000_000, 'SIDS')
+        ->call('openEditModal', $funnel->id)
+        ->set('editTanggal', '2026-09-01')
+        ->set('editProyeksiAmount', 500_000_000)
+        ->set('editSumber', 'SIDS')
+        ->call('submitEditFunnel')
         ->assertHasNoErrors();
 
     $log = logsFor($funnel)->where('action', ActivityLogAction::LeadUpdated)->first();
