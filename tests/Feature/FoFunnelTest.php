@@ -173,7 +173,8 @@ test('opening the akad modal is admin-only and resets the form state', function 
         ->assertHasNoErrors()
         ->assertSet('akadFunnelId', $funnel->id)
         ->assertSet('akadTanggal', '')
-        ->assertSet('akadNominal', null);
+        ->assertSet('akadNominal', null)
+        ->assertSet('akadDocuments', [['tag' => '', 'file' => null]]);
 });
 
 test('admin fo can submit akad with a document upload to s3', function () {
@@ -191,7 +192,8 @@ test('admin fo can submit akad with a document upload to s3', function () {
         ->set('akadFunnelId', $funnel->id)
         ->set('akadTanggal', '2026-09-01')
         ->set('akadNominal', 500_000_000)
-        ->set('akadFile', $file)
+        ->set('akadDocuments.0.tag', 'Perjanjian A')
+        ->set('akadDocuments.0.file', $file)
         ->call('submitAkad')
         ->assertHasNoErrors();
 
@@ -200,7 +202,10 @@ test('admin fo can submit akad with a document upload to s3', function () {
         ->and((float) $funnel->nominal_investasi)->toBe(500_000_000.0)
         ->and($funnel->tgl_closing->format('Y-m-d'))->toBe('2026-09-01')
         ->and($funnel->dokumen_akad_path)->not->toBeNull()
-        ->and($funnel->dokumen_akad_nama)->toBe('akad.docx');
+        ->and($funnel->dokumen_akad_nama)->toBe('akad.docx')
+        ->and($funnel->dokumen_akad_files)->toBe([
+            ['tag' => 'Perjanjian A', 'path' => $funnel->dokumen_akad_path, 'nama' => 'akad.docx'],
+        ]);
 
     Storage::disk('s3')->assertExists($funnel->dokumen_akad_path);
 
@@ -208,6 +213,52 @@ test('admin fo can submit akad with a document upload to s3', function () {
     expect($owner->notifications()->count())->toBe(1);
     expect($owner->notifications()->first()->type)->toBe(FundingDealAkadNotification::class);
     expect($owner->notifications()->first()->data['type'])->toBe('funding_deal_akad');
+});
+
+test('admin fo can submit akad with multiple tagged documents', function () {
+    Storage::fake('s3');
+
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $employee = Employee::create(['user_id' => User::factory()->create()->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
+    $this->actingAs($admin);
+
+    Volt::test('investors.funnel-index')
+        ->set('akadFunnelId', $funnel->id)
+        ->set('akadTanggal', '2026-09-01')
+        ->set('akadNominal', 500_000_000)
+        ->set('akadDocuments.0.tag', 'Perjanjian A')
+        ->set('akadDocuments.0.file', UploadedFile::fake()->create('perjanjian-a.pdf', 500, 'application/pdf'))
+        ->set('akadDocuments.1.tag', 'Perjanjian B')
+        ->set('akadDocuments.1.file', UploadedFile::fake()->create('perjanjian-b.pdf', 500, 'application/pdf'))
+        ->call('submitAkad')
+        ->assertHasNoErrors();
+
+    $funnel->refresh();
+    expect($funnel->dokumen_akad_files)->toHaveCount(2)
+        ->and($funnel->dokumen_akad_files[0]['tag'])->toBe('Perjanjian A')
+        ->and($funnel->dokumen_akad_files[1]['tag'])->toBe('Perjanjian B');
+
+    Storage::disk('s3')->assertExists($funnel->dokumen_akad_files[0]['path']);
+    Storage::disk('s3')->assertExists($funnel->dokumen_akad_files[1]['path']);
+});
+
+test('opening the akad modal seeds a single empty document row and add/remove manage the list', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $funnel = FoFunnel::factory()->create(['stage' => 'won']);
+    $this->actingAs($admin);
+
+    $component = Volt::test('investors.funnel-index')
+        ->call('openAkadModal', $funnel->id)
+        ->assertSet('akadDocuments', [['tag' => '', 'file' => null]]);
+
+    $component->call('addAkadDocument')
+        ->assertCount('akadDocuments', 2);
+
+    $component->call('removeAkadDocument', 0)
+        ->assertCount('akadDocuments', 1);
 });
 
 test('a plain fo cannot submit akad even with a valid document', function () {
@@ -225,7 +276,8 @@ test('a plain fo cannot submit akad even with a valid document', function () {
         ->set('akadFunnelId', $funnel->id)
         ->set('akadTanggal', '2026-09-01')
         ->set('akadNominal', 500_000_000)
-        ->set('akadFile', $file)
+        ->set('akadDocuments.0.tag', 'Perjanjian A')
+        ->set('akadDocuments.0.file', $file)
         ->call('submitAkad')
         ->assertStatus(403);
 
@@ -245,17 +297,28 @@ test('submitting akad rejects a disallowed file type and files over 5mb', functi
         ->set('akadFunnelId', $funnel->id)
         ->set('akadTanggal', '2026-09-01')
         ->set('akadNominal', 500_000_000)
-        ->set('akadFile', UploadedFile::fake()->create('akad.jpg', 200, 'image/jpeg'))
+        ->set('akadDocuments.0.tag', 'Perjanjian A')
+        ->set('akadDocuments.0.file', UploadedFile::fake()->create('akad.jpg', 200, 'image/jpeg'))
         ->call('submitAkad')
-        ->assertHasErrors(['akadFile']);
+        ->assertHasErrors(['akadDocuments.0.file']);
 
     Volt::test('investors.funnel-index')
         ->set('akadFunnelId', $funnel->id)
         ->set('akadTanggal', '2026-09-01')
         ->set('akadNominal', 500_000_000)
-        ->set('akadFile', UploadedFile::fake()->create('akad.docx', 6000, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
+        ->set('akadDocuments.0.tag', 'Perjanjian A')
+        ->set('akadDocuments.0.file', UploadedFile::fake()->create('akad.docx', 6000, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
         ->call('submitAkad')
-        ->assertHasErrors(['akadFile']);
+        ->assertHasErrors(['akadDocuments.0.file']);
+
+    Volt::test('investors.funnel-index')
+        ->set('akadFunnelId', $funnel->id)
+        ->set('akadTanggal', '2026-09-01')
+        ->set('akadNominal', 500_000_000)
+        ->set('akadDocuments.0.tag', '')
+        ->set('akadDocuments.0.file', UploadedFile::fake()->create('akad.pdf', 200, 'application/pdf'))
+        ->call('submitAkad')
+        ->assertHasErrors(['akadDocuments.0.tag']);
 
     expect($funnel->refresh()->stage)->toBe('won');
 });

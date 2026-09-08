@@ -47,7 +47,7 @@ state([
     'akadFunnelId' => null,
     'akadTanggal' => '',
     'akadNominal' => null,
-    'akadFile' => null,
+    'akadDocuments' => [],
 
     'wonFunnelId' => null,
     'wonTanggal' => '',
@@ -315,13 +315,17 @@ $openAkadModal = function ($funnelId) {
     $this->akadFunnelId = $funnelId;
     $this->akadTanggal = '';
     $this->akadNominal = null;
-    $this->akadFile = null;
+    $this->akadDocuments = [['tag' => '', 'file' => null]];
     $this->resetValidation();
 };
 
+$addAkadDocument = function () {
+    $this->akadDocuments[] = ['tag' => '', 'file' => null];
+};
 
-$updatedAkadFile = function () {
-    $this->resetErrorBag('akadFile');
+$removeAkadDocument = function ($index) {
+    unset($this->akadDocuments[$index]);
+    $this->akadDocuments = array_values($this->akadDocuments);
 };
 
 $submitAkad = function () {
@@ -336,28 +340,46 @@ $submitAkad = function () {
     $validated = $this->validate([
         'akadTanggal' => ['required', 'date'],
         'akadNominal' => ['required', 'numeric', 'min:1', 'max:9999999999999'],
-        'akadFile' => ['required', 'file', 'mimes:doc,docx,pdf', 'max:5120'],
+        'akadDocuments' => ['required', 'array', 'min:1'],
+        'akadDocuments.*.tag' => ['required', 'string', 'max:255'],
+        'akadDocuments.*.file' => ['required', 'file', 'mimes:doc,docx,pdf', 'max:5120'],
     ]);
 
-    $path = $this->akadFile->store('funnel-akad', 's3');
+    $documents = collect($validated['akadDocuments'])
+        ->map(function (array $document) {
+            $path = $document['file']->store('funnel-akad', 's3');
+
+            return [
+                'tag' => $document['tag'],
+                'path' => $path,
+                'nama' => $document['file']->getClientOriginalName(),
+            ];
+        })
+        ->values()
+        ->all();
 
     $funnel->update([
         'stage' => 'akad',
         'tgl_closing' => $validated['akadTanggal'],
         'nominal_investasi' => $validated['akadNominal'],
-        'dokumen_akad_path' => $path,
-        'dokumen_akad_nama' => $this->akadFile->getClientOriginalName(),
+        'dokumen_akad_files' => $documents,
+        'dokumen_akad_path' => $documents[0]['path'],
+        'dokumen_akad_nama' => $documents[0]['nama'],
     ]);
 
     ActivityLog::record($funnel, ActivityLogAction::AkadProcessed, after: [
         'tgl_closing' => $validated['akadTanggal'],
         'nominal_investasi' => $validated['akadNominal'],
-        'dokumen_akad_nama' => $this->akadFile->getClientOriginalName(),
+        'dokumen_akad_files' => collect($documents)->map(fn ($document) => [
+            'tag' => $document['tag'],
+            'nama' => $document['nama'],
+        ])->all(),
     ]);
 
     FundingDealAkadNotification::sendToOwner($funnel);
 
-    $this->reset(['akadFunnelId', 'akadTanggal', 'akadNominal', 'akadFile']);
+    $this->reset(['akadFunnelId', 'akadTanggal', 'akadNominal']);
+    $this->akadDocuments = [];
     $this->success('Proses akad berhasil dicatat!');
     $this->js("document.getElementById('funnel-akad-modal').close()");
 };
@@ -813,18 +835,23 @@ $closeActivityLog = function () {
                                     </div>
                                 </div>
                             @endif
-                            @if ($funnel->stage === 'akad' && $funnel->dokumen_akad_path)
-                                <a
-                                    href="{{ $funnel->dokumenAkadUrl() }}"
-                                    target="_blank"
-                                    class="badge badge-sm badge-primary badge-outline w-full truncate"
-                                    x-on:mousedown.stop
-                                    x-on:click.stop
-                                    x-on:touchstart.stop
-                                    title="{{ $funnel->dokumen_akad_nama }}"
-                                >
-                                    <x-icon name="o-paper-clip" class="w-3 h-3" /> {{ $funnel->dokumen_akad_nama }}
-                                </a>
+                            @php $akadCardDocuments = $funnel->stage === 'akad' ? $funnel->dokumenAkadDocuments() : []; @endphp
+                            @if (count($akadCardDocuments))
+                                <div class="flex flex-col gap-1">
+                                    @foreach ($akadCardDocuments as $akadDocument)
+                                        <a
+                                            href="{{ $akadDocument['url'] }}"
+                                            target="_blank"
+                                            class="badge badge-sm badge-primary badge-outline w-full truncate"
+                                            x-on:mousedown.stop
+                                            x-on:click.stop
+                                            x-on:touchstart.stop
+                                            title="{{ $akadDocument['tag'] ? $akadDocument['tag'].' — '.$akadDocument['nama'] : $akadDocument['nama'] }}"
+                                        >
+                                            <x-icon name="o-paper-clip" class="w-3 h-3" /> {{ $akadDocument['tag'] ?: $akadDocument['nama'] }}
+                                        </a>
+                                    @endforeach
+                                </div>
                             @endif
                             @if ($funnel->stage === 'lost' && $funnel->lost_reason)
                                 <div class="tooltip w-full" data-tip="{{ $funnel->lost_reason }}">
@@ -922,10 +949,15 @@ $closeActivityLog = function () {
                                 @endif
                             </td>
                             <td>
-                                @if ($funnel->dokumen_akad_path)
-                                    <a href="{{ $funnel->dokumenAkadUrl() }}" target="_blank" class="link link-primary text-xs" title="{{ $funnel->dokumen_akad_nama }}">
-                                        <x-icon name="o-paper-clip" class="w-3 h-3 inline" /> View
-                                    </a>
+                                @php $akadDocumentsTable = $funnel->dokumenAkadDocuments(); @endphp
+                                @if (count($akadDocumentsTable))
+                                    <div class="flex flex-col gap-1">
+                                        @foreach ($akadDocumentsTable as $akadDocumentTable)
+                                            <a href="{{ $akadDocumentTable['url'] }}" target="_blank" class="link link-primary text-xs" title="{{ $akadDocumentTable['nama'] }}">
+                                                <x-icon name="o-paper-clip" class="w-3 h-3 inline" /> {{ $akadDocumentTable['tag'] ?: $akadDocumentTable['nama'] }}
+                                            </a>
+                                        @endforeach
+                                    </div>
                                 @else
                                     <span class="text-base-content/30">-</span>
                                 @endif
@@ -1136,7 +1168,24 @@ $closeActivityLog = function () {
 
             <x-input label="Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="akadNominal" placeholder="e.g. 250.000.000" hint="Automatically formatted, e.g. 250.000.000 for Rp 250 Million" required />
 
-            <x-file label="Akad Document" wire:model="akadFile" accept=".doc,.docx,.pdf" hint="Format DOC, DOCX, or PDF. Maximum 5MB." required />
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="fieldset-legend text-sm font-medium">Akad Documents</span>
+                    <x-button label="Add" icon="o-plus" class="btn-ghost btn-xs" wire:click="addAkadDocument" />
+                </div>
+
+                @foreach ($akadDocuments as $akadDocumentIndex => $akadDocumentForm)
+                    <div class="flex items-start gap-2 border border-base-300 rounded-lg p-3" wire:key="akad-document-{{ $akadDocumentIndex }}">
+                        <div class="flex-1 space-y-2">
+                            <x-input placeholder="e.g. Perjanjian A" wire:model="akadDocuments.{{ $akadDocumentIndex }}.tag" required />
+                            <x-file wire:model="akadDocuments.{{ $akadDocumentIndex }}.file" accept=".doc,.docx,.pdf" hint="Format DOC, DOCX, or PDF. Maximum 5MB." required />
+                        </div>
+                        @if (count($akadDocuments) > 1)
+                            <x-button icon="o-trash" class="btn-ghost btn-xs text-error mt-1" wire:click="removeAkadDocument({{ $akadDocumentIndex }})" />
+                        @endif
+                    </div>
+                @endforeach
+            </div>
 
             <div class="modal-action gap-2">
                 <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />

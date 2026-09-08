@@ -117,7 +117,8 @@ test('submitting akad, won, closing, and lost each record a log entry', function
         ->set('akadFunnelId', $akadFunnel->id)
         ->set('akadTanggal', '2026-09-01')
         ->set('akadNominal', 500_000_000)
-        ->set('akadFile', UploadedFile::fake()->create('akad.docx', 200, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
+        ->set('akadDocuments.0.tag', 'Perjanjian A')
+        ->set('akadDocuments.0.file', UploadedFile::fake()->create('akad.docx', 200, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
         ->call('submitAkad');
 
     $wonFunnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);

@@ -50,6 +50,7 @@ class FoFunnel extends Model
         'proyeksi_amount' => 'decimal:2',
         'nominal_won' => 'decimal:2',
         'nominal_investasi' => 'decimal:2',
+        'dokumen_akad_files' => 'array',
     ];
 
     public function contact()
@@ -139,5 +140,35 @@ class FoFunnel extends Model
         }
 
         return Storage::disk('s3')->temporaryUrl($this->dokumen_akad_path, now()->addMinutes(15));
+    }
+
+    /**
+     * Dokumen akad ber-tag buat ditampilkan (Kanban card, tabel). Data lama yang cuma punya satu
+     * dokumen (kolom dokumen_akad_path/nama, sebelum dokumen_akad_files ada) tetap muncul sebagai
+     * satu entri tanpa tag.
+     *
+     * @return array<int, array{tag: ?string, nama: ?string, url: string}>
+     */
+    public function dokumenAkadDocuments(): array
+    {
+        if ($this->dokumen_akad_files) {
+            return collect($this->dokumen_akad_files)
+                ->map(fn (array $document) => [
+                    'tag' => $document['tag'] ?? null,
+                    'nama' => $document['nama'] ?? null,
+                    'url' => Storage::disk('s3')->temporaryUrl($document['path'], now()->addMinutes(15)),
+                ])
+                ->all();
+        }
+
+        if ($this->dokumen_akad_path) {
+            return [[
+                'tag' => null,
+                'nama' => $this->dokumen_akad_nama,
+                'url' => $this->dokumenAkadUrl(),
+            ]];
+        }
+
+        return [];
     }
 }
