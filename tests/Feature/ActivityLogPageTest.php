@@ -179,6 +179,25 @@ test('the page exposes no mutating actions', function () {
     }
 });
 
+test('array change values (e.g. multi-file uploads) are rendered without error', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id]);
+    $this->actingAs($user);
+
+    ActivityLog::record(
+        $funnel,
+        ActivityLogAction::StageMoved,
+        ['dokumen_akad' => ['akad-1.pdf']],
+        ['dokumen_akad' => ['akad-1.pdf', 'akad-2.pdf']],
+    );
+
+    Volt::test('investors.activity-log-index')
+        ->assertOk()
+        ->assertSee('akad-1.pdf');
+});
+
 test('subject and owner labels resolve correctly for a funnel log', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));

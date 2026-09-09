@@ -143,8 +143,12 @@ $subjectLabel = function ($log) {
 };
 
 $formatLogValue = function ($value) {
-    if ($value === null || $value === '') {
+    if ($value === null || $value === '' || $value === []) {
         return '-';
+    }
+
+    if (is_array($value)) {
+        return implode(', ', array_map(fn($item) => is_scalar($item) ? (string) $item : json_encode($item), $value));
     }
 
     if (is_numeric($value) && str_contains((string) $value, '.')) {
