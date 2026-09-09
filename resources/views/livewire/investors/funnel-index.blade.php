@@ -275,11 +275,11 @@ $openEditModal = function ($funnelId) {
     $this->editFunnelId = $funnel->id;
     $this->editStage = $funnel->stage;
     $this->editTanggal = $funnel->proyeksi_close_date?->format('Y-m-d') ?? '';
-    $this->editProyeksiAmount = $funnel->proyeksi_amount;
+    $this->editProyeksiAmount = $funnel->proyeksi_amount !== null ? (int) $funnel->proyeksi_amount : null;
     $this->editSumber = $funnel->sumber;
 
     $this->editAkadTanggal = $funnel->tgl_closing?->format('Y-m-d') ?? '';
-    $this->editAkadNominal = $funnel->nominal_investasi;
+    $this->editAkadNominal = $funnel->nominal_investasi !== null ? (int) $funnel->nominal_investasi : null;
 
     $existingAkadDocuments = $funnel->dokumen_akad_files
         ?: ($funnel->dokumen_akad_path ? [['tag' => null, 'path' => $funnel->dokumen_akad_path, 'nama' => $funnel->dokumen_akad_nama]] : []);
@@ -299,10 +299,10 @@ $openEditModal = function ($funnelId) {
     }
 
     $this->editWonTanggal = $funnel->tgl_won?->format('Y-m-d') ?? '';
-    $this->editWonNominal = $funnel->nominal_won;
+    $this->editWonNominal = $funnel->nominal_won !== null ? (int) $funnel->nominal_won : null;
 
     $this->editClosingTanggal = $funnel->tgl_closing?->format('Y-m-d') ?? '';
-    $this->editClosingNominal = $funnel->nominal_investasi;
+    $this->editClosingNominal = $funnel->nominal_investasi !== null ? (int) $funnel->nominal_investasi : null;
 
     $this->editLostTanggal = $funnel->tgl_closing?->format('Y-m-d') ?? '';
     $this->editLostReason = $funnel->lost_reason;

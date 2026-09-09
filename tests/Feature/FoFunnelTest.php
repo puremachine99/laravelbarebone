@@ -643,6 +643,28 @@ test('can update and delete a funnel entry', function () {
     expect(FoFunnel::withTrashed()->find($funnel->id))->not->toBeNull();
 });
 
+test('opening the edit modal seeds amount fields as plain integers, not decimal-cast strings', function () {
+    // proyeksi_amount/nominal_investasi/nominal_won are cast decimal:2, so Eloquent returns
+    // e.g. "100000000.00". Handed as-is to the money-masked inputs, the mask strips the "."
+    // as noise but keeps the trailing zeros, inflating the displayed value 100x.
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $funnel = FoFunnel::factory()->create([
+        'employee_id' => $employee->id,
+        'stage' => 'akad',
+        'tgl_closing' => '2026-08-01',
+        'proyeksi_amount' => 100_000_000,
+        'nominal_investasi' => 100_000_000,
+    ]);
+    $this->actingAs($user);
+
+    Volt::test('investors.funnel-index')
+        ->call('openEditModal', $funnel->id)
+        ->assertSet('editProyeksiAmount', 100_000_000)
+        ->assertSet('editAkadNominal', 100_000_000);
+});
+
 test('editing a won-stage funnel seeds and updates the won-specific fields', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));
@@ -659,7 +681,7 @@ test('editing a won-stage funnel seeds and updates the won-specific fields', fun
         ->call('openEditModal', $funnel->id)
         ->assertSet('editStage', 'won')
         ->assertSet('editWonTanggal', '2026-08-01')
-        ->assertSet('editWonNominal', '400000000.00')
+        ->assertSet('editWonNominal', 400_000_000)
         ->set('editSumber', $funnel->sumber)
         ->set('editWonTanggal', '2026-08-15')
         ->set('editWonNominal', 450_000_000)
