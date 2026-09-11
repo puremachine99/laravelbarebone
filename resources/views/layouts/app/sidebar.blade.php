@@ -426,6 +426,22 @@
                         </div>
                     @endcan
 
+                    {{-- Technology --}}
+                    @hasanyrole('Technology|Super Admin')
+                        <p class="menu-label px-2.5 pt-4 pb-1.5">Technology</p>
+                        <div class="space-y-0.5">
+                            <a @class(['menu-item', 'active' => request()->routeIs('tech.timeline-calc')]) href="{{ route('tech.timeline-calc') }}"
+                                wire:navigate title="Timeline Calculator">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 7h6m0 10v-3m-3 3v-6m-3 6v-1m5-16H8a2 2 0 00-2 2v18a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2z" />
+                                </svg>
+                                <span class="grow">Timeline Calculator</span>
+                            </a>
+                        </div>
+                    @endhasanyrole
+
                     {{-- Nakama Hub --}}
                     @if (auth()->check() && (auth()->user()->can('manage-chat') || auth()->user()->can('manage-ai-center')))
                         <p class="menu-label px-2.5 pt-4 pb-1.5">Nakama Hub</p>

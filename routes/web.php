@@ -18,8 +18,6 @@ use Livewire\Volt\Volt;
 
 Route::redirect('/', '/login')->name('home');
 
-Route::view('/tech', 'pages.tech')->name('tech');
-
 Route::view('/documentation', 'pages.documentation')->name('documentation');
 
 Route::get('/set-password/{token}', [SetPasswordController::class, 'create'])->name('password.setup');
@@ -94,6 +92,10 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Volt::route('/investors/funnel', 'investors.funnel-index')->name('investors.funnel');
         Volt::route('/investors/management-fo', 'investors.management-fo')->name('investors.management-fo');
         Volt::route('/investors/activity-log', 'investors.activity-log-index')->name('investors.activity-log');
+    });
+
+    Route::prefix('tech')->name('tech.')->middleware('role:Technology|Super Admin')->group(function () {
+        Route::view('/timeline-calc', 'pages.tech')->name('timeline-calc');
     });
 });
 
