@@ -28,6 +28,7 @@ state([
 
 state([
 'employee_id' => null,
+'existingUserId' => null,
 'isEdit' => false,
 'deleteTargetId' => null,
 
@@ -54,10 +55,10 @@ $employees = computed(function () {
  $search = $this->search;
  $filterDept = $this->filterDept;
 
- return Employee::query()
- ->with(['user.roles','department','positionFungsional','positionStruktural'])
- ->join('users','users.id','=','employees.user_id')
- ->select('employees.*')
+ return User::query()
+ ->select('users.*')
+ ->leftJoin('employees','employees.user_id','=','users.id')
+ ->with(['employee.department','employee.positionFungsional','employee.positionStruktural','roles'])
  ->when($search, fn($q) =>
  $q->where(fn($q) =>
  $q->whereRaw('LOWER(users.name) LIKE ?', ['%' . strtolower($search) .'%'])
@@ -161,19 +162,23 @@ $updatedFilterDept = function () {
 };
 
 $resetForm = function () {
- $this->reset(['employee_id','isEdit','name','email','password','department_id','position_struktural_id','position_fungsional_id','employment_status','is_cltp']);
+ $this->reset(['employee_id','existingUserId','isEdit','name','email','password','department_id','position_struktural_id','position_fungsional_id','employment_status','is_cltp']);
  $this->userRoles = [];
  $this->resetValidation();
 };
 
 $save = function (InviteUser $inviteUser) {
- $isNew = is_null($this->employee_id);
+ $isNew = is_null($this->employee_id) && is_null($this->existingUserId);
+
+ $ignoreUserId = match (true) {
+ $isNew => null,
+ (bool) $this->existingUserId => $this->existingUserId,
+ default => Employee::find($this->employee_id)?->user_id,
+ };
 
  $this->validate([
 'name' => ['required','string','max:255'],
-'email' => ['required','email', Rule::unique('users','email')->ignore(
- $isNew ? null : Employee::find($this->employee_id)?->user_id
- )],
+'email' => ['required','email', Rule::unique('users','email')->ignore($ignoreUserId)],
 'password' => ['nullable','string','min:8'],
 'department_id' => ['nullable','exists:departments,id'],
 'position_struktural_id' => ['nullable','exists:positions,id'],
@@ -192,6 +197,20 @@ $save = function (InviteUser $inviteUser) {
  if ($isNew) {
  $user = $inviteUser->handle($this->name, $this->email, null, $this->userRoles, auth()->user());
  Employee::create(array_merge($employeeData, ['user_id' => $user->id]));
+ $message = "Undangan berhasil dikirim ke {$this->email}.";
+ } elseif ($this->existingUserId) {
+ $user = User::findOrFail($this->existingUserId);
+ $userData = [
+'name' => $this->name,
+'email' => $this->email,
+ ];
+ if ($this->password) {
+ $userData['password'] = Hash::make($this->password);
+ }
+ $user->update($userData);
+ $user->syncRoles($this->userRoles);
+ Employee::create(array_merge($employeeData, ['user_id' => $user->id]));
+ $message ='Profil karyawan berhasil dilengkapi.';
  } else {
  $employee = Employee::findOrFail($this->employee_id);
  $userData = [
@@ -204,16 +223,18 @@ $save = function (InviteUser $inviteUser) {
  $employee->user->update($userData);
  $employee->user->syncRoles($this->userRoles);
  $employee->update($employeeData);
+ $message ='Data karyawan berhasil diperbarui!';
  }
 
  $this->resetForm();
  $this->showEmployeeModal = false;
- session()->flash('success', $isNew ?"Undangan berhasil dikirim ke {$this->email}." :'Data karyawan berhasil diperbarui!');
+ session()->flash('success', $message);
 };
 
 $edit = function (Employee $employee) {
  $this->resetValidation();
  $this->employee_id = $employee->id;
+ $this->existingUserId = null;
  $this->name = $employee->user->name;
  $this->email = $employee->user->email;
  $this->password ='';
@@ -223,6 +244,23 @@ $edit = function (Employee $employee) {
  $this->employment_status = $employee->employment_status ??'';
  $this->is_cltp = $employee->is_cltp;
  $this->userRoles = $employee->user->roles->pluck('name')->toArray();
+ $this->isEdit = true;
+ $this->showEmployeeModal = true;
+};
+
+$completeProfile = function (User $user) {
+ $this->resetValidation();
+ $this->employee_id = null;
+ $this->existingUserId = $user->id;
+ $this->name = $user->name;
+ $this->email = $user->email;
+ $this->password ='';
+ $this->department_id ='';
+ $this->position_struktural_id ='';
+ $this->position_fungsional_id ='';
+ $this->employment_status ='';
+ $this->is_cltp = false;
+ $this->userRoles = $user->roles->pluck('name')->toArray();
  $this->isEdit = true;
  $this->showEmployeeModal = true;
 };
@@ -422,20 +460,20 @@ $delete = function () {
  </thead>
  <tbody>
  @forelse ($this->employees as $emp)
- <tr class="border-b border-base-300 hover:bg-base-200 cursor-pointer" wire:click="showDetail('{{ $emp->id }}')">
+ <tr class="border-b border-base-300 hover:bg-base-200 {{ $emp->employee ?'cursor-pointer' :'' }}" @if ($emp->employee) wire:click="showDetail({{ $emp->employee->id }})" @endif>
  <td class="text-base-content/50">{{ $emp->id }}</td>
- <td class="font-semibold text-base-content py-3">{{ $emp->user->name }}</td>
- <td>{{ $emp->department?->name ??'-' }}</td>
- <td>{{ $emp->positionStruktural?->name ??'-' }}</td>
- <td>{{ $emp->positionFungsional?->name ??'-' }}</td>
- <td>{{ $emp->user->email }}</td>
+ <td class="font-semibold text-base-content py-3">{{ $emp->name }}</td>
+ <td>{{ $emp->employee?->department?->name ??'-' }}</td>
+ <td>{{ $emp->employee?->positionStruktural?->name ??'-' }}</td>
+ <td>{{ $emp->employee?->positionFungsional?->name ??'-' }}</td>
+ <td>{{ $emp->email }}</td>
  <td>
- <span class="badge badge-sm {{ match ($emp->user->status) {
+ <span class="badge badge-sm {{ match ($emp->status) {
  \App\Enums\UserStatus::Active =>'badge-success',
  \App\Enums\UserStatus::Invited =>'badge-warning',
  \App\Enums\UserStatus::Suspended =>'badge-error',
  } }}">
- {{ match ($emp->user->status) {
+ {{ match ($emp->status) {
  \App\Enums\UserStatus::Active =>'Aktif',
  \App\Enums\UserStatus::Invited =>'Menunggu Aktivasi',
  \App\Enums\UserStatus::Suspended =>'Dinonaktifkan',
@@ -444,8 +482,11 @@ $delete = function () {
  </td>
  <td>
  <div class="flex items-center gap-1.5 flex-wrap">
- @if ($emp->employment_status)
- <div class="badge badge-sm badge-outline {{ match($emp->employment_status) {
+ @if (! $emp->employee)
+ <span class="badge badge-sm badge-ghost text-base-content/40 whitespace-nowrap">Belum ada profil</span>
+ @else
+ @if ($emp->employee->employment_status)
+ <div class="badge badge-sm badge-outline {{ match($emp->employee->employment_status) {
 'PKWTT' =>'badge-success',
 'PKWT' =>'badge-warning',
 'Internship' =>'badge-info',
@@ -453,22 +494,23 @@ $delete = function () {
 'Bond Agreement' =>'badge-secondary',
  default =>'badge-ghost',
  } }}">
- {{ $emp->employment_status }}
+ {{ $emp->employee->employment_status }}
  </div>
  @endif
 
- @if ($emp->is_cltp)
+ @if ($emp->employee->is_cltp)
  <div class="badge badge-sm badge-error text-white">CLTP</div>
  @endif
 
- @if (!$emp->employment_status && !$emp->is_cltp)
+ @if (!$emp->employee->employment_status && !$emp->employee->is_cltp)
  <span>-</span>
+ @endif
  @endif
  </div>
  </td>
  <td class="max-w-40">
  <div class="flex flex-wrap gap-1">
- @forelse ($emp->user->roles as $role)
+ @forelse ($emp->roles as $role)
  <span class="badge badge-sm badge-outline badge-primary whitespace-nowrap">{{ $role->name }}</span>
  @empty
  <span class="text-xs text-base-content/40">-</span>
@@ -477,17 +519,21 @@ $delete = function () {
  </td>
  <td class="text-right" wire:click.stop>
  <div class="flex gap-2 justify-end">
- @if ($emp->user->isInvited())
- <x-button label="Kirim Ulang" class="btn-ghost btn-xs text-warning" wire:click="resendInvite({{ $emp->user_id }})" />
- @elseif ($emp->user->isSuspended())
- <x-button label="Aktifkan" class="btn-ghost btn-xs text-success" wire:click="activate({{ $emp->user_id }})" />
- @elseif ($emp->user_id !== auth()->id())
- <x-button label="Nonaktifkan" class="btn-ghost btn-xs text-warning" wire:click="suspend({{ $emp->user_id }})" />
+ @if ($emp->isInvited())
+ <x-button label="Kirim Ulang" class="btn-ghost btn-xs text-warning" wire:click="resendInvite({{ $emp->id }})" />
+ @elseif ($emp->isSuspended())
+ <x-button label="Aktifkan" class="btn-ghost btn-xs text-success" wire:click="activate({{ $emp->id }})" />
+ @elseif ($emp->id !== auth()->id())
+ <x-button label="Nonaktifkan" class="btn-ghost btn-xs text-warning" wire:click="suspend({{ $emp->id }})" />
  @endif
- <x-button icon="o-eye" class="btn-ghost btn-xs text-base-content/50" wire:click="showDetail('{{ $emp->id }}')" />
- <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="edit('{{ $emp->id }}')" />
- @if ($emp->user_id !== auth()->id())
- <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete({{ $emp->user_id }})" />
+ @if ($emp->employee)
+ <x-button icon="o-eye" class="btn-ghost btn-xs text-base-content/50" wire:click="showDetail({{ $emp->employee->id }})" />
+ <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="edit({{ $emp->employee->id }})" />
+ @else
+ <x-button icon="o-user-plus" label="Lengkapi Profil" class="btn-ghost btn-xs text-info" wire:click="completeProfile({{ $emp->id }})" />
+ @endif
+ @if ($emp->id !== auth()->id())
+ <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete({{ $emp->id }})" />
  @endif
  </div>
  </td>
@@ -678,7 +724,7 @@ $delete = function () {
  </div>
 
  <!-- Modals -->
- <x-modal wire:model="showEmployeeModal" title="{{ $isEdit ?'Edit Karyawan' :'Tambah Karyawan Baru' }}" subtitle="Isi data karyawan dengan lengkap dan benar." box-class="md:w-[560px]">
+ <x-modal wire:model="showEmployeeModal" title="{{ $existingUserId ?'Lengkapi Profil Karyawan' : ($isEdit ?'Edit Karyawan' :'Tambah Karyawan Baru') }}" subtitle="Isi data karyawan dengan lengkap dan benar." box-class="md:w-[560px]">
  <form wire:submit.prevent="save" class="space-y-4">
  <h4 class="font-bold text-base-content/50 text-xs uppercase">Informasi Dasar</h4>
 
