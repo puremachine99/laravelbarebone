@@ -140,7 +140,7 @@ $statsTenure = computed(function () {
 });
 
 $showDetail = function ($id) {
- $this->selectedEmployee = Employee::with(['user','department','positionFungsional','positionStruktural'])->find($id);
+ $this->selectedEmployee = Employee::with(['user.invitedBy','department','positionFungsional','positionStruktural'])->find($id);
  $this->js('$dispatch("open-drawer")');
 };
 
@@ -596,6 +596,13 @@ $delete = function () {
  <x-icon name="o-x-mark" class="w-6 h-6" />
  </button>
  </div>
+
+ @if ($selectedEmployee->user->invited_at)
+ <div class="text-xs text-base-content/50 bg-base-200/50 rounded-lg p-3">
+ Diundang oleh <span class="font-medium text-base-content">{{ $selectedEmployee->user->invitedBy?->name ??'-' }}</span>
+ pada {{ $selectedEmployee->user->invited_at->format('d M Y, H:i') }}
+ </div>
+ @endif
 
  <hr class="border-base-300 my-4" />
 
