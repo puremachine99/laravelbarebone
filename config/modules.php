@@ -42,5 +42,12 @@ return [
             'icon' => 'building-office',
             'admin_only' => true,
         ],
+        'technology' => [
+            'label' => 'Technology',
+            'description' => 'Tools internal tim Technology, mis. Timeline Calculator.',
+            'permission' => 'access-technology',
+            'icon' => 'cpu-chip',
+            'admin_only' => false,
+        ],
     ],
 ];

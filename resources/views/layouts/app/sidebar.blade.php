@@ -427,7 +427,7 @@
                     @endcan
 
                     {{-- Technology --}}
-                    @hasanyrole('Technology|Super Admin')
+                    @can('access-technology')
                         <p class="menu-label px-2.5 pt-4 pb-1.5">Technology</p>
                         <div class="space-y-0.5">
                             <a @class(['menu-item', 'active' => request()->routeIs('tech.timeline-calc')]) href="{{ route('tech.timeline-calc') }}"

@@ -94,7 +94,7 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Volt::route('/investors/activity-log', 'investors.activity-log-index')->name('investors.activity-log');
     });
 
-    Route::prefix('tech')->name('tech.')->middleware('role:Technology|Super Admin')->group(function () {
+    Route::prefix('tech')->name('tech.')->middleware('can:access-technology')->group(function () {
         Route::view('/timeline-calc', 'pages.tech')->name('timeline-calc');
     });
 });
