@@ -488,8 +488,6 @@
                                                 wire:navigate><span class="grow">Positions</span></a>
                                             <a @class(['menu-item', 'active' => request()->routeIs('employees.*')]) href="{{ route('employees.index') }}"
                                                 wire:navigate><span class="grow">Employees</span></a>
-                                            <a @class(['menu-item', 'active' => request()->routeIs('admin.users')]) href="{{ route('admin.users') }}"
-                                                wire:navigate><span class="grow">Manage Users</span></a>
                                             <a @class(['menu-item', 'active' => request()->routeIs('admin.roles')]) href="{{ route('admin.roles') }}"
                                                 wire:navigate><span class="grow">Manage Roles</span></a>
                                         </div>

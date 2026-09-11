@@ -3,7 +3,6 @@
 use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\Debug\ErrorLogController;
 use App\Livewire\Admin\RoleManagement;
-use App\Livewire\Admin\UserManagement;
 use App\Livewire\Ai\AiCenter;
 use App\Livewire\Chat\ChatIndex;
 use App\Livewire\Dashboard\ExecutiveIndex;
@@ -56,7 +55,7 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Volt::route('/departments', 'master.departments.index')->name('departments.index');
         Volt::route('/positions', 'master.positions.index')->name('positions.index');
         Volt::route('/employees', 'master.employees.index')->name('employees.index');
-        Route::get('/admin/users', UserManagement::class)->name('admin.users');
+        Route::redirect('/admin/users', '/employees')->name('admin.users');
         Route::get('/admin/roles', RoleManagement::class)->name('admin.roles');
     });
 

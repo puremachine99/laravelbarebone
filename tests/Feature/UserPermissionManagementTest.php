@@ -1,13 +1,13 @@
 <?php
 
 use App\Enums\UserStatus;
-use App\Livewire\Admin\UserManagement;
+use App\Models\Employee;
 use App\Models\User;
 use App\Notifications\UserInvitedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
-use Livewire\Livewire;
+use Livewire\Volt\Volt;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -26,14 +26,14 @@ test('unauthorized users without access-internal-org permission cannot access us
         ->assertStatus(403);
 });
 
-test('authorized users with access-internal-org permission can access user management', function () {
+test('the legacy admin.users URL redirects to the merged employees page', function () {
     $user = User::factory()->create();
     $permission = Permission::findOrCreate('access-internal-org');
     $user->givePermissionTo($permission);
 
     $this->actingAs($user)
         ->get(route('admin.users'))
-        ->assertStatus(200);
+        ->assertRedirect(route('employees.index'));
 });
 
 test('admin can assign roles and permissions dynamically to a user', function () {
@@ -41,26 +41,24 @@ test('admin can assign roles and permissions dynamically to a user', function ()
     $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
 
     $targetUser = User::factory()->create();
-    $role = Role::findOrCreate('Partnership Admin');
+    $employee = Employee::create(['user_id' => $targetUser->id]);
+    Role::findOrCreate('Partnership Admin');
 
     $this->actingAs($admin);
 
-    // Assert target user does not have the role initially
     expect($targetUser->hasRole('Partnership Admin'))->toBeFalse();
 
-    // Open edit form and save with a new role assigned
-    Livewire::test(UserManagement::class)
-        ->call('openEdit', $targetUser->id)
+    Volt::test('master.employees.index')
+        ->call('edit', $employee->id)
         ->set('userRoles', ['Partnership Admin'])
-        ->call('saveUser')
+        ->call('save')
         ->assertHasNoErrors();
 
-    // Assert changes were persisted
     $targetUser->refresh();
     expect($targetUser->hasRole('Partnership Admin'))->toBeTrue();
 });
 
-test('admin invites a new user with roles instead of setting a password directly', function () {
+test('admin invites a new employee with roles instead of setting a password directly', function () {
     Notification::fake();
 
     $admin = User::factory()->create();
@@ -69,12 +67,12 @@ test('admin invites a new user with roles instead of setting a password directly
 
     $this->actingAs($admin);
 
-    Livewire::test(UserManagement::class)
-        ->call('openCreate')
+    Volt::test('master.employees.index')
+        ->call('resetForm')
         ->set('name', 'New Employee')
         ->set('email', 'new.employee@example.com')
         ->set('userRoles', ['Partnership Admin'])
-        ->call('saveUser')
+        ->call('save')
         ->assertHasNoErrors();
 
     $newUser = User::where('email', 'new.employee@example.com')->first();
@@ -85,41 +83,46 @@ test('admin invites a new user with roles instead of setting a password directly
         ->and($newUser->invited_by)->toBe($admin->id)
         ->and($newUser->hasRole('Partnership Admin'))->toBeTrue();
 
+    expect(Employee::where('user_id', $newUser->id)->exists())->toBeTrue();
+
     Notification::assertSentTo($newUser, UserInvitedNotification::class);
 });
 
-test('admin can update an existing user profile fields', function () {
+test('admin can update an existing employee profile fields', function () {
     $admin = User::factory()->create();
     $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
 
     $targetUser = User::factory()->create(['name' => 'Old Name']);
+    $employee = Employee::create(['user_id' => $targetUser->id]);
 
     $this->actingAs($admin);
 
-    Livewire::test(UserManagement::class)
-        ->call('openEdit', $targetUser->id)
+    Volt::test('master.employees.index')
+        ->call('edit', $employee->id)
         ->set('name', 'Updated Name')
         ->set('email', $targetUser->email)
-        ->call('saveUser')
+        ->call('save')
         ->assertHasNoErrors();
 
     $targetUser->refresh();
     expect($targetUser->name)->toBe('Updated Name');
 });
 
-test('admin can delete a user', function () {
+test('admin can delete a user, which cascades to their employee profile', function () {
     $admin = User::factory()->create();
     $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
 
     $targetUser = User::factory()->create();
+    Employee::create(['user_id' => $targetUser->id]);
 
     $this->actingAs($admin);
 
-    Livewire::test(UserManagement::class)
+    Volt::test('master.employees.index')
         ->call('confirmDelete', $targetUser->id)
         ->call('delete');
 
     expect(User::find($targetUser->id))->toBeNull();
+    expect(Employee::where('user_id', $targetUser->id)->exists())->toBeFalse();
 });
 
 test('admin can resend an invite to a user who has not yet activated their account', function () {
@@ -129,10 +132,11 @@ test('admin can resend an invite to a user who has not yet activated their accou
     $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
 
     $invitedUser = User::factory()->invited()->create();
+    Employee::create(['user_id' => $invitedUser->id]);
 
     $this->actingAs($admin);
 
-    Livewire::test(UserManagement::class)
+    Volt::test('master.employees.index')
         ->call('resendInvite', $invitedUser->id);
 
     Notification::assertSentTo($invitedUser, UserInvitedNotification::class);
@@ -143,6 +147,7 @@ test('admin can suspend an active user and their sessions are invalidated', func
     $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
 
     $targetUser = User::factory()->create();
+    Employee::create(['user_id' => $targetUser->id]);
 
     DB::table('sessions')->insert([
         'id' => 'test-session-id',
@@ -155,7 +160,7 @@ test('admin can suspend an active user and their sessions are invalidated', func
 
     $this->actingAs($admin);
 
-    Livewire::test(UserManagement::class)
+    Volt::test('master.employees.index')
         ->call('suspend', $targetUser->id);
 
     $targetUser->refresh();
@@ -166,10 +171,11 @@ test('admin can suspend an active user and their sessions are invalidated', func
 test('admin cannot suspend themselves', function () {
     $admin = User::factory()->create();
     $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    Employee::create(['user_id' => $admin->id]);
 
     $this->actingAs($admin);
 
-    Livewire::test(UserManagement::class)
+    Volt::test('master.employees.index')
         ->call('suspend', $admin->id);
 
     $admin->refresh();

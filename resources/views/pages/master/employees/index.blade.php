@@ -2,12 +2,16 @@
 
 use function Livewire\Volt\{state, layout, computed, usesPagination};
 use App\Actions\Users\InviteUser;
-use App\Models\Employee;
+use App\Enums\UserStatus;
 use App\Models\Department;
+use App\Models\Employee;
 use App\Models\Position;
-use Illuminate\Validation\Rule;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Carbon\Carbon;
+use Spatie\Permission\Models\Role;
 
 usesPagination();
 layout('layouts.app');
@@ -35,6 +39,7 @@ state([
 'position_fungsional_id' =>'',
 'employment_status' =>'',
 'is_cltp' => false,
+'userRoles' => [],
 
 'selectedEmployee' => null,
 'showEmployeeModal' => false,
@@ -43,19 +48,21 @@ state([
 
 $departmentOptions = computed(fn() => Department::orderBy('name')->get());
 $positionOptions = computed(fn() => Position::orderBy('name')->get());
+$allRoles = computed(fn() => Role::all());
 
 $employees = computed(function () {
  $search = $this->search;
  $filterDept = $this->filterDept;
 
  return Employee::query()
- ->with(['user','department','positionFungsional','positionStruktural'])
+ ->with(['user.roles','department','positionFungsional','positionStruktural'])
  ->join('users','users.id','=','employees.user_id')
  ->select('employees.*')
  ->when($search, fn($q) =>
  $q->where(fn($q) =>
  $q->whereRaw('LOWER(users.name) LIKE ?', ['%' . strtolower($search) .'%'])
  ->orWhereRaw('LOWER(users.email) LIKE ?', ['%' . strtolower($search) .'%'])
+ ->orWhereRaw('LOWER(employees.nis) LIKE ?', ['%' . strtolower($search) .'%'])
  )
  )
  ->when($filterDept, fn($q) => $q->where('employees.department_id', $filterDept))
@@ -155,6 +162,7 @@ $updatedFilterDept = function () {
 
 $resetForm = function () {
  $this->reset(['employee_id','isEdit','name','email','password','department_id','position_struktural_id','position_fungsional_id','employment_status','is_cltp']);
+ $this->userRoles = [];
  $this->resetValidation();
 };
 
@@ -182,7 +190,7 @@ $save = function (InviteUser $inviteUser) {
  ];
 
  if ($isNew) {
- $user = $inviteUser->handle($this->name, $this->email, null, [], auth()->user());
+ $user = $inviteUser->handle($this->name, $this->email, null, $this->userRoles, auth()->user());
  Employee::create(array_merge($employeeData, ['user_id' => $user->id]));
  } else {
  $employee = Employee::findOrFail($this->employee_id);
@@ -194,6 +202,7 @@ $save = function (InviteUser $inviteUser) {
  $userData['password'] = Hash::make($this->password);
  }
  $employee->user->update($userData);
+ $employee->user->syncRoles($this->userRoles);
  $employee->update($employeeData);
  }
 
@@ -213,17 +222,52 @@ $edit = function (Employee $employee) {
  $this->position_fungsional_id = $employee->position_fungsional_id ??'';
  $this->employment_status = $employee->employment_status ??'';
  $this->is_cltp = $employee->is_cltp;
+ $this->userRoles = $employee->user->roles->pluck('name')->toArray();
  $this->isEdit = true;
  $this->showEmployeeModal = true;
 };
 
-$confirmDelete = function (string $id) {
- $this->deleteTargetId = $id;
+$resendInvite = function (InviteUser $inviteUser, int $userId) {
+ $user = User::findOrFail($userId);
+
+ if (! $user->isInvited()) {
+ return;
+ }
+
+ $inviteUser->resend($user);
+
+ session()->flash('success','Undangan berhasil dikirim ulang.');
+};
+
+$suspend = function (int $userId) {
+ if ($userId === auth()->id()) {
+ return;
+ }
+
+ User::whereKey($userId)->update(['status' => UserStatus::Suspended]);
+
+ DB::table('sessions')->where('user_id', $userId)->delete();
+
+ session()->flash('error','Pengguna berhasil dinonaktifkan dan sesi aktifnya diputus.');
+};
+
+$activate = function (int $userId) {
+ User::whereKey($userId)->update(['status' => UserStatus::Active]);
+
+ session()->flash('success','Pengguna berhasil diaktifkan kembali.');
+};
+
+$confirmDelete = function (int $userId) {
+ $this->deleteTargetId = $userId;
  $this->showDeleteModal = true;
 };
 
 $delete = function () {
- Employee::findOrFail($this->deleteTargetId)->delete();
+ if ($this->deleteTargetId && $this->deleteTargetId !== auth()->id()) {
+ DB::table('sessions')->where('user_id', $this->deleteTargetId)->delete();
+ User::findOrFail($this->deleteTargetId)->delete();
+ }
+
  $this->deleteTargetId = null;
  $this->showDeleteModal = false;
  session()->flash('error','Karyawan berhasil dihapus.');
@@ -370,8 +414,9 @@ $delete = function () {
  @endif
  </div>
  </th>
- <th>Status</th>
- <th>Gender</th>
+ <th>Status Akun</th>
+ <th>Status Kepegawaian</th>
+ <th>Roles</th>
  <th class="text-right">Aksi</th>
  </tr>
  </thead>
@@ -384,6 +429,19 @@ $delete = function () {
  <td>{{ $emp->positionStruktural?->name ??'-' }}</td>
  <td>{{ $emp->positionFungsional?->name ??'-' }}</td>
  <td>{{ $emp->user->email }}</td>
+ <td>
+ <span class="badge badge-sm {{ match ($emp->user->status) {
+ \App\Enums\UserStatus::Active =>'badge-success',
+ \App\Enums\UserStatus::Invited =>'badge-warning',
+ \App\Enums\UserStatus::Suspended =>'badge-error',
+ } }}">
+ {{ match ($emp->user->status) {
+ \App\Enums\UserStatus::Active =>'Aktif',
+ \App\Enums\UserStatus::Invited =>'Menunggu Aktivasi',
+ \App\Enums\UserStatus::Suspended =>'Dinonaktifkan',
+ } }}
+ </span>
+ </td>
  <td>
  <div class="flex items-center gap-1.5 flex-wrap">
  @if ($emp->employment_status)
@@ -408,18 +466,35 @@ $delete = function () {
  @endif
  </div>
  </td>
- <td>{{ $emp->gender ??'-' }}</td>
+ <td class="max-w-40">
+ <div class="flex flex-wrap gap-1">
+ @forelse ($emp->user->roles as $role)
+ <span class="badge badge-sm badge-outline badge-primary whitespace-nowrap">{{ $role->name }}</span>
+ @empty
+ <span class="text-xs text-base-content/40">-</span>
+ @endforelse
+ </div>
+ </td>
  <td class="text-right" wire:click.stop>
  <div class="flex gap-2 justify-end">
+ @if ($emp->user->isInvited())
+ <x-button label="Kirim Ulang" class="btn-ghost btn-xs text-warning" wire:click="resendInvite({{ $emp->user_id }})" />
+ @elseif ($emp->user->isSuspended())
+ <x-button label="Aktifkan" class="btn-ghost btn-xs text-success" wire:click="activate({{ $emp->user_id }})" />
+ @elseif ($emp->user_id !== auth()->id())
+ <x-button label="Nonaktifkan" class="btn-ghost btn-xs text-warning" wire:click="suspend({{ $emp->user_id }})" />
+ @endif
  <x-button icon="o-eye" class="btn-ghost btn-xs text-base-content/50" wire:click="showDetail('{{ $emp->id }}')" />
  <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="edit('{{ $emp->id }}')" />
- <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete('{{ $emp->id }}')" />
+ @if ($emp->user_id !== auth()->id())
+ <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete({{ $emp->user_id }})" />
+ @endif
  </div>
  </td>
  </tr>
  @empty
  <tr>
- <td colspan="9" class="text-center text-base-content/50 py-8">
+ <td colspan="10" class="text-center text-base-content/50 py-8">
  Belum ada data yang ditampilkan.
  </td>
  </tr>
@@ -642,6 +717,18 @@ $delete = function () {
  <x-select label="Status Kepegawaian" wire:model="employment_status" :options="$statusOpts" placeholder="-- Pilih Status --" placeholder-value="" />
  <x-checkbox label="Karyawan CLTP" wire:model="is_cltp" />
 
+ <hr class="border-base-300 my-2" />
+ <h4 class="font-bold text-base-content/50 text-xs uppercase">Hak Akses (Roles)</h4>
+
+ <div class="grid grid-cols-1 gap-2">
+ @foreach ($this->allRoles as $role)
+ <label class="flex items-center gap-3 p-3 rounded-lg border border-base-300 bg-base-100 hover:bg-base-200 cursor-pointer">
+ <input type="checkbox" wire:model="userRoles" value="{{ $role->name }}" class="checkbox checkbox-sm checkbox-primary" />
+ <span class="text-sm font-medium text-base-content/90">{{ $role->name }}</span>
+ </label>
+ @endforeach
+ </div>
+
  <div class="flex justify-end gap-2 pt-4 border-t border-base-300">
  <x-button label="Batal" wire:click="$set('showEmployeeModal', false)" class="btn-ghost" />
  <x-button label="Simpan Data" type="submit" class="btn-primary" />
@@ -650,7 +737,7 @@ $delete = function () {
  </x-modal>
 
  <!-- Confirmation Modal -->
- <x-modal wire:model="showDeleteModal" title="Hapus Karyawan?" subtitle="Tindakan ini tidak bisa dibatalkan.">
+ <x-modal wire:model="showDeleteModal" title="Hapus Pengguna?" subtitle="Menghapus pengguna ini akan menghilangkan akses login, profil karyawan, serta semua peran yang dimilikinya. Tindakan ini tidak bisa dibatalkan.">
  <div class="flex justify-end gap-2 pt-4">
  <x-button label="Batal" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
  <x-button label="Ya, Hapus" wire:click="delete" class="btn-error text-white" />

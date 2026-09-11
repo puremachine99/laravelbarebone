@@ -102,7 +102,7 @@
                                         <span class="text-xs font-semibold text-base-content/70 uppercase tracking-wide"
                                             x-text="sub.name"></span>
                                         <span class="ml-auto text-xs text-base-content/40 font-mono"
-                                            x-text="`${sub.tasks.filter(t=>selectedTasks.includes(t.id)).length}/${sub.tasks.length}`"></span>
+                                            x-text="`${sub.tasks.filter(t=>selections[t.id]).length}/${sub.tasks.length}`"></span>
                                     </div>
                                     {{-- Tasks --}}
                                     <template x-for="task in filteredTasks(sub.tasks)" :key="task.id">
@@ -110,7 +110,8 @@
                                             class="flex items-start gap-3 px-4 py-2.5 cursor-pointer hover:bg-base-200/30 transition-colors border-b border-base-200 last:border-0">
                                             <input type="checkbox"
                                                 class="checkbox checkbox-xs checkbox-primary mt-0.5 flex-shrink-0"
-                                                :value="task.id" x-model="selectedTasks">
+                                                :checked="!!selections[task.id]"
+                                                @change="toggleTask(task, $event.target.checked)">
                                             <div class="flex-1 min-w-0">
                                                 <div class="text-sm leading-tight" x-text="task.name"></div>
                                                 <div class="mt-1 flex flex-wrap items-center gap-1.5">
@@ -118,6 +119,8 @@
                                                         <span class="badge badge-xs font-mono font-semibold"
                                                             :class="phaseBadge(ph)" x-text="ph"></span>
                                                     </template>
+                                                    <span x-show="isPerUnitTask(task)"
+                                                        class="badge badge-xs badge-outline font-mono">per unit</span>
                                                     <span x-show="task.note"
                                                         class="text-xs text-base-content/40 italic"
                                                         x-text="task.note"></span>
@@ -128,6 +131,9 @@
                                                     x-text="task.sp + ' SP'"></div>
                                                 <div class="text-xs text-base-content/40 mt-0.5"
                                                     x-text="spHours(task.sp)"></div>
+                                                <div x-show="selections[task.id] && isPerUnitTask(task) && selections[task.id].qty > 1"
+                                                    class="text-xs text-primary font-mono font-semibold mt-0.5"
+                                                    x-text="'= ' + taskEffectiveSP(task) + ' SP'"></div>
                                             </div>
                                         </label>
                                     </template>
@@ -153,7 +159,7 @@
                                     Story Points</p>
                                 <p class="font-mono text-4xl font-bold mt-1 text-primary" x-text="totalSP()"></p>
                                 <p class="text-base-content/50 text-sm mt-1"
-                                    x-text="`${selectedTasks.length} task dipilih`"></p>
+                                    x-text="`${selectedIds().length} task dipilih`"></p>
                             </div>
                             <div class="text-right">
                                 <p class="text-base-content/50 text-xs font-medium uppercase tracking-wider">Estimasi
@@ -170,6 +176,70 @@
                             <progress class="progress progress-primary w-full" :value="Math.min(100, totalSP() / 3)"
                                 max="100"></progress>
                         </div>
+
+                        <div x-show="selectedIds().length > 0"
+                            class="mt-3 pt-3 border-t border-base-300 flex items-center gap-2 flex-wrap">
+                            <label class="flex items-center gap-1.5 text-xs text-base-content/70">
+                                Buffer:
+                                <input type="number" min="0" x-model.number="bufferDays"
+                                    class="input input-xs w-14">
+                                hari
+                            </label>
+                            <button @click="copySummary()" class="btn btn-xs btn-primary ml-auto">
+                                <span x-show="!copied">Salin Ringkasan</span>
+                                <span x-show="copied">Tersalin ✓</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Feature grouping (FR-3) --}}
+                <div class="card bg-base-100 border border-base-300 shadow-sm">
+                    <div class="card-body p-4 gap-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider">Fitur
+                                dalam Tiket Ini</h3>
+                            <button @click="addFeature()" class="btn btn-xs btn-ghost text-primary">+ Tambah
+                                Fitur</button>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <template x-for="f in features" :key="f.id">
+                                <div class="flex items-center gap-2">
+                                    <input type="text" x-model="f.name"
+                                        class="input input-xs flex-1 min-w-0 bg-base-200/40">
+                                    <span class="text-xs text-base-content/40 font-mono shrink-0"
+                                        x-text="getFeatureTaskCount(f.id) + ' task'"></span>
+                                    <span class="font-mono text-xs font-semibold shrink-0"
+                                        x-text="getFeatureSP(f.id) + ' SP'"></span>
+                                    <button x-show="features.length > 1" @click="removeFeature(f.id)"
+                                        class="size-4 shrink-0 text-base-content/30 hover:text-error transition-colors">
+                                        <svg fill="none" stroke="currentColor" stroke-width="2"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </template>
+
+                            <div class="flex items-center gap-2 pt-1.5 border-t border-base-300">
+                                <span class="text-xs text-base-content/50 flex-1">Shared / Dasar (dihitung sekali)</span>
+                                <span class="text-xs text-base-content/40 font-mono shrink-0"
+                                    x-text="getSharedTaskCount() + ' task'"></span>
+                                <span class="font-mono text-xs font-semibold shrink-0"
+                                    x-text="getSharedSP() + ' SP'"></span>
+                            </div>
+                        </div>
+
+                        <label class="flex items-center gap-2 text-xs text-base-content/50 pt-1">
+                            Task baru dicentang masuk ke:
+                            <select x-model="activeFeatureId" class="select select-xs flex-1">
+                                <template x-for="f in features" :key="f.id">
+                                    <option :value="f.id" x-text="f.name"></option>
+                                </template>
+                            </select>
+                        </label>
                     </div>
                 </div>
 
@@ -222,7 +292,7 @@
                 </div>
 
                 {{-- Gantt estimate --}}
-                <div x-show="selectedTasks.length > 0" class="card bg-base-100 border border-base-300 shadow-sm">
+                <div x-show="selectedIds().length > 0" class="card bg-base-100 border border-base-300 shadow-sm">
                     <div class="card-body p-4 gap-3">
                         <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider">Estimasi Gantt
                             (Minggu)</h3>
@@ -255,29 +325,71 @@
                 </div>
 
                 {{-- Selected tasks --}}
-                <div x-show="selectedTasks.length > 0" class="card bg-base-100 border border-base-300 shadow-sm">
+                <div x-show="selectedIds().length > 0" class="card bg-base-100 border border-base-300 shadow-sm">
                     <div class="card-body p-4 gap-3">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider">Task
                                 Dipilih</h3>
-                            <button @click="selectedTasks = []" class="text-xs text-error hover:underline">Hapus
+                            <button @click="selections = {}" class="text-xs text-error hover:underline">Hapus
                                 semua</button>
                         </div>
-                        <div class="space-y-1 max-h-48 overflow-y-auto">
-                            <template x-for="tid in selectedTasks" :key="tid">
-                                <div class="flex items-center gap-2 py-0.5">
-                                    <button @click="selectedTasks = selectedTasks.filter(x=>x!==tid)"
-                                        class="size-4 shrink-0 text-base-content/30 hover:text-error transition-colors">
-                                        <svg fill="none" stroke="currentColor" stroke-width="2"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                    <span class="text-xs text-base-content/60 truncate flex-1"
-                                        x-text="getTaskName(tid)"></span>
-                                    <span class="font-mono text-xs font-semibold text-base-content/50 shrink-0"
-                                        x-text="getTaskSP(tid) + ' SP'"></span>
+                        <div class="space-y-2 max-h-96 overflow-y-auto">
+                            <template x-for="tid in selectedIds()" :key="tid">
+                                <div class="rounded-lg border border-base-200 p-2 space-y-1.5">
+                                    <div class="flex items-center gap-2">
+                                        <button @click="toggleTask(getTask(tid), false)"
+                                            class="size-4 shrink-0 text-base-content/30 hover:text-error transition-colors">
+                                            <svg fill="none" stroke="currentColor" stroke-width="2"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                        <span class="text-xs text-base-content/80 truncate flex-1"
+                                            x-text="getTaskName(tid)"></span>
+                                        <span class="font-mono text-xs font-semibold text-primary shrink-0"
+                                            x-text="getTaskSP(tid) + ' SP'"></span>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-2 pl-6">
+                                        <template x-if="isPerUnitTask(getTask(tid))">
+                                            <label class="flex items-center gap-1 text-xs text-base-content/70">
+                                                Unit:
+                                                <input type="number" min="1" :value="selections[tid].qty"
+                                                    @input="setQty(tid, $event.target.value)"
+                                                    class="input input-xs w-14">
+                                            </label>
+                                        </template>
+                                        <template x-if="getTask(tid).phases.length > 1">
+                                            <label class="flex items-center gap-1 text-xs text-base-content/70">
+                                                Fase:
+                                                <select :value="selections[tid].phase"
+                                                    @change="setPhase(tid, $event.target.value)"
+                                                    class="select select-xs">
+                                                    <template x-for="ph in getTask(tid).phases" :key="ph">
+                                                        <option :value="ph" x-text="ph"></option>
+                                                    </template>
+                                                </select>
+                                            </label>
+                                        </template>
+                                        <label class="flex items-center gap-1 text-xs text-base-content/70">
+                                            Fitur:
+                                            <select :value="selections[tid].featureId"
+                                                :disabled="selections[tid].shared"
+                                                @change="setFeature(tid, $event.target.value)"
+                                                class="select select-xs disabled:text-base-content/70">
+                                                <template x-for="f in features" :key="f.id">
+                                                    <option :value="f.id" x-text="f.name"></option>
+                                                </template>
+                                            </select>
+                                        </label>
+                                        <label
+                                            class="flex items-center gap-1 text-xs text-base-content/70 cursor-pointer">
+                                            <input type="checkbox" class="checkbox checkbox-xs"
+                                                :checked="selections[tid].shared"
+                                                @change="toggleShared(tid, $event.target.checked)">
+                                            Shared
+                                        </label>
+                                    </div>
                                 </div>
                             </template>
                         </div>
@@ -349,9 +461,17 @@
                 filterPhase: '',
                 teamSize: 1,
                 spPerDev: 2,
-                selectedTasks: [],
+                selections: {},
+                features: [{
+                    id: 'f1',
+                    name: 'Fitur 1'
+                }],
+                activeFeatureId: 'f1',
+                featureCounter: 1,
                 openCats: [],
                 devMode: false,
+                bufferDays: 2,
+                copied: false,
 
                 phases: [{
                         code: 'P0',
@@ -1698,7 +1818,92 @@
                     return this.devMode ? t.name : t.nameNonTeknis;
                 },
                 getTaskSP(id) {
-                    return this.getTask(id)?.sp ?? 0;
+                    const t = this.getTask(id);
+                    return t ? this.taskEffectiveSP(t) : 0;
+                },
+
+                // FR-1: task berskala per-unit (per modul/resource/unit/iterasi/service/use case)
+                isPerUnitTask(task) {
+                    const re = /per[\s-]?(modul|resource|unit|iterasi|service|use\s?case)/i;
+                    return re.test(task.name) || re.test(task.nameNonTeknis || '') || re.test(task.note || '');
+                },
+                taskEffectiveSP(task) {
+                    const sel = this.selections[task.id];
+                    if (!sel) return 0;
+                    const qty = this.isPerUnitTask(task) ? Math.max(1, sel.qty || 1) : 1;
+                    return task.sp * qty;
+                },
+                // FR-2: fase efektif task — jika task punya >1 tag fase, pakai pilihan manual pengguna
+                effectivePhase(task) {
+                    if (task.phases.length === 1) return task.phases[0];
+                    return this.selections[task.id]?.phase || task.phases[0];
+                },
+                selectedIds() {
+                    return Object.keys(this.selections);
+                },
+                toggleTask(task, checked) {
+                    if (checked) {
+                        this.selections[task.id] = {
+                            qty: 1,
+                            phase: task.phases.length > 1 ? task.phases[0] : task.phases[0],
+                            featureId: this.activeFeatureId,
+                            shared: false,
+                        };
+                    } else {
+                        delete this.selections[task.id];
+                    }
+                },
+                setQty(id, qty) {
+                    if (!this.selections[id]) return;
+                    this.selections[id].qty = Math.max(1, parseInt(qty) || 1);
+                },
+                setPhase(id, phase) {
+                    if (!this.selections[id]) return;
+                    this.selections[id].phase = phase;
+                },
+                setFeature(id, featureId) {
+                    if (!this.selections[id]) return;
+                    this.selections[id].featureId = featureId;
+                },
+                toggleShared(id, shared) {
+                    if (!this.selections[id]) return;
+                    this.selections[id].shared = shared;
+                },
+
+                // FR-3: pengelompokan fitur & shared task
+                addFeature() {
+                    this.featureCounter++;
+                    const id = 'f' + this.featureCounter;
+                    this.features.push({
+                        id,
+                        name: `Fitur ${this.featureCounter}`
+                    });
+                    this.activeFeatureId = id;
+                },
+                removeFeature(featureId) {
+                    if (this.features.length <= 1) return;
+                    this.features = this.features.filter(f => f.id !== featureId);
+                    const fallback = this.features[0].id;
+                    Object.values(this.selections).forEach(sel => {
+                        if (sel.featureId === featureId) sel.featureId = fallback;
+                    });
+                    if (this.activeFeatureId === featureId) this.activeFeatureId = fallback;
+                },
+                getFeatureSP(featureId) {
+                    return this.allTasks().filter(t => {
+                        const sel = this.selections[t.id];
+                        return sel && !sel.shared && sel.featureId === featureId;
+                    }).reduce((a, t) => a + this.taskEffectiveSP(t), 0);
+                },
+                getFeatureTaskCount(featureId) {
+                    return Object.values(this.selections).filter(s => !s.shared && s.featureId === featureId).length;
+                },
+                getSharedSP() {
+                    return this.allTasks().filter(t => this.selections[t.id]?.shared)
+                        .reduce((a, t) => a + this.taskEffectiveSP(t), 0);
+                },
+                getSharedTaskCount() {
+                    return Object.values(this.selections).filter(s => s.shared).length;
                 },
 
                 filteredCategories() {
@@ -1730,39 +1935,34 @@
                 },
 
                 isSubcatChecked(sub) {
-                    return sub.tasks.length > 0 && sub.tasks.every(t => this.selectedTasks.includes(t.id));
+                    return sub.tasks.length > 0 && sub.tasks.every(t => !!this.selections[t.id]);
                 },
                 isSubcatIndeterminate(sub) {
-                    const cnt = sub.tasks.filter(t => this.selectedTasks.includes(t.id)).length;
+                    const cnt = sub.tasks.filter(t => !!this.selections[t.id]).length;
                     return cnt > 0 && cnt < sub.tasks.length;
                 },
                 toggleSubcat(sub, checked) {
-                    if (checked) {
-                        sub.tasks.forEach(t => {
-                            if (!this.selectedTasks.includes(t.id)) this.selectedTasks.push(t.id);
-                        });
-                    } else {
-                        this.selectedTasks = this.selectedTasks.filter(id => !sub.tasks.map(t => t.id).includes(id));
-                    }
+                    sub.tasks.forEach(t => this.toggleTask(t, checked));
                 },
 
                 getCatSelectedCount(catId) {
                     const cat = this.categories.find(c => c.id === catId);
                     if (!cat) return 0;
-                    return cat.subcats.flatMap(s => s.tasks).filter(t => this.selectedTasks.includes(t.id)).length;
+                    return cat.subcats.flatMap(s => s.tasks).filter(t => this.selections[t.id]).length;
                 },
                 getCatSP(catId) {
                     const cat = this.categories.find(c => c.id === catId);
                     if (!cat) return 0;
-                    return cat.subcats.flatMap(s => s.tasks).filter(t => this.selectedTasks.includes(t.id)).reduce((a, t) =>
-                        a + t.sp, 0);
+                    return cat.subcats.flatMap(s => s.tasks).filter(t => this.selections[t.id]).reduce((a, t) =>
+                        a + this.taskEffectiveSP(t), 0);
                 },
                 totalSP() {
-                    return this.allTasks().filter(t => this.selectedTasks.includes(t.id)).reduce((a, t) => a + t.sp, 0);
+                    return this.allTasks().filter(t => this.selections[t.id]).reduce((a, t) => a + this
+                        .taskEffectiveSP(t), 0);
                 },
                 getPhaseSP(phCode) {
-                    return this.allTasks().filter(t => this.selectedTasks.includes(t.id) && t.phases.some(p => p ===
-                        phCode)).reduce((a, t) => a + t.sp, 0);
+                    return this.allTasks().filter(t => this.selections[t.id] && this.effectivePhase(t) === phCode)
+                        .reduce((a, t) => a + this.taskEffectiveSP(t), 0);
                 },
                 estimateDays() {
                     const sp = this.totalSP();
@@ -1815,9 +2015,71 @@
                     return map[ph] ?? 'badge-ghost';
                 },
                 resetAll() {
-                    this.selectedTasks = [];
+                    this.selections = {};
+                    this.features = [{
+                        id: 'f1',
+                        name: 'Fitur 1'
+                    }];
+                    this.activeFeatureId = 'f1';
+                    this.featureCounter = 1;
                     this.search = '';
                     this.filterPhase = '';
+                },
+
+                // FR-6: ekspor ringkasan siap tempel
+                targetDate() {
+                    const d = new Date();
+                    d.setDate(d.getDate() + this.estimateDays() + (Number(this.bufferDays) || 0));
+                    return d.toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+                },
+                summaryText() {
+                    const lines = [
+                        'Enterprise Timeline Calculator — Ringkasan Estimasi',
+                        `Total Story Points: ${this.totalSP()} SP`,
+                        `Estimasi: ${this.estimateDays()} hari (${this.estimateWeeks()})`,
+                        `Tim: ${this.teamSize} dev @ ${this.spPerDev} SP/dev/hari`,
+                        '',
+                        'Breakdown per Fitur:',
+                    ];
+                    this.features.forEach(f => {
+                        lines.push(`- ${f.name}: ${this.getFeatureSP(f.id)} SP`);
+                    });
+                    if (this.getSharedSP() > 0) {
+                        lines.push(`- Shared/Dasar: ${this.getSharedSP()} SP`);
+                    }
+                    lines.push('', 'Distribusi per Phase:');
+                    this.phases.forEach(ph => {
+                        const sp = this.getPhaseSP(ph.code);
+                        if (sp > 0) lines.push(`- ${ph.code} ${ph.name}: ${sp} SP`);
+                    });
+                    lines.push(
+                        '',
+                        `Usulan Target Tiket Selesai: ${this.targetDate()} (estimasi ${this.estimateDays()} hari + buffer ${this.bufferDays} hari)`
+                    );
+                    return lines.join('\n');
+                },
+                async copySummary() {
+                    const text = this.summaryText();
+                    try {
+                        await navigator.clipboard.writeText(text);
+                    } catch (e) {
+                        const ta = document.createElement('textarea');
+                        ta.value = text;
+                        ta.style.position = 'fixed';
+                        ta.style.opacity = '0';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                    }
+                    this.copied = true;
+                    setTimeout(() => {
+                        this.copied = false;
+                    }, 2000);
                 }
             }
         }
