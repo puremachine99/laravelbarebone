@@ -142,7 +142,7 @@ new class extends Component {
                                     @php
                                         $targetDecimals = $row['daily_target'] == floor($row['daily_target']) ? 0 : 1;
                                     @endphp
-                                    <div class="tooltip tooltip-top w-5 h-5 rounded flex items-center justify-center text-[9px] font-semibold leading-none cursor-pointer {{ $tier }} {{ $textTier }}"
+                                    <div class="tooltip tooltip-top z-20 w-5 h-5 rounded flex items-center justify-center text-[9px] font-semibold leading-none cursor-pointer {{ $tier }} {{ $textTier }}"
                                         data-tip="{{ __(':day: :count/:target (:percent%)', ['day' => $day, 'count' => $data['count'], 'target' => number_format($row['daily_target'], $targetDecimals), 'percent' => $data['percent']]) }}">
                                         {{ $data['count'] > 0 ? $data['count'] : '' }}
                                     </div>
