@@ -113,7 +113,7 @@ new class extends Component {
     @if (! $this->hasTargets)
         <p class="text-sm text-base-content/50 mt-4">{{ __('Belum ada target KPI Funding yang di-set untuk karyawan ini.') }}</p>
     @else
-        <div class="mt-4 overflow-x-auto">
+        <div class="mt-4 pt-7 overflow-x-auto">
             <table class="border-separate" style="border-spacing: 3px;">
                 <thead>
                     <tr>
@@ -139,7 +139,7 @@ new class extends Component {
                                     $textTier = $data['count'] === 0 ? '' : 'text-white';
                                 @endphp
                                 <td class="p-0 text-center">
-                                    <div class="tooltip tooltip-top z-20 w-5 h-5 rounded flex items-center justify-center text-[9px] font-semibold leading-none cursor-pointer {{ $tier }} {{ $textTier }}"
+                                    <div class="tooltip tooltip-top w-5 h-5 rounded flex items-center justify-center text-[9px] font-semibold leading-none cursor-pointer {{ $tier }} {{ $textTier }}"
                                         data-tip="{{ $row['label'] }} — {{ __('hari :day: :count dari target :target (:percent%)', ['day' => $day, 'count' => $data['count'], 'target' => number_format($row['daily_target'], 1), 'percent' => $data['percent']]) }}">
                                         {{ $data['count'] > 0 ? $data['count'] : '' }}
                                     </div>
