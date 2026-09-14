@@ -34,6 +34,8 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
 
     Volt::route('/notifications', 'notifications.index')->name('notifications.index');
 
+    Volt::route('/users/{user}', 'users.show')->name('users.show');
+
     Route::middleware('can:view-executive-dashboard')->group(function () {
         Route::get('/executive-dashboard', ExecutiveIndex::class)->name('executive-dashboard');
     });

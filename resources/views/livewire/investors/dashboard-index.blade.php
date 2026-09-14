@@ -2,8 +2,7 @@
 
 use App\Models\Employee;
 use App\Models\FoFunnel;
-use App\Models\FoFunnelActivity;
-use App\Models\FoTarget;
+use App\Services\FoTargetMetrics;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -135,43 +134,20 @@ $scopedEmployees = computed(function () {
 
 $scopedEmployeeIds = computed(fn () => collect($this->scopedEmployees)->pluck('id')->all());
 
+$foMetrics = computed(fn () => app(FoTargetMetrics::class));
+
 $yearlyTargetFor = function ($employeeId, $metricKey) {
-    return (float) (FoTarget::where('employee_id', $employeeId)
-        ->where('year', (int) substr($this->selectedDate, 0, 4))
-        ->where('metric_key', $metricKey)
-        ->value('yearly_target') ?? 0);
+    return $this->foMetrics->yearlyTarget($employeeId, $metricKey, (int) substr($this->selectedDate, 0, 4));
 };
 
 $dailyTargetFor = fn ($employeeId, $metricKey) => $this->yearlyTargetFor($employeeId, $metricKey) / 12 / 25;
 
 $realisasiForFo = function ($employeeId, $metricKey, $date) {
-    return match ($metricKey) {
-        'leads' => FoFunnel::where('employee_id', $employeeId)->whereDate('tgl_leads', $date)->count(),
-        'ql' => FoFunnel::where('employee_id', $employeeId)->whereNotNull('tgl_qualified')->whereDate('tgl_qualified', $date)->count(),
-        'pitching' => FoFunnelActivity::where('stage', 'pitching')
-            ->whereDate('tanggal', $date)
-            ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId)->stageAtLeast('pitching'))
-            ->distinct('fo_funnel_id')
-            ->count('fo_funnel_id'),
-        'followup' => FoFunnelActivity::where('stage', 'followup')
-            ->whereDate('tanggal', $date)
-            ->whereHas('funnel', fn ($q) => $q->where('employee_id', $employeeId)->stageAtLeast('followup'))
-            ->distinct('fo_funnel_id')
-            ->count('fo_funnel_id'),
-        'won' => FoFunnel::where('employee_id', $employeeId)->stageAtLeast('won')->whereDate('tgl_won', $date)->count(),
-        'closing' => FoFunnel::where('employee_id', $employeeId)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereDate('tgl_closing', $date)->count(),
-        'nilai_closing' => (float) FoFunnel::where('employee_id', $employeeId)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereDate('tgl_closing', $date)->sum('nominal_investasi'),
-        default => 0,
-    };
+    return $this->foMetrics->realisasiFor($employeeId, $metricKey, $date);
 };
 
 $statusFor = function (?float $percent) {
-    return match (true) {
-        $percent === null => ['label' => 'RED', 'class' => 'badge-error'],
-        $percent >= 100 => ['label' => 'GREEN', 'class' => 'badge-success'],
-        $percent >= 50 => ['label' => 'YELLOW', 'class' => 'badge-warning'],
-        default => ['label' => 'RED', 'class' => 'badge-error'],
-    };
+    return $this->foMetrics->statusFor($percent);
 };
 
 $todaySummary = computed(function () {
@@ -252,94 +228,25 @@ $activityHeatmap = computed(function () {
     $daysInMonth = $date->daysInMonth;
     $year = $date->year;
     $month = $date->month;
-    $driver = FoFunnel::query()->getConnection()->getDriverName();
-
-    $dayExpr = fn (string $column) => $driver === 'sqlite'
-        ? "CAST(strftime('%d', {$column}) AS INTEGER)"
-        : "CAST(EXTRACT(DAY FROM {$column}) AS INTEGER)";
-
-    $countsByDay = fn ($query, string $countExpr, string $dayColumn) => $query
-        ->selectRaw($dayExpr($dayColumn).' as day, '.$countExpr.' as total')
-        ->groupBy('day')
-        ->pluck('total', 'day');
 
     $stageMetrics = [
-        [
-            'key' => 'leads',
-            'label' => 'Leads',
-            'counts' => $countsByDay(
-                FoFunnel::whereIn('employee_id', $employeeIds)->whereYear('tgl_leads', $year)->whereMonth('tgl_leads', $month),
-                'COUNT(*)',
-                'tgl_leads'
-            ),
-        ],
-        [
-            'key' => 'ql',
-            'label' => 'QL',
-            'counts' => $countsByDay(
-                FoFunnel::whereIn('employee_id', $employeeIds)->whereNotNull('tgl_qualified')->whereYear('tgl_qualified', $year)->whereMonth('tgl_qualified', $month),
-                'COUNT(*)',
-                'tgl_qualified'
-            ),
-        ],
-        [
-            'key' => 'pitching',
-            'label' => 'Pitching',
-            'counts' => $countsByDay(
-                FoFunnelActivity::where('stage', 'pitching')
-                    ->whereYear('tanggal', $year)->whereMonth('tanggal', $month)
-                    ->whereHas('funnel', fn ($q) => $q->whereIn('employee_id', $employeeIds)->stageAtLeast('pitching')),
-                'COUNT(DISTINCT fo_funnel_id)',
-                'tanggal'
-            ),
-        ],
-        [
-            'key' => 'followup',
-            'label' => 'Follow Up',
-            'counts' => $countsByDay(
-                FoFunnelActivity::where('stage', 'followup')
-                    ->whereYear('tanggal', $year)->whereMonth('tanggal', $month)
-                    ->whereHas('funnel', fn ($q) => $q->whereIn('employee_id', $employeeIds)->stageAtLeast('followup')),
-                'COUNT(DISTINCT fo_funnel_id)',
-                'tanggal'
-            ),
-        ],
-        [
-            'key' => 'won',
-            'label' => 'Won',
-            'counts' => $countsByDay(
-                FoFunnel::whereIn('employee_id', $employeeIds)->stageAtLeast('won')->whereYear('tgl_won', $year)->whereMonth('tgl_won', $month),
-                'COUNT(*)',
-                'tgl_won'
-            ),
-        ],
-        [
-            'key' => 'closing',
-            'label' => 'Closing',
-            'counts' => $countsByDay(
-                FoFunnel::whereIn('employee_id', $employeeIds)->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereYear('tgl_closing', $year)->whereMonth('tgl_closing', $month),
-                'COUNT(*)',
-                'tgl_closing'
-            ),
-        ],
+        ['key' => 'leads', 'label' => 'Leads'],
+        ['key' => 'ql', 'label' => 'QL'],
+        ['key' => 'pitching', 'label' => 'Pitching'],
+        ['key' => 'followup', 'label' => 'Follow Up'],
+        ['key' => 'won', 'label' => 'Won'],
+        ['key' => 'closing', 'label' => 'Closing'],
     ];
 
-    $rows = collect($stageMetrics)->map(function ($metric) use ($daysInMonth) {
-        $counts = [];
-        $max = 0;
-
-        for ($day = 1; $day <= $daysInMonth; $day++) {
-            $count = (int) ($metric['counts'][$day] ?? 0);
-            $counts[$day] = $count;
-            $max = max($max, $count);
-        }
+    $rows = collect($stageMetrics)->map(function ($metric) use ($employeeIds, $year, $month) {
+        $counts = $this->foMetrics->dailyCountsForMonth($employeeIds, $metric['key'], $year, $month);
 
         return [
             'key' => $metric['key'],
             'label' => $metric['label'],
             'counts' => $counts,
             'total' => array_sum($counts),
-            'max' => $max,
+            'max' => $counts === [] ? 0 : max($counts),
         ];
     })->values()->all();
 

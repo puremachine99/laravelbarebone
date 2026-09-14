@@ -17,6 +17,7 @@ class Employee extends Model
         'contract_end_date' => 'date',
         'birth_date' => 'date',
         'is_cltp' => 'boolean',
+        'hide_kpi_heatmap' => 'boolean',
     ];
 
     public function user()

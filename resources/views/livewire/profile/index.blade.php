@@ -97,6 +97,19 @@ new #[Layout('layouts.app')] class extends Component {
 
         session()->flash('status', 'avatar-removed');
     }
+
+    public function toggleKpiVisibility(): void
+    {
+        $employee = $this->employee;
+
+        if (! $employee) {
+            return;
+        }
+
+        $employee->update(['hide_kpi_heatmap' => ! $employee->hide_kpi_heatmap]);
+
+        unset($this->employee);
+    }
 };
 
 ?>
@@ -182,6 +195,13 @@ new #[Layout('layouts.app')] class extends Component {
 
                 @if ($this->employee)
                     <div class="divider my-1"></div>
+
+                    <div class="w-full text-left text-sm flex items-center justify-between gap-3">
+                        <span class="text-xs text-base-content/50">{{ __('Sembunyikan KPI dari rekan kerja') }}</span>
+                        <input type="checkbox" class="toggle toggle-sm toggle-primary"
+                            wire:click="toggleKpiVisibility"
+                            @checked($this->employee->hide_kpi_heatmap) />
+                    </div>
 
                     <div class="w-full text-left text-sm" x-data="{ revealSensitive: false }">
                         <div class="flex items-center justify-between gap-3 mb-1">
@@ -304,6 +324,10 @@ new #[Layout('layouts.app')] class extends Component {
 
         {{-- Info + Edit --}}
         <div class="lg:col-span-2 space-y-6">
+            @if ($this->employee)
+                <livewire:kpi.employee-target-heatmap :employee="$this->employee" :key="'kpi-self-'.$this->employee->id" />
+            @endif
+
             <div class="card bg-base-200 border border-base-300 shadow-sm rounded-2xl">
                 <div class="card-body p-6 space-y-4">
                     <h3 class="text-lg font-medium text-base-content">{{ __('Account Information') }}</h3>

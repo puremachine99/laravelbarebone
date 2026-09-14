@@ -65,6 +65,9 @@ class RoleAndPermissionSeeder extends Seeder
         $investorAdminRole = Role::findOrCreate('Investor Admin');
         $investorAdminRole->givePermissionTo('access-investors');
 
+        $technologyRole = Role::findOrCreate('Technology');
+        $technologyRole->givePermissionTo('access-technology');
+
         // Assign Super Admin role to the default admin user
         $superAdmin = User::where('email', 'supernakama@smartid.co.id')->first();
         if ($superAdmin) {

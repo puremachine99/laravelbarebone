@@ -78,7 +78,8 @@
                 @endphp
                 @continue(! $otherUser)
                 <button type="button" wire:click="selectConversation({{ $conversation->id }})"
-                    class="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-base-200 transition-colors cursor-pointer {{ $selectedConversationId === $conversation->id ? 'bg-base-200' : '' }}">
+                    class="js-chat-contact w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-base-200 transition-colors cursor-pointer {{ $selectedConversationId === $conversation->id ? 'bg-base-200' : '' }}"
+                    data-profile-url="{{ route('users.show', $otherUser->id) }}">
                     <x-user-avatar :user="$otherUser" size="size-10" department class="mb-1" />
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2">
@@ -309,6 +310,11 @@
                         </div>
                     @endif
                 </div>
+
+                <a href="{{ route('users.show', $this->selectedOtherUser->id) }}" wire:navigate
+                    class="btn btn-outline btn-sm w-full">
+                    {{ __('Lihat Profil Lengkap') }}
+                </a>
             </div>
         </div>
     @endif
@@ -326,7 +332,8 @@
             <div class="max-h-80 overflow-y-auto divide-y divide-base-300 -mx-4">
                 @forelse ($this->allUsers as $user)
                     <button type="button" wire:click="startNewChat({{ $user->id }})"
-                        class="w-full text-left flex items-center gap-3 px-4 py-2.5 hover:bg-base-200 transition-colors cursor-pointer">
+                        class="js-chat-contact w-full text-left flex items-center gap-3 px-4 py-2.5 hover:bg-base-200 transition-colors cursor-pointer"
+                        data-profile-url="{{ route('users.show', $user->id) }}">
                         <x-user-avatar :user="$user" size="size-9" department class="mb-1" />
                         <div class="min-w-0">
                             <div class="text-sm font-semibold text-base-content truncate">{{ $user->name }}</div>
@@ -355,8 +362,9 @@
 
     document.addEventListener('contextmenu', (event) => {
         const image = event.target.closest('.js-chat-image');
+        const contact = event.target.closest('.js-chat-contact');
 
-        if (!image) {
+        if (!image && !contact) {
             closeMenu();
 
             return;
@@ -370,21 +378,37 @@
         menu.style.left = `${event.clientX}px`;
         menu.style.top = `${event.clientY}px`;
 
-        const download = document.createElement('button');
-        download.type = 'button';
-        download.className = 'btn btn-ghost btn-sm justify-start gap-2 whitespace-nowrap';
-        download.textContent = @json(__('Unduh gambar asli'));
-        download.addEventListener('click', () => {
-            const link = document.createElement('a');
-            link.href = image.dataset.originalUrl;
-            link.download = image.dataset.originalName || '';
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            closeMenu();
-        });
+        if (image) {
+            const download = document.createElement('button');
+            download.type = 'button';
+            download.className = 'btn btn-ghost btn-sm justify-start gap-2 whitespace-nowrap';
+            download.textContent = @json(__('Unduh gambar asli'));
+            download.addEventListener('click', () => {
+                const link = document.createElement('a');
+                link.href = image.dataset.originalUrl;
+                link.download = image.dataset.originalName || '';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                closeMenu();
+            });
 
-        menu.appendChild(download);
+            menu.appendChild(download);
+        }
+
+        if (contact) {
+            const viewProfile = document.createElement('button');
+            viewProfile.type = 'button';
+            viewProfile.className = 'btn btn-ghost btn-sm justify-start gap-2 whitespace-nowrap';
+            viewProfile.textContent = @json(__('Lihat Profil'));
+            viewProfile.addEventListener('click', () => {
+                closeMenu();
+                Livewire.navigate(contact.dataset.profileUrl);
+            });
+
+            menu.appendChild(viewProfile);
+        }
+
         document.body.appendChild(menu);
     });
 
