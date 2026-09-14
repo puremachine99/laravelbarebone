@@ -26,10 +26,10 @@ test('shows an empty state when the employee has no FoTarget rows at all', funct
 
     Livewire::test('kpi.employee-target-heatmap', ['employee' => $employee])
         ->assertSee('Belum ada target KPI Funding')
-        ->assertDontSee('Metric');
+        ->assertDontSee('Bulan');
 });
 
-test('daily counts and percent-to-target are computed correctly for the selected metric and month', function () {
+test('all targetable metrics show up as rows, each with their own daily counts and percent-to-target', function () {
     $viewer = User::factory()->create();
     $employee = heatmapEmployee();
 
@@ -51,14 +51,16 @@ test('daily counts and percent-to-target are computed correctly for the selected
         ->assertSee('KPI Funding');
 
     $heatmap = $component->instance()->heatmap();
+    $rows = collect($heatmap['rows'])->keyBy('key');
 
-    expect($heatmap['days'][5]['count'])->toBe(2)
-        ->and($heatmap['days'][5]['percent'])->toBe(200.0)
-        ->and($heatmap['days'][5]['status']['label'])->toBe('GREEN')
-        ->and($heatmap['total_realisasi'])->toBe(2);
+    expect($rows->keys()->all())->toBe(['leads', 'ql', 'pitching', 'closing'])
+        ->and($rows['leads']['days'][5]['count'])->toBe(2)
+        ->and($rows['leads']['days'][5]['percent'])->toBe(200.0)
+        ->and($rows['leads']['total_realisasi'])->toBe(2)
+        ->and($rows['ql']['total_realisasi'])->toBe(0);
 });
 
-test('switching metric and month recomputes the heatmap', function () {
+test('switching month recomputes the heatmap for all metric rows', function () {
     $viewer = User::factory()->create();
     $employee = heatmapEmployee();
 
@@ -78,9 +80,11 @@ test('switching metric and month recomputes the heatmap', function () {
     $this->actingAs($viewer);
 
     $component = Livewire::test('kpi.employee-target-heatmap', ['employee' => $employee])
-        ->set('selectedMetric', 'closing');
+        ->set('selectedMonth', (int) now()->month)
+        ->set('selectedYear', (int) now()->year);
 
     $heatmap = $component->instance()->heatmap();
+    $closingRow = collect($heatmap['rows'])->firstWhere('key', 'closing');
 
-    expect($heatmap['days'][(int) now()->day]['count'])->toBe(1);
+    expect($closingRow['days'][(int) now()->day]['count'])->toBe(1);
 });

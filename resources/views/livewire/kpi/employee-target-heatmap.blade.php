@@ -14,19 +14,11 @@ new class extends Component {
 
     public int $selectedYear;
 
-    public string $selectedMetric = 'leads';
-
     public function mount(Employee $employee): void
     {
         $this->employee = $employee;
         $this->selectedMonth = (int) now()->month;
         $this->selectedYear = (int) now()->year;
-    }
-
-    #[Computed]
-    public function metrics(): array
-    {
-        return app(FoTargetMetrics::class)->targetableMetrics();
     }
 
     #[Computed]
@@ -45,41 +37,49 @@ new class extends Component {
             ->all();
     }
 
+    /**
+     * Satu baris per metric yang bisa ditarget (leads/ql/pitching/closing) — setiap baris
+     * berisi grid harian bulan terpilih, warnanya berdasarkan % capaian ke target harian
+     * employee ini untuk metric itu.
+     */
     #[Computed]
     public function heatmap(): array
     {
         $service = app(FoTargetMetrics::class);
+        $daysInMonth = Carbon::create($this->selectedYear, $this->selectedMonth, 1)->daysInMonth;
 
-        $counts = $service->dailyCountsForMonth([$this->employee->id], $this->selectedMetric, $this->selectedYear, $this->selectedMonth);
-        $dailyTarget = $service->dailyTarget($this->employee->id, $this->selectedMetric, $this->selectedYear);
+        $rows = collect($service->targetableMetrics())->map(function ($metric) use ($service) {
+            $counts = $service->dailyCountsForMonth([$this->employee->id], $metric['key'], $this->selectedYear, $this->selectedMonth);
+            $dailyTarget = $service->dailyTarget($this->employee->id, $metric['key'], $this->selectedYear);
 
-        $days = [];
-        $totalRealisasi = 0;
+            $days = [];
+            $totalRealisasi = 0;
 
-        foreach ($counts as $day => $count) {
-            $percent = $dailyTarget > 0 ? round($count / $dailyTarget * 100) : ($count > 0 ? 100.0 : 0.0);
+            foreach ($counts as $day => $count) {
+                $percent = $dailyTarget > 0 ? round($count / $dailyTarget * 100) : ($count > 0 ? 100.0 : 0.0);
+                $days[$day] = ['count' => $count, 'percent' => $percent];
+                $totalRealisasi += $count;
+            }
 
-            $days[$day] = [
-                'count' => $count,
-                'percent' => $percent,
-                'status' => $service->statusFor($percent),
+            $monthlyTarget = $dailyTarget * count($counts);
+            $monthlyPercent = $monthlyTarget > 0 ? round($totalRealisasi / $monthlyTarget * 100) : ($totalRealisasi > 0 ? 100.0 : 0.0);
+
+            return [
+                'key' => $metric['key'],
+                'label' => $metric['label'],
+                'days' => $days,
+                'daily_target' => $dailyTarget,
+                'total_realisasi' => $totalRealisasi,
+                'monthly_target' => $monthlyTarget,
+                'monthly_percent' => $monthlyPercent,
+                'monthly_status' => $service->statusFor($monthlyPercent),
             ];
-
-            $totalRealisasi += $count;
-        }
-
-        $daysInMonth = count($counts);
-        $monthlyTarget = $dailyTarget * $daysInMonth;
-        $monthlyPercent = $monthlyTarget > 0 ? round($totalRealisasi / $monthlyTarget * 100) : ($totalRealisasi > 0 ? 100.0 : 0.0);
+        })->values()->all();
 
         return [
-            'days' => $days,
+            'days' => range(1, $daysInMonth),
             'month_label' => Carbon::create($this->selectedYear, $this->selectedMonth, 1)->translatedFormat('F Y'),
-            'daily_target' => $dailyTarget,
-            'total_realisasi' => $totalRealisasi,
-            'monthly_target' => $monthlyTarget,
-            'monthly_percent' => $monthlyPercent,
-            'monthly_status' => $service->statusFor($monthlyPercent),
+            'rows' => $rows,
         ];
     }
 };
@@ -95,9 +95,6 @@ new class extends Component {
 
         @if ($this->hasTargets)
             <div class="flex flex-wrap items-end gap-2">
-                <div class="w-40">
-                    <x-select label="{{ __('Metric') }}" wire:model.live="selectedMetric" :options="$this->metrics" option-value="key" option-label="label" class="select-sm" />
-                </div>
                 <div class="w-32">
                     <x-select label="{{ __('Bulan') }}" wire:model.live="selectedMonth" :options="[
                         ['id' => 1, 'name' => __('Januari')], ['id' => 2, 'name' => __('Februari')], ['id' => 3, 'name' => __('Maret')],
@@ -117,35 +114,45 @@ new class extends Component {
         <p class="text-sm text-base-content/50 mt-4">{{ __('Belum ada target KPI Funding yang di-set untuk karyawan ini.') }}</p>
     @else
         <div class="mt-4 overflow-x-auto">
-            <div class="flex gap-1 flex-wrap">
-                @foreach ($this->heatmap['days'] as $day => $data)
-                    @php
-                        $tier = match (true) {
-                            $data['count'] === 0 => 'bg-base-200',
-                            $data['percent'] >= 100 => 'bg-success',
-                            $data['percent'] >= 50 => 'bg-warning',
-                            default => 'bg-error/70',
-                        };
-                        $textTier = $data['count'] === 0 ? '' : 'text-white';
-                    @endphp
-                    <div class="w-6 h-6 rounded flex items-center justify-center text-[9px] font-semibold leading-none {{ $tier }} {{ $textTier }}"
-                        title="{{ __('Hari :day: :count (:percent%)', ['day' => $day, 'count' => $data['count'], 'percent' => $data['percent']]) }}">
-                        {{ $day }}
-                    </div>
-                @endforeach
-            </div>
-        </div>
-
-        <div class="flex items-center gap-3 mt-4 text-sm">
-            <span class="text-base-content/70">
-                {{ __(':label — :realisasi dari target :target (:percent%)', [
-                    'label' => $this->heatmap['month_label'],
-                    'realisasi' => number_format($this->heatmap['total_realisasi']),
-                    'target' => number_format($this->heatmap['monthly_target'], 1),
-                    'percent' => $this->heatmap['monthly_percent'],
-                ]) }}
-            </span>
-            <span class="badge badge-sm {{ $this->heatmap['monthly_status']['class'] }}">{{ $this->heatmap['monthly_status']['label'] }}</span>
+            <table class="border-separate" style="border-spacing: 3px;">
+                <thead>
+                    <tr>
+                        <th class="sticky left-0 bg-base-100 text-left text-xs font-semibold text-base-content/50 pr-3 z-10">{{ __('Metric') }}</th>
+                        @foreach ($this->heatmap['days'] as $day)
+                            <th class="p-0 text-center text-[10px] text-base-content/40 font-normal w-5">{{ $day }}</th>
+                        @endforeach
+                        <th class="text-xs font-semibold text-base-content/50 pl-3 text-right">{{ __('Realisasi / Target') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($this->heatmap['rows'] as $row)
+                        <tr>
+                            <td class="sticky left-0 bg-base-100 text-xs font-medium text-base-content pr-3 whitespace-nowrap z-10">{{ $row['label'] }}</td>
+                            @foreach ($row['days'] as $day => $data)
+                                @php
+                                    $tier = match (true) {
+                                        $data['count'] === 0 => 'bg-base-200',
+                                        $data['percent'] >= 100 => 'bg-success',
+                                        $data['percent'] >= 50 => 'bg-warning',
+                                        default => 'bg-error/70',
+                                    };
+                                    $textTier = $data['count'] === 0 ? '' : 'text-white';
+                                @endphp
+                                <td class="p-0 text-center">
+                                    <div class="w-5 h-5 rounded flex items-center justify-center text-[9px] font-semibold leading-none {{ $tier }} {{ $textTier }}"
+                                        title="{{ $row['label'] }} — {{ __('hari :day: :count dari target :target (:percent%)', ['day' => $day, 'count' => $data['count'], 'target' => number_format($row['daily_target'], 1), 'percent' => $data['percent']]) }}">
+                                        {{ $data['count'] > 0 ? $data['count'] : '' }}
+                                    </div>
+                                </td>
+                            @endforeach
+                            <td class="text-right pl-3 whitespace-nowrap">
+                                <span class="text-xs text-base-content/60">{{ number_format($row['total_realisasi']) }} / {{ number_format($row['monthly_target'], 1) }}</span>
+                                <span class="badge badge-sm {{ $row['monthly_status']['class'] }} ms-1">{{ $row['monthly_percent'] }}%</span>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     @endif
 </div>
