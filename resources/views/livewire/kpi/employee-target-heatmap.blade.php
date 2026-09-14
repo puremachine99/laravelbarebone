@@ -139,8 +139,8 @@ new class extends Component {
                                     $textTier = $data['count'] === 0 ? '' : 'text-white';
                                 @endphp
                                 <td class="p-0 text-center">
-                                    <div class="w-5 h-5 rounded flex items-center justify-center text-[9px] font-semibold leading-none {{ $tier }} {{ $textTier }}"
-                                        title="{{ $row['label'] }} — {{ __('hari :day: :count dari target :target (:percent%)', ['day' => $day, 'count' => $data['count'], 'target' => number_format($row['daily_target'], 1), 'percent' => $data['percent']]) }}">
+                                    <div class="tooltip tooltip-top w-5 h-5 rounded flex items-center justify-center text-[9px] font-semibold leading-none cursor-pointer {{ $tier }} {{ $textTier }}"
+                                        data-tip="{{ $row['label'] }} — {{ __('hari :day: :count dari target :target (:percent%)', ['day' => $day, 'count' => $data['count'], 'target' => number_format($row['daily_target'], 1), 'percent' => $data['percent']]) }}">
                                         {{ $data['count'] > 0 ? $data['count'] : '' }}
                                     </div>
                                 </td>
