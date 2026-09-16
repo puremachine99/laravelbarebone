@@ -8,32 +8,33 @@ use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 /**
- * Imports funding-officer funnel data by merging two source exports:
+ * Imports funding-officer funnel data from database/seeders/funnel/funnelnew.csv, the
+ * single consolidated export that replaces the older two-file (funnelcontactpic.csv +
+ * funnelallcontact.csv) merge this seeder used to do.
  *
- * - database/seeders/funnel/funnelcontactpic.csv is the more complete contact
- *   list (470 rows, clean "Follow up 1..12" dates in a consistent d-M-Y
- *   format) but has no closing-outcome columns.
- * - database/seeders/funnel/funnelallcontact.csv has fewer/staler contacts
- *   (397 rows) but is the only source with closing outcome data (status,
- *   date, nominal, tenor, bagi hasil, tier) in its tail columns, and those
- *   tail columns aren't reliably aligned row-to-row (leftover from manual
- *   spreadsheet editing).
+ * The sheet's tail columns (Status, Proyeksi Bulan/Nilai Closing, Status Closing, Tgl
+ * Closing, Nominal Investasi, jangka Waktu, Bagi Hasil, Tier, Bulan Cohort) aren't
+ * reliably aligned row-to-row — leftover manual spreadsheet edits occasionally shift a
+ * value into the wrong column (e.g. a "Tier n (%)" string landing in "Status Closing").
+ * extractClosingInfo() sniffs those fields by value pattern rather than fixed index to
+ * stay correct despite the drift.
  *
- * The pic file drives the import since it's the superset of contacts. For
- * each of its rows we pop a same-named row queued from the allcontact file
- * (FIFO per lowercase name — both files carry duplicate names per FO from
- * manual edits, and a handful of contacts were reassigned to a different FO
- * between exports, so matching on name alone catches more real pairs than
- * matching on FO+name) and, if found, overlay its closing info. Any
- * allcontact rows never matched (~4 contacts not present in the pic export)
- * are imported afterwards via the original allcontact-only parsing.
+ * This is a developer-provided data migration, not organic FO activity: every run
+ * truncates the funnel/funding tables it owns first (fo_funnel_activity_logs,
+ * fo_funnel_activities, fo_funnels, fo_contacts — nothing else writes to these tables)
+ * so the seeder is idempotent and safe to re-run without `migrate:fresh`. Each run also
+ * logs a note (console + Laravel log) flagging the import as a developer migration so
+ * it's clear in retrospect where the data came from.
  *
- * Part of the default DatabaseSeeder run (after FundingOfficerSeeder, since it
- * needs the FO employee records to already exist). Depends on `Employee.user_id`
- * matching the CSVs' FO ID / userid columns (31, 33, 47, 57).
+ * Part of the default DatabaseSeeder run (after FundingOfficerSeeder, since it needs the
+ * FO employee records to already exist). Depends on `Employee.user_id` matching the
+ * CSV's "User ID" column (31, 33, 47, 57).
  */
 class FoFunnelDataSeeder extends Seeder
 {
@@ -58,23 +59,38 @@ class FoFunnelDataSeeder extends Seeder
         'nomor tidak aktif', 'pindah ke',
     ];
 
+    /**
+     * Tables this seeder owns exclusively — safe to truncate on every run since nothing
+     * else writes to them. Order matters for the FK chain even though TRUNCATE ... CASCADE
+     * handles it regardless (child-most first for readability).
+     *
+     * @var array<int, string>
+     */
+    private const OWNED_TABLES = [
+        'fo_funnel_activity_logs',
+        'fo_funnel_activities',
+        'fo_funnels',
+        'fo_contacts',
+    ];
+
+    public function __construct(private readonly ?string $csvPath = null) {}
+
     public function run(): void
     {
-        $picPath = database_path('seeders/funnel/funnelcontactpic.csv');
-        $legacyPath = database_path('seeders/funnel/funnelallcontact.csv');
+        $path = $this->csvPath ?? database_path('seeders/funnel/funnelnew.csv');
 
-        if (! file_exists($picPath) || ! file_exists($legacyPath)) {
-            $this->command?->error("CSV tidak ditemukan: {$picPath} / {$legacyPath}");
+        if (! file_exists($path)) {
+            $this->command?->error("CSV tidak ditemukan: {$path}");
 
             return;
         }
 
-        $closingQueue = $this->loadClosingQueue($legacyPath);
+        $this->truncateOwnedTables();
 
         $created = 0;
         $skipped = 0;
 
-        $handle = fopen($picPath, 'r');
+        $handle = fopen($path, 'r');
         fgetcsv($handle); // header (baris pertama, multi-line tapi tetap 1 baris logis untuk fgetcsv)
 
         while (($row = fgetcsv($handle)) !== false) {
@@ -83,7 +99,7 @@ class FoFunnelDataSeeder extends Seeder
             }
 
             try {
-                $this->importPicRow($row, $closingQueue) ? $created++ : $skipped++;
+                $this->importRow($row) ? $created++ : $skipped++;
             } catch (Throwable $e) {
                 $skipped++;
                 $this->command?->warn('Baris dilewati: '.$e->getMessage());
@@ -92,169 +108,32 @@ class FoFunnelDataSeeder extends Seeder
 
         fclose($handle);
 
-        foreach ($closingQueue as $queue) {
-            foreach ($queue as $legacyRow) {
-                try {
-                    $this->importLegacyRow($legacyRow) ? $created++ : $skipped++;
-                } catch (Throwable $e) {
-                    $skipped++;
-                    $this->command?->warn('Baris (legacy) dilewati: '.$e->getMessage());
-                }
-            }
-        }
-
-        $this->command?->info("Selesai. {$created} funnel dibuat, {$skipped} baris dilewati.");
+        $message = "[Migrasi data developer] Import funnelnew.csv selesai: {$created} funnel investor dibuat, {$skipped} baris dilewati.";
+        $this->command?->info($message);
+        Log::info($message, ['source' => 'FoFunnelDataSeeder', 'csv' => basename($path)]);
     }
 
     /**
-     * Groups every allcontact.csv row by lowercase nasabah name, preserving row order so
-     * duplicate names are paired FIFO with the pic export.
-     *
-     * @return array<string, array<int, array<int, string>>>
+     * Wipes the funnel/funding tables this seeder exclusively owns before re-importing, so
+     * the seeder can be re-run on its own (e.g. after a fresh funnelnew.csv from the
+     * developer) without needing `php artisan migrate:fresh --seed`.
      */
-    private function loadClosingQueue(string $path): array
+    private function truncateOwnedTables(): void
     {
-        $handle = fopen($path, 'r');
-        fgetcsv($handle);
+        Schema::disableForeignKeyConstraints();
 
-        $queue = [];
-
-        while (($row = fgetcsv($handle)) !== false) {
-            if (count(array_filter($row, fn ($v) => trim((string) $v) !== '')) === 0) {
-                continue;
-            }
-
-            $nama = trim($row[1] ?? '');
-
-            if ($nama === '') {
-                continue;
-            }
-
-            $queue[strtolower($nama)][] = $row;
+        foreach (self::OWNED_TABLES as $table) {
+            DB::table($table)->truncate();
         }
 
-        fclose($handle);
+        Schema::enableForeignKeyConstraints();
 
-        return $queue;
+        $message = '[Migrasi data developer] Tabel funnel & funding investor (fo_contacts, fo_funnels, fo_funnel_activities, fo_funnel_activity_logs) di-truncate sebelum import ulang dari funnelnew.csv.';
+        $this->command?->warn($message);
+        Log::info($message, ['source' => 'FoFunnelDataSeeder', 'tables' => self::OWNED_TABLES]);
     }
 
-    /**
-     * @param  array<string, array<int, array<int, string>>>  $closingQueue
-     */
-    private function importPicRow(array $row, array &$closingQueue): bool
-    {
-        $userId = (int) trim($row[0] ?? '');
-        $nama = trim($row[1] ?? '');
-        $profesi = trim($row[2] ?? '') ?: null;
-        [$noTelp, $contactNote] = $this->parseContactMethod($row[3] ?? '');
-        $sumber = $this->normalizeSumber($row[4] ?? '');
-
-        if (! $userId || $nama === '') {
-            return false;
-        }
-
-        $employee = Employee::where('user_id', $userId)->first();
-
-        if (! $employee) {
-            return false;
-        }
-
-        $contact = FoContact::firstOrCreate(
-            ['employee_id' => $employee->id, 'nama' => $nama],
-            ['profesi' => $profesi, 'no_telepon' => $noTelp, 'catatan' => $contactNote],
-        );
-
-        $tglLeads = $this->parseDmy($row[5] ?? '');
-        $qualified = strtolower(trim($row[6] ?? ''));
-        $tglQualified = $this->parseDmy($row[8] ?? '') ?? $this->parseDmy($row[7] ?? '');
-        $tglPitch = $this->parseDmy($row[9] ?? '');
-        $totalSesiPitching = (int) trim($row[10] ?? '0');
-        $catatanPitching = trim($row[11] ?? '') ?: null;
-
-        $fuDates = [];
-        foreach (range(12, 23) as $index) {
-            $parsed = $this->parseDmy($row[$index] ?? '');
-
-            if ($parsed) {
-                $fuDates[] = $parsed;
-            }
-        }
-
-        $legacyRow = null;
-        $key = strtolower($nama);
-
-        if (! empty($closingQueue[$key])) {
-            $legacyRow = array_shift($closingQueue[$key]);
-
-            if (empty($closingQueue[$key])) {
-                unset($closingQueue[$key]);
-            }
-        }
-
-        $closing = $legacyRow
-            ? $this->extractClosingInfo(array_slice($legacyRow, 20))
-            : ['is_closing' => false, 'tgl_closing' => null, 'nominal' => null, 'jangka_waktu' => null, 'bagi_hasil' => null, 'tier' => null];
-
-        $legacyStatusText = $legacyRow ? trim($legacyRow[20] ?? '') : '';
-        $legacyCatatanFollowUp = $legacyRow ? trim($legacyRow[19] ?? '') : '';
-
-        $combinedNotes = strtolower($legacyStatusText.' '.$catatanPitching.' '.$legacyCatatanFollowUp);
-        $isLost = $this->containsLostKeyword($combinedNotes);
-
-        $stage = match (true) {
-            $closing['is_closing'] => 'won',
-            $isLost => 'lost',
-            count($fuDates) > 0 => 'followup',
-            $totalSesiPitching > 0 || $tglPitch => 'pitching',
-            $qualified === 'ya' => 'ql',
-            default => 'leads',
-        };
-
-        $funnel = FoFunnel::create([
-            'fo_contact_id' => $contact->id,
-            'employee_id' => $employee->id,
-            'stage' => $stage,
-            'sumber' => $sumber,
-            'tgl_leads' => $tglLeads,
-            'tgl_qualified' => $tglQualified,
-            'proyeksi_close_date' => $closing['tgl_closing'],
-            'proyeksi_amount' => $closing['nominal'],
-            'status_closing' => $closing['is_closing'] ? 'Closing' : null,
-            'tgl_closing' => $closing['tgl_closing'],
-            'nominal_investasi' => $closing['nominal'],
-            'jangka_waktu' => $closing['jangka_waktu'],
-            'bagi_hasil' => $closing['bagi_hasil'],
-            'tier' => $closing['tier'],
-        ]);
-
-        if ($tglPitch || $catatanPitching) {
-            FoFunnelActivity::create([
-                'fo_funnel_id' => $funnel->id,
-                'employee_id' => $employee->id,
-                'stage' => 'pitching',
-                'tanggal' => $tglPitch ?? $tglLeads ?? now()->toDateString(),
-                'catatan' => $catatanPitching,
-            ]);
-        }
-
-        foreach ($fuDates as $i => $date) {
-            FoFunnelActivity::create([
-                'fo_funnel_id' => $funnel->id,
-                'employee_id' => $employee->id,
-                'stage' => 'followup',
-                'tanggal' => $date,
-                'catatan' => $i === count($fuDates) - 1 ? ($legacyCatatanFollowUp ?: null) : null,
-            ]);
-        }
-
-        return true;
-    }
-
-    /**
-     * Handles rows from funnelallcontact.csv that had no same-named counterpart in the pic
-     * export (contacts absent from the newer/more complete list).
-     */
-    private function importLegacyRow(array $row): bool
+    private function importRow(array $row): bool
     {
         $userId = (int) trim($row[0] ?? '');
         $nama = trim($row[1] ?? '');
@@ -278,14 +157,14 @@ class FoFunnelDataSeeder extends Seeder
         );
 
         $tglLeads = $this->parseHariBulanTahun($row[5] ?? '', $row[6] ?? '');
-        $qualified = strtolower(trim($row[7] ?? ''));
-        $tglQualified = $this->parseTanggalBebas($row[8] ?? '');
+        $qualified = strtolower(trim($row[8] ?? ''));
+        $tglQualified = $this->parseTanggalBebas($row[9] ?? '');
+        $tglPitch = $this->parseTanggalBebas($row[10] ?? '');
         $totalSesiPitching = (int) trim($row[11] ?? '0');
         $catatanPitching = trim($row[12] ?? '') ?: null;
-        $tglPitch = $this->parsePitchDate($row[9] ?? '', $row[10] ?? '');
 
         $fuDates = [];
-        foreach ([13, 14, 15, 16, 17] as $index) {
+        foreach (range(13, 27) as $index) {
             $parsed = $this->parseTanggalBebas($row[$index] ?? '');
 
             if ($parsed) {
@@ -293,10 +172,10 @@ class FoFunnelDataSeeder extends Seeder
             }
         }
 
-        $catatanFollowUp = trim($row[19] ?? '') ?: null;
-        $statusText = trim($row[20] ?? '');
+        $catatanFollowUp = trim($row[29] ?? '') ?: null;
+        $statusText = trim($row[30] ?? '');
 
-        $closing = $this->extractClosingInfo(array_slice($row, 20));
+        $closing = $this->extractClosingInfo(array_slice($row, 30));
 
         $combinedNotes = strtolower($statusText.' '.$catatanPitching.' '.$catatanFollowUp);
         $isLost = $this->containsLostKeyword($combinedNotes);
@@ -404,25 +283,6 @@ class FoFunnelDataSeeder extends Seeder
         };
     }
 
-    /**
-     * Parses the pic export's clean, consistent "d-M-Y" dates (e.g. "12-Jun-2026"), used for
-     * every date column in funnelcontactpic.csv. Empty cells and "-" placeholders mean unset.
-     */
-    private function parseDmy(string $text): ?string
-    {
-        $text = trim($text);
-
-        if ($text === '' || $text === '-') {
-            return null;
-        }
-
-        try {
-            return Carbon::createFromFormat('d-M-Y', $text)->toDateString();
-        } catch (Throwable) {
-            return null;
-        }
-    }
-
     private function parseHariBulanTahun(string $hari, string $bulanTahun): ?string
     {
         $hari = trim($hari);
@@ -452,29 +312,6 @@ class FoFunnelDataSeeder extends Seeder
         }
 
         return [null, null];
-    }
-
-    private function parsePitchDate(string $dayOrDate, string $bulanTahun): ?string
-    {
-        $dayOrDate = trim($dayOrDate);
-
-        if ($dayOrDate === '') {
-            return null;
-        }
-
-        if (preg_match('#^(\d{1,2})/(\d{1,2})/(\d{4})$#', $dayOrDate, $m)) {
-            return $this->safeDate((int) $m[3], (int) $m[2], (int) $m[1]);
-        }
-
-        if (is_numeric($dayOrDate)) {
-            [$month, $year] = $this->parseBulanTahun($bulanTahun);
-
-            if ($month) {
-                return $this->safeDate($year, $month, (int) $dayOrDate);
-            }
-        }
-
-        return null;
     }
 
     private function parseTanggalBebas(string $text): ?string
