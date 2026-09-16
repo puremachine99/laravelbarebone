@@ -324,7 +324,7 @@ new #[Layout('layouts.app')] class extends Component {
 
         {{-- Info + Edit --}}
         <div class="lg:col-span-2 space-y-6">
-            @if ($this->employee)
+            @if ($this->employee && auth()->user()->can('access-investors'))
                 <livewire:kpi.employee-target-heatmap :employee="$this->employee" :key="'kpi-self-'.$this->employee->id" />
             @endif
 
@@ -349,22 +349,6 @@ new #[Layout('layouts.app')] class extends Component {
                                 spinner="updateProfileInformation" />
                         </div>
                     </form>
-                </div>
-            </div>
-
-            <div class="card bg-base-200 border border-base-300 shadow-sm rounded-2xl">
-                <div class="card-body p-6 space-y-4">
-                    <div>
-                        <h3 class="text-lg font-medium text-base-content">{{ __('Delete account') }}</h3>
-                        <p class="mt-1 text-sm text-base-content/50">{{ __('Delete your account and all of its resources') }}</p>
-                    </div>
-
-                    <div>
-                        <x-button class="btn-error text-white" data-test="delete-user-button"
-                            wire:click="$dispatch('confirm-user-deletion')" label="{{ __('Delete account') }}" />
-                    </div>
-
-                    <livewire:profile.delete-user-modal />
                 </div>
             </div>
         </div>

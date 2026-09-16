@@ -24,6 +24,15 @@ test('guests are redirected to login', function () {
     $response->assertRedirect(route('login'));
 });
 
+test('the delete account section is not shown on the main profile page', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $this->get(route('profile.show'))
+        ->assertOk()
+        ->assertDontSee('Delete account');
+});
+
 test('can update name and email from the profile page', function () {
     $user = User::factory()->create(['name' => 'Old Name', 'email' => 'old@example.com']);
     $this->actingAs($user);

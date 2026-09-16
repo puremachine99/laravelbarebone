@@ -335,6 +335,20 @@ new #[Title('Security settings')] class extends Component {
             </section>
         @endif
         {{-- @end-chisel-passkeys --}}
+
+        <section class="pt-8 border-t border-base-300 space-y-4">
+            <div>
+                <h3 class="text-lg font-bold text-base-content">{{ __('Delete account') }}</h3>
+                <p class="text-sm text-base-content/50 mt-1">{{ __('Delete your account and all of its resources') }}</p>
+            </div>
+
+            <div>
+                <x-button class="btn-error text-white" data-test="delete-user-button"
+                    wire:click="$dispatch('confirm-user-deletion')" label="{{ __('Delete account') }}" />
+            </div>
+
+            <livewire:profile.delete-user-modal />
+        </section>
     </div>
 
     {{-- @chisel-passkeys --}}
