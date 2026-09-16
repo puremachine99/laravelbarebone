@@ -324,7 +324,7 @@ new #[Layout('layouts.app')] class extends Component {
 
         {{-- Info + Edit --}}
         <div class="lg:col-span-2 space-y-6">
-            @if ($this->employee && auth()->user()->can('access-investors'))
+            @if ($this->employee && $this->employee->department?->hasModule('investors'))
                 <livewire:kpi.employee-target-heatmap :employee="$this->employee" :key="'kpi-self-'.$this->employee->id" />
             @endif
 

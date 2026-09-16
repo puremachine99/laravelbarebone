@@ -1,11 +1,13 @@
 <?php
 
+use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Livewire\Volt\Volt;
+use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
@@ -22,6 +24,21 @@ test('guests are redirected to login', function () {
     $response = $this->get(route('profile.show'));
 
     $response->assertRedirect(route('login'));
+});
+
+test('the KPI Funding widget is not shown to a Super Admin whose department has no investors module', function () {
+    // Super Admin bypasses every `can()` check via Gate::before in AppServiceProvider, so this
+    // widget must be gated on the employee's actual department module, not a permission check —
+    // otherwise it wrongly shows up for every Super Admin regardless of their department.
+    $superAdmin = User::factory()->create();
+    $superAdmin->assignRole(Role::findOrCreate('Super Admin'));
+    Employee::create(['user_id' => $superAdmin->id]);
+
+    $this->actingAs($superAdmin);
+
+    $this->get(route('profile.show'))
+        ->assertOk()
+        ->assertDontSee('KPI Funding');
 });
 
 test('the delete account section is not shown on the main profile page', function () {
