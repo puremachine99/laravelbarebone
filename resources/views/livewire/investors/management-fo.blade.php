@@ -40,6 +40,11 @@ $canManageTargets = computed(function () {
     return auth()->user()->hasRole(['Investor Admin', 'Super Admin']);
 });
 
+// Admin FO / Super Admin / Direksi bisa lihat data semua FO; FO biasa cuma boleh lihat datanya sendiri.
+$canViewAllFo = computed(function () {
+    return auth()->user()->hasRole(['Investor Admin', 'Super Admin', 'Direksi']);
+});
+
 // Isi ulang buffer input target (dan snapshot-nya) sesuai FO yang lagi dipilih & tab periode aktif, biar
 // form gak "nyangkut" nilai sebelumnya dan biar saveTargets() bisa tau metrik mana aja yang beneran diubah.
 // Nilai yang ditampilkan mengikuti tab aktif (tahunan/bulanan/harian), hasil pecahan dari yearly_target.
@@ -59,7 +64,7 @@ $loadTargetInputs = function () {
 };
 
 mount(function () {
-    abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin', 'Funding Officer']), 403);
+    abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin', 'Funding Officer', 'Direksi']), 403);
 
     $this->targetSettingEmployeeId = $this->foEmployees[0]['id'] ?? null;
     $this->loadTargetInputs();
@@ -75,10 +80,12 @@ $updatedActivePeriod = function () {
 };
 
 // Daftar Funding Officer (+ Admin FO) yang bisa diatur target-nya.
+// FO biasa (bukan Admin FO/Super Admin/Direksi) cuma boleh lihat datanya sendiri di sini.
 $foEmployees = computed(function () {
     return Employee::with('user')
         ->whereHas('department', fn ($q) => $q->where('name', 'Departemen Finance'))
         ->whereHas('user.roles', fn ($q) => $q->whereIn('name', ['Funding Officer', 'Investor Admin']))
+        ->when(! $this->canViewAllFo, fn ($q) => $q->where('user_id', auth()->id()))
         ->get()
         ->map(fn ($e) => ['id' => $e->id, 'name' => $e->user?->name])
         ->sortBy('name')
@@ -656,48 +663,50 @@ $foRanking = computed(function () {
     </div>
 
     <!-- All FO Ranking (current year) -->
-    <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
-        <div class="text-sm font-semibold text-base-content mb-1">FO Ranking This Year</div>
-        <p class="text-xs text-base-content/50 mb-3">Compared by current-year Deal Value vs. the yearly target.</p>
-        <div class="overflow-x-auto">
-            <table class="table table-sm table-zebra w-full text-base-content/70">
-                <thead>
-                    <tr class="text-base-content/50 border-b border-base-300">
-                        <th>#</th>
-                        <th>FO Name</th>
-                        <th class="text-right">Won</th>
-                        <th class="text-right">Closing</th>
-                        <th class="text-right">Deal Value</th>
-                        <th class="text-right">Target</th>
-                        <th class="text-right">Achievement</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($this->foRanking as $i => $fo)
-                        <tr class="border-b border-base-300">
-                            <td>{{ $i + 1 }}</td>
-                            <td class="font-medium text-base-content">{{ $fo['name'] }}</td>
-                            <td class="text-right">{{ number_format($fo['won']) }}</td>
-                            <td class="text-right">{{ number_format($fo['closing']) }}</td>
-                            <td class="text-right"><x-currency-abbr :value="$fo['nilai_closing']" /></td>
-                            <td class="text-right text-base-content/40"><x-currency-abbr :value="$fo['target']" /></td>
-                            <td class="text-right">
-                                @if ($fo['achievement'] !== null)
-                                    <span class="badge badge-sm {{ $fo['achievement'] >= 100 ? 'badge-success' : 'badge-warning' }} badge-outline">{{ $fo['achievement'] }}%</span>
-                                @else
-                                    <span class="text-base-content/30">-</span>
-                                @endif
-                            </td>
+    @if ($this->canViewAllFo)
+        <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
+            <div class="text-sm font-semibold text-base-content mb-1">FO Ranking This Year</div>
+            <p class="text-xs text-base-content/50 mb-3">Compared by current-year Deal Value vs. the yearly target.</p>
+            <div class="overflow-x-auto">
+                <table class="table table-sm table-zebra w-full text-base-content/70">
+                    <thead>
+                        <tr class="text-base-content/50 border-b border-base-300">
+                            <th>#</th>
+                            <th>FO Name</th>
+                            <th class="text-right">Won</th>
+                            <th class="text-right">Closing</th>
+                            <th class="text-right">Deal Value</th>
+                            <th class="text-right">Target</th>
+                            <th class="text-right">Achievement</th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center text-base-content/50 py-4">No FO data yet.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse ($this->foRanking as $i => $fo)
+                            <tr class="border-b border-base-300">
+                                <td>{{ $i + 1 }}</td>
+                                <td class="font-medium text-base-content">{{ $fo['name'] }}</td>
+                                <td class="text-right">{{ number_format($fo['won']) }}</td>
+                                <td class="text-right">{{ number_format($fo['closing']) }}</td>
+                                <td class="text-right"><x-currency-abbr :value="$fo['nilai_closing']" /></td>
+                                <td class="text-right text-base-content/40"><x-currency-abbr :value="$fo['target']" /></td>
+                                <td class="text-right">
+                                    @if ($fo['achievement'] !== null)
+                                        <span class="badge badge-sm {{ $fo['achievement'] >= 100 ? 'badge-success' : 'badge-warning' }} badge-outline">{{ $fo['achievement'] }}%</span>
+                                    @else
+                                        <span class="text-base-content/30">-</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center text-base-content/50 py-4">No FO data yet.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+    @endif
 
     <!-- Target Change History (audit trail) -->
     <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">

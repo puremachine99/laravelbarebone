@@ -420,6 +420,13 @@
                                                 {{-- <span class="badge badge-warning badge-xs">Beta</span> --}}
                                             </a>
                                         @endhasanyrole
+                                        <a @class([
+                                            'menu-item',
+                                            'active' => request()->routeIs('investors.docs'),
+                                        ]) href="{{ route('investors.docs') }}"
+                                            wire:navigate>
+                                            <span class="grow">Master Document</span>
+                                        </a>
                                     </div>
                                 </div>
                             </div>

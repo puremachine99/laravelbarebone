@@ -74,6 +74,41 @@ test('super admin can access management fo', function () {
     $this->get(route('investors.management-fo'))->assertOk();
 });
 
+test('direksi can access management fo and sees the fo ranking', function () {
+    $direksi = makeFoEmployee('Direksi');
+    makeFoEmployee('Funding Officer');
+    $this->actingAs($direksi->user);
+
+    Volt::test('investors.management-fo')
+        ->assertOk()
+        ->assertSee('FO Ranking This Year');
+});
+
+test('a plain funding officer only sees their own data and not the fo ranking', function () {
+    $fo = makeFoEmployee('Funding Officer');
+    $otherFo = makeFoEmployee('Funding Officer');
+    $this->actingAs($fo->user);
+
+    $component = Volt::test('investors.management-fo')
+        ->assertOk()
+        ->assertSee($fo->user->name)
+        ->assertDontSee($otherFo->user->name)
+        ->assertDontSee('FO Ranking This Year');
+
+    expect(collect($component->instance()->foEmployees())->pluck('id')->all())->toBe([$fo->id]);
+});
+
+test('investor admin, super admin, and direksi see every fo in the list', function () {
+    $admin = makeFoEmployee('Investor Admin');
+    $fo = makeFoEmployee('Funding Officer');
+    $this->actingAs($admin->user);
+
+    $component = Volt::test('investors.management-fo')->assertOk();
+
+    expect(collect($component->instance()->foEmployees())->pluck('id')->all())
+        ->toEqualCanonicalizing([$admin->id, $fo->id]);
+});
+
 test('updating a yearly target persists it to the database and recalculates the split', function () {
     $admin = makeFoEmployee('Investor Admin');
     $this->actingAs($admin->user);
