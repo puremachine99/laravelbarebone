@@ -95,8 +95,8 @@ $editDocument = function ($id) {
     $this->showFormModal = true;
 };
 
-// Path disimpan di bawah folder per-environment (investor-docs/{env}/...) biar upload dari dev gak
-// pernah nimpa/campur objek yang sama di bucket S3 yang dipakai production.
+// Path disimpan di bawah folder per-environment (investors/investor-docs/{env}/...) biar upload dari dev
+// gak pernah nimpa/campur objek yang sama di bucket S3 yang dipakai production.
 $saveDocument = function () {
     abort_unless($this->canManage, 403);
 
@@ -125,11 +125,11 @@ $saveDocument = function () {
 
         $extension = $this->documentFile->getClientOriginalExtension();
         $storedName = Str::uuid().'.'.$extension;
-        $path = $this->documentFile->storeAs('investor-docs/'.app()->environment(), $storedName, 's3');
+        $path = $this->documentFile->storeAs('investors/investor-docs/'.app()->environment(), $storedName, 's3');
 
         $isImage = str_starts_with((string) $this->documentFile->getMimeType(), 'image/');
         $previewPath = $isImage
-            ? app(ImagePreviewGenerator::class)->generate($this->documentFile, 'investor-docs/'.app()->environment().'/previews')
+            ? app(ImagePreviewGenerator::class)->generate($this->documentFile, 'investors/investor-docs/'.app()->environment().'/previews')
             : null;
 
         $attributes = array_merge($attributes, [
@@ -220,7 +220,7 @@ $openPreview = function ($id) {
                     Materi pembekalan FO buat pitching — brosur, company profile, power point, dan dokumen pendukung lainnya.
                 </p>
                 <p class="text-xs text-base-content/40 mt-1">
-                    Dev note: file diupload ke folder S3 khusus environment ini (<code class="text-[11px]">investor-docs/{{ app()->environment() }}/</code>), jadi gak akan campur sama data production.
+                    Dev note: file diupload ke folder S3 khusus environment ini (<code class="text-[11px]">investors/investor-docs/{{ app()->environment() }}/</code>), jadi gak akan campur sama data production.
                 </p>
             </div>
             @if ($this->canManage)

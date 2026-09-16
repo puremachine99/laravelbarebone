@@ -76,7 +76,7 @@ test('investor admin can upload a document to s3, and its file name follows the 
         ->and($document->original_file_name)->toBe('original-name.pdf')
         ->and($document->extension)->toBe('pdf')
         ->and($document->uploaded_by)->toBe($admin->id)
-        ->and($document->file_path)->toStartWith('investor-docs/testing/')
+        ->and($document->file_path)->toStartWith('investors/investor-docs/testing/')
         ->and($document->preview_path)->toBeNull();
 
     Storage::disk('s3')->assertExists($document->file_path);
@@ -97,7 +97,7 @@ test('uploading an image generates a compressed thumbnail preview stored on s3',
     $document = InvestorDocument::first();
 
     expect($document->preview_path)->not->toBeNull()
-        ->and($document->preview_path)->toStartWith('investor-docs/testing/previews/')
+        ->and($document->preview_path)->toStartWith('investors/investor-docs/testing/previews/')
         ->and($document->preview_path)->toEndWith('.webp');
 
     Storage::disk('s3')->assertExists($document->file_path);
@@ -110,7 +110,7 @@ test('a document with a thumbnail preview renders it as an image on the card', f
 
     InvestorDocument::factory()->create([
         'title' => 'Company Profile',
-        'preview_path' => 'investor-docs/testing/previews/fake.webp',
+        'preview_path' => 'investors/investor-docs/testing/previews/fake.webp',
     ]);
 
     Volt::test('investors.docs-index')
@@ -126,8 +126,8 @@ test('replacing the file on an image document deletes the old preview from s3 to
     $this->actingAs($admin);
 
     $document = InvestorDocument::factory()->create([
-        'file_path' => 'investor-docs/testing/old.jpg',
-        'preview_path' => 'investor-docs/testing/previews/old.webp',
+        'file_path' => 'investors/investor-docs/testing/old.jpg',
+        'preview_path' => 'investors/investor-docs/testing/previews/old.webp',
         'extension' => 'jpg',
     ]);
     Storage::disk('s3')->put($document->file_path, 'old-content');
@@ -139,8 +139,8 @@ test('replacing the file on an image document deletes the old preview from s3 to
         ->call('saveDocument')
         ->assertHasNoErrors();
 
-    Storage::disk('s3')->assertMissing('investor-docs/testing/old.jpg');
-    Storage::disk('s3')->assertMissing('investor-docs/testing/previews/old.webp');
+    Storage::disk('s3')->assertMissing('investors/investor-docs/testing/old.jpg');
+    Storage::disk('s3')->assertMissing('investors/investor-docs/testing/previews/old.webp');
 });
 
 test('uploading rejects a disallowed file type', function () {
@@ -238,7 +238,7 @@ test('editing a document without replacing the file keeps the old file but updat
     $document = InvestorDocument::factory()->create([
         'title' => 'Old Title',
         'file_name' => 'Old Title.pdf',
-        'file_path' => 'investor-docs/testing/keep-me.pdf',
+        'file_path' => 'investors/investor-docs/testing/keep-me.pdf',
         'extension' => 'pdf',
     ]);
     Storage::disk('s3')->put($document->file_path, 'fake-content');
@@ -254,7 +254,7 @@ test('editing a document without replacing the file keeps the old file but updat
 
     expect($document->title)->toBe('New Title')
         ->and($document->file_name)->toBe('New Title.pdf')
-        ->and($document->file_path)->toBe('investor-docs/testing/keep-me.pdf');
+        ->and($document->file_path)->toBe('investors/investor-docs/testing/keep-me.pdf');
 
     Storage::disk('s3')->assertExists($document->file_path);
 });
@@ -266,7 +266,7 @@ test('editing a document with a new file replaces and deletes the old file from 
     $this->actingAs($admin);
 
     $document = InvestorDocument::factory()->create([
-        'file_path' => 'investor-docs/testing/old-file.pdf',
+        'file_path' => 'investors/investor-docs/testing/old-file.pdf',
         'extension' => 'pdf',
     ]);
     Storage::disk('s3')->put($document->file_path, 'old-content');
@@ -281,9 +281,9 @@ test('editing a document with a new file replaces and deletes the old file from 
 
     $document->refresh();
 
-    Storage::disk('s3')->assertMissing('investor-docs/testing/old-file.pdf');
+    Storage::disk('s3')->assertMissing('investors/investor-docs/testing/old-file.pdf');
     Storage::disk('s3')->assertExists($document->file_path);
-    expect($document->file_path)->not->toBe('investor-docs/testing/old-file.pdf');
+    expect($document->file_path)->not->toBe('investors/investor-docs/testing/old-file.pdf');
 });
 
 test('deleting a document soft deletes it, hides it from the active list, and it can be restored', function () {

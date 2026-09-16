@@ -25,7 +25,7 @@ class InvestorDocumentFactory extends Factory
         return [
             'title' => $title,
             'description' => fake()->optional()->sentence(),
-            'file_path' => 'investor-docs/'.app()->environment().'/'.fake()->uuid().'.pdf',
+            'file_path' => 'investors/investor-docs/'.app()->environment().'/'.fake()->uuid().'.pdf',
             'file_name' => $title.'.pdf',
             'original_file_name' => fake()->word().'.pdf',
             'extension' => 'pdf',

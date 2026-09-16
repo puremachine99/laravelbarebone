@@ -381,7 +381,7 @@ $submitEditFunnel = function () {
                 if (! empty($document['file'])) {
                     return [
                         'tag' => $document['tag'],
-                        'path' => $document['file']->store('funnel-akad', 's3'),
+                        'path' => $document['file']->store('investors/funnel-akad', 's3'),
                         'nama' => $document['file']->getClientOriginalName(),
                     ];
                 }
@@ -500,7 +500,7 @@ $submitAkad = function () {
 
     $documents = collect($validated['akadDocuments'])
         ->map(function (array $document) {
-            $path = $document['file']->store('funnel-akad', 's3');
+            $path = $document['file']->store('investors/funnel-akad', 's3');
 
             return [
                 'tag' => $document['tag'],
