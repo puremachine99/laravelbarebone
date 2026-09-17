@@ -103,12 +103,12 @@ $saveDocument = function () {
     $this->validate([
         'title' => ['required', 'string', 'max:255'],
         'description' => ['nullable', 'string', 'max:1000'],
-        'documentFile' => [$this->isEdit ? 'nullable' : 'required', 'file', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,webp', 'max:1024'],
+        'documentFile' => [$this->isEdit ? 'nullable' : 'required', 'file', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,webp', 'max:10240'],
     ], [
         'title.required' => 'Judul dokumen wajib diisi.',
         'documentFile.required' => 'File dokumen wajib diupload.',
         'documentFile.mimes' => 'Format file harus PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX, atau gambar (JPG/PNG/GIF/WEBP).',
-        'documentFile.max' => 'Ukuran file maksimal 1MB.',
+        'documentFile.max' => 'Ukuran file maksimal 10MB.',
     ]);
 
     $oldPath = null;
@@ -342,7 +342,7 @@ $openPreview = function ($id) {
                 @if ($isEdit && $currentFileName)
                     <div class="text-xs text-base-content/50">Current file: {{ $currentFileName }}</div>
                 @endif
-                <x-file label="File" wire:model="documentFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp" :hint="$isEdit ? 'Leave empty to keep the current file. Format PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX, or image. Maximum 1MB.' : 'Format PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX, or image. Maximum 1MB.'" :required="! $isEdit" />
+                <x-file label="File" wire:model="documentFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp" :hint="$isEdit ? 'Leave empty to keep the current file. Format PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX, or image. Maximum 10MB.' : 'Format PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX, or image. Maximum 10MB.'" :required="! $isEdit" />
 
                 <div class="flex justify-end gap-2 pt-4 border-t border-base-300">
                     <x-button label="Cancel" wire:click="$set('showFormModal', false)" class="btn-ghost" />

@@ -160,13 +160,13 @@ test('uploading rejects a disallowed file type', function () {
     expect(InvestorDocument::count())->toBe(0);
 });
 
-test('uploading rejects a file larger than 1MB', function () {
+test('uploading rejects a file larger than 10MB', function () {
     Storage::fake('s3');
 
     $admin = makeDocsUser('Investor Admin');
     $this->actingAs($admin);
 
-    $file = UploadedFile::fake()->create('too-big.pdf', 1025, 'application/pdf');
+    $file = UploadedFile::fake()->create('too-big.pdf', 10241, 'application/pdf');
 
     Volt::test('investors.docs-index')
         ->set('title', 'Too Big')

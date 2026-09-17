@@ -344,7 +344,7 @@ $submitEditFunnel = function () {
         $rules['editAkadNominal'] = ['required', 'numeric', 'min:1', 'max:9999999999999'];
         $rules['editAkadDocuments'] = ['required', 'array', 'min:1'];
         $rules['editAkadDocuments.*.tag'] = ['required', 'string', 'max:255'];
-        $rules['editAkadDocuments.*.file'] = ['nullable', 'file', 'mimes:doc,docx,pdf', 'max:5120'];
+        $rules['editAkadDocuments.*.file'] = ['nullable', 'file', 'mimes:doc,docx,pdf', 'max:10240'];
         // path/nama gak divalidasi (cuma dibawa apa adanya buat dokumen yang gak diganti file-nya),
         // tapi tetep harus disebut di rules biar ikut ke $validated — validate() cuma nyertain key
         // yang punya rule sendiri.
@@ -495,7 +495,7 @@ $submitAkad = function () {
         'akadNominal' => ['required', 'numeric', 'min:1', 'max:9999999999999'],
         'akadDocuments' => ['required', 'array', 'min:1'],
         'akadDocuments.*.tag' => ['required', 'string', 'max:255'],
-        'akadDocuments.*.file' => ['required', 'file', 'mimes:doc,docx,pdf', 'max:5120'],
+        'akadDocuments.*.file' => ['required', 'file', 'mimes:doc,docx,pdf', 'max:10240'],
     ]);
 
     $documents = collect($validated['akadDocuments'])
@@ -1221,7 +1221,7 @@ $closeActivityLog = function () {
                                 @if ($editAkadDocumentForm['nama'])
                                     <div class="text-xs text-base-content/50 truncate">Current file: {{ $editAkadDocumentForm['nama'] }}</div>
                                 @endif
-                                <x-file wire:model="editAkadDocuments.{{ $editAkadDocumentIndex }}.file" accept=".doc,.docx,.pdf" hint="Leave empty to keep the current file. Format DOC, DOCX, or PDF. Maximum 5MB." />
+                                <x-file wire:model="editAkadDocuments.{{ $editAkadDocumentIndex }}.file" accept=".doc,.docx,.pdf" hint="Leave empty to keep the current file. Format DOC, DOCX, or PDF. Maximum 10MB." />
                             </div>
                             @if (count($editAkadDocuments) > 1)
                                 <x-button icon="o-trash" class="btn-ghost btn-xs text-error mt-1" wire:click="removeEditAkadDocument({{ $editAkadDocumentIndex }})" />
@@ -1392,7 +1392,7 @@ $closeActivityLog = function () {
                     <div class="flex items-start gap-2 border border-base-300 rounded-lg p-3" wire:key="akad-document-{{ $akadDocumentIndex }}">
                         <div class="flex-1 space-y-2">
                             <x-input placeholder="e.g. Perjanjian A" wire:model="akadDocuments.{{ $akadDocumentIndex }}.tag" required />
-                            <x-file wire:model="akadDocuments.{{ $akadDocumentIndex }}.file" accept=".doc,.docx,.pdf" hint="Format DOC, DOCX, or PDF. Maximum 5MB." required />
+                            <x-file wire:model="akadDocuments.{{ $akadDocumentIndex }}.file" accept=".doc,.docx,.pdf" hint="Format DOC, DOCX, or PDF. Maximum 10MB." required />
                         </div>
                         @if (count($akadDocuments) > 1)
                             <x-button icon="o-trash" class="btn-ghost btn-xs text-error mt-1" wire:click="removeAkadDocument({{ $akadDocumentIndex }})" />

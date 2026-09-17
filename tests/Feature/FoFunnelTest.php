@@ -284,7 +284,7 @@ test('a plain fo cannot submit akad even with a valid document', function () {
     expect($funnel->refresh()->stage)->toBe('won');
 });
 
-test('submitting akad rejects a disallowed file type and files over 5mb', function () {
+test('submitting akad rejects a disallowed file type and files over 10mb', function () {
     Storage::fake('s3');
 
     $admin = User::factory()->create();
@@ -307,7 +307,7 @@ test('submitting akad rejects a disallowed file type and files over 5mb', functi
         ->set('akadTanggal', '2026-09-01')
         ->set('akadNominal', 500_000_000)
         ->set('akadDocuments.0.tag', 'Perjanjian A')
-        ->set('akadDocuments.0.file', UploadedFile::fake()->create('akad.docx', 6000, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
+        ->set('akadDocuments.0.file', UploadedFile::fake()->create('akad.docx', 11000, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
         ->call('submitAkad')
         ->assertHasErrors(['akadDocuments.0.file']);
 
