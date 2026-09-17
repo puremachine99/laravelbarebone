@@ -7,6 +7,14 @@ class Money
     /**
      * Strip thousand separators / stray characters from a masked currency input
      * (e.g. "250.000.000") back into a clean number the database can store.
+     *
+     * The masked inputs always use "." as the thousands separator and "," as the
+     * decimal separator (see x-mask:dynamic="$money($input, ',', '.', 0)"). Stripping
+     * every non-digit blindly used to concatenate the decimal part into the integer —
+     * a stray ",00" surviving from the input mask turned "500.000.000,00" into the
+     * digit string "50000000000" (Rp 500 juta saved as Rp 50 M). Dropping everything
+     * from the first "," onward before stripping keeps that from happening; whole
+     * rupiah amounts have no legitimate use for the fractional part anyway.
      */
     public static function normalize(mixed $value): ?float
     {
@@ -16,7 +24,9 @@ class Money
 
         $value = (string) $value;
         $isNegative = str_starts_with(ltrim($value), '-');
-        $digits = preg_replace('/[^0-9]/', '', $value);
+        $withoutThousands = str_replace('.', '', $value);
+        [$integerPart] = explode(',', $withoutThousands, 2);
+        $digits = preg_replace('/[^0-9]/', '', $integerPart);
 
         if ($digits === '') {
             return null;

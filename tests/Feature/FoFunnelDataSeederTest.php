@@ -106,7 +106,7 @@ test('sniffs closing info from drifted tail columns regardless of exact position
 
     $funnel = FoFunnel::whereHas('contact', fn ($q) => $q->where('nama', 'Investor Closing'))->first();
 
-    expect($funnel->stage)->toBe('won')
+    expect($funnel->stage)->toBe('closing')
         ->and($funnel->status_closing)->toBe('Closing')
         ->and((float) $funnel->nominal_investasi)->toBe(500000000.0)
         ->and($funnel->jangka_waktu)->toBe('12 Bulan')

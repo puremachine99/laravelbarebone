@@ -6,7 +6,12 @@ window.normalizeCurrency = function (value) {
         return null;
     }
 
-    const digits = String(value).replace(/[^0-9]/g, '');
+    // "." is the mask's thousands separator, "," is the decimal separator. Dropping
+    // everything from the first "," before stripping keeps a stray ",00" from getting
+    // concatenated into the integer (e.g. "500.000.000,00" turning into 50000000000).
+    const withoutThousands = String(value).replace(/\./g, '');
+    const integerPart = withoutThousands.split(',')[0];
+    const digits = integerPart.replace(/[^0-9]/g, '');
 
     return digits === '' ? null : Number(digits);
 };

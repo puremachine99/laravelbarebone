@@ -181,7 +181,7 @@ class FoFunnelDataSeeder extends Seeder
         $isLost = $this->containsLostKeyword($combinedNotes);
 
         $stage = match (true) {
-            $closing['is_closing'] => 'won',
+            $closing['is_closing'] => 'closing',
             $isLost => 'lost',
             count($fuDates) > 0 => 'followup',
             $totalSesiPitching > 0 || $tglPitch => 'pitching',

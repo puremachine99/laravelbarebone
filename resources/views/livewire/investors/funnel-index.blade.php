@@ -1193,7 +1193,7 @@ $closeActivityLog = function () {
         <form wire:submit="submitEditFunnel" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <x-input label="Projected Close Date" type="date" wire:model="editTanggal" />
-                <x-input label="Projected Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="editProyeksiAmount" placeholder="e.g. 250.000.000" hint="Automatically formatted, e.g. 250.000.000 for Rp 250 Million" />
+                <x-input wire:key="edit-proyeksi-amount-{{ $editFunnelId }}" label="Projected Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="editProyeksiAmount" placeholder="e.g. 250.000.000" hint="Automatically formatted, e.g. 250.000.000 for Rp 250 Million" />
             </div>
 
             <x-select label="Source" wire:model="editSumber" :options="$sumberOptions" placeholder="Select Source" required />
@@ -1206,7 +1206,7 @@ $closeActivityLog = function () {
                     <x-input type="date" wire:model="editAkadTanggal" required />
                 </div>
 
-                <x-input label="Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="editAkadNominal" placeholder="e.g. 250.000.000" required />
+                <x-input wire:key="edit-akad-nominal-{{ $editFunnelId }}" label="Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="editAkadNominal" placeholder="e.g. 250.000.000" required />
 
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
@@ -1237,7 +1237,7 @@ $closeActivityLog = function () {
                     <x-input type="date" wire:model="editWonTanggal" required />
                 </div>
 
-                <x-input label="Commitment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="editWonNominal" placeholder="e.g. 250.000.000" required />
+                <x-input wire:key="edit-won-nominal-{{ $editFunnelId }}" label="Commitment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="editWonNominal" placeholder="e.g. 250.000.000" required />
             @elseif ($editStage === 'closing')
                 <div class="divider text-xs text-base-content/40 uppercase tracking-wide">Closing</div>
 
@@ -1246,7 +1246,7 @@ $closeActivityLog = function () {
                     <x-input type="date" wire:model="editClosingTanggal" required />
                 </div>
 
-                <x-input label="Final Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="editClosingNominal" placeholder="e.g. 250.000.000" required />
+                <x-input wire:key="edit-closing-nominal-{{ $editFunnelId }}" label="Final Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="editClosingNominal" placeholder="e.g. 250.000.000" required />
             @elseif ($editStage === 'lost')
                 <div class="divider text-xs text-base-content/40 uppercase tracking-wide">Lost</div>
 
@@ -1380,7 +1380,7 @@ $closeActivityLog = function () {
                 <x-input type="date" wire:model="akadTanggal" required />
             </div>
 
-            <x-input label="Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="akadNominal" placeholder="e.g. 250.000.000" hint="Automatically formatted, e.g. 250.000.000 for Rp 250 Million" required />
+            <x-input wire:key="akad-nominal-{{ $akadFunnelId }}" label="Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="akadNominal" placeholder="e.g. 250.000.000" hint="Automatically formatted, e.g. 250.000.000 for Rp 250 Million" required />
 
             <div class="space-y-3">
                 <div class="flex items-center justify-between">
@@ -1419,7 +1419,7 @@ $closeActivityLog = function () {
                 <x-input type="date" wire:model="wonTanggal" required />
             </div>
 
-            <x-input label="Commitment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="wonNominal" placeholder="e.g. 250.000.000" hint="Amount agreed upon at commitment — may differ from the final amount at Closing." required />
+            <x-input wire:key="won-nominal-{{ $wonFunnelId }}" label="Commitment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="wonNominal" placeholder="e.g. 250.000.000" hint="Amount agreed upon at commitment — may differ from the final amount at Closing." required />
 
             <div class="modal-action gap-2">
                 <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
@@ -1439,7 +1439,7 @@ $closeActivityLog = function () {
                 <x-input type="date" wire:model="closingTanggal" required />
             </div>
 
-            <x-input label="Final Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="closingNominal" placeholder="e.g. 250.000.000" hint="The final amount actually received by the company." required />
+            <x-input wire:key="closing-nominal-{{ $closingFunnelId }}" label="Final Investment Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" wire:model="closingNominal" placeholder="e.g. 250.000.000" hint="The final amount actually received by the company." required />
 
             <div class="modal-action gap-2">
                 <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
