@@ -2,6 +2,8 @@
 
 use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\EnsureUserAccountIsActive;
+use App\Http\Middleware\RequireDebugPanelSession;
+use App\Http\Middleware\RequireSuperAdminOr404;
 use App\Services\ErrorTracker;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -23,12 +25,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'active' => EnsureUserAccountIsActive::class,
             'role' => RoleMiddleware::class,
+            'dev.session' => RequireDebugPanelSession::class,
+            'dev.super-admin' => RequireSuperAdminOr404::class,
         ]);
         $middleware->append(AddSecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
+            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
 
         $exceptions->report(function (Throwable $e) {

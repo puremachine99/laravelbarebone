@@ -102,13 +102,19 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
     });
 });
 
-// ─── Custom Error Tracker (dev-only debug panel, session-gated, not tied to app auth) ───
-Route::prefix('dev')->name('dev.')->group(function () {
+// ─── Custom Error Tracker (dev-only debug panel) ───
+// Gated by app auth (must already be logged in as Super Admin); the debug
+// panel password below is a second factor on top of that, not a replacement.
+// Anyone who isn't an active Super Admin gets a 404, not a redirect/403 —
+// so the existence of these routes isn't revealed to unauthorized visitors.
+Route::middleware('dev.super-admin')->prefix('dev')->name('dev.')->group(function () {
     Route::get('/login', [ErrorLogController::class, 'loginForm'])->name('login');
     Route::post('/login', [ErrorLogController::class, 'login'])->name('login.store');
     Route::get('/logout', [ErrorLogController::class, 'logout'])->name('logout');
 
-    Route::prefix('errors')->name('errors.')->group(function () {
+    Volt::route('/force-login', 'dev.force-login')->name('force-login')->middleware('dev.session');
+
+    Route::middleware('dev.session')->prefix('errors')->name('errors.')->group(function () {
         Route::get('/', [ErrorLogController::class, 'index'])->name('index');
         Route::post('/purge', [ErrorLogController::class, 'purge'])->name('purge');
         Route::get('/{code}', [ErrorLogController::class, 'show'])->name('show');

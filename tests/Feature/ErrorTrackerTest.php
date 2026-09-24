@@ -1,25 +1,48 @@
 <?php
 
+use App\Enums\UserStatus;
 use App\Models\ErrorLog;
+use App\Models\User;
 use App\Services\ErrorTracker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
-test('guests are redirected to the debug login page', function () {
+function loginAsSuperAdminForDevPanel(): void
+{
+    $superAdmin = User::factory()->create(['status' => UserStatus::Active]);
+    $superAdmin->assignRole(Role::findOrCreate('Super Admin'));
+
+    test()->actingAs($superAdmin);
+}
+
+test('guests get a 404, not a redirect to login', function () {
     $this->get(route('dev.errors.index'))
-        ->assertRedirect(route('dev.login'));
+        ->assertNotFound();
+});
+
+test('non super admins get a 404, not a 403', function () {
+    $regularUser = User::factory()->create(['status' => UserStatus::Active]);
+
+    $this->actingAs($regularUser)
+        ->get(route('dev.errors.index'))
+        ->assertNotFound();
 });
 
 test('wrong password is rejected', function () {
+    loginAsSuperAdminForDevPanel();
+
     $this->post(route('dev.login.store'), ['password' => 'wrong-password'])
         ->assertSessionHasErrors('password');
 
     $this->get(route('dev.errors.index'))
-        ->assertRedirect(route('dev.login'));
+        ->assertNotFound();
 });
 
 test('correct password grants access to the debug panel', function () {
+    loginAsSuperAdminForDevPanel();
+
     $this->post(route('dev.login.store'), ['password' => config('services.debug_panel.password')])
         ->assertRedirect(route('dev.errors.index'));
 
@@ -29,15 +52,19 @@ test('correct password grants access to the debug panel', function () {
 });
 
 test('logout clears debug panel access', function () {
+    loginAsSuperAdminForDevPanel();
+
     $this->post(route('dev.login.store'), ['password' => config('services.debug_panel.password')]);
     $this->get(route('dev.errors.index'))->assertOk();
 
     $this->get(route('dev.logout'));
 
-    $this->get(route('dev.errors.index'))->assertRedirect(route('dev.login'));
+    $this->get(route('dev.errors.index'))->assertNotFound();
 });
 
 test('destroy, resolve and purge actions are guarded without session access', function () {
+    loginAsSuperAdminForDevPanel();
+
     $error = ErrorLog::create([
         'error_code' => 'ABC12345',
         'type' => 'exception',
@@ -45,14 +72,16 @@ test('destroy, resolve and purge actions are guarded without session access', fu
         'message' => 'Test error',
     ]);
 
-    $this->post(route('dev.errors.resolve', $error->id))->assertRedirect(route('dev.login'));
-    $this->delete(route('dev.errors.destroy', $error->id))->assertRedirect(route('dev.login'));
-    $this->post(route('dev.errors.purge'))->assertRedirect(route('dev.login'));
+    $this->post(route('dev.errors.resolve', $error->id))->assertNotFound();
+    $this->delete(route('dev.errors.destroy', $error->id))->assertNotFound();
+    $this->post(route('dev.errors.purge'))->assertNotFound();
 
     expect(ErrorLog::count())->toBe(1);
 });
 
 test('an authenticated debug session can resolve and delete an error log', function () {
+    loginAsSuperAdminForDevPanel();
+
     $this->post(route('dev.login.store'), ['password' => config('services.debug_panel.password')]);
 
     $error = ErrorLog::create([
@@ -73,6 +102,8 @@ test('an authenticated debug session can resolve and delete an error log', funct
 });
 
 test('the error detail page shows the stack trace', function () {
+    loginAsSuperAdminForDevPanel();
+
     $this->post(route('dev.login.store'), ['password' => config('services.debug_panel.password')]);
 
     $error = ErrorLog::create([

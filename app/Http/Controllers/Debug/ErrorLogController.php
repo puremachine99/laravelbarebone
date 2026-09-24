@@ -11,7 +11,7 @@ use Illuminate\View\View;
 
 class ErrorLogController extends Controller
 {
-    protected const SESSION_KEY = 'debug_page_access';
+    public const SESSION_KEY = 'debug_page_access';
 
     /**
      * Block access to every action below unless the debug-page session flag is set.

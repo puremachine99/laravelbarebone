@@ -2,6 +2,7 @@
 
 use function Livewire\Volt\{state, layout, computed, usesPagination};
 use App\Actions\Users\InviteUser;
+use App\Enums\EmployeeStatus;
 use App\Enums\UserStatus;
 use App\Models\Department;
 use App\Models\Employee;
@@ -39,6 +40,9 @@ state([
 'position_struktural_id' =>'',
 'position_fungsional_id' =>'',
 'employment_status' =>'',
+'status' =>'active',
+'status_date' =>'',
+'status_reason' =>'',
 'is_cltp' => false,
 'userRoles' => [],
 
@@ -162,7 +166,8 @@ $updatedFilterDept = function () {
 };
 
 $resetForm = function () {
- $this->reset(['employee_id','existingUserId','isEdit','name','email','password','department_id','position_struktural_id','position_fungsional_id','employment_status','is_cltp']);
+ $this->reset(['employee_id','existingUserId','isEdit','name','email','password','department_id','position_struktural_id','position_fungsional_id','employment_status','status','status_date','status_reason','is_cltp']);
+ $this->status ='active';
  $this->userRoles = [];
  $this->resetValidation();
 };
@@ -184,6 +189,9 @@ $save = function (InviteUser $inviteUser) {
 'position_struktural_id' => ['nullable','exists:positions,id'],
 'position_fungsional_id' => ['nullable','exists:positions,id'],
 'employment_status' => ['nullable','in:PKWT,PKWTT,Internship,Mitra Strategis,Bond Agreement'],
+'status' => ['required', Rule::enum(EmployeeStatus::class)],
+'status_date' => ['nullable','date'],
+'status_reason' => ['nullable','string','max:2000'],
  ]);
 
  $employeeData = [
@@ -191,6 +199,9 @@ $save = function (InviteUser $inviteUser) {
 'position_struktural_id' => $this->position_struktural_id ?: null,
 'position_fungsional_id' => $this->position_fungsional_id ?: null,
 'employment_status' => $this->employment_status ?: null,
+'status' => $this->status,
+'status_date' => $this->status !=='active' ? ($this->status_date ?: null) : null,
+'status_reason' => $this->status !=='active' ? ($this->status_reason ?: null) : null,
 'is_cltp' => (bool) $this->is_cltp,
  ];
 
@@ -242,6 +253,9 @@ $edit = function (Employee $employee) {
  $this->position_struktural_id = $employee->position_struktural_id ??'';
  $this->position_fungsional_id = $employee->position_fungsional_id ??'';
  $this->employment_status = $employee->employment_status ??'';
+ $this->status = $employee->status?->value ??'active';
+ $this->status_date = $employee->status_date?->format('Y-m-d') ??'';
+ $this->status_reason = $employee->status_reason ??'';
  $this->is_cltp = $employee->is_cltp;
  $this->userRoles = $employee->user->roles->pluck('name')->toArray();
  $this->isEdit = true;
@@ -259,6 +273,9 @@ $completeProfile = function (User $user) {
  $this->position_struktural_id ='';
  $this->position_fungsional_id ='';
  $this->employment_status ='';
+ $this->status ='active';
+ $this->status_date ='';
+ $this->status_reason ='';
  $this->is_cltp = false;
  $this->userRoles = $user->roles->pluck('name')->toArray();
  $this->isEdit = true;
@@ -502,7 +519,13 @@ $delete = function () {
  <div class="badge badge-sm badge-error text-white">CLTP</div>
  @endif
 
- @if (!$emp->employee->employment_status && !$emp->employee->is_cltp)
+ @if ($emp->employee->status && $emp->employee->status !== \App\Enums\EmployeeStatus::Active)
+ <div class="badge badge-sm {{ $emp->employee->status->badgeClass() }}">
+ {{ $emp->employee->status->label() }}
+ </div>
+ @endif
+
+ @if (!$emp->employee->employment_status && !$emp->employee->is_cltp && $emp->employee->status === \App\Enums\EmployeeStatus::Active)
  <span>-</span>
  @endif
  @endif
@@ -716,6 +739,26 @@ $delete = function () {
  </div>
  </div>
  </div>
+ <div>
+ <span class="text-base-content/40 block text-xs">Status Aktif</span>
+ <div class="mt-1">
+ <div class="badge badge-sm {{ $selectedEmployee->status->badgeClass() }}">
+ {{ $selectedEmployee->status->label() }}
+ </div>
+ </div>
+ </div>
+ @if ($selectedEmployee->status !== \App\Enums\EmployeeStatus::Active)
+ <div>
+ <span class="text-base-content/40 block text-xs">Tanggal Nonaktif</span>
+ <span class="font-medium text-base-content">
+ {{ $selectedEmployee->status_date ? $selectedEmployee->status_date->format('d M Y') :'-' }}
+ </span>
+ </div>
+ <div class="col-span-2">
+ <span class="text-base-content/40 block text-xs">Keterangan</span>
+ <span class="font-medium text-base-content">{{ $selectedEmployee->status_reason ??'-' }}</span>
+ </div>
+ @endif
  </div>
  </div>
  </div>
@@ -769,6 +812,13 @@ $delete = function () {
  @endphp
  <x-select label="Status Kepegawaian" wire:model="employment_status" :options="$statusOpts" placeholder="-- Pilih Status --" placeholder-value="" />
  <x-checkbox label="Karyawan CLTP" wire:model="is_cltp" />
+
+ <x-select label="Status Aktif" wire:model.live="status" :options="\App\Enums\EmployeeStatus::options()" />
+
+ @if ($status !=='active')
+ <x-input label="Tanggal Nonaktif" type="date" wire:model="status_date" />
+ <x-textarea label="Keterangan (opsional)" wire:model="status_reason" placeholder="Cth: Resign per akhir kontrak, mutasi ke perusahaan lain, dsb." rows="3" />
+ @endif
 
  <hr class="border-base-300 my-2" />
  <h4 class="font-bold text-base-content/50 text-xs uppercase">Hak Akses (Roles)</h4>
