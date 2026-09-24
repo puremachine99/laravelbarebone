@@ -51,6 +51,7 @@ class FoFunnel extends Model
         'nominal_won' => 'decimal:2',
         'nominal_investasi' => 'decimal:2',
         'dokumen_akad_files' => 'array',
+        'contact_sequence' => 'integer',
     ];
 
     public function contact()

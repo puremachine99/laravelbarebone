@@ -1255,17 +1255,18 @@ test('a contact with repeat leads gets a #N suffix from the second occurrence on
     $employee = Employee::create(['user_id' => $user->id]);
     $contact = FoContact::factory()->create(['employee_id' => $employee->id, 'nama' => 'Candra-KJPP']);
 
-    $first = FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $employee->id, 'created_at' => now()->subDays(2)]);
-    $second = FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $employee->id, 'created_at' => now()->subDay()]);
-    $third = FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $employee->id, 'created_at' => now()]);
-
     $this->actingAs($user);
 
-    $component = Volt::test('investors.funnel-index')->instance();
+    $component = Volt::test('investors.funnel-index');
+    $component->call('createLead', $contact->id, '2026-08-01', 250_000_000, 'Referral');
+    $component->call('createLead', $contact->id, '2026-08-01', 250_000_000, 'Referral');
+    $component->call('createLead', $contact->id, '2026-08-01', 250_000_000, 'Referral');
 
-    expect($component->contactLabel($first))->toBe('Candra-KJPP')
-        ->and($component->contactLabel($second))->toBe('Candra-KJPP #2')
-        ->and($component->contactLabel($third))->toBe('Candra-KJPP #3');
+    [$first, $second, $third] = FoFunnel::where('fo_contact_id', $contact->id)->orderBy('id')->get();
+
+    expect($component->instance()->contactLabel($first))->toBe('Candra-KJPP')
+        ->and($component->instance()->contactLabel($second))->toBe('Candra-KJPP #2')
+        ->and($component->instance()->contactLabel($third))->toBe('Candra-KJPP #3');
 });
 
 test('a contact with a single lead gets no suffix', function () {
@@ -1273,11 +1274,33 @@ test('a contact with a single lead gets no suffix', function () {
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $contact = FoContact::factory()->create(['employee_id' => $employee->id, 'nama' => 'Solo Investor']);
-    $funnel = FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $employee->id]);
 
     $this->actingAs($user);
 
-    $component = Volt::test('investors.funnel-index')->instance();
+    $component = Volt::test('investors.funnel-index');
+    $component->call('createLead', $contact->id, '2026-08-01', 250_000_000, 'Referral');
 
-    expect($component->contactLabel($funnel))->toBe('Solo Investor');
+    $funnel = FoFunnel::where('fo_contact_id', $contact->id)->firstOrFail();
+
+    expect($component->instance()->contactLabel($funnel))->toBe('Solo Investor');
+});
+
+test('a lead\'s #N suffix stays frozen even if an earlier lead for the same contact is deleted', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $contact = FoContact::factory()->create(['employee_id' => $employee->id, 'nama' => 'Repeat Investor']);
+
+    $this->actingAs($user);
+
+    $component = Volt::test('investors.funnel-index');
+    $component->call('createLead', $contact->id, '2026-08-01', 250_000_000, 'Referral');
+    $component->call('createLead', $contact->id, '2026-08-01', 250_000_000, 'Referral');
+
+    [$first, $second] = FoFunnel::where('fo_contact_id', $contact->id)->orderBy('id')->get();
+
+    $component->call('deleteFunnel', $first->id);
+
+    expect($second->fresh()->contact_sequence)->toBe(2)
+        ->and($component->instance()->contactLabel($second->fresh()))->toBe('Repeat Investor #2');
 });

@@ -189,35 +189,11 @@ $funnels = computed(function () {
         ->get();
 });
 
-// Same contact can enter Leads more than once over time (repeat investor). To tell those
-// cards apart without an N+1 query per card, resolve every occurrence's rank in one extra
-// query — scoped to just the contact ids already loaded in $funnels, not the whole table.
-$leadSequences = computed(function () {
-    $contactIds = $this->funnels->pluck('fo_contact_id')->filter()->unique()->values();
-
-    if ($contactIds->isEmpty()) {
-        return [];
-    }
-
-    $rows = FoFunnel::query()
-        ->whereIn('fo_contact_id', $contactIds)
-        ->orderBy('created_at')
-        ->orderBy('id')
-        ->get(['id', 'fo_contact_id']);
-
-    // Plain array keyed by funnel id (not a Collection merge) — array_merge/flatMap
-    // would renumber these integer keys instead of preserving them.
-    $sequences = [];
-    $counters = [];
-
-    foreach ($rows as $row) {
-        $counters[$row->fo_contact_id] = ($counters[$row->fo_contact_id] ?? 0) + 1;
-        $sequences[$row->id] = $counters[$row->fo_contact_id];
-    }
-
-    return $sequences;
-});
-
+// Same contact can enter Leads more than once over time (repeat investor). The occurrence
+// number is decided once, at creation time in createLead() below, and stored on the funnel
+// row itself (contact_sequence) — not recomputed live from the current row count. A live
+// count would reshuffle every other card's number whenever one lead for that contact gets
+// deleted/cancelled, which is confusing; a stored number stays put for that card's lifetime.
 $contactLabel = function ($funnel) {
     $name = $funnel->contact?->nama;
 
@@ -225,9 +201,7 @@ $contactLabel = function ($funnel) {
         return $name;
     }
 
-    $sequence = $this->leadSequences[$funnel->id] ?? 1;
-
-    return $sequence > 1 ? "{$name} #{$sequence}" : $name;
+    return $funnel->contact_sequence > 1 ? "{$name} #{$funnel->contact_sequence}" : $name;
 };
 
 $stageSum = function ($stage) {
@@ -302,6 +276,7 @@ $createLead = function ($contactId, $proyeksiCloseDate, $proyeksiAmount, $sumber
 
     $funnel = FoFunnel::create([
         'fo_contact_id' => $contact->id,
+        'contact_sequence' => FoFunnel::where('fo_contact_id', $contact->id)->count() + 1,
         'employee_id' => $contact->employee_id,
         'stage' => 'leads',
         'sumber' => $sumber,
