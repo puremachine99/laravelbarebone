@@ -8,6 +8,7 @@ enum EmployeeStatus: string
     case Resign = 'resign';
     case Discontinued = 'discontinued';
     case Phk = 'phk';
+    case Inactive = 'inactive';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum EmployeeStatus: string
             self::Resign => __('Resign'),
             self::Discontinued => __('Discontinued'),
             self::Phk => __('PHK'),
+            self::Inactive => __('Nonaktif'),
         };
     }
 
@@ -26,6 +28,7 @@ enum EmployeeStatus: string
             self::Resign => 'badge-warning',
             self::Discontinued => 'badge-ghost',
             self::Phk => 'badge-error',
+            self::Inactive => 'badge-ghost',
         };
     }
 

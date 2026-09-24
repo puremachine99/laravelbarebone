@@ -52,4 +52,9 @@ class Employee extends Model
     {
         return $this->belongsTo(Position::class, 'position_fungsional_id');
     }
+
+    public function positionTeknis()
+    {
+        return $this->belongsTo(Position::class, 'position_teknis_id');
+    }
 }
