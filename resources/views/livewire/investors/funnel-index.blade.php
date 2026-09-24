@@ -99,13 +99,24 @@ $isAdminFo = computed(fn () => auth()->user()->hasRole(['Investor Admin', 'Super
 $currentEmployee = computed(fn () => Employee::with('user')->where('user_id', auth()->id())->first());
 
 $contactOptions = computed(function () {
+    $isAdmin = $this->isAdminFo;
     $employeeId = $this->currentEmployee?->id;
 
-    return Cache::remember("fo-funnel:contact-options:{$employeeId}", 60, function () use ($employeeId) {
+    $cacheKey = $isAdmin ? 'fo-funnel:contact-options:all' : "fo-funnel:contact-options:{$employeeId}";
+
+    return Cache::remember($cacheKey, 60, function () use ($isAdmin, $employeeId) {
         return FoContact::query()
-            ->where('employee_id', $employeeId)
-            ->orderBy('nama')
-            ->get(['id', 'nama', 'profesi'])
+            ->when(! $isAdmin, fn ($q) => $q->where('employee_id', $employeeId))
+            ->with('employee.user:id,name')
+            ->orderByDesc('updated_at')
+            ->get(['id', 'nama', 'profesi', 'employee_id', 'updated_at'])
+            ->map(fn ($contact) => [
+                'id' => $contact->id,
+                'nama' => $contact->nama,
+                'profesi' => $contact->profesi,
+                'pic' => $contact->employee?->user?->name,
+                'updated_at' => $contact->updated_at?->format('d-m-Y'),
+            ])
             ->toArray();
     });
 });
@@ -177,6 +188,47 @@ $funnels = computed(function () {
         ->orderByDesc('created_at')
         ->get();
 });
+
+// Same contact can enter Leads more than once over time (repeat investor). To tell those
+// cards apart without an N+1 query per card, resolve every occurrence's rank in one extra
+// query — scoped to just the contact ids already loaded in $funnels, not the whole table.
+$leadSequences = computed(function () {
+    $contactIds = $this->funnels->pluck('fo_contact_id')->filter()->unique()->values();
+
+    if ($contactIds->isEmpty()) {
+        return [];
+    }
+
+    $rows = FoFunnel::query()
+        ->whereIn('fo_contact_id', $contactIds)
+        ->orderBy('created_at')
+        ->orderBy('id')
+        ->get(['id', 'fo_contact_id']);
+
+    // Plain array keyed by funnel id (not a Collection merge) — array_merge/flatMap
+    // would renumber these integer keys instead of preserving them.
+    $sequences = [];
+    $counters = [];
+
+    foreach ($rows as $row) {
+        $counters[$row->fo_contact_id] = ($counters[$row->fo_contact_id] ?? 0) + 1;
+        $sequences[$row->id] = $counters[$row->fo_contact_id];
+    }
+
+    return $sequences;
+});
+
+$contactLabel = function ($funnel) {
+    $name = $funnel->contact?->nama;
+
+    if (! $name) {
+        return $name;
+    }
+
+    $sequence = $this->leadSequences[$funnel->id] ?? 1;
+
+    return $sequence > 1 ? "{$name} #{$sequence}" : $name;
+};
 
 $stageSum = function ($stage) {
     return (float) $this->funnels->where('stage', $stage)->sum(function ($funnel) {
@@ -961,7 +1013,7 @@ $closeActivityLog = function () {
                                 </ul>
                             </div>
 
-                            <div class="font-semibold text-sm text-base-content pr-5">{{ $funnel->contact?->nama }}</div>
+                            <div class="font-semibold text-sm text-base-content pr-5">{{ $this->contactLabel($funnel) }}</div>
                             <div class="text-xs text-base-content/50 truncate">{{ $funnel->contact?->profesi }}</div>
 
                             @php
@@ -1079,7 +1131,7 @@ $closeActivityLog = function () {
                             $displayDateTable = $usesClosingDataTable ? $funnel->tgl_closing : ($usesWonDataTable ? $funnel->tgl_won : $funnel->proyeksi_close_date);
                         @endphp
                         <tr class="border-b border-base-300 hover:bg-base-200">
-                            <td class="font-semibold text-base-content py-3">{{ $funnel->contact?->nama }}</td>
+                            <td class="font-semibold text-base-content py-3">{{ $this->contactLabel($funnel) }}</td>
                             <td class="max-w-[220px] truncate">{{ $funnel->contact?->profesi }}</td>
                             <td><x-currency-abbr :value="$displayAmountTable" /></td>
                             <td>{{ $funnel->employee?->user?->name }}</td>
@@ -1143,44 +1195,60 @@ $closeActivityLog = function () {
     @endif
 
     <!-- Add Lead Modal -->
-    <x-modal id="funnel-add-modal" title="Add Lead" persistent without-trap-focus>
-        <form x-on:submit.prevent="submitCreate()" class="space-y-4">
-            <div class="relative" x-on:click.outside="contactDropdownOpen = false">
-                <x-input
-                    label="Contact"
-                    placeholder="Search your contacts by name..."
-                    x-model="contactSearchText"
-                    x-on:focus="contactDropdownOpen = true"
-                    x-on:input="contactDropdownOpen = true; addForm.contactId = null"
-                    icon="o-magnifying-glass"
-                    autocomplete="off"
-                    required
-                />
-
-                <div x-show="contactDropdownOpen" x-cloak class="absolute z-30 mt-1 w-full max-h-56 overflow-y-auto bg-base-100 border border-base-300 rounded-lg shadow-lg">
-                    <template x-for="contact in filteredContactOptions()" :key="contact.id">
-                        <div class="px-3 py-2 hover:bg-base-200 cursor-pointer" x-on:click="selectContact(contact)">
-                            <div class="text-sm font-medium text-base-content" x-text="contact.nama"></div>
-                            <div class="text-xs text-base-content/50" x-text="contact.profesi || '-'"></div>
+    <x-modal id="funnel-add-modal" title="Add Lead" :subtitle="$this->isAdminFo ? 'Showing contacts from all Funding Officers.' : 'Showing your own contacts.'" persistent without-trap-focus box-class="max-w-none md:w-[1100px]">
+        <form x-on:submit.prevent="submitCreate()" class="flex flex-col">
+            <div class="max-h-[65vh] overflow-y-auto pr-1 grid grid-cols-1 md:grid-cols-[340px_1fr] gap-6">
+                <!-- Left: Form -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-base-content">Contact</label>
+                        <div class="mt-1 px-3 py-2.5 rounded-lg border border-base-300 bg-base-200/40 text-sm min-h-10.5 flex items-center"
+                             :class="addForm.contactId ? 'text-base-content' : 'text-base-content/40'">
+                            <span x-text="addForm.contactId ? contactSearchText : 'Select a contact from the list on the right'"></span>
                         </div>
-                    </template>
+                    </div>
 
-                    <template x-if="filteredContactOptions().length === 0">
-                        <div class="px-3 py-2 text-xs text-base-content/40">
-                            No contacts found. Add one first on the Contacts page.
-                        </div>
-                    </template>
+                    <x-input label="Projected Close Date" type="date" x-model="addForm.tanggal" />
+                    <x-input label="Projected Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="addForm.proyeksiAmount" placeholder="e.g. 250.000.000" hint="Automatically formatted, e.g. 250.000.000 for Rp 250 Million" />
+                    <x-select label="Source" x-model="addForm.sumber" :options="$sumberOptions" placeholder="Select Source" required />
+                </div>
+
+                <!-- Right: Browsable contact list, newest updated first -->
+                <div class="space-y-3 md:border-l md:border-base-300 md:pl-6">
+                    <x-input
+                        label="Search Contact"
+                        placeholder="Search by name or profession..."
+                        x-model="contactSearchText"
+                        icon="o-magnifying-glass"
+                        autocomplete="off"
+                    />
+
+                    <div class="border border-base-300 rounded-lg divide-y divide-base-300">
+                        <template x-for="contact in filteredContactOptions()" :key="contact.id">
+                            <div
+                                class="px-3 py-2 cursor-pointer hover:bg-base-200 flex items-center justify-between gap-3"
+                                :class="addForm.contactId === contact.id ? 'bg-primary/10' : ''"
+                                x-on:click="selectContact(contact)"
+                            >
+                                <div class="min-w-0">
+                                    <div class="text-sm font-medium text-base-content" x-text="contact.nama"></div>
+                                    <div class="text-xs text-base-content/50 truncate" x-text="contact.profesi || '-'"></div>
+                                    <div class="text-[11px] text-primary/70" x-show="contact.pic" x-text="contact.pic ? ('PIC: ' + contact.pic) : ''"></div>
+                                </div>
+                                <div class="text-[11px] text-base-content/40 shrink-0" x-text="contact.updated_at"></div>
+                            </div>
+                        </template>
+
+                        <template x-if="filteredContactOptions().length === 0">
+                            <div class="px-3 py-6 text-center text-xs text-base-content/40">
+                                No contacts found. Add one first on the Contacts page.
+                            </div>
+                        </template>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <x-input label="Projected Close Date" type="date" x-model="addForm.tanggal" />
-                <x-input label="Projected Amount (Rp)" type="text" inputmode="numeric" x-mask:dynamic="$money($input, ',', '.', 0)" x-model="addForm.proyeksiAmount" placeholder="e.g. 250.000.000" hint="Automatically formatted, e.g. 250.000.000 for Rp 250 Million" />
-            </div>
-
-            <x-select label="Source" x-model="addForm.sumber" :options="$sumberOptions" placeholder="Select Source" required />
-
-            <div class="modal-action gap-2">
+            <div class="modal-action gap-2 mt-6!">
                 <x-button label="Close" class="btn-ghost flex-1" x-on:click="$el.closest('dialog').close()" />
                 <x-button label="Save" type="submit" class="btn-primary flex-1" />
             </div>
@@ -1484,7 +1552,7 @@ $closeActivityLog = function () {
             <div class="p-6 space-y-4">
                 <div class="flex items-start justify-between gap-2">
                     <div>
-                        <h3 class="font-bold text-lg text-base-content">{{ $this->historyFunnel->contact?->nama }}</h3>
+                        <h3 class="font-bold text-lg text-base-content">{{ $this->contactLabel($this->historyFunnel) }}</h3>
                         <p class="text-xs text-base-content/50">Follow Up History</p>
                     </div>
                     <x-button icon="o-x-mark" class="btn-ghost btn-sm btn-circle" wire:click="closeHistory" />
@@ -1594,7 +1662,6 @@ $closeActivityLog = function () {
 
         contacts: contacts,
         contactSearchText: '',
-        contactDropdownOpen: false,
 
         addForm: { contactId: null, tanggal: '', proyeksiAmount: '', sumber: '' },
         pitchForm: { funnelId: null, tanggal: '', catatan: '' },
@@ -1609,13 +1676,13 @@ $closeActivityLog = function () {
             return this.contacts.filter((contact) =>
                 contact.nama.toLowerCase().includes(search)
                 || (contact.profesi ?? '').toLowerCase().includes(search)
+                || (contact.pic ?? '').toLowerCase().includes(search)
             );
         },
 
         selectContact(contact) {
             this.addForm.contactId = contact.id;
             this.contactSearchText = contact.nama;
-            this.contactDropdownOpen = false;
         },
 
         showCreate() {

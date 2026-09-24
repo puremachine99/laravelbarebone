@@ -115,6 +115,40 @@ test('a fo cannot create a lead for a contact they do not own', function () {
         ->assertStatus(403);
 });
 
+test('a non admin fo only sees their own contacts in the add lead options', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $ownContact = FoContact::factory()->create(['employee_id' => $employee->id]);
+
+    $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
+    FoContact::factory()->create(['employee_id' => $otherEmployee->id]);
+
+    $this->actingAs($user);
+
+    $options = Volt::test('investors.funnel-index')->get('contactOptions');
+
+    expect(collect($options)->pluck('id')->all())->toBe([$ownContact->id]);
+});
+
+test('an investor admin sees every fo contact in the add lead options', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+
+    $employeeA = Employee::create(['user_id' => User::factory()->create()->id]);
+    $employeeB = Employee::create(['user_id' => User::factory()->create()->id]);
+    $contactA = FoContact::factory()->create(['employee_id' => $employeeA->id]);
+    $contactB = FoContact::factory()->create(['employee_id' => $employeeB->id]);
+
+    $this->actingAs($admin);
+
+    $options = Volt::test('investors.funnel-index')->get('contactOptions');
+
+    expect(collect($options)->pluck('id')->sort()->values()->all())
+        ->toBe(collect([$contactA->id, $contactB->id])->sort()->values()->all())
+        ->and(collect($options)->pluck('pic')->filter()->count())->toBe(2);
+});
+
 test('moving to a non-pitching stage updates it directly', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(Permission::findOrCreate('access-investors'));
@@ -1213,4 +1247,37 @@ test('a plain fo cannot open the history sidebar for another fo funnel', functio
     Volt::test('investors.funnel-index')
         ->call('openHistory', $otherFunnel->id)
         ->assertStatus(403);
+});
+
+test('a contact with repeat leads gets a #N suffix from the second occurrence onward', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $contact = FoContact::factory()->create(['employee_id' => $employee->id, 'nama' => 'Candra-KJPP']);
+
+    $first = FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $employee->id, 'created_at' => now()->subDays(2)]);
+    $second = FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $employee->id, 'created_at' => now()->subDay()]);
+    $third = FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $employee->id, 'created_at' => now()]);
+
+    $this->actingAs($user);
+
+    $component = Volt::test('investors.funnel-index')->instance();
+
+    expect($component->contactLabel($first))->toBe('Candra-KJPP')
+        ->and($component->contactLabel($second))->toBe('Candra-KJPP #2')
+        ->and($component->contactLabel($third))->toBe('Candra-KJPP #3');
+});
+
+test('a contact with a single lead gets no suffix', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $employee = Employee::create(['user_id' => $user->id]);
+    $contact = FoContact::factory()->create(['employee_id' => $employee->id, 'nama' => 'Solo Investor']);
+    $funnel = FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $employee->id]);
+
+    $this->actingAs($user);
+
+    $component = Volt::test('investors.funnel-index')->instance();
+
+    expect($component->contactLabel($funnel))->toBe('Solo Investor');
 });
