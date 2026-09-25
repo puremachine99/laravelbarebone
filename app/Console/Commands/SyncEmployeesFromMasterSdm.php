@@ -55,6 +55,13 @@ class SyncEmployeesFromMasterSdm extends Command
         'Shannon Schoen',
     ];
 
+    /**
+     * Whether the CSV being processed has the legacy 3-way position columns
+     * (Jabatan Struktural / Fungsional / Teknis). When false (e.g. the CSV
+     * only has a single "Jabatan" column), position fields are left untouched.
+     */
+    private bool $hasPositionColumns = false;
+
     public function handle(): void
     {
         $csvPath = $this->option('file') ?: database_path('seeders/jsonlawas/Master SDM (Umum) - Master.csv');
@@ -93,10 +100,18 @@ class SyncEmployeesFromMasterSdm extends Command
 
         $rows = $this->readCsv($csvPath);
 
+        $this->hasPositionColumns = ! empty($rows) && array_key_exists('Jabatan Struktural', $rows[0]);
+
+        if (! $this->hasPositionColumns) {
+            $this->warn('Kolom Jabatan Struktural/Fungsional/Teknis tidak ditemukan di CSV ini — data jabatan yang sudah ada TIDAK akan diubah.');
+        }
+
         $departmentsMap = Department::pluck('id', 'name')->all();
         $positionsMap = Position::pluck('id', 'name')->all();
 
-        $positionsMap = $this->createMissingPositions($rows, $positionsMap);
+        if ($this->hasPositionColumns) {
+            $positionsMap = $this->createMissingPositions($rows, $positionsMap);
+        }
         $departmentsMap = $this->createMissingDepartments($rows, $departmentsMap);
 
         $normDbUsers = [];
@@ -104,40 +119,59 @@ class SyncEmployeesFromMasterSdm extends Command
             $normDbUsers[$normalizeName($user->name)] = $user;
         }
 
+        $employeesByNis = Employee::whereNotNull('nis')->where('nis', '!=', '')->get()->keyBy('nis');
+
         $updated = 0;
         $created = 0;
-        $matchedKeys = [];
+        $emailsReplaced = 0;
+        $matchedEmployeeIds = [];
 
         foreach ($rows as $row) {
-            $name = trim($row[2]);
+            $name = trim($row['Nama Lengkap'] ?? '');
+            if ($name === '') {
+                continue;
+            }
+
             $key = $normalizeName($name);
-            $matchedKeys[$key] = true;
+            $nis = trim($row['NIS'] ?? '');
+            $personalEmail = $this->firstEmail($row['Email'] ?? '');
 
             $attributes = $this->buildEmployeeAttributes($row, $departmentsMap, $positionsMap);
 
-            $user = $normDbUsers[$key] ?? null;
+            $employee = ($nis !== '' && isset($employeesByNis[$nis])) ? $employeesByNis[$nis] : null;
+            $user = $employee?->user ?? ($normDbUsers[$key] ?? null);
 
             if ($user) {
-                $employee = Employee::firstOrNew(['user_id' => $user->id]);
+                $employee = $employee ?? Employee::firstOrNew(['user_id' => $user->id]);
                 $employee->fill($attributes);
                 $employee->status = EmployeeStatus::Active;
                 $employee->save();
                 $updated++;
 
+                if ($this->replacePrimaryEmail($user, $personalEmail)) {
+                    $emailsReplaced++;
+                }
+
+                $matchedEmployeeIds[$employee->id] = true;
+
                 continue;
             }
 
-            $emailName = Str::slug(explode(',', $name)[0], '.');
-            $email = "{$emailName}@smartid.co.id";
-            $counter = 1;
-            while (User::where('email', $email)->exists()) {
-                $email = "{$emailName}{$counter}@smartid.co.id";
-                $counter++;
+            $email = $personalEmail;
+            if ($email === '' || User::where('email', $email)->exists()) {
+                $emailName = Str::slug(explode(',', $name)[0], '.');
+                $email = "{$emailName}@smartid.co.id";
+                $counter = 1;
+                while (User::where('email', $email)->exists()) {
+                    $email = "{$emailName}{$counter}@smartid.co.id";
+                    $counter++;
+                }
             }
 
             $newUser = User::create([
                 'name' => $name,
                 'email' => $email,
+                'secondary_email' => null,
                 'password' => bcrypt('smartid2026'),
                 'email_verified_at' => now(),
             ]);
@@ -148,30 +182,105 @@ class SyncEmployeesFromMasterSdm extends Command
             $employee->save();
 
             $normDbUsers[$key] = $newUser;
+            $matchedEmployeeIds[$employee->id] = true;
             $created++;
         }
 
-        $inactivated = $this->inactivateMissingEmployees($matchedKeys, $normalizeName);
+        $inactivated = $this->inactivateMissingEmployees($matchedEmployeeIds, $normalizeName);
 
         $this->info("Employee diupdate: {$updated}");
         $this->info("Employee baru dibuat: {$created}");
+        $this->info("Email login diganti ke email pribadi: {$emailsReplaced}");
         $this->info("Employee ditandai nonaktif: {$inactivated}");
     }
 
     /**
-     * @return array<int, array<int, string>>
+     * Replaces the user's login email with their personal email from the CSV.
+     * The previous login email is preserved as `username` (when not already set)
+     * so existing credentials keep working. `secondary_email` is always cleared.
+     */
+    private function replacePrimaryEmail(User $user, string $personalEmail): bool
+    {
+        $changed = false;
+
+        if ($personalEmail !== '' && $user->email !== $personalEmail) {
+            $emailTaken = User::where('email', $personalEmail)->where('id', '!=', $user->id)->exists();
+
+            if ($emailTaken) {
+                $this->warn("Email '{$personalEmail}' sudah dipakai user lain, email login tidak diganti untuk: {$user->name}");
+            } else {
+                if ($user->username === null) {
+                    $usernameTaken = User::where('id', '!=', $user->id)
+                        ->where(fn ($q) => $q->where('username', $user->email)->orWhere('email', $user->email))
+                        ->exists();
+
+                    if (! $usernameTaken) {
+                        $user->username = $user->email;
+                    }
+                }
+
+                $user->email = $personalEmail;
+                $changed = true;
+            }
+        }
+
+        if ($user->secondary_email !== null) {
+            $user->secondary_email = null;
+            $changed = true;
+        }
+
+        if ($changed) {
+            $user->save();
+        }
+
+        return $changed;
+    }
+
+    private function firstEmail(string $raw): string
+    {
+        return trim(explode('/', $raw)[0]);
+    }
+
+    /**
+     * Reads the CSV into header-keyed associative rows. Handles a leading blank
+     * row before the real header, which some exports include.
+     *
+     * @return array<int, array<string, string>>
      */
     private function readCsv(string $csvPath): array
     {
         $file = fopen($csvPath, 'r');
-        fgetcsv($file);
 
+        $header = null;
         $rows = [];
-        while (($row = fgetcsv($file)) !== false) {
-            if (empty($row) || ! isset($row[2]) || trim($row[2]) === '') {
+
+        while (($line = fgetcsv($file)) !== false) {
+            if (empty(array_filter($line, fn ($v) => trim((string) $v) !== ''))) {
                 continue;
             }
-            $rows[] = $row;
+
+            if ($header === null) {
+                if (! in_array('Nama Lengkap', array_map('trim', $line), true)) {
+                    continue;
+                }
+                $header = array_map('trim', $line);
+
+                continue;
+            }
+
+            $assoc = [];
+            foreach ($header as $i => $columnName) {
+                if ($columnName === '') {
+                    continue;
+                }
+                $assoc[$columnName] = $line[$i] ?? '';
+            }
+
+            if (! isset($assoc['Nama Lengkap']) || trim($assoc['Nama Lengkap']) === '') {
+                continue;
+            }
+
+            $rows[] = $assoc;
         }
         fclose($file);
 
@@ -193,13 +302,17 @@ class SyncEmployeesFromMasterSdm extends Command
     }
 
     /**
-     * @param  array<int, array<int, string>>  $rows
+     * @param  array<int, array<string, string>>  $rows
      * @param  array<string, int>  $positionsMap
      * @return array<string, int>
      */
     private function createMissingPositions(array $rows, array $positionsMap): array
     {
-        $columnsToType = [4 => 'Struktural', 5 => 'Fungsional', 6 => 'Teknis'];
+        $columnsToType = [
+            'Jabatan Struktural' => 'Struktural',
+            'Jabatan Fungsional' => 'Fungsional',
+            'Jabatan Teknis' => 'Teknis',
+        ];
 
         foreach ($rows as $row) {
             foreach ($columnsToType as $column => $type) {
@@ -219,14 +332,14 @@ class SyncEmployeesFromMasterSdm extends Command
     }
 
     /**
-     * @param  array<int, array<int, string>>  $rows
+     * @param  array<int, array<string, string>>  $rows
      * @param  array<string, int>  $departmentsMap
      * @return array<string, int>
      */
     private function createMissingDepartments(array $rows, array $departmentsMap): array
     {
         foreach ($rows as $row) {
-            $name = trim($row[3] ?? '');
+            $name = trim($row['Departemen'] ?? '');
             if ($name === '' || isset($departmentsMap[$name])) {
                 continue;
             }
@@ -238,42 +351,48 @@ class SyncEmployeesFromMasterSdm extends Command
     }
 
     /**
-     * @param  array<int, string>  $row
+     * @param  array<string, string>  $row
      * @param  array<string, int>  $departmentsMap
      * @param  array<string, int>  $positionsMap
      * @return array<string, mixed>
      */
     private function buildEmployeeAttributes(array $row, array $departmentsMap, array $positionsMap): array
     {
-        $deptName = trim($row[3] ?? '');
-        $struktural = trim(str_replace(["\r", "\n"], ' ', $row[4] ?? ''));
-        $fungsional = trim(str_replace(["\r", "\n"], ' ', $row[5] ?? ''));
-        $teknis = trim(str_replace(["\r", "\n"], ' ', $row[6] ?? ''));
+        $deptName = trim($row['Departemen'] ?? '');
 
-        $joinDate = trim($row[8] ?? '');
-        $statusRaw = trim($row[11] ?? '');
-        $contractStart = trim($row[12] ?? '') ?: $joinDate;
-        $contractEnd = trim($row[13] ?? '');
+        $joinDate = trim($row['Tanggal Bergabung SmartID'] ?? '');
+        $statusRaw = trim($row['Status Kepegawaian'] ?? '');
+        $contractStart = trim($row['Tanggal Awal Kontrak'] ?? '') ?: $joinDate;
+        $contractEnd = trim($row['Tanggal Terakhir Kontrak'] ?? '');
 
         [$employmentStatus, $isCltp] = $this->parseStatus($statusRaw);
 
-        return [
+        $attributes = [
             'department_id' => $deptName !== '' ? ($departmentsMap[$deptName] ?? null) : null,
-            'position_struktural_id' => $struktural !== '' ? ($positionsMap[$struktural] ?? null) : null,
-            'position_fungsional_id' => $fungsional !== '' ? ($positionsMap[$fungsional] ?? null) : null,
-            'position_teknis_id' => $teknis !== '' ? ($positionsMap[$teknis] ?? null) : null,
             'employment_status' => $employmentStatus,
             'is_cltp' => $isCltp,
             'contract_start_date' => $this->parseDate($contractStart),
             'contract_end_date' => $this->parseDate($contractEnd),
-            'nis' => trim($row[14] ?? '') ?: null,
-            'nik' => trim($row[15] ?? '') ?: null,
-            'npwp' => trim($row[16] ?? '') ?: null,
-            'education_level' => trim($row[17] ?? '') ?: null,
-            'birth_date' => $this->parseDate($row[18] ?? null),
-            'gender' => trim($row[19] ?? '') ?: null,
-            'phone_number' => $this->firstPhoneNumber($row[20] ?? ''),
+            'nis' => trim($row['NIS'] ?? '') ?: null,
+            'nik' => trim($row['NIK'] ?? '') ?: null,
+            'npwp' => trim($row['NPWP'] ?? '') ?: null,
+            'education_level' => trim($row['Pendidikan'] ?? '') ?: null,
+            'birth_date' => $this->parseDate($row['Tanggal Lahir'] ?? null),
+            'gender' => trim($row['Jenis Kelamin'] ?? '') ?: null,
+            'phone_number' => $this->firstPhoneNumber($row['No.Telephone'] ?? ''),
         ];
+
+        if ($this->hasPositionColumns) {
+            $struktural = trim(str_replace(["\r", "\n"], ' ', $row['Jabatan Struktural'] ?? ''));
+            $fungsional = trim(str_replace(["\r", "\n"], ' ', $row['Jabatan Fungsional'] ?? ''));
+            $teknis = trim(str_replace(["\r", "\n"], ' ', $row['Jabatan Teknis'] ?? ''));
+
+            $attributes['position_struktural_id'] = $struktural !== '' ? ($positionsMap[$struktural] ?? null) : null;
+            $attributes['position_fungsional_id'] = $fungsional !== '' ? ($positionsMap[$fungsional] ?? null) : null;
+            $attributes['position_teknis_id'] = $teknis !== '' ? ($positionsMap[$teknis] ?? null) : null;
+        }
+
+        return $attributes;
     }
 
     /**
@@ -332,23 +451,27 @@ class SyncEmployeesFromMasterSdm extends Command
     }
 
     /**
-     * @param  array<string, bool>  $matchedKeys
+     * @param  array<int, bool>  $matchedEmployeeIds
      */
-    private function inactivateMissingEmployees(array $matchedKeys, \Closure $normalizeName): int
+    private function inactivateMissingEmployees(array $matchedEmployeeIds, \Closure $normalizeName): int
     {
         $superAdminId = DB::table('users')->where('email', 'supernakama@smartid.co.id')->value('id');
         $excludedKeys = array_map($normalizeName, self::EXCLUDED_FROM_INACTIVATION);
 
         $count = 0;
 
-        Employee::with('user')->get()->each(function (Employee $employee) use (&$count, $matchedKeys, $superAdminId, $excludedKeys, $normalizeName) {
+        Employee::with('user')->get()->each(function (Employee $employee) use (&$count, $matchedEmployeeIds, $superAdminId, $excludedKeys, $normalizeName) {
             if (! $employee->user || $employee->user->id === $superAdminId) {
+                return;
+            }
+
+            if (isset($matchedEmployeeIds[$employee->id])) {
                 return;
             }
 
             $key = $normalizeName($employee->user->name);
 
-            if (isset($matchedKeys[$key]) || in_array($key, $excludedKeys, true)) {
+            if (in_array($key, $excludedKeys, true)) {
                 return;
             }
 

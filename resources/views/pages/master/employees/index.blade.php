@@ -39,6 +39,7 @@ state([
 'department_id' =>'',
 'position_struktural_id' =>'',
 'position_fungsional_id' =>'',
+'position_teknis_id' =>'',
 'employment_status' =>'',
 'status' =>'active',
 'status_date' =>'',
@@ -62,7 +63,7 @@ $employees = computed(function () {
  return User::query()
  ->select('users.*')
  ->leftJoin('employees','employees.user_id','=','users.id')
- ->with(['employee.department','employee.positionFungsional','employee.positionStruktural','roles'])
+ ->with(['employee.department','employee.positionFungsional','employee.positionStruktural','employee.positionTeknis','roles'])
  ->when($search, fn($q) =>
  $q->where(fn($q) =>
  $q->whereRaw('LOWER(users.name) LIKE ?', ['%' . strtolower($search) .'%'])
@@ -144,7 +145,7 @@ $statsTenure = computed(function () {
 });
 
 $showDetail = function ($id) {
- $this->selectedEmployee = Employee::with(['user.invitedBy','department','positionFungsional','positionStruktural'])->find($id);
+ $this->selectedEmployee = Employee::with(['user.invitedBy','department','positionFungsional','positionStruktural','positionTeknis'])->find($id);
  $this->js('$dispatch("open-drawer")');
 };
 
@@ -166,7 +167,7 @@ $updatedFilterDept = function () {
 };
 
 $resetForm = function () {
- $this->reset(['employee_id','existingUserId','isEdit','name','email','password','department_id','position_struktural_id','position_fungsional_id','employment_status','status','status_date','status_reason','is_cltp']);
+ $this->reset(['employee_id','existingUserId','isEdit','name','email','password','department_id','position_struktural_id','position_fungsional_id','position_teknis_id','employment_status','status','status_date','status_reason','is_cltp']);
  $this->status ='active';
  $this->userRoles = [];
  $this->resetValidation();
@@ -188,6 +189,7 @@ $save = function (InviteUser $inviteUser) {
 'department_id' => ['nullable','exists:departments,id'],
 'position_struktural_id' => ['nullable','exists:positions,id'],
 'position_fungsional_id' => ['nullable','exists:positions,id'],
+'position_teknis_id' => ['nullable','exists:positions,id'],
 'employment_status' => ['nullable','in:PKWT,PKWTT,Internship,Mitra Strategis,Bond Agreement'],
 'status' => ['required', Rule::enum(EmployeeStatus::class)],
 'status_date' => ['nullable','date'],
@@ -198,6 +200,7 @@ $save = function (InviteUser $inviteUser) {
 'department_id' => $this->department_id ?: null,
 'position_struktural_id' => $this->position_struktural_id ?: null,
 'position_fungsional_id' => $this->position_fungsional_id ?: null,
+'position_teknis_id' => $this->position_teknis_id ?: null,
 'employment_status' => $this->employment_status ?: null,
 'status' => $this->status,
 'status_date' => $this->status !=='active' ? ($this->status_date ?: null) : null,
@@ -252,6 +255,7 @@ $edit = function (Employee $employee) {
  $this->department_id = $employee->department_id ??'';
  $this->position_struktural_id = $employee->position_struktural_id ??'';
  $this->position_fungsional_id = $employee->position_fungsional_id ??'';
+ $this->position_teknis_id = $employee->position_teknis_id ??'';
  $this->employment_status = $employee->employment_status ??'';
  $this->status = $employee->status?->value ??'active';
  $this->status_date = $employee->status_date?->format('Y-m-d') ??'';
@@ -272,6 +276,7 @@ $completeProfile = function (User $user) {
  $this->department_id ='';
  $this->position_struktural_id ='';
  $this->position_fungsional_id ='';
+ $this->position_teknis_id ='';
  $this->employment_status ='';
  $this->status ='active';
  $this->status_date ='';
@@ -461,6 +466,7 @@ $delete = function () {
  <th>Departemen</th>
  <th>Jabatan Struktural</th>
  <th>Jabatan Fungsional</th>
+ <th>Jabatan Teknis</th>
  <th class="cursor-pointer" wire:click="sort('email')">
  <div class="flex items-center gap-1">
  <span>Email</span>
@@ -483,6 +489,7 @@ $delete = function () {
  <td>{{ $emp->employee?->department?->name ??'-' }}</td>
  <td>{{ $emp->employee?->positionStruktural?->name ??'-' }}</td>
  <td>{{ $emp->employee?->positionFungsional?->name ??'-' }}</td>
+ <td>{{ $emp->employee?->positionTeknis?->name ??'-' }}</td>
  <td>{{ $emp->email }}</td>
  <td>
  <span class="badge badge-sm {{ match ($emp->status) {
@@ -563,7 +570,7 @@ $delete = function () {
  </tr>
  @empty
  <tr>
- <td colspan="10" class="text-center text-base-content/50 py-8">
+ <td colspan="11" class="text-center text-base-content/50 py-8">
  Belum ada data yang ditampilkan.
  </td>
  </tr>
@@ -690,6 +697,10 @@ $delete = function () {
  <span class="text-base-content/40 block text-xs">Jabatan Fungsional</span>
  <span class="font-medium text-base-content">{{ $selectedEmployee->positionFungsional?->name ??'-' }}</span>
  </div>
+ <div class="col-span-2">
+ <span class="text-base-content/40 block text-xs">Jabatan Teknis</span>
+ <span class="font-medium text-base-content">{{ $selectedEmployee->positionTeknis?->name ??'-' }}</span>
+ </div>
  </div>
  </div>
 
@@ -794,9 +805,11 @@ $delete = function () {
  @php
  $structOpts = $this->positionOptions->where('type','Struktural')->map(fn($p) => ['id' => $p->id,'name' => $p->name]);
  $fungOpts = $this->positionOptions->where('type','Fungsional')->map(fn($p) => ['id' => $p->id,'name' => $p->name]);
+ $teknisOpts = $this->positionOptions->where('type','Teknis')->map(fn($p) => ['id' => $p->id,'name' => $p->name]);
  @endphp
  <x-select label="Jabatan Struktural" wire:model="position_struktural_id" :options="$structOpts" placeholder="-- Pilih Jabatan Struktural --" placeholder-value="" />
  <x-select label="Jabatan Fungsional" wire:model="position_fungsional_id" :options="$fungOpts" placeholder="-- Pilih Jabatan Fungsional --" placeholder-value="" />
+ <x-select label="Jabatan Teknis" wire:model="position_teknis_id" :options="$teknisOpts" placeholder="-- Pilih Jabatan Teknis --" placeholder-value="" />
 
  <hr class="border-base-300 my-2" />
  <h4 class="font-bold text-base-content/50 text-xs uppercase">Status Kepegawaian</h4>
