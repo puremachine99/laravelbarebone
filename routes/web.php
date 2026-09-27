@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SetPasswordController;
+use App\Http\Controllers\CsvExportController;
 use App\Http\Controllers\Debug\ErrorLogController;
 use App\Livewire\Admin\RoleManagement;
 use App\Livewire\Ai\AiCenter;
@@ -33,6 +34,8 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         ->name('profile.security');
 
     Volt::route('/notifications', 'notifications.index')->name('notifications.index');
+
+    Route::get('/export/csv/{slug}', CsvExportController::class)->name('csv-export.download');
 
     Volt::route('/users/{user}', 'users.show')->name('users.show');
 

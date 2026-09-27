@@ -28,6 +28,8 @@
                     </a>
                 </div>
                 @auth
+                    <x-csv-export-button />
+
                     <x-dark-mode-toggle />
 
                     <livewire:notification-bell />
@@ -99,6 +101,8 @@
 
                 @auth
                     <div class="flex items-center gap-1.5">
+                        <x-csv-export-button />
+
                         <x-dark-mode-toggle />
 
                         <livewire:notification-bell />
@@ -619,6 +623,7 @@
     @endauth
 
     <x-toast />
+    <x-csv-download-manager />
 </body>
 
 </html>
