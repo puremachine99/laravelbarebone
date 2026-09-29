@@ -19,6 +19,8 @@ class RoleManagement extends Component
 
     public array $rolePermissions = [];
 
+    public bool $selectAll = false;
+
     public bool $isEdit = false;
 
     public bool $showRoleModal = false;
@@ -32,6 +34,14 @@ class RoleManagement extends Component
     ];
 
     /**
+     * Modules exposed in the "Data Master" section instead of "Modul Aplikasi",
+     * to avoid listing the same permission twice in the form.
+     *
+     * @var array<int, string>
+     */
+    protected const DATA_MASTER_MODULE_PERMISSIONS = ['access-internal-org', 'access-products'];
+
+    /**
      * Permissions tied 1:1 to a business module (department-scoped access).
      *
      * @return array<string, array{label: string, description: string, icon: string}>
@@ -39,6 +49,7 @@ class RoleManagement extends Component
     public function modulePermissions(): array
     {
         return collect(config('modules.list'))
+            ->reject(fn (array $module) => in_array($module['permission'], self::DATA_MASTER_MODULE_PERMISSIONS, true))
             ->mapWithKeys(fn (array $module) => [
                 $module['permission'] => [
                     'label' => $module['label'],
@@ -64,6 +75,43 @@ class RoleManagement extends Component
         ];
     }
 
+    /**
+     * Data Master menu access. Mirrors the sidebar's "Data Master" gates,
+     * which reuse the same permissions as their related business module
+     * (access-internal-org, access-partnership, access-products).
+     *
+     * @return array<string, array{label: string, description: string, icon: string}>
+     */
+    public function dataMasterPermissions(): array
+    {
+        return [
+            'access-internal-org' => ['label' => 'Internal', 'description' => 'Departments, positions, employees, serta manage roles.', 'icon' => 'building-office'],
+            'access-partnership' => ['label' => 'Pipeline', 'description' => 'Region, OPD, contact positions, dan urusan.', 'icon' => 'queue-list'],
+            'access-products' => ['label' => 'Products', 'description' => 'Master data produk.', 'icon' => 'cube'],
+        ];
+    }
+
+    /**
+     * All assignable permission keys shown across the form's checkbox sections.
+     *
+     * @return array<int, string>
+     */
+    public function allAssignablePermissions(): array
+    {
+        return collect($this->modulePermissions())
+            ->keys()
+            ->merge(collect($this->otherPermissions())->keys())
+            ->merge(collect($this->dataMasterPermissions())->keys())
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    public function updatedSelectAll(bool $value): void
+    {
+        $this->rolePermissions = $value ? $this->allAssignablePermissions() : [];
+    }
+
     public static function permissionLabel(string $name): string
     {
         $catalog = collect(config('modules.list'))->mapWithKeys(fn (array $m) => [$m['permission'] => $m['label']]);
@@ -87,7 +135,7 @@ class RoleManagement extends Component
 
     public function resetForm()
     {
-        $this->reset(['roleId', 'roleName', 'rolePermissions', 'isEdit']);
+        $this->reset(['roleId', 'roleName', 'rolePermissions', 'selectAll', 'isEdit']);
         $this->resetValidation();
     }
 
@@ -98,6 +146,7 @@ class RoleManagement extends Component
         $this->roleId = $role->id;
         $this->roleName = $role->name;
         $this->rolePermissions = $role->permissions->pluck('name')->toArray();
+        $this->selectAll = empty(array_diff($this->allAssignablePermissions(), $this->rolePermissions));
         $this->isEdit = true;
 
         $this->showRoleModal = true;
@@ -169,6 +218,7 @@ class RoleManagement extends Component
             'roles' => $roles,
             'modulePermissions' => $this->modulePermissions(),
             'otherPermissions' => $this->otherPermissions(),
+            'dataMasterPermissions' => $this->dataMasterPermissions(),
         ]);
     }
 }

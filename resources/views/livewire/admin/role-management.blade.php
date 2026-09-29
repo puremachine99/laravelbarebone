@@ -84,6 +84,15 @@
         <form wire:submit.prevent="saveRole" class="space-y-6">
             <x-input label="Nama Peran (Role Name)" wire:model="roleName" placeholder="Cth: Partnership Executive" required :disabled="$roleName === 'Super Admin'" />
 
+            <!-- Select all -->
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-amber-300 bg-amber-50 cursor-pointer">
+                <input type="checkbox" wire:model.live="selectAll" class="rounded border-base-300 text-amber-600 focus:ring-amber-500" :disabled="$wire.roleName === 'Super Admin'" />
+                <div>
+                    <div class="text-sm font-semibold text-base-content/90">Pilih Semua (Akses Penuh)</div>
+                    <div class="text-xs text-base-content/50">Centang untuk memberi seluruh hak akses seperti Super Admin.</div>
+                </div>
+            </label>
+
             <!-- Module access -->
             <div class="space-y-3">
                 <label class="font-medium text-base-content/90 text-sm">Modul Aplikasi (Department Access)</label>
@@ -108,6 +117,25 @@
                 <label class="font-medium text-base-content/90 text-sm">Fitur Lainnya</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     @foreach ($otherPermissions as $permission => $meta)
+                        <label class="flex items-start gap-3 p-3 rounded-lg border border-base-300 bg-base-100 hover:bg-base-200 cursor-pointer">
+                            <input type="checkbox" wire:model="rolePermissions" value="{{ $permission }}" class="mt-0.5 rounded border-base-300 text-indigo-600 focus:ring-indigo-500" :disabled="$wire.roleName === 'Super Admin'" />
+                            <div class="flex items-start gap-2.5">
+                                <x-icon name="o-{{ $meta['icon'] }}" class="size-5 shrink-0 text-indigo-500 mt-0.5" />
+                                <div>
+                                    <div class="text-sm font-semibold text-base-content/90">{{ $meta['label'] }}</div>
+                                    <div class="text-xs text-base-content/50">{{ $meta['description'] }}</div>
+                                </div>
+                            </div>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Data Master menu access -->
+            <div class="space-y-3">
+                <label class="font-medium text-base-content/90 text-sm">Data Master</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    @foreach ($dataMasterPermissions as $permission => $meta)
                         <label class="flex items-start gap-3 p-3 rounded-lg border border-base-300 bg-base-100 hover:bg-base-200 cursor-pointer">
                             <input type="checkbox" wire:model="rolePermissions" value="{{ $permission }}" class="mt-0.5 rounded border-base-300 text-indigo-600 focus:ring-indigo-500" :disabled="$wire.roleName === 'Super Admin'" />
                             <div class="flex items-start gap-2.5">
