@@ -257,6 +257,7 @@
                                 </div>
                                 <div class="collapse-content ms-6.5 !p-0">
                                     <div class="mt-0.5 space-y-0.5">
+                                        @can('partnership-dashboard.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('partnership.dashboard'),
@@ -264,9 +265,13 @@
                                             wire:navigate>
                                             <span class="grow">Dashboard</span>
                                         </a>
+                                        @endcan
+                                        @can('partnership-contacts.view')
                                         <a @class(['menu-item', 'active' => request()->routeIs('contact.*')]) href="{{ route('contact.index') }}" wire:navigate>
                                             <span class="grow">Contact</span>
                                         </a>
+                                        @endcan
+                                        @can('partnership-pitching.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('partnership.pitching'),
@@ -274,6 +279,8 @@
                                             wire:navigate>
                                             <span class="grow">Pitching</span>
                                         </a>
+                                        @endcan
+                                        @can('partnership-realisasi.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('partnership.realisasi'),
@@ -281,6 +288,8 @@
                                             wire:navigate>
                                             <span class="grow">Realisasi</span>
                                         </a>
+                                        @endcan
+                                        @can('partnership-pmo.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('partnership-employees.*'),
@@ -288,6 +297,8 @@
                                             wire:navigate>
                                             <span class="grow">Management PMO</span>
                                         </a>
+                                        @endcan
+                                        @can('partnership-data-coverage.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('partnership.data-coverage'),
@@ -295,6 +306,8 @@
                                             wire:navigate>
                                             <span class="grow">Data Coverage</span>
                                         </a>
+                                        @endcan
+                                        @can('partnership-activity-log.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('partnership.activity-log'),
@@ -302,6 +315,7 @@
                                             wire:navigate>
                                             <span class="grow">Activity Log</span>
                                         </a>
+                                        @endcan
                                     </div>
                                 </div>
                             </div>
@@ -330,6 +344,7 @@
                                 </div>
                                 <div class="collapse-content ms-6.5 !p-0">
                                     <div class="mt-0.5 space-y-0.5">
+                                        @can('finance-intake.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('finance.intake'),
@@ -337,6 +352,8 @@
                                             wire:navigate>
                                             <span class="grow">Intake Queue</span>
                                         </a>
+                                        @endcan
+                                        @can('finance-reconciliation.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('finance.reconciliation'),
@@ -344,6 +361,8 @@
                                             wire:navigate>
                                             <span class="grow">Reconciliation</span>
                                         </a>
+                                        @endcan
+                                        @can('finance-disbursements.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('finance.disbursements'),
@@ -351,6 +370,8 @@
                                             wire:navigate>
                                             <span class="grow">Disbursements</span>
                                         </a>
+                                        @endcan
+                                        @can('finance-clearance-archive.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('finance.clearance-archive'),
@@ -358,6 +379,7 @@
                                             wire:navigate>
                                             <span class="grow">Clearance Archive</span>
                                         </a>
+                                        @endcan
                                     </div>
                                 </div>
                             </div>
@@ -386,6 +408,7 @@
                                 </div>
                                 <div class="collapse-content ms-6.5 !p-0">
                                     <div class="mt-0.5 space-y-0.5">
+                                        @can('investors-dashboard.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('investors.index'),
@@ -393,6 +416,8 @@
                                             wire:navigate>
                                             <span class="grow">Dashboard</span>
                                         </a>
+                                        @endcan
+                                        @can('investors-monthly.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('investors.monthly'),
@@ -400,6 +425,8 @@
                                             wire:navigate>
                                             <span class="grow">Monthly Achievement</span>
                                         </a>
+                                        @endcan
+                                        @can('investors-conversion.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('investors.conversion'),
@@ -407,6 +434,8 @@
                                             wire:navigate>
                                             <span class="grow">Monthly Conversion</span>
                                         </a>
+                                        @endcan
+                                        @can('fo-funnel.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('investors.funnel'),
@@ -414,6 +443,8 @@
                                             wire:navigate>
                                             <span class="grow">Funnel</span>
                                         </a>
+                                        @endcan
+                                        @can('fo-contacts.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('investors.contacts'),
@@ -421,7 +452,8 @@
                                             wire:navigate>
                                             <span class="grow">Contacts</span>
                                         </a>
-                                        @hasanyrole('Investor Admin|Super Admin|Funding Officer')
+                                        @endcan
+                                        @can('fo-targets.view')
                                             <a @class([
                                                 'menu-item',
                                                 'active' => request()->routeIs('investors.management-fo'),
@@ -429,6 +461,9 @@
                                                 wire:navigate>
                                                 <span class="grow">Management FO</span>
                                             </a>
+                                        @endcan
+                                        @hasanyrole('Investor Admin|Super Admin|Funding Officer')
+                                            @can('investors-activity-log.view')
                                             <a @class([
                                                 'menu-item',
                                                 'active' => request()->routeIs('investors.activity-log'),
@@ -437,7 +472,9 @@
                                                 <span class="grow">Activity Log</span>
                                                 {{-- <span class="badge badge-warning badge-xs">Beta</span> --}}
                                             </a>
+                                            @endcan
                                         @endhasanyrole
+                                        @can('investor-documents.view')
                                         <a @class([
                                             'menu-item',
                                             'active' => request()->routeIs('investors.docs'),
@@ -445,6 +482,7 @@
                                             wire:navigate>
                                             <span class="grow">Master Document</span>
                                         </a>
+                                        @endcan
                                     </div>
                                 </div>
                             </div>
@@ -455,6 +493,7 @@
                     @can('access-technology')
                         <p class="menu-label px-2.5 pt-4 pb-1.5">Technology</p>
                         <div class="space-y-0.5">
+                            @can('tech-timeline-calc.view')
                             <a @class(['menu-item', 'active' => request()->routeIs('tech.timeline-calc')]) href="{{ route('tech.timeline-calc') }}"
                                 wire:navigate title="Timeline Calculator">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
@@ -464,6 +503,7 @@
                                 </svg>
                                 <span class="grow">Timeline Calculator</span>
                             </a>
+                            @endcan
                         </div>
                     @endhasanyrole
 
@@ -523,12 +563,18 @@
                                     </div>
                                     <div class="collapse-content ms-6.5 !p-0">
                                         <div class="mt-0.5 space-y-0.5">
+                                            @can('departments.view')
                                             <a @class(['menu-item', 'active' => request()->routeIs('departments.*')]) href="{{ route('departments.index') }}"
                                                 wire:navigate><span class="grow">Departments</span></a>
+                                            @endcan
+                                            @can('positions.view')
                                             <a @class(['menu-item', 'active' => request()->routeIs('positions.*')]) href="{{ route('positions.index') }}"
                                                 wire:navigate><span class="grow">Positions</span></a>
+                                            @endcan
+                                            @can('employees.view')
                                             <a @class(['menu-item', 'active' => request()->routeIs('employees.*')]) href="{{ route('employees.index') }}"
                                                 wire:navigate><span class="grow">Employees</span></a>
+                                            @endcan
                                             <a @class(['menu-item', 'active' => request()->routeIs('admin.roles')]) href="{{ route('admin.roles') }}"
                                                 wire:navigate><span class="grow">Manage Roles</span></a>
                                         </div>
@@ -555,23 +601,32 @@
                                     </div>
                                     <div class="collapse-content ms-6.5 !p-0">
                                         <div class="mt-0.5 space-y-0.5">
+                                            @can('region.view')
                                             <a @class(['menu-item', 'active' => request()->routeIs('region.*')]) href="{{ route('region.index') }}"
                                                 wire:navigate><span class="grow">Region</span></a>
+                                            @endcan
+                                            @can('opd.view')
                                             <a @class(['menu-item', 'active' => request()->routeIs('opd.*')]) href="{{ route('opd.index') }}"
                                                 wire:navigate><span class="grow">OPD</span></a>
+                                            @endcan
+                                            @can('contact-positions.view')
                                             <a @class([
                                                 'menu-item',
                                                 'active' => request()->routeIs('contact-positions.*'),
                                             ]) href="{{ route('contact-positions.index') }}"
                                                 wire:navigate><span class="grow">Contact Positions</span></a>
+                                            @endcan
+                                            @can('urusan.view')
                                             <a @class(['menu-item', 'active' => request()->routeIs('urusan.*')]) href="{{ route('urusan.index') }}"
                                                 wire:navigate><span class="grow">Urusan</span></a>
+                                            @endcan
                                         </div>
                                     </div>
                                 </div>
                             @endcan
 
                             @can('access-products')
+                                @can('products.view')
                                 <a @class(['menu-item', 'active' => request()->routeIs('products.*')]) href="{{ route('products.index') }}" wire:navigate
                                     title="Products">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
@@ -581,6 +636,7 @@
                                     </svg>
                                     <span class="grow">Products</span>
                                 </a>
+                                @endcan
                             @endcan
                         </div>
                     @endif

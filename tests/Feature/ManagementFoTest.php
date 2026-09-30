@@ -12,7 +12,6 @@ use App\Models\User;
 use App\Notifications\FoTargetUpdatedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
@@ -21,7 +20,7 @@ function makeFoEmployee(string $roleName): Employee
 {
     $department = Department::firstOrCreate(['name' => 'Departemen Finance']);
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(in_array($roleName, ['Investor Admin', 'Super Admin'], true) ? moduleAccess('access-investors') : moduleViewAccess('access-investors'));
     $user->assignRole(Role::findOrCreate($roleName));
 
     return Employee::create(['user_id' => $user->id, 'department_id' => $department->id]);

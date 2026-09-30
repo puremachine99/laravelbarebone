@@ -40,7 +40,7 @@ test('unauthorized users without access-partnership permission cannot access pit
 
 test('authorized users with access-partnership permission can access pitching page', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('access-partnership');
+    $permission = moduleAccess('access-partnership');
     $user->givePermissionTo($permission);
 
     $this->actingAs($user)
@@ -51,7 +51,7 @@ test('authorized users with access-partnership permission can access pitching pa
 
 test('pitching page livewire component functionality', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('access-partnership');
+    $permission = moduleAccess('access-partnership');
     $user->givePermissionTo($permission);
 
     $this->actingAs($user);

@@ -165,7 +165,7 @@ class AppServiceProvider extends ServiceProvider
             slug: 'employees',
             routeName: 'employees.index',
             label: 'Export Karyawan',
-            ability: 'access-internal-org',
+            ability: 'employees.export',
             headers: ['Nama', 'Email', 'Departemen', 'Jabatan Struktural', 'Jabatan Fungsional', 'Jabatan Teknis', 'Status Akun', 'Status Kepegawaian', 'Roles'],
             query: fn () => User::query()
                 ->with(['employee.department', 'employee.positionStruktural', 'employee.positionFungsional', 'employee.positionTeknis', 'roles']),

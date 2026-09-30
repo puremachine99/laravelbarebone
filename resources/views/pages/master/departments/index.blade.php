@@ -33,7 +33,6 @@ $sort = function ($column) {
  }
 };
 
-$isSuperAdmin = computed(fn() => auth()->user()?->can('modify-master-data'));
 
 $colorOptions = computed(fn() => [
 'amber' =>'Gold',
@@ -68,9 +67,7 @@ $resetForm = function () {
 };
 
 $save = function () {
- if (!$this->isSuperAdmin) {
- abort(403,'Unauthorized action.');
- }
+ abort_unless(auth()->user()->can($this->dept_id ? 'departments.update' : 'departments.create'), 403);
  $this->validate([
 'name' => ['required','string','max:100', Rule::unique('departments','name')->ignore($this->dept_id)],
 'code' => ['nullable','string','max:3'],
@@ -92,9 +89,7 @@ $save = function () {
 };
 
 $edit = function (Department $department) {
- if (!$this->isSuperAdmin) {
- abort(403,'Unauthorized action.');
- }
+ abort_unless(auth()->user()->can('departments.update'), 403);
  $this->resetValidation();
  $this->dept_id = $department->id;
  $this->name = $department->name;
@@ -105,17 +100,13 @@ $edit = function (Department $department) {
 };
 
 $confirmDelete = function (string $id) {
- if (!$this->isSuperAdmin) {
- abort(403,'Unauthorized action.');
- }
+ abort_unless(auth()->user()->can('departments.delete'), 403);
  $this->deleteTargetId = $id;
  $this->showDeleteModal = true;
 };
 
 $delete = function () {
- if (!$this->isSuperAdmin) {
- abort(403,'Unauthorized action.');
- }
+ abort_unless(auth()->user()->can('departments.delete'), 403);
  Department::findOrFail($this->deleteTargetId)->delete();
  $this->deleteTargetId = null;
  $this->showDeleteModal = false;
@@ -144,9 +135,9 @@ $delete = function () {
  <p class="text-sm text-base-content/50 mt-1">Kelola daftar departemen di dalam organisasi.</p>
  </div>
 
- @if ($this->isSuperAdmin)
+ @can('departments.create')
  <x-button variant="primary" icon="o-plus" size="btn-sm" label="Departemen" wire:click="resetForm(); $set('showDeptModal', true);" />
- @endif
+ @endcan
  </div>
 
  <div class="overflow-x-auto">
@@ -172,10 +163,12 @@ $delete = function () {
  <td><x-department-code :department="$dept" /></td>
  <td class="text-right">
  <div class="flex gap-2 justify-end">
- @if ($this->isSuperAdmin)
+ @can('departments.update')
  <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="edit('{{ $dept->id }}')" />
+ @endcan
+ @can('departments.delete')
  <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete('{{ $dept->id }}')" />
- @endif
+ @endcan
  </div>
  </td>
  </tr>

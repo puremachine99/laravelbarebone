@@ -5,13 +5,12 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
-use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->admin = User::factory()->create();
-    $this->admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $this->admin->givePermissionTo(moduleAccess('access-internal-org'));
     $this->actingAs($this->admin);
 });
 

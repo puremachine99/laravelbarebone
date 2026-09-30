@@ -11,7 +11,7 @@ uses(RefreshDatabase::class);
 
 test('authorized user can download the csv export for a registered page', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-partnership'));
+    $user->givePermissionTo(moduleAccess('access-partnership'));
 
     Opd::factory()->create(['name' => 'Dinas Kesehatan']);
 
@@ -26,7 +26,7 @@ test('authorized user can download the csv export for a registered page', functi
 
 test('the response reports total row count upfront for client-side progress tracking', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-partnership'));
+    $user->givePermissionTo(moduleAccess('access-partnership'));
 
     Opd::factory()->count(3)->create();
 
@@ -45,7 +45,7 @@ test('user without the required permission cannot download the csv export', func
 
 test('an unknown export slug returns a 404', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-partnership'));
+    $user->givePermissionTo(moduleAccess('access-partnership'));
 
     $this->actingAs($user)
         ->get(route('csv-export.download', 'not-a-real-export'))
@@ -54,7 +54,7 @@ test('an unknown export slug returns a 404', function () {
 
 test('the export button only appears on pages registered for csv export', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-partnership'));
+    $user->givePermissionTo(moduleAccess('access-partnership'));
 
     $this->actingAs($user)
         ->get(route('opd.index'))
@@ -75,7 +75,7 @@ test('a regular pmo user exporting contacts only gets their own contacts, not ot
 
     // Granting the permission must come after Employee::create(), since EmployeeObserver
     // re-syncs (and can revoke) module permissions based on the employee's department.
-    $user->givePermissionTo(Permission::findOrCreate('access-partnership'));
+    $user->givePermissionTo(moduleAccess('access-partnership'));
 
     Contact::create([
         'name' => 'Kontak Milik Sendiri',

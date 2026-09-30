@@ -5,7 +5,6 @@ use App\Models\FoContact;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
@@ -25,7 +24,7 @@ test('unauthorized users without access-investors permission cannot access fo co
 
 test('fo contact page is rendered for authorized users', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
 
     $this->actingAs($user)
         ->get(route('investors.contacts'))
@@ -34,7 +33,7 @@ test('fo contact page is rendered for authorized users', function () {
 
 test('a plain fo is always locked as the pic of their own contacts', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $ownEmployee = Employee::create(['user_id' => $user->id]);
     $this->actingAs($user);
 
@@ -60,7 +59,7 @@ test('a plain fo is always locked as the pic of their own contacts', function ()
 
 test('admin fo can assign any fo as pic', function () {
     $user = User::factory()->create();
-    $user->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $user->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $this->actingAs($user);
 
     $pic = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -79,7 +78,7 @@ test('admin fo can assign any fo as pic', function () {
 
 test('can edit existing fo contact', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $this->actingAs($user);
 
     $contact = FoContact::factory()->create(['nama' => 'Jane Doe']);
@@ -100,7 +99,7 @@ test('can edit existing fo contact', function () {
 
 test('can soft delete fo contact and track record remains', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $this->actingAs($user);
 
     $contact = FoContact::factory()->create(['nama' => 'Delete Me']);
@@ -118,7 +117,7 @@ test('can soft delete fo contact and track record remains', function () {
 
 test('nama is required to save a fo contact', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $this->actingAs($user);
 
     Volt::test('investors.contact-index')
@@ -129,7 +128,7 @@ test('nama is required to save a fo contact', function () {
 
 test('a plain fo only sees their own contacts in the list, admin fo sees everyone', function () {
     $fo = User::factory()->create();
-    $fo->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $fo->givePermissionTo(moduleAccess('access-investors'));
     $foEmployee = Employee::create(['user_id' => $fo->id]);
 
     $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -144,7 +143,7 @@ test('a plain fo only sees their own contacts in the list, admin fo sees everyon
         ->assertDontSee('Kontak Milik Orang Lain');
 
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $this->actingAs($admin);
 
     Volt::test('investors.contact-index')
@@ -154,7 +153,7 @@ test('a plain fo only sees their own contacts in the list, admin fo sees everyon
 
 test('a plain fo cannot edit or delete another fo contact', function () {
     $fo = User::factory()->create();
-    $fo->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $fo->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $fo->id]);
 
     $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);

@@ -58,6 +58,8 @@ $resetForm = function () {
 };
 
 $save = function () {
+ abort_unless(auth()->user()->can($this->position_id ? 'positions.update' : 'positions.create'), 403);
+
  $this->validate([
 'name' => [
 'required',
@@ -81,6 +83,8 @@ $save = function () {
 };
 
 $edit = function (Position $position) {
+ abort_unless(auth()->user()->can('positions.update'), 403);
+
  $this->resetValidation();
  $this->position_id = $position->id;
  $this->name = $position->name;
@@ -90,11 +94,15 @@ $edit = function (Position $position) {
 };
 
 $confirmDelete = function (string $id) {
+ abort_unless(auth()->user()->can('positions.delete'), 403);
+
  $this->deleteTargetId = $id;
  $this->showDeleteModal = true;
 };
 
 $delete = function () {
+ abort_unless(auth()->user()->can('positions.delete'), 403);
+
  Position::findOrFail($this->deleteTargetId)->delete();
  $this->deleteTargetId = null;
  $this->showDeleteModal = false;
@@ -123,7 +131,9 @@ $delete = function () {
  <p class="text-sm text-base-content/50 mt-1">Kelola daftar posisi fungsional dan struktural.</p>
  </div>
 
+ @can('positions.create')
  <x-button variant="primary" icon="o-plus" size="btn-sm" label="Posisi" wire:click="resetForm(); $set('showPositionModal', true);" />
+ @endcan
  </div>
 
  <x-input
@@ -169,8 +179,12 @@ $delete = function () {
  <td>{{ $position->employee_count ?? 0 }}</td>
  <td class="text-right">
  <div class="flex gap-2 justify-end">
+ @can('positions.update')
  <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="edit('{{ $position->id }}')" />
+ @endcan
+ @can('positions.delete')
  <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete('{{ $position->id }}')" />
+ @endcan
  </div>
  </td>
  </tr>

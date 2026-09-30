@@ -35,9 +35,9 @@ $metricsData = [
 
 state(['metrics' => $metricsData]);
 
-// Halaman ini boleh dilihat semua FO / Admin FO; cuma Admin FO / Super Admin yang boleh ubah target.
+// Halaman ini dijaga permission fo-targets.view; mengubah target butuh fo-targets.update (diatur dari halaman Role).
 $canManageTargets = computed(function () {
-    return auth()->user()->hasRole(['Investor Admin', 'Super Admin']);
+    return auth()->user()->can('fo-targets.update');
 });
 
 // Admin FO / Super Admin / Direksi bisa lihat data semua FO; FO biasa cuma boleh lihat datanya sendiri.
@@ -64,7 +64,7 @@ $loadTargetInputs = function () {
 };
 
 mount(function () {
-    abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin', 'Funding Officer', 'Direksi']), 403);
+    abort_unless(auth()->user()->can('fo-targets.view'), 403);
 
     $this->targetSettingEmployeeId = $this->foEmployees[0]['id'] ?? null;
     $this->loadTargetInputs();
@@ -260,7 +260,7 @@ $logTargetChange = function ($target, $employeeId, $metricKey, $oldValue, $newVa
 // Return array from/to sukses (dipakai buat detail notifikasi FO), atau false kalau nilainya invalid,
 // biar saveTargets() bisa kumpulin nilai yang invalid tanpa spam toast per-field.
 $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
-    abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin']), 403);
+    abort_unless(auth()->user()->can('fo-targets.update'), 403);
 
     if ($value === null || $value < 0) {
         return false;
@@ -286,7 +286,7 @@ $updateYearlyTarget = function ($employeeId, $metricKey, $value) {
 // aktif (tahunan/bulanan/harian), jadi sebelum disimpan nilainya dikonversi balik ke tahunan dulu — apa pun
 // tab yang lagi dipakai buat ngedit, yearly_target di DB yang jadi sumber kebenaran tunggalnya.
 $saveTargets = function () {
-    abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin']), 403);
+    abort_unless(auth()->user()->can('fo-targets.update'), 403);
 
     if (! $this->targetSettingEmployeeId) {
         return;
@@ -354,7 +354,7 @@ $hasSavedTarget = function ($employeeId, $metricKey) {
 
 // Hapus target manual, balik ke saran otomatis dari data historis.
 $resetYearlyTarget = function ($employeeId, $metricKey) {
-    abort_unless(auth()->user()->hasRole(['Investor Admin', 'Super Admin']), 403);
+    abort_unless(auth()->user()->can('fo-targets.update'), 403);
 
     $existing = FoTarget::where('employee_id', $employeeId)
         ->where('year', now()->year)

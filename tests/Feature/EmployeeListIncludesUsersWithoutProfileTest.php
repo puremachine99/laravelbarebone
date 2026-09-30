@@ -5,13 +5,12 @@ use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
-use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
 test('users without an employee profile still appear in the employees list and are searchable', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
     $this->actingAs($admin);
 
     $orphanUser = User::factory()->create([
@@ -32,7 +31,7 @@ test('users without an employee profile still appear in the employees list and a
 
 test('admin can complete the employee profile for a user who has none yet', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
     $this->actingAs($admin);
 
     $orphanUser = User::factory()->create(['name' => 'Orphan Account']);

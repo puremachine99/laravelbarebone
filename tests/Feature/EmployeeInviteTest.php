@@ -7,7 +7,6 @@ use App\Notifications\UserInvitedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Volt\Volt;
-use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
@@ -15,7 +14,7 @@ test('adding a new employee sends an invitation instead of setting a password di
     Notification::fake();
 
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
 
     $this->actingAs($admin);
 
@@ -39,7 +38,7 @@ test('adding a new employee sends an invitation instead of setting a password di
 
 test('editing an existing employee does not require a password and can update one optionally', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
 
     $employeeUser = User::factory()->create(['name' => 'Old Name']);
     $employee = Employee::create(['user_id' => $employeeUser->id]);

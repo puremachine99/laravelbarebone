@@ -254,6 +254,8 @@ $loadMoreCards = function ($stageKey) {
 };
 
 $createLead = function ($contactId, $proyeksiCloseDate, $proyeksiAmount, $sumber) {
+    abort_unless(auth()->user()->can('fo-funnel.create'), 403);
+
     $contactQuery = FoContact::query()->where('id', $contactId);
 
     if (! $this->isAdminFo) {
@@ -293,6 +295,8 @@ $createLead = function ($contactId, $proyeksiCloseDate, $proyeksiAmount, $sumber
 };
 
 $openEditModal = function ($funnelId) {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     $funnel = FoFunnel::findOrFail($funnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
@@ -347,6 +351,8 @@ $removeEditAkadDocument = function ($index) {
 };
 
 $submitEditFunnel = function () {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     $funnel = FoFunnel::findOrFail($this->editFunnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
@@ -454,6 +460,8 @@ $submitEditFunnel = function () {
 };
 
 $deleteFunnel = function ($funnelId) {
+    abort_unless(auth()->user()->can('fo-funnel.delete'), 403);
+
     $funnel = FoFunnel::findOrFail($funnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
@@ -470,6 +478,8 @@ $deleteFunnel = function ($funnelId) {
 };
 
 $moveStage = function ($funnelId, $stage) {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     $funnel = FoFunnel::findOrFail($funnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
@@ -488,6 +498,8 @@ $moveStage = function ($funnelId, $stage) {
 };
 
 $openAkadModal = function ($funnelId) {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     if (! $this->isAdminFo) {
         abort(403);
     }
@@ -509,6 +521,8 @@ $removeAkadDocument = function ($index) {
 };
 
 $submitAkad = function () {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     if (! $this->isAdminFo) {
         abort(403);
     }
@@ -565,6 +579,8 @@ $submitAkad = function () {
 };
 
 $logPitchingAndMove = function ($funnelId, $tanggal, $catatan) {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     $funnel = FoFunnel::findOrFail($funnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
@@ -589,6 +605,8 @@ $logPitchingAndMove = function ($funnelId, $tanggal, $catatan) {
 // Won = komitmen verbal calon investor. Nominalnya dicatat terpisah dari Closing (nominal_won vs
 // nominal_investasi) karena angkanya bisa berubah pas uang beneran cair — biar bisa dibandingkan.
 $openWonModal = function ($funnelId) {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     $funnel = FoFunnel::findOrFail($funnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
@@ -602,6 +620,8 @@ $openWonModal = function ($funnelId) {
 };
 
 $submitWon = function () {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     $funnel = FoFunnel::findOrFail($this->wonFunnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
@@ -634,6 +654,8 @@ $submitWon = function () {
 // Closing = uang investor beneran sudah masuk PT. Nominal & tanggalnya final, dicatat lagi di sini
 // (bukan cuma dicopy dari Won) supaya kalau ada selisih dari nominal komitmen, ketahuan.
 $openClosingModal = function ($funnelId) {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     $funnel = FoFunnel::findOrFail($funnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
@@ -647,6 +669,8 @@ $openClosingModal = function ($funnelId) {
 };
 
 $submitClosing = function () {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     $funnel = FoFunnel::findOrFail($this->closingFunnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
@@ -681,6 +705,8 @@ $submitClosing = function () {
 };
 
 $logLostAndMove = function ($funnelId, $tanggal, $reason) {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     $funnel = FoFunnel::findOrFail($funnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
@@ -702,6 +728,8 @@ $logLostAndMove = function ($funnelId, $tanggal, $reason) {
 };
 
 $logFollowUp = function ($funnelId, $tanggal, $catatan, $moveStage = false) {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     $funnel = FoFunnel::findOrFail($funnelId);
 
     if (! $this->isAdminFo && $funnel->employee_id !== $this->currentEmployee?->id) {
@@ -728,6 +756,8 @@ $logFollowUp = function ($funnelId, $tanggal, $catatan, $moveStage = false) {
 // Ubah follow up yang sudah tercatat — setiap perubahan disimpan ke fo_funnel_activity_logs
 // (nilai sebelum & sesudah, siapa yang ubah) biar ada jejak audit, bukan cuma overwrite diam-diam.
 $updateFollowUp = function ($activityId, $tanggal, $catatan) {
+    abort_unless(auth()->user()->can('fo-funnel.update'), 403);
+
     $activity = FoFunnelActivity::with('funnel')->findOrFail($activityId);
     $funnel = $activity->funnel;
 
@@ -787,6 +817,8 @@ $closeHistory = function () {
 };
 
 $deleteFollowUp = function ($activityId) {
+    abort_unless(auth()->user()->can('fo-funnel.delete'), 403);
+
     $activity = FoFunnelActivity::with('funnel')->findOrFail($activityId);
 
     if (! $this->isAdminFo && $activity->funnel->employee_id !== $this->currentEmployee?->id) {
@@ -801,6 +833,8 @@ $deleteFollowUp = function ($activityId) {
 };
 
 $restoreFollowUp = function ($activityId) {
+    abort_unless(auth()->user()->can('fo-funnel.restore'), 403);
+
     $activity = FoFunnelActivity::withTrashed()->with('funnel')->findOrFail($activityId);
 
     if (! $this->isAdminFo && $activity->funnel->employee_id !== $this->currentEmployee?->id) {
@@ -876,7 +910,9 @@ $closeActivityLog = function () {
         <div class="flex flex-col sm:flex-row sm:items-end gap-4">
             <div class="shrink-0">
                 <div class="fieldset-legend mb-0.5 invisible">&nbsp;</div>
-                <x-button label="Add Lead" icon="o-plus" class="btn-primary btn-sm" x-on:click="showCreate()" />
+                @can('fo-funnel.create')
+                    <x-button label="Add Lead" icon="o-plus" class="btn-primary btn-sm" x-on:click="showCreate()" />
+                @endcan
             </div>
 
             @if ($this->isAdminFo)
@@ -947,7 +983,7 @@ $closeActivityLog = function () {
                 <div class="flex flex-col gap-2 min-h-[80px] overflow-y-auto flex-1">
                     @forelse ($stageVisibleFunnels as $funnel)
                         <div
-                            draggable="true"
+                            draggable="{{ auth()->user()->can('fo-funnel.update') ? 'true' : 'false' }}"
                             x-on:dragstart="onDragStart({{ $funnel->id }}, '{{ $funnel->stage }}')"
                             x-on:dragend="onDragEnd()"
                             x-on:touchstart="onTouchStart($event, {{ $funnel->id }}, '{{ $funnel->stage }}')"
@@ -967,6 +1003,7 @@ $closeActivityLog = function () {
                                     <x-icon name="o-ellipsis-vertical" class="w-4 h-4" />
                                 </div>
                                 <ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box shadow-lg border border-base-300 w-44 z-20">
+                                    @can('fo-funnel.update')
                                     <li><a x-on:click="editCard({{ $funnel->id }})">Edit</a></li>
                                     <li>
                                         <details>
@@ -984,7 +1021,10 @@ $closeActivityLog = function () {
                                             </ul>
                                         </details>
                                     </li>
+                                    @endcan
+                                    @can('fo-funnel.delete')
                                     <li><a class="text-error" x-on:click="deleteCard({{ $funnel->id }})">Delete</a></li>
+                                    @endcan
                                 </ul>
                             </div>
 
@@ -1589,6 +1629,7 @@ $closeActivityLog = function () {
                             <div class="card bg-base-200/50 border border-dashed border-base-300 p-3 space-y-1">
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="text-sm font-semibold text-base-content/60 line-through">{{ $activity->tanggal->format('d M Y') }}</div>
+                                    @can('fo-funnel.restore')
                                     <div class="tooltip" data-tip="Restore">
                                         <button
                                             type="button"
@@ -1598,6 +1639,7 @@ $closeActivityLog = function () {
                                             <x-icon name="o-arrow-uturn-left" class="w-3.5 h-3.5" />
                                         </button>
                                     </div>
+                                    @endcan
                                 </div>
                                 <div class="text-sm text-base-content/50">{{ $activity->catatan ?? 'No notes.' }}</div>
                                 <div class="text-[11px] text-base-content/30">Deleted {{ $activity->deleted_at->diffForHumans() }}</div>

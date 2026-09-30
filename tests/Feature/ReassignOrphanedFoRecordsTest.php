@@ -44,3 +44,18 @@ test('window options are required', function () {
 test('unknown email fails', function () {
     $this->artisan('fo:reassign-orphans', ['email' => 'nobody@example.com', '--from' => '2026-08-01', '--until' => '2026-08-31'])->assertFailed();
 });
+
+test('execute moves records from an existing old employee via from-email', function () {
+    $oldUser = User::factory()->create(['email' => 'susan.lama@example.com']);
+    $old = Employee::create(['user_id' => $oldUser->id]);
+    $contact = FoContact::factory()->create(['employee_id' => $old->id]);
+    $funnel = FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $old->id]);
+    $orphan = FoContact::factory()->create(['employee_id' => null]);
+
+    $this->artisan('fo:reassign-orphans', ['email' => 'susan.suci@example.com', '--from-email' => 'susan.lama@example.com', '--execute' => true])
+        ->assertSuccessful();
+
+    expect($contact->fresh()->employee_id)->toBe($this->employee->id)
+        ->and($funnel->fresh()->employee_id)->toBe($this->employee->id)
+        ->and($orphan->fresh()->employee_id)->toBeNull();
+});

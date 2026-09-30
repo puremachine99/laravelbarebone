@@ -48,35 +48,35 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
     });
 
     Route::middleware('can:access-partnership')->group(function () {
-        Volt::route('/partnership/dashboard', 'partnership.dashboard-index')->name('partnership.dashboard');
-        Volt::route('/partnership/contact', 'partnership.contact-index')->name('contact.index');
-        Volt::route('/partnership/pitching', 'partnership.pitching-index')->name('partnership.pitching');
-        Volt::route('/partnership/realisasi', 'partnership.realisasi-index')->name('partnership.realisasi');
+        Volt::route('/partnership/dashboard', 'partnership.dashboard-index')->name('partnership.dashboard')->middleware('can:partnership-dashboard.view');
+        Volt::route('/partnership/contact', 'partnership.contact-index')->name('contact.index')->middleware('can:partnership-contacts.view');
+        Volt::route('/partnership/pitching', 'partnership.pitching-index')->name('partnership.pitching')->middleware('can:partnership-pitching.view');
+        Volt::route('/partnership/realisasi', 'partnership.realisasi-index')->name('partnership.realisasi')->middleware('can:partnership-realisasi.view');
     });
 
     Route::middleware('can:access-internal-org')->group(function () {
-        Volt::route('/departments', 'master.departments.index')->name('departments.index');
-        Volt::route('/positions', 'master.positions.index')->name('positions.index');
-        Volt::route('/employees', 'master.employees.index')->name('employees.index');
+        Volt::route('/departments', 'master.departments.index')->name('departments.index')->middleware('can:departments.view');
+        Volt::route('/positions', 'master.positions.index')->name('positions.index')->middleware('can:positions.view');
+        Volt::route('/employees', 'master.employees.index')->name('employees.index')->middleware('can:employees.view');
         Route::redirect('/admin/users', '/employees')->name('admin.users');
         Route::get('/admin/roles', RoleManagement::class)->name('admin.roles');
     });
 
     Route::middleware('can:access-partnership')->group(function () {
-        Volt::route('/region', 'master.region.index')->name('region.index');
-        Volt::route('/opd', 'master.opd.index')->name('opd.index');
-        Volt::route('/urusan', 'master.urusan.index')->name('urusan.index');
-        Volt::route('/contact-positions', 'master.contact-positions.index')->name('contact-positions.index');
-        Volt::route('/partnership/pmo', 'partnership.pmo-index')->name('partnership-employees.index');
-        Volt::route('/partnership/data-coverage', 'partnership.data-coverage-index')->name('partnership.data-coverage');
-        Volt::route('/partnership/activity-log', 'partnership.activity-log-index')->name('partnership.activity-log');
+        Volt::route('/region', 'master.region.index')->name('region.index')->middleware('can:region.view');
+        Volt::route('/opd', 'master.opd.index')->name('opd.index')->middleware('can:opd.view');
+        Volt::route('/urusan', 'master.urusan.index')->name('urusan.index')->middleware('can:urusan.view');
+        Volt::route('/contact-positions', 'master.contact-positions.index')->name('contact-positions.index')->middleware('can:contact-positions.view');
+        Volt::route('/partnership/pmo', 'partnership.pmo-index')->name('partnership-employees.index')->middleware('can:partnership-pmo.view');
+        Volt::route('/partnership/data-coverage', 'partnership.data-coverage-index')->name('partnership.data-coverage')->middleware('can:partnership-data-coverage.view');
+        Volt::route('/partnership/activity-log', 'partnership.activity-log-index')->name('partnership.activity-log')->middleware('can:partnership-activity-log.view');
     });
 
     Route::middleware('can:access-finance')->group(function () {
-        Route::get('/finance/intake', FinanceIntakeIndex::class)->name('finance.intake');
-        Route::get('/finance/reconciliation', Reconciliation::class)->name('finance.reconciliation');
-        Route::get('/finance/disbursements', Disbursements::class)->name('finance.disbursements');
-        Route::get('/finance/clearance-archive', ClearanceArchive::class)->name('finance.clearance-archive');
+        Route::get('/finance/intake', FinanceIntakeIndex::class)->name('finance.intake')->middleware('can:finance-intake.view');
+        Route::get('/finance/reconciliation', Reconciliation::class)->name('finance.reconciliation')->middleware('can:finance-reconciliation.view');
+        Route::get('/finance/disbursements', Disbursements::class)->name('finance.disbursements')->middleware('can:finance-disbursements.view');
+        Route::get('/finance/clearance-archive', ClearanceArchive::class)->name('finance.clearance-archive')->middleware('can:finance-clearance-archive.view');
     });
 
     Route::middleware('can:manage-chat')->group(function () {
@@ -89,21 +89,21 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
 
     Volt::route('/partnership/test/pitching', 'partnership.test-pitching-compare')->name('partnership.test.pitching');
 
-    Volt::route('/products', 'master.products.index')->name('products.index')->middleware('can:access-products');
+    Volt::route('/products', 'master.products.index')->name('products.index')->middleware(['can:access-products', 'can:products.view']);
 
     Route::middleware('can:access-investors')->group(function () {
-        Volt::route('/investors', 'investors.dashboard-index')->name('investors.index');
-        Volt::route('/investors/monthly', 'investors.monthly-index')->name('investors.monthly');
-        Volt::route('/investors/conversion', 'investors.conversion-index')->name('investors.conversion');
-        Volt::route('/investors/contacts', 'investors.contact-index')->name('investors.contacts');
-        Volt::route('/investors/funnel', 'investors.funnel-index')->name('investors.funnel');
-        Volt::route('/investors/management-fo', 'investors.management-fo')->name('investors.management-fo');
-        Volt::route('/investors/docs', 'investors.docs-index')->name('investors.docs');
-        Volt::route('/investors/activity-log', 'investors.activity-log-index')->name('investors.activity-log');
+        Volt::route('/investors', 'investors.dashboard-index')->name('investors.index')->middleware('can:investors-dashboard.view');
+        Volt::route('/investors/monthly', 'investors.monthly-index')->name('investors.monthly')->middleware('can:investors-monthly.view');
+        Volt::route('/investors/conversion', 'investors.conversion-index')->name('investors.conversion')->middleware('can:investors-conversion.view');
+        Volt::route('/investors/contacts', 'investors.contact-index')->name('investors.contacts')->middleware('can:fo-contacts.view');
+        Volt::route('/investors/funnel', 'investors.funnel-index')->name('investors.funnel')->middleware('can:fo-funnel.view');
+        Volt::route('/investors/management-fo', 'investors.management-fo')->name('investors.management-fo')->middleware('can:fo-targets.view');
+        Volt::route('/investors/docs', 'investors.docs-index')->name('investors.docs')->middleware('can:investor-documents.view');
+        Volt::route('/investors/activity-log', 'investors.activity-log-index')->name('investors.activity-log')->middleware('can:investors-activity-log.view');
     });
 
     Route::prefix('tech')->name('tech.')->middleware('can:access-technology')->group(function () {
-        Route::view('/timeline-calc', 'pages.tech')->name('timeline-calc');
+        Route::view('/timeline-calc', 'pages.tech')->name('timeline-calc')->middleware('can:tech-timeline-calc.view');
     });
 });
 

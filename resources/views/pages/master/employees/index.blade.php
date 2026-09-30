@@ -180,6 +180,8 @@ $resetForm = function () {
 $save = function (InviteUser $inviteUser) {
  $isNew = is_null($this->employee_id) && is_null($this->existingUserId);
 
+ abort_unless(auth()->user()->can($this->employee_id ? 'employees.update' : 'employees.create'), 403);
+
  $ignoreUserId = match (true) {
  $isNew => null,
  (bool) $this->existingUserId => $this->existingUserId,
@@ -250,6 +252,8 @@ $save = function (InviteUser $inviteUser) {
 };
 
 $edit = function (Employee $employee) {
+ abort_unless(auth()->user()->can('employees.update'), 403);
+
  $this->resetValidation();
  $this->employee_id = $employee->id;
  $this->existingUserId = null;
@@ -271,6 +275,8 @@ $edit = function (Employee $employee) {
 };
 
 $completeProfile = function (User $user) {
+ abort_unless(auth()->user()->can('employees.create'), 403);
+
  $this->resetValidation();
  $this->employee_id = null;
  $this->existingUserId = $user->id;
@@ -292,6 +298,8 @@ $completeProfile = function (User $user) {
 };
 
 $resendInvite = function (InviteUser $inviteUser, int $userId) {
+ abort_unless(auth()->user()->can('employees.update'), 403);
+
  $user = User::findOrFail($userId);
 
  if (! $user->isInvited()) {
@@ -304,6 +312,8 @@ $resendInvite = function (InviteUser $inviteUser, int $userId) {
 };
 
 $suspend = function (int $userId) {
+ abort_unless(auth()->user()->can('employees.update'), 403);
+
  if ($userId === auth()->id()) {
  return;
  }
@@ -316,17 +326,23 @@ $suspend = function (int $userId) {
 };
 
 $activate = function (int $userId) {
+ abort_unless(auth()->user()->can('employees.update'), 403);
+
  User::whereKey($userId)->update(['status' => UserStatus::Active]);
 
  session()->flash('success','Pengguna berhasil diaktifkan kembali.');
 };
 
 $confirmDelete = function (int $userId) {
+ abort_unless(auth()->user()->can('employees.delete'), 403);
+
  $this->deleteTargetId = $userId;
  $this->showDeleteModal = true;
 };
 
 $delete = function () {
+ abort_unless(auth()->user()->can('employees.delete'), 403);
+
  if ($this->deleteTargetId && $this->deleteTargetId !== auth()->id()) {
  DB::transaction(function () {
  DB::table('sessions')->where('user_id', $this->deleteTargetId)->delete();
@@ -342,11 +358,15 @@ $delete = function () {
 };
 
 $toggleTrashed = function () {
+ abort_unless(auth()->user()->can('employees.restore'), 403);
+
  $this->showTrashed = ! $this->showTrashed;
  $this->resetPage();
 };
 
 $restore = function (int $userId) {
+ abort_unless(auth()->user()->can('employees.restore'), 403);
+
  DB::transaction(function () use ($userId) {
  $user = User::onlyTrashed()->findOrFail($userId);
  $user->restore();
@@ -457,10 +477,14 @@ $restore = function (int $userId) {
  <p class="text-sm text-base-content/50 mt-1">Kelola daftar karyawan dalam organisasi.</p>
  </div>
  <div class="flex gap-2">
+ @can('employees.restore')
  <x-button icon="{{ $showTrashed ?'o-arrow-left' :'o-archive-box' }}" size="btn-sm" class="btn-ghost" label="{{ $showTrashed ?'Kembali ke Daftar' :'Data Terhapus' }}" wire:click="toggleTrashed" />
+ @endcan
+ @can('employees.create')
  @unless ($showTrashed)
  <x-button variant="primary" icon="o-plus" size="btn-sm" label="Karyawan" wire:click="resetForm(); $set('showEmployeeModal', true);" />
  @endunless
+ @endcan
  </div>
  </div>
  @if ($showTrashed)
@@ -581,8 +605,11 @@ $restore = function (int $userId) {
  <td class="text-right" wire:click.stop>
  <div class="flex gap-2 justify-end">
  @if ($showTrashed)
+ @can('employees.restore')
  <x-button icon="o-arrow-uturn-left" label="Pulihkan" class="btn-ghost btn-xs text-success" wire:click="restore({{ $emp->id }})" wire:confirm="Pulihkan karyawan ini?" />
+ @endcan
  @else
+ @can('employees.update')
  @if ($emp->isInvited())
  <x-button label="Kirim Ulang" class="btn-ghost btn-xs text-warning" wire:click="resendInvite({{ $emp->id }})" />
  @elseif ($emp->isSuspended())
@@ -590,14 +617,21 @@ $restore = function (int $userId) {
  @elseif ($emp->id !== auth()->id())
  <x-button label="Nonaktifkan" class="btn-ghost btn-xs text-warning" wire:click="suspend({{ $emp->id }})" />
  @endif
+ @endcan
  @if ($emp->employee)
  <x-button icon="o-eye" class="btn-ghost btn-xs text-base-content/50" wire:click="showDetail({{ $emp->employee->id }})" />
+ @can('employees.update')
  <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="edit({{ $emp->employee->id }})" />
+ @endcan
  @else
+ @can('employees.create')
  <x-button icon="o-user-plus" label="Lengkapi Profil" class="btn-ghost btn-xs text-info" wire:click="completeProfile({{ $emp->id }})" />
+ @endcan
  @endif
  @if ($emp->id !== auth()->id())
+ @can('employees.delete')
  <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete({{ $emp->id }})" />
+ @endcan
  @endif
  @endif
  </div>
@@ -812,7 +846,9 @@ $restore = function (int $userId) {
  <!-- Drawer Footer -->
  <div class="p-6 bg-base-200/30 border-t border-base-300 flex justify-end gap-2">
  <x-button label="Tutup" @click="openDrawer = false" class="btn-ghost" />
+ @can('employees.update')
  <x-button variant="primary" icon="o-pencil-square" label="Edit Karyawan" wire:click="edit('{{ $selectedEmployee->id }}')" />
+ @endcan
  </div>
  @endif
  </div>

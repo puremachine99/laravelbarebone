@@ -20,7 +20,7 @@ uses(RefreshDatabase::class);
  */
 function grantInvestorsModule(Department $department): void
 {
-    Permission::findOrCreate('access-investors');
+    moduleAccess('access-investors');
     $department->modules()->create(['module_code' => 'investors']);
 }
 

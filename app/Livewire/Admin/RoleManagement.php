@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Admin;
 
+use App\Support\ResourcePermissions;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RoleManagement extends Component
@@ -68,10 +70,10 @@ class RoleManagement extends Component
     public function otherPermissions(): array
     {
         return [
-            'view-executive-dashboard' => ['label' => 'Executive Dashboard', 'description' => 'Ringkasan performa perusahaan.', 'icon' => 'presentation-chart-line'],
-            'manage-talent-okr' => ['label' => 'Talent Leaderboard', 'description' => 'OKR dan leaderboard talent.', 'icon' => 'trophy'],
-            'manage-chat' => ['label' => 'Nakama Chat', 'description' => 'Chat internal tim.', 'icon' => 'chat-bubble-left-right'],
-            'manage-ai-center' => ['label' => 'AI Center', 'description' => 'Fitur AI internal.', 'icon' => 'sparkles'],
+            'view-executive-dashboard' => ['label' => 'Executive Dashboard', 'description' => 'Company performance summary.', 'icon' => 'presentation-chart-line'],
+            'manage-talent-okr' => ['label' => 'Talent Leaderboard', 'description' => 'OKR and talent leaderboard.', 'icon' => 'trophy'],
+            'manage-chat' => ['label' => 'Nakama Chat', 'description' => 'Internal team chat.', 'icon' => 'chat-bubble-left-right'],
+            'manage-ai-center' => ['label' => 'AI Center', 'description' => 'Internal AI features.', 'icon' => 'sparkles'],
         ];
     }
 
@@ -85,9 +87,9 @@ class RoleManagement extends Component
     public function dataMasterPermissions(): array
     {
         return [
-            'access-internal-org' => ['label' => 'Internal', 'description' => 'Departments, positions, employees, serta manage roles.', 'icon' => 'building-office'],
-            'access-partnership' => ['label' => 'Pipeline', 'description' => 'Region, OPD, contact positions, dan urusan.', 'icon' => 'queue-list'],
-            'access-products' => ['label' => 'Products', 'description' => 'Master data produk.', 'icon' => 'cube'],
+            'access-internal-org' => ['label' => 'Internal', 'description' => 'Departments, positions, employees, and role management.', 'icon' => 'building-office'],
+            'access-partnership' => ['label' => 'Pipeline', 'description' => 'Regions, OPD, contact positions, and urusan.', 'icon' => 'queue-list'],
+            'access-products' => ['label' => 'Products', 'description' => 'Product master data.', 'icon' => 'cube'],
         ];
     }
 
@@ -102,6 +104,7 @@ class RoleManagement extends Component
             ->keys()
             ->merge(collect($this->otherPermissions())->keys())
             ->merge(collect($this->dataMasterPermissions())->keys())
+            ->merge(ResourcePermissions::names())
             ->unique()
             ->values()
             ->all();
@@ -125,7 +128,60 @@ class RoleManagement extends Component
             'verify-manager' => 'Verify Manager',
         ]);
 
-        return $labels->get($name, $name);
+        return $labels->get($name) ?? ResourcePermissions::label($name) ?? $name;
+    }
+
+    /**
+     * Human-readable breakdown of what a role can do, for the expandable row on the roles list.
+     *
+     * @return array{groups: array<int, array{label: string, icon: string, section: string, granted: int, total: int, resources: array<int, array{label: string, actions: array<int, string>}>}>, other: array<int, string>, moduleCount: int, granted: int, total: int, readOnly: bool}
+     */
+    public function roleSummary(Role $role): array
+    {
+        $held = $role->permissions->pluck('name')->flip();
+        $actionLabels = ResourcePermissions::actionLabels();
+
+        $groups = collect(ResourcePermissions::groups())
+            ->filter(fn (array $group) => $held->has($group['module']))
+            ->map(function (array $group) use ($held, $actionLabels) {
+                $resources = collect($group['resources'])->map(fn (array $resource, string $key) => [
+                    'label' => $resource['label'],
+                    'actions' => collect($resource['actions'])
+                        ->filter(fn (string $action) => $held->has("{$key}.{$action}"))
+                        ->map(fn (string $action) => $actionLabels[$action])
+                        ->values()
+                        ->all(),
+                ])->values();
+
+                return [
+                    'label' => $group['label'],
+                    'icon' => $group['icon'],
+                    'section' => $group['section'],
+                    'granted' => $resources->filter(fn (array $resource) => $resource['actions'] !== [])->count(),
+                    'total' => $resources->count(),
+                    'resources' => $resources->all(),
+                ];
+            })
+            ->values()
+            ->all();
+
+        $other = collect($this->otherPermissions())
+            ->filter(fn (array $meta, string $permission) => $held->has($permission))
+            ->pluck('label')
+            ->values()
+            ->all();
+
+        $assignable = $this->allAssignablePermissions();
+        $resourcePermissions = $held->keys()->filter(fn (string $name) => str_contains($name, '.'));
+
+        return [
+            'groups' => $groups,
+            'other' => $other,
+            'moduleCount' => collect(ResourcePermissions::groups())->pluck('module')->unique()->filter(fn (string $module) => $held->has($module))->count(),
+            'granted' => $held->keys()->intersect($assignable)->count(),
+            'total' => count($assignable),
+            'readOnly' => $resourcePermissions->isNotEmpty() && $resourcePermissions->every(fn (string $name) => str_ends_with($name, '.view')),
+        ];
     }
 
     public function updatingSearch()
@@ -164,8 +220,8 @@ class RoleManagement extends Component
         ];
 
         $this->validate($rules, [
-            'roleName.required' => 'Nama role wajib diisi.',
-            'roleName.unique' => 'Nama role sudah terdaftar.',
+            'roleName.required' => 'Role name is required.',
+            'roleName.unique' => 'This role name is already taken.',
         ]);
 
         $isEdit = $this->isEdit;
@@ -178,12 +234,19 @@ class RoleManagement extends Component
         }
 
         // Sync Spatie Permissions to this Role
-        $role->syncPermissions($this->rolePermissions);
+        $allowed = [...$this->allAssignablePermissions(), ...$role->permissions->pluck('name')->all()];
+
+        $permissions = collect(ResourcePermissions::normalize($this->rolePermissions))
+            ->intersect($allowed)
+            ->map(fn (string $name) => Permission::findOrCreate($name))
+            ->all();
+
+        $role->syncPermissions($permissions);
 
         $this->resetForm();
         $this->showRoleModal = false;
 
-        session()->flash('success', $isEdit ? 'Hak akses peran berhasil disimpan.' : 'Peran baru berhasil didaftarkan.');
+        session()->flash('success', $isEdit ? 'Role permissions saved.' : 'New role created.');
     }
 
     public function confirmDelete(int $id)
@@ -201,12 +264,12 @@ class RoleManagement extends Component
         }
 
         $this->showDeleteModal = false;
-        session()->flash('error', 'Peran berhasil dihapus.');
+        session()->flash('error', 'Role deleted.');
     }
 
     public function render()
     {
-        $query = Role::query()->with('permissions');
+        $query = Role::query()->with('permissions')->withCount('users');
 
         if (! empty($this->search)) {
             $query->where('name', 'like', '%'.$this->search.'%');
@@ -216,9 +279,9 @@ class RoleManagement extends Component
 
         return view('livewire.admin.role-management', [
             'roles' => $roles,
-            'modulePermissions' => $this->modulePermissions(),
             'otherPermissions' => $this->otherPermissions(),
-            'dataMasterPermissions' => $this->dataMasterPermissions(),
+            'groupsBySection' => collect(ResourcePermissions::groups())->groupBy('section')->map->all()->all(),
+            'actionLabels' => ResourcePermissions::actionLabels(),
         ]);
     }
 }

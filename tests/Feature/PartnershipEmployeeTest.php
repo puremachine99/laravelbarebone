@@ -25,7 +25,7 @@ test('unauthorized users without access-partnership permission cannot access par
 
 test('authorized users with access-partnership permission can access partnership employees page', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('access-partnership');
+    $permission = moduleAccess('access-partnership');
     $user->givePermissionTo($permission);
 
     // Ensure target department exists
@@ -39,7 +39,7 @@ test('authorized users with access-partnership permission can access partnership
 
 test('partnership employees CRUD functionality with region assignment', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('access-partnership');
+    $permission = moduleAccess('access-partnership');
     $user->givePermissionTo($permission);
     $user->givePermissionTo(Permission::findOrCreate('modify-master-data'));
 
@@ -99,7 +99,7 @@ test('partnership employees CRUD functionality with region assignment', function
 
 test('partnership data coverage and activity log placeholder pages are accessible with permission', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-partnership'));
+    $user->givePermissionTo(moduleAccess('access-partnership'));
 
     $this->actingAs($user)->get(route('partnership.data-coverage'))->assertOk()->assertSee('Under development');
     $this->actingAs($user)->get(route('partnership.activity-log'))->assertOk()->assertSee('Under development');

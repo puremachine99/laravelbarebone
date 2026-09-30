@@ -38,7 +38,7 @@ test('unauthorized users without access-investors permission cannot access the f
 
 test('funnel page is rendered for authorized users', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
 
     $this->actingAs($user)
         ->get(route('investors.funnel'))
@@ -51,7 +51,7 @@ test('funnel page is rendered for authorized users', function () {
 
 test('view mode toggle renders only the active mode server-side', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $this->actingAs($user);
 
     $component = Volt::test('investors.funnel-index');
@@ -67,7 +67,7 @@ test('view mode toggle renders only the active mode server-side', function () {
 
 test('kanban limits cards per column and load more reveals the rest', function () {
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $this->actingAs($admin);
 
     FoFunnel::factory()->count(35)->create(['stage' => 'leads']);
@@ -84,7 +84,7 @@ test('kanban limits cards per column and load more reveals the rest', function (
 
 test('a fo can create a lead for their own contact', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $contact = FoContact::factory()->create(['employee_id' => $employee->id]);
     $this->actingAs($user);
@@ -104,7 +104,7 @@ test('a fo can create a lead for their own contact', function () {
 
 test('a fo cannot create a lead for a contact they do not own', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $user->id]);
 
     $otherContact = FoContact::factory()->create(['employee_id' => Employee::create(['user_id' => User::factory()->create()->id])->id]);
@@ -117,7 +117,7 @@ test('a fo cannot create a lead for a contact they do not own', function () {
 
 test('a non admin fo only sees their own contacts in the add lead options', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $ownContact = FoContact::factory()->create(['employee_id' => $employee->id]);
 
@@ -133,7 +133,7 @@ test('a non admin fo only sees their own contacts in the add lead options', func
 
 test('an investor admin sees every fo contact in the add lead options', function () {
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
 
     $employeeA = Employee::create(['user_id' => User::factory()->create()->id]);
     $employeeB = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -151,7 +151,7 @@ test('an investor admin sees every fo contact in the add lead options', function
 
 test('moving to a non-pitching stage updates it directly', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'leads']);
     $this->actingAs($user);
@@ -165,7 +165,7 @@ test('moving to a non-pitching stage updates it directly', function () {
 
 test('a plain fo cannot move a funnel to akad, but admin fo can', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
     $this->actingAs($user);
@@ -177,7 +177,7 @@ test('a plain fo cannot move a funnel to akad, but admin fo can', function () {
     expect($funnel->refresh()->stage)->toBe('won');
 
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $this->actingAs($admin);
 
     Volt::test('investors.funnel-index')
@@ -189,7 +189,7 @@ test('a plain fo cannot move a funnel to akad, but admin fo can', function () {
 
 test('opening the akad modal is admin-only and resets the form state', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['stage' => 'won']);
     $this->actingAs($user);
@@ -199,7 +199,7 @@ test('opening the akad modal is admin-only and resets the form state', function 
         ->assertStatus(403);
 
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $this->actingAs($admin);
 
     Volt::test('investors.funnel-index')
@@ -215,7 +215,7 @@ test('admin fo can submit akad with a document upload to s3', function () {
     Storage::fake('s3');
 
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $employee = Employee::create(['user_id' => User::factory()->create()->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
     $this->actingAs($admin);
@@ -253,7 +253,7 @@ test('admin fo can submit akad with multiple tagged documents', function () {
     Storage::fake('s3');
 
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $employee = Employee::create(['user_id' => User::factory()->create()->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
     $this->actingAs($admin);
@@ -280,7 +280,7 @@ test('admin fo can submit akad with multiple tagged documents', function () {
 
 test('opening the akad modal seeds a single empty document row and add/remove manage the list', function () {
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $funnel = FoFunnel::factory()->create(['stage' => 'won']);
     $this->actingAs($admin);
 
@@ -299,7 +299,7 @@ test('a plain fo cannot submit akad even with a valid document', function () {
     Storage::fake('s3');
 
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
     $this->actingAs($user);
@@ -322,7 +322,7 @@ test('submitting akad rejects a disallowed file type and files over 10mb', funct
     Storage::fake('s3');
 
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $employee = Employee::create(['user_id' => User::factory()->create()->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
     $this->actingAs($admin);
@@ -359,7 +359,7 @@ test('submitting akad rejects a disallowed file type and files over 10mb', funct
 
 test('moving to pitching logs an activity and updates the stage', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'leads']);
     $this->actingAs($user);
@@ -379,7 +379,7 @@ test('moving to pitching logs an activity and updates the stage', function () {
 
 test('submitting won requires both tanggal and nominal', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
     $this->actingAs($user);
@@ -396,7 +396,7 @@ test('submitting won requires both tanggal and nominal', function () {
 
 test('moving to won records the commitment date and nominal separately from closing', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
     $this->actingAs($user);
@@ -421,7 +421,7 @@ test('moving to won records the commitment date and nominal separately from clos
 
 test('a won card in the kanban shows the committed nominal, not the original proyeksi amount', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create([
         'employee_id' => $employee->id,
@@ -441,7 +441,7 @@ test('a won card in the kanban shows the committed nominal, not the original pro
 
 test('a plain fo cannot move another fo funnel to won', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $user->id]);
 
     $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -457,7 +457,7 @@ test('a plain fo cannot move another fo funnel to won', function () {
 
 test('submitting closing requires both tanggal and nominal', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
     $this->actingAs($user);
@@ -474,7 +474,7 @@ test('submitting closing requires both tanggal and nominal', function () {
 
 test('moving to closing logs the closing date and amount', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
     $this->actingAs($user);
@@ -495,13 +495,13 @@ test('moving to closing logs the closing date and amount', function () {
 
 test('moving a funding deal to closing notifies investor admins and the owning fo, not partnership managers', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
     $this->actingAs($user);
 
     $investorAdmin = User::factory()->create();
-    $investorAdmin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $investorAdmin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
 
     // Investors has no manager sign-off concept — a Partnership `verify-manager`
     // holder must NOT be notified about a funding deal closing.
@@ -525,7 +525,7 @@ test('moving a funding deal to closing notifies investor admins and the owning f
 
 test('a plain fo cannot move another fo funnel to closing', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $user->id]);
 
     $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -541,7 +541,7 @@ test('a plain fo cannot move another fo funnel to closing', function () {
 
 test('moving to lost logs the lost date and reason', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'pitching']);
     $this->actingAs($user);
@@ -563,7 +563,7 @@ test('moving to lost logs the lost date and reason', function () {
 
 test('a plain fo cannot move another fo funnel to lost', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $user->id]);
 
     $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -579,7 +579,7 @@ test('a plain fo cannot move another fo funnel to lost', function () {
 
 test('a plain fo cannot move or edit or delete another fo funnel', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $user->id]);
 
     $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -603,7 +603,7 @@ test('a plain fo cannot move or edit or delete another fo funnel', function () {
 
 test('admin fo sees every funnel, plain fo only sees their own', function () {
     $fo = User::factory()->create();
-    $fo->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $fo->givePermissionTo(moduleAccess('access-investors'));
     $foEmployee = Employee::create(['user_id' => $fo->id]);
     $ownFunnel = FoFunnel::factory()->create(['employee_id' => $foEmployee->id]);
     $ownFunnel->contact->update(['nama' => 'Kontak Milik FO']);
@@ -619,7 +619,7 @@ test('admin fo sees every funnel, plain fo only sees their own', function () {
         ->assertDontSee('Kontak Milik Orang Lain');
 
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $this->actingAs($admin);
 
     Volt::test('investors.funnel-index')
@@ -629,7 +629,7 @@ test('admin fo sees every funnel, plain fo only sees their own', function () {
 
 test('a lead whose contact was deleted no longer shows up in the leads column', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
 
     $leadFunnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'leads']);
@@ -653,7 +653,7 @@ test('a lead whose contact was deleted no longer shows up in the leads column', 
 
 test('can update and delete a funnel entry', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id]);
     $this->actingAs($user);
@@ -682,7 +682,7 @@ test('opening the edit modal seeds amount fields as plain integers, not decimal-
     // e.g. "100000000.00". Handed as-is to the money-masked inputs, the mask strips the "."
     // as noise but keeps the trailing zeros, inflating the displayed value 100x.
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create([
         'employee_id' => $employee->id,
@@ -701,7 +701,7 @@ test('opening the edit modal seeds amount fields as plain integers, not decimal-
 
 test('editing a won-stage funnel seeds and updates the won-specific fields', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create([
         'employee_id' => $employee->id,
@@ -730,7 +730,7 @@ test('editing a won-stage funnel seeds and updates the won-specific fields', fun
 
 test('editing a closing-stage funnel updates the closing-specific fields', function () {
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $employee = Employee::create(['user_id' => User::factory()->create()->id]);
     $funnel = FoFunnel::factory()->create([
         'employee_id' => $employee->id,
@@ -757,7 +757,7 @@ test('editing a closing-stage funnel updates the closing-specific fields', funct
 
 test('editing a lost-stage funnel updates the lost-specific fields', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create([
         'employee_id' => $employee->id,
@@ -784,7 +784,7 @@ test('a plain fo editing their own akad-stage funnel can only change base fields
     Storage::fake('s3');
 
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create([
         'employee_id' => $employee->id,
@@ -816,7 +816,7 @@ test('admin fo editing an akad-stage funnel can replace or keep existing documen
     Storage::fake('s3');
 
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $employee = Employee::create(['user_id' => User::factory()->create()->id]);
     $funnel = FoFunnel::factory()->create([
         'employee_id' => $employee->id,
@@ -854,7 +854,7 @@ test('admin fo editing an akad-stage funnel can replace or keep existing documen
 
 test('search finds a funnel by contact name, profesi, phone, pic name, or sumber', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
 
     $target = FoContact::factory()->create([
@@ -901,7 +901,7 @@ test('search finds a funnel by contact name, profesi, phone, pic name, or sumber
 
 test('filterBulan and filterTahun scope funnels by the date relevant to their current stage', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
 
     // Pipeline card with no won/closing date yet — falls back to tgl_leads.
@@ -961,7 +961,7 @@ test('filterBulan and filterTahun scope funnels by the date relevant to their cu
 
 test('logging a follow up from drag-drop moves the stage and records history', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'pitching']);
     $this->actingAs($user);
@@ -981,7 +981,7 @@ test('logging a follow up from drag-drop moves the stage and records history', f
 
 test('logging a follow up from the history sidebar does not move an already-advanced stage', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'won']);
     $this->actingAs($user);
@@ -1001,7 +1001,7 @@ test('logging a follow up from the history sidebar does not move an already-adva
 
 test('a funnel can accumulate multiple follow up entries', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
     $this->actingAs($user);
@@ -1015,7 +1015,7 @@ test('a funnel can accumulate multiple follow up entries', function () {
 
 test('editing a follow up updates it and records an audit log entry', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
     $activity = $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan awal']);
@@ -1041,7 +1041,7 @@ test('editing a follow up updates it and records an audit log entry', function (
 
 test('editing a follow up without any actual change does not create a log entry', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
     $activity = $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan awal']);
@@ -1056,7 +1056,7 @@ test('editing a follow up without any actual change does not create a log entry'
 
 test('a plain fo cannot edit a follow up on another fo funnel', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $user->id]);
 
     $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -1073,7 +1073,7 @@ test('a plain fo cannot edit a follow up on another fo funnel', function () {
 
 test('viewing the activity log lists entries newest first', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
     $activity = $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Awal']);
@@ -1092,7 +1092,7 @@ test('viewing the activity log lists entries newest first', function () {
 
 test('a plain fo cannot view the activity log for another fo funnel', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $user->id]);
 
     $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -1107,7 +1107,7 @@ test('a plain fo cannot view the activity log for another fo funnel', function (
 
 test('deleting a follow up soft deletes it and hides it from the active history list', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
     $activity = $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan']);
@@ -1130,7 +1130,7 @@ test('deleting a follow up soft deletes it and hides it from the active history 
 
 test('a plain fo cannot delete a follow up on another fo funnel', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $user->id]);
 
     $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -1147,7 +1147,7 @@ test('a plain fo cannot delete a follow up on another fo funnel', function () {
 
 test('restoring a follow up brings it back into the active history list', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
     $activity = $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan']);
@@ -1163,7 +1163,7 @@ test('restoring a follow up brings it back into the active history list', functi
 
 test('a plain fo cannot restore a follow up on another fo funnel', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $user->id]);
 
     $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -1181,7 +1181,7 @@ test('a plain fo cannot restore a follow up on another fo funnel', function () {
 
 test('deleted follow ups only show up in the sidebar after toggling "lihat terhapus"', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
     $activity = $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan terhapus']);
@@ -1201,7 +1201,7 @@ test('deleted follow ups only show up in the sidebar after toggling "lihat terha
 
 test('funnels list exposes followup_count aggregated from activities, excluding other stages', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
     $this->actingAs($user);
@@ -1220,7 +1220,7 @@ test('funnels list exposes followup_count aggregated from activities, excluding 
 
 test('history sidebar shows a funnel own follow up activities', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
     $funnel->activities()->create(['employee_id' => $employee->id, 'stage' => 'followup', 'tanggal' => '2026-08-01', 'catatan' => 'Catatan pertama']);
@@ -1237,7 +1237,7 @@ test('history sidebar shows a funnel own follow up activities', function () {
 
 test('a plain fo cannot open the history sidebar for another fo funnel', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $user->id]);
 
     $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -1251,7 +1251,7 @@ test('a plain fo cannot open the history sidebar for another fo funnel', functio
 
 test('a contact with repeat leads gets a #N suffix from the second occurrence onward', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $contact = FoContact::factory()->create(['employee_id' => $employee->id, 'nama' => 'Candra-KJPP']);
 
@@ -1271,7 +1271,7 @@ test('a contact with repeat leads gets a #N suffix from the second occurrence on
 
 test('a contact with a single lead gets no suffix', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $contact = FoContact::factory()->create(['employee_id' => $employee->id, 'nama' => 'Solo Investor']);
 
@@ -1287,7 +1287,7 @@ test('a contact with a single lead gets no suffix', function () {
 
 test('a lead\'s #N suffix stays frozen even if an earlier lead for the same contact is deleted', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $contact = FoContact::factory()->create(['employee_id' => $employee->id, 'nama' => 'Repeat Investor']);
 

@@ -1,6 +1,8 @@
 <?php
 
+use App\Support\ResourcePermissions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 /*
@@ -47,4 +49,31 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * A module permission plus every per-resource action permission that belongs to it —
+ * what a role with full access to that module holds.
+ *
+ * @return array<int, string>
+ */
+function moduleAccess(string $modulePermission): array
+{
+    ResourcePermissions::ensureExist();
+    Permission::findOrCreate($modulePermission);
+
+    return [$modulePermission, ...ResourcePermissions::names($modulePermission)];
+}
+
+/**
+ * A module permission plus only the "view" permissions of its resources — a read-only role.
+ *
+ * @return array<int, string>
+ */
+function moduleViewAccess(string $modulePermission): array
+{
+    return [
+        ...array_slice(moduleAccess($modulePermission), 0, 1),
+        ...array_filter(ResourcePermissions::names($modulePermission), fn (string $name) => str_ends_with($name, '.view')),
+    ];
 }

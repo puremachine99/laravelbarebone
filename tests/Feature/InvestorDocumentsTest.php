@@ -6,7 +6,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Volt;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
@@ -14,7 +13,7 @@ uses(RefreshDatabase::class);
 function makeDocsUser(string $roleName): User
 {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(in_array($roleName, ['Investor Admin', 'Super Admin'], true) ? moduleAccess('access-investors') : moduleViewAccess('access-investors'));
     $user->assignRole(Role::findOrCreate($roleName));
 
     return $user;

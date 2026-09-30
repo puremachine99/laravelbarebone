@@ -9,7 +9,6 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Volt\Volt;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
@@ -20,7 +19,7 @@ function makeConversionFoEmployee(string $roleName): Employee
 {
     $department = Department::firstOrCreate(['name' => 'Departemen Finance']);
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $user->assignRole(Role::findOrCreate($roleName));
 
     return Employee::create(['user_id' => $user->id, 'department_id' => $department->id]);

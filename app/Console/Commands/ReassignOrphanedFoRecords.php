@@ -13,7 +13,7 @@ use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
-#[Signature('fo:reassign-orphans {email : Email akun karyawan tujuan} {--from= : Batas awal created_at (Y-m-d)} {--until= : Batas akhir created_at (Y-m-d, inklusif)} {--execute : Simpan perubahan (default: dry-run)}')]
+#[Signature('fo:reassign-orphans {email : Email akun karyawan tujuan} {--from-email= : Pindahkan dari akun karyawan lama ini (bukan yatim NULL)} {--from= : Batas awal created_at (Y-m-d)} {--until= : Batas akhir created_at (Y-m-d, inklusif)} {--execute : Simpan perubahan (default: dry-run)}')]
 #[Description('Pasang ulang kontak/funnel/aktivitas FO yatim (employee_id NULL akibat akun terhapus) ke karyawan tujuan')]
 class ReassignOrphanedFoRecords extends Command
 {
@@ -27,17 +27,27 @@ class ReassignOrphanedFoRecords extends Command
             return self::FAILURE;
         }
 
-        if (! $this->option('from') || ! $this->option('until')) {
-            $this->error('Opsi --from dan --until wajib diisi supaya data yatim milik orang lain tidak ikut terpasang.');
+        $source = null;
+
+        if ($this->option('from-email')) {
+            $source = Employee::withTrashed()->whereHas('user', fn ($q) => $q->withTrashed()->where('email', $this->option('from-email')))->first();
+
+            if (! $source || $source->is($employee)) {
+                $this->error('Karyawan lama tidak ditemukan, atau sama dengan karyawan tujuan.');
+
+                return self::FAILURE;
+            }
+        } elseif (! $this->option('from') || ! $this->option('until')) {
+            $this->error('Tanpa --from-email, opsi --from dan --until wajib diisi supaya data yatim milik orang lain tidak ikut terpasang.');
 
             return self::FAILURE;
         }
 
-        $from = Carbon::parse($this->option('from'))->startOfDay();
-        $until = Carbon::parse($this->option('until'))->endOfDay();
+        $from = Carbon::parse($this->option('from') ?: '1970-01-01')->startOfDay();
+        $until = Carbon::parse($this->option('until') ?: 'now')->endOfDay();
 
         $scope = fn (Builder $query) => $query->withTrashed()
-            ->whereNull('employee_id')
+            ->when($source, fn ($q) => $q->where('employee_id', $source->id), fn ($q) => $q->whereNull('employee_id'))
             ->whereBetween('created_at', [$from, $until]);
 
         $contacts = $scope(FoContact::query());

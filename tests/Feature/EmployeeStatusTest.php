@@ -5,13 +5,12 @@ use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
-use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
 test('new employees default to active status', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
 
     $this->actingAs($admin);
 
@@ -31,7 +30,7 @@ test('new employees default to active status', function () {
 
 test('marking an employee as resigned stores the status date and reason', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
 
     $employeeUser = User::factory()->create();
     $employee = Employee::create(['user_id' => $employeeUser->id]);
@@ -55,7 +54,7 @@ test('marking an employee as resigned stores the status date and reason', functi
 
 test('setting status back to active clears the status date and reason', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
 
     $employeeUser = User::factory()->create();
     $employee = Employee::create([
@@ -82,7 +81,7 @@ test('setting status back to active clears the status date and reason', function
 
 test('status must be a valid employee status value', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
 
     $employeeUser = User::factory()->create();
     $employee = Employee::create(['user_id' => $employeeUser->id]);

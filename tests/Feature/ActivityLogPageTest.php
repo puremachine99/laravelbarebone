@@ -8,7 +8,6 @@ use App\Models\FoFunnel;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
@@ -28,7 +27,7 @@ test('unauthorized users without access-investors permission cannot access the p
 
 test('activity log page is rendered for authorized users', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
 
     $this->actingAs($user)
         ->get(route('investors.activity-log'))
@@ -39,7 +38,7 @@ test('activity log page is rendered for authorized users', function () {
 
 test('a plain fo only sees log entries for their own data', function () {
     $fo = User::factory()->create();
-    $fo->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $fo->givePermissionTo(moduleAccess('access-investors'));
     $foEmployee = Employee::create(['user_id' => $fo->id]);
 
     $otherEmployee = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -60,7 +59,7 @@ test('a plain fo only sees log entries for their own data', function () {
 
 test('an investor admin sees log entries for every fo', function () {
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
 
     $foEmployeeA = Employee::create(['user_id' => User::factory()->create()->id]);
     $foEmployeeB = Employee::create(['user_id' => User::factory()->create()->id]);
@@ -81,7 +80,7 @@ test('an investor admin sees log entries for every fo', function () {
 
 test('filtering by actor scopes the results to that causer only', function () {
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
 
     $actingFo = User::factory()->create();
     $foEmployee = Employee::create(['user_id' => $actingFo->id]);
@@ -108,7 +107,7 @@ test('filtering by actor scopes the results to that causer only', function () {
 
 test('actor options include super admins even without a finance department', function () {
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
 
     $superAdmin = User::factory()->create(['name' => 'Super Admin Nakama']);
     $superAdmin->assignRole(Role::findOrCreate('Super Admin'));
@@ -123,7 +122,7 @@ test('actor options include super admins even without a finance department', fun
 
 test('filtering by month and year scopes the results to that period', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id]);
     $this->actingAs($user);
@@ -146,7 +145,7 @@ test('filtering by month and year scopes the results to that period', function (
 
 test('filtering by time range scopes the results to that window', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id]);
     $this->actingAs($user);
@@ -169,7 +168,7 @@ test('filtering by time range scopes the results to that window', function () {
 
 test('the page exposes no mutating actions', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $this->actingAs($user);
 
     $component = Volt::test('investors.activity-log-index');
@@ -181,7 +180,7 @@ test('the page exposes no mutating actions', function () {
 
 test('array change values (e.g. multi-file uploads) are rendered without error', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id]);
     $this->actingAs($user);
@@ -200,7 +199,7 @@ test('array change values (e.g. multi-file uploads) are rendered without error',
 
 test('subject and owner labels resolve correctly for a funnel log', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $contact = FoContact::factory()->create(['employee_id' => $employee->id, 'nama' => 'Budi Santoso']);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'fo_contact_id' => $contact->id]);

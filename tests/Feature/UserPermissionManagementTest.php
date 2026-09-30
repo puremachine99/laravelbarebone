@@ -8,7 +8,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Volt\Volt;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
@@ -28,7 +27,7 @@ test('unauthorized users without access-internal-org permission cannot access us
 
 test('the legacy admin.users URL redirects to the merged employees page', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('access-internal-org');
+    $permission = moduleAccess('access-internal-org');
     $user->givePermissionTo($permission);
 
     $this->actingAs($user)
@@ -38,7 +37,7 @@ test('the legacy admin.users URL redirects to the merged employees page', functi
 
 test('admin can assign roles and permissions dynamically to a user', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
 
     $targetUser = User::factory()->create();
     $employee = Employee::create(['user_id' => $targetUser->id]);
@@ -62,7 +61,7 @@ test('admin invites a new employee with roles instead of setting a password dire
     Notification::fake();
 
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
     Role::findOrCreate('Partnership Admin');
 
     $this->actingAs($admin);
@@ -90,7 +89,7 @@ test('admin invites a new employee with roles instead of setting a password dire
 
 test('admin can update an existing employee profile fields', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
 
     $targetUser = User::factory()->create(['name' => 'Old Name']);
     $employee = Employee::create(['user_id' => $targetUser->id]);
@@ -110,7 +109,7 @@ test('admin can update an existing employee profile fields', function () {
 
 test('admin can delete a user, which cascades to their employee profile', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
 
     $targetUser = User::factory()->create();
     Employee::create(['user_id' => $targetUser->id]);
@@ -129,7 +128,7 @@ test('admin can resend an invite to a user who has not yet activated their accou
     Notification::fake();
 
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
 
     $invitedUser = User::factory()->invited()->create();
     Employee::create(['user_id' => $invitedUser->id]);
@@ -144,7 +143,7 @@ test('admin can resend an invite to a user who has not yet activated their accou
 
 test('admin can suspend an active user and their sessions are invalidated', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
 
     $targetUser = User::factory()->create();
     Employee::create(['user_id' => $targetUser->id]);
@@ -170,7 +169,7 @@ test('admin can suspend an active user and their sessions are invalidated', func
 
 test('admin cannot suspend themselves', function () {
     $admin = User::factory()->create();
-    $admin->givePermissionTo(Permission::findOrCreate('access-internal-org'));
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
     Employee::create(['user_id' => $admin->id]);
 
     $this->actingAs($admin);

@@ -9,13 +9,12 @@ use App\Models\Region;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
-use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
 test('contact page is rendered for authenticated users', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('access-partnership');
+    $permission = moduleAccess('access-partnership');
     $user->givePermissionTo($permission);
     $this->actingAs($user);
 
@@ -34,7 +33,7 @@ test('can create contact via livewire volt component', function () {
     $regency = Regency::create(['name' => 'Kabupaten Test', 'province_id' => $province->id, 'region_id' => $region->id, 'type' => 'Kabupaten']);
     $position = ContactPosition::create(['name' => 'Staff', 'kelompok_jabatan' => 'JA', 'eselon' => 'IV.a', 'tingkat' => 'Pusat']);
 
-    $permission = Permission::findOrCreate('access-partnership');
+    $permission = moduleAccess('access-partnership');
     $user->givePermissionTo($permission);
     $this->actingAs($user);
 
@@ -87,7 +86,7 @@ test('can edit existing contact', function () {
         'email' => 'janedoe@example.com',
     ]);
 
-    $permission = Permission::findOrCreate('access-partnership');
+    $permission = moduleAccess('access-partnership');
     $user->givePermissionTo($permission);
     $this->actingAs($user);
 
@@ -129,7 +128,7 @@ test('can delete contact', function () {
         'email' => 'deleteme@example.com',
     ]);
 
-    $permission = Permission::findOrCreate('access-partnership');
+    $permission = moduleAccess('access-partnership');
     $user->givePermissionTo($permission);
     $this->actingAs($user);
 

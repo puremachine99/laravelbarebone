@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Support\ResourcePermissions;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -34,6 +35,8 @@ class RoleAndPermissionSeeder extends Seeder
         foreach ([...$modulePermissions, ...$otherPermissions] as $permission) {
             Permission::findOrCreate($permission);
         }
+
+        ResourcePermissions::ensureExist();
 
         // Create roles and assign permissions
         $superAdminRole = Role::findOrCreate('Super Admin');
@@ -67,6 +70,9 @@ class RoleAndPermissionSeeder extends Seeder
 
         $technologyRole = Role::findOrCreate('Technology');
         $technologyRole->givePermissionTo('access-technology');
+
+        // Default roles get every action of the modules they can enter (Direksi: view only).
+        ResourcePermissions::grantLegacyAccess();
 
         // Assign Super Admin role to the default admin user
         $superAdmin = User::where('email', 'supernakama@smartid.co.id')->first();

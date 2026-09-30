@@ -12,7 +12,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Volt;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
@@ -27,7 +26,7 @@ function logsFor(Model $subject)
 
 test('creating a lead records the actor, action, and created data', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $contact = FoContact::factory()->create(['employee_id' => $employee->id]);
     $this->actingAs($user);
@@ -48,7 +47,7 @@ test('creating a lead records the actor, action, and created data', function () 
 
 test('updating a lead records before and after values of only the changed fields', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create([
         'employee_id' => $employee->id,
@@ -77,7 +76,7 @@ test('updating a lead records before and after values of only the changed fields
 
 test('deleting a funnel records a snapshot of the data before it is soft deleted', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'leads']);
     $this->actingAs($user);
@@ -93,7 +92,7 @@ test('deleting a funnel records a snapshot of the data before it is soft deleted
 
 test('moving stage records the previous and new stage', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'leads']);
     $this->actingAs($user);
@@ -112,7 +111,7 @@ test('submitting akad, won, closing, and lost each record a log entry', function
     Storage::fake('s3');
 
     $admin = User::factory()->create();
-    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(Permission::findOrCreate('access-investors')));
+    $admin->assignRole(Role::findOrCreate('Investor Admin')->givePermissionTo(moduleAccess('access-investors')));
     $employee = Employee::create(['user_id' => User::factory()->create()->id]);
     $this->actingAs($admin);
 
@@ -150,7 +149,7 @@ test('submitting akad, won, closing, and lost each record a log entry', function
 
 test('follow up actions each record a log entry against the parent funnel', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id, 'stage' => 'followup']);
     $this->actingAs($user);
@@ -180,7 +179,7 @@ test('a funnel log timeline survives even after the funnel is force deleted', fu
     // activity_logs sengaja gak dikasih FK constraint (subjeknya polimorfik, tabelnya beda-beda),
     // jadi riwayatnya tetap harus kebaca walau baris funnel-nya udah beneran hilang dari DB.
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $funnel = FoFunnel::factory()->create(['employee_id' => $employee->id]);
     $this->actingAs($user);
@@ -195,7 +194,7 @@ test('a funnel log timeline survives even after the funnel is force deleted', fu
 
 test('creating a contact records the created data', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     Employee::create(['user_id' => $user->id]);
     $this->actingAs($user);
 
@@ -218,7 +217,7 @@ test('creating a contact records the created data', function () {
 
 test('updating a contact records before and after values', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $contact = FoContact::factory()->create(['employee_id' => $employee->id, 'nama' => 'Nama Lama']);
     $this->actingAs($user);
@@ -238,7 +237,7 @@ test('updating a contact records before and after values', function () {
 
 test('deleting a contact records a snapshot of the data before it is soft deleted', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-investors'));
+    $user->givePermissionTo(moduleAccess('access-investors'));
     $employee = Employee::create(['user_id' => $user->id]);
     $contact = FoContact::factory()->create(['employee_id' => $employee->id, 'nama' => 'Akan Dihapus']);
     $this->actingAs($user);

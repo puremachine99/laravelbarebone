@@ -17,7 +17,6 @@ use Database\Seeders\PipelineSeeder;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
@@ -40,7 +39,7 @@ test('unauthorized users without access-partnership permission cannot access rea
 
 test('authorized users with access-partnership permission can access realisasi page', function () {
     $user = User::factory()->create();
-    $permission = Permission::findOrCreate('access-partnership');
+    $permission = moduleAccess('access-partnership');
     $user->givePermissionTo($permission);
 
     $this->actingAs($user)

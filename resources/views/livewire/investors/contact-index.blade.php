@@ -88,6 +88,8 @@ $resetForm = function () {
 };
 
 $showCreate = function () {
+    abort_unless(auth()->user()->can('fo-contacts.create'), 403);
+
     $this->resetForm();
 
     if (! $this->isAdminFo) {
@@ -98,6 +100,8 @@ $showCreate = function () {
 };
 
 $editContact = function ($id) {
+    abort_unless(auth()->user()->can('fo-contacts.update'), 403);
+
     $this->resetForm();
     $contact = FoContact::findOrFail($id);
 
@@ -116,6 +120,8 @@ $editContact = function ($id) {
 };
 
 $saveContact = function () {
+    abort_unless(auth()->user()->can($this->contact_id ? 'fo-contacts.update' : 'fo-contacts.create'), 403);
+
     $this->validate([
         'nama' => ['required', 'string', 'max:255'],
         'profesi' => ['nullable', 'string', 'max:255'],
@@ -166,6 +172,8 @@ $saveContact = function () {
 };
 
 $confirmDelete = function ($id) {
+    abort_unless(auth()->user()->can('fo-contacts.delete'), 403);
+
     $contact = FoContact::findOrFail($id);
 
     if (! $this->isAdminFo && $contact->employee_id !== $this->currentEmployee?->id) {
@@ -177,6 +185,8 @@ $confirmDelete = function ($id) {
 };
 
 $deleteContact = function ($id = null) {
+    abort_unless(auth()->user()->can('fo-contacts.delete'), 403);
+
     $targetId = $id ?: $this->deleteTargetId;
 
     if ($targetId) {
@@ -281,7 +291,9 @@ $statsPic = computed(function () {
                 <h2 class="text-xl font-bold text-base-content">FO Contacts</h2>
                 <p class="text-sm text-base-content/50 mt-1">Manage contact data for prospective investors/funding partners.</p>
             </div>
-            <x-button variant="primary" icon="o-plus" size="btn-sm" label="Add Contact" wire:click="showCreate" />
+            @can('fo-contacts.create')
+                <x-button variant="primary" icon="o-plus" size="btn-sm" label="Add Contact" wire:click="showCreate" />
+            @endcan
         </div>
 
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -361,8 +373,12 @@ $statsPic = computed(function () {
                             <td class="text-base-content/50 whitespace-nowrap">{{ $contact->created_at?->format('d M Y H:i') }}</td>
                             <td class="text-right">
                                 <div class="flex gap-2 justify-end">
-                                    <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="editContact({{ $contact->id }})" />
-                                    <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete({{ $contact->id }})" />
+                                    @can('fo-contacts.update')
+                                        <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="editContact({{ $contact->id }})" />
+                                    @endcan
+                                    @can('fo-contacts.delete')
+                                        <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete({{ $contact->id }})" />
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

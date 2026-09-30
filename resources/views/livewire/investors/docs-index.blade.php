@@ -32,11 +32,8 @@ state([
     'showPreviewModal' => false,
     'previewDocumentId' => null,
 ]);
-
-// Halaman ini boleh dilihat siapapun yang punya akses ke modul Funding (FO, Direksi, dst — sama kayak
-// halaman Funding lain, dijaga middleware route `can:access-investors`); cuma Admin FO / Super Admin
-// yang boleh CRUD (upload/edit/delete/restore).
-$canManage = computed(fn () => auth()->user()->hasRole(['Investor Admin', 'Super Admin']));
+// Halaman ini dijaga middleware route `can:investor-documents.view`; aksi di dalamnya dijaga permission
+// per-aksi (investor-documents.create/update/delete/restore) yang diatur dari halaman Role.
 
 $updatedSearch = function () {
     $this->resetPage();
@@ -64,7 +61,7 @@ $trashedDocuments = computed(function () {
 });
 
 $toggleTrashed = function () {
-    abort_unless($this->canManage, 403);
+    abort_unless(auth()->user()->can('investor-documents.restore'), 403);
 
     $this->showTrashed = ! $this->showTrashed;
 };
@@ -75,14 +72,14 @@ $resetForm = function () {
 };
 
 $showCreate = function () {
-    abort_unless($this->canManage, 403);
+    abort_unless(auth()->user()->can('investor-documents.create'), 403);
 
     $this->resetForm();
     $this->showFormModal = true;
 };
 
 $editDocument = function ($id) {
-    abort_unless($this->canManage, 403);
+    abort_unless(auth()->user()->can('investor-documents.update'), 403);
 
     $document = InvestorDocument::findOrFail($id);
 
@@ -98,7 +95,7 @@ $editDocument = function ($id) {
 // Path disimpan di bawah folder per-environment (investors/investor-docs/{env}/...) biar upload dari dev
 // gak pernah nimpa/campur objek yang sama di bucket S3 yang dipakai production.
 $saveDocument = function () {
-    abort_unless($this->canManage, 403);
+    abort_unless(auth()->user()->can($this->isEdit ? 'investor-documents.update' : 'investor-documents.create'), 403);
 
     $this->validate([
         'title' => ['required', 'string', 'max:255'],
@@ -166,14 +163,14 @@ $saveDocument = function () {
 };
 
 $confirmDelete = function ($id) {
-    abort_unless($this->canManage, 403);
+    abort_unless(auth()->user()->can('investor-documents.delete'), 403);
 
     $this->deleteTargetId = $id;
     $this->showDeleteModal = true;
 };
 
 $deleteDocument = function () {
-    abort_unless($this->canManage, 403);
+    abort_unless(auth()->user()->can('investor-documents.delete'), 403);
 
     if ($this->deleteTargetId) {
         InvestorDocument::findOrFail($this->deleteTargetId)->delete();
@@ -185,7 +182,7 @@ $deleteDocument = function () {
 };
 
 $restoreDocument = function ($id) {
-    abort_unless($this->canManage, 403);
+    abort_unless(auth()->user()->can('investor-documents.restore'), 403);
 
     InvestorDocument::onlyTrashed()->findOrFail($id)->restore();
     $this->success('Dokumen berhasil dipulihkan.');
@@ -223,12 +220,14 @@ $openPreview = function ($id) {
                     Dev note: file diupload ke folder S3 khusus environment ini (<code class="text-[11px]">investors/investor-docs/{{ app()->environment() }}/</code>), jadi gak akan campur sama data production.
                 </p>
             </div>
-            @if ($this->canManage)
-                <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2">
+                @can('investor-documents.restore')
                     <x-button icon="o-archive-box" size="btn-sm" :label="$showTrashed ? 'Hide Deleted' : 'View Deleted'" class="btn-ghost {{ $showTrashed ? 'btn-active' : '' }}" wire:click="toggleTrashed" />
+                @endcan
+                @can('investor-documents.create')
                     <x-button variant="primary" icon="o-plus" size="btn-sm" label="Upload Document" wire:click="showCreate" />
-                </div>
-            @endif
+                @endcan
+            </div>
         </div>
 
         <div class="mt-4 w-full sm:w-72">
@@ -237,7 +236,7 @@ $openPreview = function ($id) {
     </div>
 
     <!-- Trashed documents -->
-    @if ($this->canManage && $showTrashed)
+    @if (auth()->user()->can('investor-documents.restore') && $showTrashed)
         <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
             <div class="text-sm font-semibold text-base-content mb-1">Deleted Documents</div>
             <p class="text-xs text-base-content/50 mb-4">Still recoverable — files are kept, only hidden from the active list.</p>
@@ -280,18 +279,22 @@ $openPreview = function ($id) {
                                 @endif
                             </div>
 
-                            @if ($this->canManage)
+                            @canany(['investor-documents.update', 'investor-documents.delete'])
                                 {{-- Sengaja di luar box gambar (bukan di dalamnya) biar popup menu-nya gak ke-clip sama overflow-hidden buat rounded corner gambar di atas --}}
                                 <div class="absolute top-1.5 right-1.5 z-50">
                                     <x-dropdown right no-x-anchor>
                                         <x-slot:trigger>
                                             <x-button icon="o-ellipsis-vertical" class="btn-circle btn-xs bg-base-100/80 backdrop-blur hover:bg-base-100 shadow" />
                                         </x-slot:trigger>
-                                        <li><a wire:click="editDocument({{ $document->id }})"><x-icon name="o-pencil-square" class="w-4 h-4" /> Edit</a></li>
-                                        <li><a wire:click="confirmDelete({{ $document->id }})" class="text-error"><x-icon name="o-trash" class="w-4 h-4" /> Delete</a></li>
+                                        @can('investor-documents.update')
+                                            <li><a wire:click="editDocument({{ $document->id }})"><x-icon name="o-pencil-square" class="w-4 h-4" /> Edit</a></li>
+                                        @endcan
+                                        @can('investor-documents.delete')
+                                            <li><a wire:click="confirmDelete({{ $document->id }})" class="text-error"><x-icon name="o-trash" class="w-4 h-4" /> Delete</a></li>
+                                        @endcan
                                     </x-dropdown>
                                 </div>
-                            @endif
+                            @endcanany
                         </div>
 
                         <div class="min-w-0">
@@ -331,7 +334,7 @@ $openPreview = function ($id) {
         @endif
     </div>
 
-    @if ($this->canManage)
+    @canany(['investor-documents.create', 'investor-documents.update', 'investor-documents.delete'])
         <!-- Upload / Edit Modal -->
         <x-modal wire:model="showFormModal" title="{{ $isEdit ? 'Edit Document' : 'Upload Document' }}" subtitle="Judul akan dipakai sebagai nama file yang dilihat/didownload FO.">
             <form wire:submit.prevent="saveDocument" class="space-y-4">
@@ -358,7 +361,7 @@ $openPreview = function ($id) {
                 <x-button label="Yes, Delete" wire:click="deleteDocument" class="btn-error text-white" />
             </div>
         </x-modal>
-    @endif
+    @endcanany
 
     <!-- Preview Modal -->
     <x-modal wire:model="showPreviewModal" title="{{ $this->previewDocument?->title }}" box-class="max-w-4xl">
