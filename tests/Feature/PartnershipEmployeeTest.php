@@ -96,3 +96,18 @@ test('partnership employees CRUD functionality with region assignment', function
         'id' => $pmo->id,
     ]);
 });
+
+test('partnership data coverage and activity log placeholder pages are accessible with permission', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-partnership'));
+
+    $this->actingAs($user)->get(route('partnership.data-coverage'))->assertOk()->assertSee('Under development');
+    $this->actingAs($user)->get(route('partnership.activity-log'))->assertOk()->assertSee('Under development');
+});
+
+test('partnership placeholder pages are forbidden without permission', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('partnership.data-coverage'))->assertStatus(403);
+    $this->actingAs($user)->get(route('partnership.activity-log'))->assertStatus(403);
+});

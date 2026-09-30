@@ -286,7 +286,21 @@
                                             'active' => request()->routeIs('partnership-employees.*'),
                                         ]) href="{{ route('partnership-employees.index') }}"
                                             wire:navigate>
-                                            <span class="grow">PMO</span>
+                                            <span class="grow">Management PMO</span>
+                                        </a>
+                                        <a @class([
+                                            'menu-item',
+                                            'active' => request()->routeIs('partnership.data-coverage'),
+                                        ]) href="{{ route('partnership.data-coverage') }}"
+                                            wire:navigate>
+                                            <span class="grow">Data Coverage</span>
+                                        </a>
+                                        <a @class([
+                                            'menu-item',
+                                            'active' => request()->routeIs('partnership.activity-log'),
+                                        ]) href="{{ route('partnership.activity-log') }}"
+                                            wire:navigate>
+                                            <span class="grow">Activity Log</span>
                                         </a>
                                     </div>
                                 </div>

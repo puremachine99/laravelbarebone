@@ -68,6 +68,8 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Volt::route('/urusan', 'master.urusan.index')->name('urusan.index');
         Volt::route('/contact-positions', 'master.contact-positions.index')->name('contact-positions.index');
         Volt::route('/partnership/pmo', 'partnership.pmo-index')->name('partnership-employees.index');
+        Volt::route('/partnership/data-coverage', 'partnership.data-coverage-index')->name('partnership.data-coverage');
+        Volt::route('/partnership/activity-log', 'partnership.activity-log-index')->name('partnership.activity-log');
     });
 
     Route::middleware('can:access-finance')->group(function () {

@@ -50,6 +50,7 @@ state([
 'selectedEmployee' => null,
 'showEmployeeModal' => false,
 'showDeleteModal' => false,
+'showTrashed' => false,
 ]);
 
 $departmentOptions = computed(fn() => Department::orderBy('name')->get());
@@ -63,7 +64,10 @@ $employees = computed(function () {
  return User::query()
  ->select('users.*')
  ->leftJoin('employees','employees.user_id','=','users.id')
- ->with(['employee.department','employee.positionFungsional','employee.positionStruktural','employee.positionTeknis','roles'])
+ ->when($this->showTrashed,
+ fn($q) => $q->onlyTrashed()->with(['employee' => fn($e) => $e->withTrashed()->with('department'), 'roles']),
+ fn($q) => $q->with(['employee.department','employee.positionFungsional','employee.positionStruktural','employee.positionTeknis','roles'])
+ )
  ->when($search, fn($q) =>
  $q->where(fn($q) =>
  $q->whereRaw('LOWER(users.name) LIKE ?', ['%' . strtolower($search) .'%'])
@@ -324,13 +328,32 @@ $confirmDelete = function (int $userId) {
 
 $delete = function () {
  if ($this->deleteTargetId && $this->deleteTargetId !== auth()->id()) {
+ DB::transaction(function () {
  DB::table('sessions')->where('user_id', $this->deleteTargetId)->delete();
- User::findOrFail($this->deleteTargetId)->delete();
+ $user = User::findOrFail($this->deleteTargetId);
+ $user->employee?->delete();
+ $user->delete();
+ });
  }
 
  $this->deleteTargetId = null;
  $this->showDeleteModal = false;
- session()->flash('error','Karyawan berhasil dihapus.');
+ session()->flash('error','Karyawan berhasil dihapus. Data masih bisa dipulihkan lewat tombol "Data Terhapus".');
+};
+
+$toggleTrashed = function () {
+ $this->showTrashed = ! $this->showTrashed;
+ $this->resetPage();
+};
+
+$restore = function (int $userId) {
+ DB::transaction(function () use ($userId) {
+ $user = User::onlyTrashed()->findOrFail($userId);
+ $user->restore();
+ $user->employee()->onlyTrashed()->first()?->restore();
+ });
+
+ session()->flash('success','Karyawan berhasil dipulihkan.');
 };
 
 ?>
@@ -433,8 +456,16 @@ $delete = function () {
  <h2 class="text-xl font-bold text-base-content">Data Master: Employees</h2>
  <p class="text-sm text-base-content/50 mt-1">Kelola daftar karyawan dalam organisasi.</p>
  </div>
+ <div class="flex gap-2">
+ <x-button icon="{{ $showTrashed ?'o-arrow-left' :'o-archive-box' }}" size="btn-sm" class="btn-ghost" label="{{ $showTrashed ?'Kembali ke Daftar' :'Data Terhapus' }}" wire:click="toggleTrashed" />
+ @unless ($showTrashed)
  <x-button variant="primary" icon="o-plus" size="btn-sm" label="Karyawan" wire:click="resetForm(); $set('showEmployeeModal', true);" />
+ @endunless
  </div>
+ </div>
+ @if ($showTrashed)
+ <div class="alert alert-warning text-sm">Menampilkan karyawan yang sudah dihapus. Klik "Pulihkan" untuk mengembalikan akun beserta profil dan rolenya.</div>
+ @endif
 
  <div class="flex gap-3">
  <div class="flex-1">
@@ -483,7 +514,7 @@ $delete = function () {
  </thead>
  <tbody>
  @forelse ($this->employees as $emp)
- <tr class="border-b border-base-300 hover:bg-base-200 {{ $emp->employee ?'cursor-pointer' :'' }}" @if ($emp->employee) wire:click="showDetail({{ $emp->employee->id }})" @endif>
+ <tr class="border-b border-base-300 hover:bg-base-200 {{ $emp->employee && ! $showTrashed ?'cursor-pointer' :'' }}" @if ($emp->employee && ! $showTrashed) wire:click="showDetail({{ $emp->employee->id }})" @endif>
  <td class="text-base-content/50">{{ $emp->id }}</td>
  <td class="font-semibold text-base-content py-3">{{ $emp->name }}</td>
  <td>{{ $emp->employee?->department?->name ??'-' }}</td>
@@ -549,6 +580,9 @@ $delete = function () {
  </td>
  <td class="text-right" wire:click.stop>
  <div class="flex gap-2 justify-end">
+ @if ($showTrashed)
+ <x-button icon="o-arrow-uturn-left" label="Pulihkan" class="btn-ghost btn-xs text-success" wire:click="restore({{ $emp->id }})" wire:confirm="Pulihkan karyawan ini?" />
+ @else
  @if ($emp->isInvited())
  <x-button label="Kirim Ulang" class="btn-ghost btn-xs text-warning" wire:click="resendInvite({{ $emp->id }})" />
  @elseif ($emp->isSuspended())
@@ -564,6 +598,7 @@ $delete = function () {
  @endif
  @if ($emp->id !== auth()->id())
  <x-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDelete({{ $emp->id }})" />
+ @endif
  @endif
  </div>
  </td>
@@ -853,7 +888,7 @@ $delete = function () {
  </x-modal>
 
  <!-- Confirmation Modal -->
- <x-modal wire:model="showDeleteModal" title="Hapus Pengguna?" subtitle="Menghapus pengguna ini akan menghilangkan akses login, profil karyawan, serta semua peran yang dimilikinya. Tindakan ini tidak bisa dibatalkan.">
+ <x-modal wire:model="showDeleteModal" title="Hapus Pengguna?" subtitle="Menghapus pengguna ini akan menghilangkan akses login dan profil karyawannya. Data masih bisa dipulihkan dari menu Data Terhapus.">
  <div class="flex justify-end gap-2 pt-4">
  <x-button label="Batal" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
  <x-button label="Ya, Hapus" wire:click="delete" class="btn-error text-white" />
