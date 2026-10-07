@@ -89,6 +89,7 @@ $regionOptions = computed(fn() => Region::orderBy('name')->get());
 
 $provinces = computed(fn() =>
  Province::with('region')
+ ->withCount(['regencies as regencies_count' => fn($q) => $q->where('type','!=','Provinsi')])
  ->orderBy($this->sortProvinceBy, $this->sortProvinceDir)
  ->paginate(10, pageName:'provincesPage')
 );
@@ -147,7 +148,7 @@ $provinceOptions = computed(fn() => Province::orderBy('name')->get());
 
 $regencies = computed(function () {
  $search = $this->searchRegency;
- return Regency::with('province.region')
+ return Regency::with(['province','region'])
  ->when($search, fn($q) => $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) .'%']))
  ->when($this->filterProvinceId, fn($q) => $q->where('province_id', $this->filterProvinceId))
  ->orderBy($this->sortRegencyBy, $this->sortRegencyDir)
@@ -309,6 +310,7 @@ $deleteRegency = function (string $id) {
  </div>
  </th>
  <th>Region</th>
+ <th class="text-right">Kab/Kota</th>
  <th class="text-right">Aksi</th>
  </tr>
  </thead>
@@ -324,6 +326,7 @@ $deleteRegency = function (string $id) {
  <td>
  <div class="badge badge-sm badge-info text-white">{{ $province->region?->name ??'-' }}</div>
  </td>
+ <td class="text-right">{{ $province->regencies_count }}</td>
  <td class="text-right">
  <div class="flex gap-2 justify-end">
  <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="editProvince('{{ $province->id }}')" />
@@ -333,7 +336,7 @@ $deleteRegency = function (string $id) {
  </tr>
  @empty
  <tr>
- <td colspan="4" class="text-center text-base-content/50 py-8">Belum ada data.</td>
+ <td colspan="5" class="text-center text-base-content/50 py-8">Belum ada data.</td>
  </tr>
  @endforelse
  </tbody>
@@ -372,6 +375,7 @@ $deleteRegency = function (string $id) {
  </th>
  <th>Tipe</th>
  <th>Provinsi</th>
+ <th>Region</th>
  <th class="text-right">Aksi</th>
  </tr>
  </thead>
@@ -390,6 +394,9 @@ $deleteRegency = function (string $id) {
  </div>
  </td>
  <td>{{ $regency->province?->name ??'-' }}</td>
+ <td>
+ <div class="badge badge-sm badge-info text-white">{{ $regency->region?->name ??'-' }}</div>
+ </td>
  <td class="text-right">
  <div class="flex gap-2 justify-end">
  <x-button icon="o-pencil-square" class="btn-ghost btn-xs text-base-content/50" wire:click="editRegency('{{ $regency->id }}')" />
@@ -399,7 +406,7 @@ $deleteRegency = function (string $id) {
  </tr>
  @empty
  <tr>
- <td colspan="5" class="text-center text-base-content/50 py-8">Belum ada data.</td>
+ <td colspan="6" class="text-center text-base-content/50 py-8">Belum ada data.</td>
  </tr>
  @endforelse
  </tbody>
