@@ -88,7 +88,7 @@ state(['sortProvinceBy' =>'name','sortProvinceDir' =>'asc']);
 $regionOptions = computed(fn() => Region::orderBy('name')->get());
 
 $provinces = computed(fn() =>
- Province::with('region')
+ Province::with('regencies.region')
  ->withCount(['regencies as regencies_count' => fn($q) => $q->where('type','!=','Provinsi')])
  ->orderBy($this->sortProvinceBy, $this->sortProvinceDir)
  ->paginate(10, pageName:'provincesPage')
@@ -324,7 +324,11 @@ $deleteRegency = function (string $id) {
  </td>
  <td class="font-semibold text-base-content">{{ $province->name }}</td>
  <td>
- <div class="badge badge-sm badge-info text-white">{{ $province->region?->name ??'-' }}</div>
+ @forelse ($province->regencies->pluck('region')->filter()->unique('id')->sortBy('name') as $provinceRegion)
+ <div class="badge badge-sm badge-info text-white">{{ $provinceRegion->name }}</div>
+ @empty
+ -
+ @endforelse
  </td>
  <td class="text-right">{{ $province->regencies_count }}</td>
  <td class="text-right">

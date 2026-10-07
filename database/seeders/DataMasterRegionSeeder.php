@@ -24,7 +24,7 @@ class DataMasterRegionSeeder extends Seeder
      *
      * @var array<string, array<int, string>>
      */
-    private const NAME_ALIASES = [
+    public const NAME_ALIASES = [
         'Prov. DI Yogyakarta' => ['Prov. DIY', 'Prov. Daerah Istimewa Yogyakarta'],
         'Prov. DKI Jakarta' => ['Prov. Daerah Khusus Jakarta'],
         'Kab. Gunungkidul' => ['Kab. Gunung Kidul'],

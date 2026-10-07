@@ -37,3 +37,11 @@ it('shows the region of each kabupaten/kota', function () {
         ->assertSee('Kab. Satu')
         ->assertSee('Wilayah Satu');
 });
+
+it('lists every region found among the regencies of a province', function () {
+    $other = Region::factory()->create(['name' => 'Wilayah Dua']);
+    Regency::factory()->create(['province_id' => $this->province->id, 'name' => 'Kab. Tiga', 'type' => 'Kabupaten', 'region_id' => $other->id]);
+
+    Volt::test('master.region.index')
+        ->assertSeeInOrder(['Prov. Contoh', 'Wilayah Satu', 'Wilayah Dua']);
+});

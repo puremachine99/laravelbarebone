@@ -2,6 +2,7 @@
 
 use function Livewire\Volt\{state, layout, computed, usesPagination};
 use App\Models\Opd;
+use App\Models\Region;
 use App\Models\Regency;
 use App\Models\Urusan;
 use Illuminate\Validation\Rule;
@@ -12,6 +13,8 @@ layout('layouts.app');
 state([
 'search' =>'',
 'filterRegency' =>'',
+'filterJenis' =>'',
+'filterRegion' =>'',
 ]);
 
 state([
@@ -22,6 +25,7 @@ state([
 state([
 'opd_id' => null,
 'name' =>'',
+'jenis' =>'',
 'regency_id' =>'',
 'selectedUrusans' => [],
 'isEdit' => false,
@@ -41,6 +45,17 @@ $regencyOptions = computed(function () {
  ->values();
 });
 
+$jenisOptions = computed(fn() => Opd::query()
+ ->whereNotNull('jenis')
+ ->distinct()
+ ->orderBy('jenis')
+ ->pluck('jenis')
+ ->map(fn($jenis) => ['id' => $jenis, 'name' => $jenis])
+ ->values()
+);
+
+$regionOptions = computed(fn() => Region::orderBy('name')->get(['id', 'name']));
+
 $urusanOptions = computed(fn() => 
  Urusan::orderBy('code')
  ->get()
@@ -55,9 +70,11 @@ $opds = computed(function () {
  $filterRegency = $this->filterRegency;
 
  return Opd::query()
- ->with(['regency.province','urusans'])
+ ->with(['regency.province','regency.region','urusans'])
  ->when($search, fn($q) => $q->whereRaw('LOWER(pmo_opds.name) LIKE ?', ['%' . strtolower($search) .'%']))
  ->when($filterRegency, fn($q) => $q->where('pmo_opds.regency_id', $filterRegency))
+ ->when($this->filterJenis, fn($q) => $q->where('pmo_opds.jenis', $this->filterJenis))
+ ->when($this->filterRegion, fn($q) => $q->whereHas('regency', fn($r) => $r->where('region_id', $this->filterRegion)))
  ->when($this->sortBy ==='regency', function ($q) {
  $q->join('regencies','regencies.id','=','pmo_opds.regency_id')
  ->select('pmo_opds.*')
@@ -85,14 +102,23 @@ $updatedFilterRegency = function () {
  $this->resetPage();
 };
 
+$updatedFilterJenis = function () {
+ $this->resetPage();
+};
+
+$updatedFilterRegion = function () {
+ $this->resetPage();
+};
+
 $resetForm = function () {
- $this->reset(['opd_id','name','regency_id','selectedUrusans','isEdit']);
+ $this->reset(['opd_id','name','jenis','regency_id','selectedUrusans','isEdit']);
  $this->resetValidation();
 };
 
 $save = function () {
  $this->validate([
 'name' => ['required','string','max:255'],
+'jenis' => ['nullable','string','max:50'],
 'regency_id' => ['required','exists:regencies,id'],
 'selectedUrusans' => ['nullable','array'],
 'selectedUrusans.*' => ['exists:pmo_urusans,id'],
@@ -104,6 +130,7 @@ $save = function () {
  ['id' => $this->opd_id],
  [
 'name' => $this->name,
+'jenis' => $this->jenis ?: null,
 'regency_id' => $this->regency_id,
  ]
  );
@@ -119,6 +146,7 @@ $edit = function (Opd $opd) {
  $this->resetValidation();
  $this->opd_id = $opd->id;
  $this->name = $opd->name;
+ $this->jenis = $opd->jenis ??'';
  $this->regency_id = $opd->regency_id;
  $this->selectedUrusans = $opd->urusans->pluck('id')->map(fn($id) => (string) $id)->toArray();
  $this->isEdit = true;
@@ -174,6 +202,12 @@ $delete = function () {
  clearable
  />
  </div>
+ <div class="w-44">
+ <x-select wire:model.live="filterJenis" :options="$this->jenisOptions" placeholder="Semua Jenis" placeholder-value="" />
+ </div>
+ <div class="w-44">
+ <x-select wire:model.live="filterRegion" :options="$this->regionOptions" placeholder="Semua Region" placeholder-value="" />
+ </div>
  <div class="w-72">
  <x-select wire:model.live="filterRegency" :options="$this->regencyOptions" placeholder="Semua Wilayah" placeholder-value="" />
  </div>
@@ -199,6 +233,7 @@ $delete = function () {
  @endif
  </div>
  </th>
+ <th>Jenis</th>
  <th>Bidang Urusan</th>
  <th class="text-right">Aksi</th>
  </tr>
@@ -209,7 +244,14 @@ $delete = function () {
  <td class="font-semibold text-base-content py-3">{{ $item->name }}</td>
  <td>
  <div>{{ $item->regency?->name ??'-' }}</div>
- <span class="text-xs text-base-content/40 block mt-0.5">{{ $item->regency?->province?->name }}</span>
+ <span class="text-xs text-base-content/40 block mt-0.5">{{ $item->regency?->province?->name }}@if ($item->regency?->region) · {{ $item->regency->region->name }}@endif</span>
+ </td>
+ <td>
+ @if ($item->jenis)
+ <div class="badge badge-sm badge-outline">{{ $item->jenis }}</div>
+ @else
+ <span class="text-base-content/40">-</span>
+ @endif
  </td>
  <td>
  @if ($item->urusans->isNotEmpty())
@@ -229,7 +271,7 @@ $delete = function () {
  </tr>
  @empty
  <tr>
- <td colspan="4" class="text-center text-base-content/50 py-8">
+ <td colspan="5" class="text-center text-base-content/50 py-8">
  Belum ada data yang ditampilkan.
  </td>
  </tr>
@@ -248,6 +290,11 @@ $delete = function () {
  <form wire:submit.prevent="save" class="space-y-4">
  <x-input label="Nama Instansi / OPD" wire:model="name" placeholder="Cth: Dinas Kesehatan" required />
  
+ @php
+ $jenisFormOptions = [['id' =>'OPD','name' =>'OPD'],['id' =>'Kementrian','name' =>'Kementrian'],['id' =>'Unit Kesehatan','name' =>'Unit Kesehatan']];
+ @endphp
+ <x-select label="Jenis" wire:model="jenis" :options="$jenisFormOptions" placeholder="Pilih Jenis..." placeholder-value="" />
+
  <x-select label="Kabupaten / Kota" wire:model="regency_id" :options="$this->regencyOptions" placeholder="Pilih Kabupaten / Kota..." placeholder-value="" required />
 
  <div>
