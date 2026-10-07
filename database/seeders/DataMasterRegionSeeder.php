@@ -20,6 +20,21 @@ class DataMasterRegionSeeder extends Seeder
     private array $provinceIdsByName = [];
 
     /**
+     * Alternative spellings found in the reference data, tried when the CSV name has no match.
+     *
+     * @var array<string, array<int, string>>
+     */
+    private const NAME_ALIASES = [
+        'Prov. DI Yogyakarta' => ['Prov. DIY', 'Prov. Daerah Istimewa Yogyakarta'],
+        'Prov. DKI Jakarta' => ['Prov. Daerah Khusus Jakarta'],
+        'Kab. Gunungkidul' => ['Kab. Gunung Kidul'],
+        'Kota Tanjungpinang' => ['Kota Tanjung Pinang'],
+        'Kota Parepare' => ['Kota Pare-Pare', 'Kota Pare Pare'],
+        'Kab. Batu Bara' => ['Kab. Batubara'],
+        'Kota Padangsidimpuan' => ['Kota Padangsidempuan'],
+    ];
+
+    /**
      * Sets region_id on regencies (provinces are stored as regencies of type "Provinsi")
      * based on the CSV: [province name, regency name, region number].
      */
@@ -48,7 +63,10 @@ class DataMasterRegionSeeder extends Seeder
             $regionId = $this->resolveRegionId($regionNumber);
             $provinceId = $this->resolveProvinceId($provinceName);
             $regency = $provinceId
-                ? Regency::query()->where('province_id', $provinceId)->where('name', $regencyName)->first()
+                ? Regency::query()
+                    ->where('province_id', $provinceId)
+                    ->whereIn('name', [$regencyName, ...(self::NAME_ALIASES[$regencyName] ?? [])])
+                    ->first()
                 : null;
 
             if (! $regionId || ! $regency) {
