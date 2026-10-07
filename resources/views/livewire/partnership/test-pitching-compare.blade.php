@@ -5,6 +5,12 @@ use function Livewire\Volt\{state, layout, computed, usesPagination};
 layout('layouts.app');
 usesPagination();
 
+state(['perPage' => 10]);
+$updatedPerPage = function () {
+    $this->resetPage('ppage');
+    $this->resetPage('spage');
+};
+
 state([
     'search'     => '',
     'filterYear' => '2026',
@@ -43,7 +49,7 @@ $partnershipRows = computed(function () {
                 ->orWhere('rencana_pitchings.proyeksi_potensi', 'like', '%' . $this->search . '%');
         }))
         ->orderByDesc('rencana_pitchings.tanggal_pitching')
-        ->paginate(15, ['*'], 'ppage');
+        ->paginate(\App\Support\PerPage::resolve($this->perPage), ['*'], 'ppage');
 });
 
 $smartboardRows = computed(function () {
@@ -57,7 +63,7 @@ $smartboardRows = computed(function () {
         }))
         ->with(['stage', 'contact.opd', 'employee.user'])
         ->orderByDesc('pitching_date')
-        ->paginate(15, ['*'], 'spage');
+        ->paginate(\App\Support\PerPage::resolve($this->perPage), ['*'], 'spage');
 });
 
 $statusBadge = function (string $status): string {
@@ -198,7 +204,7 @@ new class {};
             </div>
 
             <div class="px-4 py-3 border-t border-orange-100 dark:border-orange-900">
-                {{ $this->partnershipRows->links() }}
+                <x-pagination-footer :paginator="$this->partnershipRows" />
             </div>
         </div>
 
@@ -281,7 +287,7 @@ new class {};
             </div>
 
             <div class="px-4 py-3 border-t border-indigo-100 dark:border-indigo-900">
-                {{ $this->smartboardRows->links() }}
+                <x-pagination-footer :paginator="$this->smartboardRows" />
             </div>
         </div>
     </div>

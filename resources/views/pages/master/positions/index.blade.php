@@ -6,6 +6,9 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
 layout('layouts.app');
 
 state([
@@ -49,7 +52,7 @@ $positions = computed(function () {
  ])
  ->when($search, fn($q) => $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) .'%']))
  ->when($this->sortBy, fn($q) => $q->orderBy($this->sortBy, $this->sortDirection))
- ->paginate(10);
+ ->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 $resetForm = function () {
@@ -200,7 +203,7 @@ $delete = function () {
  </div>
 
  <div class="mt-4">
- {{ $this->positions->links() }}
+ <x-pagination-footer :paginator="$this->positions" />
  </div>
  </div>
 

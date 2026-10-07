@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin;
 
+use App\Concerns\WithPerPage;
+use App\Support\PerPage;
 use App\Support\ResourcePermissions;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -11,6 +13,7 @@ use Spatie\Permission\Models\Role;
 class RoleManagement extends Component
 {
     use WithPagination;
+    use WithPerPage;
 
     public string $search = '';
 
@@ -275,7 +278,7 @@ class RoleManagement extends Component
             $query->where('name', 'like', '%'.$this->search.'%');
         }
 
-        $roles = $query->paginate(10);
+        $roles = $query->paginate(PerPage::resolve($this->perPage));
 
         return view('livewire.admin.role-management', [
             'roles' => $roles,

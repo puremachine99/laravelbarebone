@@ -6,6 +6,9 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
 layout('layouts.app');
 
 state([
@@ -57,7 +60,7 @@ $contactPositions = computed(function () {
  });
  })
  ->when($this->sortBy, fn($q) => $q->orderBy($this->sortBy, $this->sortDirection))
- ->paginate(10);
+ ->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 $resetForm = function () {
@@ -217,7 +220,7 @@ $delete = function () {
  </div>
 
  <div class="mt-4">
- {{ $this->contactPositions->links() }}
+ <x-pagination-footer :paginator="$this->contactPositions" />
  </div>
  </div>
 

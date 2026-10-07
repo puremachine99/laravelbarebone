@@ -3,6 +3,9 @@
 use App\Models\Contact;
 use App\Models\Employee;
 use App\Models\Opd;
+use App\Models\Province;
+use App\Models\Regency;
+use App\Models\Region;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
@@ -97,4 +100,33 @@ test('a regular pmo user exporting contacts only gets their own contacts, not ot
 
     expect($content)->toContain('Kontak Milik Sendiri')
         ->and($content)->not->toContain('Kontak Milik PMO Lain');
+});
+
+test('the region page exports all data from the navbar and each tab exports only its own data', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(moduleAccess('access-partnership'));
+
+    $region = Region::factory()->create(['name' => 'Wilayah Satu', 'code' => 'REG-1']);
+    $province = Province::factory()->create(['name' => 'Prov. Contoh']);
+    Regency::factory()->create(['province_id' => $province->id, 'name' => 'Prov. Contoh', 'type' => 'Provinsi', 'region_id' => $region->id]);
+    Regency::factory()->create(['province_id' => $province->id, 'name' => 'Kab. Satu', 'type' => 'Kabupaten', 'region_id' => $region->id]);
+
+    $all = $this->actingAs($user)->get(route('csv-export.download', 'region'))->streamedContent();
+    expect($all)->toContain('Kab. Satu')->toContain('Prov. Contoh')->toContain('Wilayah Satu');
+
+    $provinces = $this->actingAs($user)->get(route('csv-export.download', 'region-provinces'))->streamedContent();
+    expect($provinces)->toContain('"Prov. Contoh","Wilayah Satu",1')->not->toContain('Kab. Satu');
+
+    $regencies = $this->actingAs($user)->get(route('csv-export.download', 'region-regencies'))->streamedContent();
+    expect($regencies)->toContain('Kab. Satu');
+
+    $regions = $this->actingAs($user)->get(route('csv-export.download', 'region-regions'))->streamedContent();
+    expect($regions)->toContain('REG-1,"Wilayah Satu",1')->not->toContain('Kab. Satu');
+
+    $this->actingAs($user)->get(route('region.index'))
+        ->assertOk()
+        ->assertSee('Export Semua Data Lokasi (CSV)', false)
+        ->assertSee('Export Region (CSV)', false)
+        ->assertSee('Export Provinsi (CSV)', false)
+        ->assertSee('Export Kabupaten / Kota (CSV)', false);
 });

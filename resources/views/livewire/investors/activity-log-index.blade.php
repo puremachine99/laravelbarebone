@@ -14,6 +14,9 @@ use function Livewire\Volt\state;
 use function Livewire\Volt\usesPagination;
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
 layout('layouts.app');
 
 state([
@@ -113,7 +116,7 @@ $logs = computed(function () {
         ->when($this->filterTimeStart, fn($q) => $q->where('created_at', '>=', \Illuminate\Support\Carbon::parse($this->filterTimeStart)))
         ->when($this->filterTimeEnd, fn($q) => $q->where('created_at', '<=', \Illuminate\Support\Carbon::parse($this->filterTimeEnd)))
         ->latest('id')
-        ->paginate(15);
+        ->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 // Nama karyawan pemilik data (funnel/kontak/target-nya siapa) — diresolve per halaman biar gak N+1,
@@ -275,7 +278,7 @@ $formatChanges = function ($log) {
         </div>
 
         <div>
-            {{ $this->logs->links() }}
+            <x-pagination-footer :paginator="$this->logs" class="mt-4" />
         </div>
     </div>
 </div>

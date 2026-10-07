@@ -68,6 +68,8 @@ class DataMasterInstansiSeeder extends Seeder
             }
         }
 
+        $this->syncIdSequence();
+
         $now = now();
         $created = 0;
 
@@ -81,6 +83,18 @@ class DataMasterInstansiSeeder extends Seeder
         foreach ($unmatched as $line => $count) {
             $this->command?->warn("Wilayah tidak cocok: {$line} ({$count} baris)");
         }
+    }
+
+    /**
+     * OpdSeeder inserts explicit ids, which leaves the PostgreSQL sequence behind the real max(id).
+     */
+    private function syncIdSequence(): void
+    {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
+        DB::statement("SELECT setval(pg_get_serial_sequence('pmo_opds', 'id'), COALESCE((SELECT MAX(id) FROM pmo_opds), 0) + 1, false)");
     }
 
     /**

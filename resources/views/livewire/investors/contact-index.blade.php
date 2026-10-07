@@ -11,6 +11,9 @@ use function Livewire\Volt\state;
 use function Livewire\Volt\usesPagination;
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
 layout('layouts.app');
 
 state([
@@ -62,7 +65,7 @@ $contacts = computed(function () {
         })
         ->when($isAdmin && $filterEmployee, fn ($q) => $q->where('employee_id', $filterEmployee))
         ->orderBy($this->sortBy, $this->sortDirection)
-        ->paginate(10);
+        ->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 $sort = function ($column) {
@@ -394,7 +397,7 @@ $statsPic = computed(function () {
         </div>
 
         <div class="mt-4">
-            {{ $this->contacts->links() }}
+            <x-pagination-footer :paginator="$this->contacts" />
         </div>
     </div>
 

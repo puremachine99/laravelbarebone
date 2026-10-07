@@ -8,6 +8,9 @@ use App\Models\Output;
 use Illuminate\Validation\Rule;
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
 layout('layouts.app');
 
 state([
@@ -73,7 +76,7 @@ $products = computed(function () {
  ->when($filterDivision, fn($q) => $q->where('division_id', $filterDivision))
  ->when($filterServiceCenter, fn($q) => $q->where('service_center_id', $filterServiceCenter))
  ->orderBy($this->sortBy, $this->sortDirection)
- ->paginate(10);
+ ->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 $previewCode = computed(function () {
@@ -292,7 +295,7 @@ $delete = function () {
  </div>
 
  <div class="mt-4">
- {{ $this->products->links() }}
+ <x-pagination-footer :paginator="$this->products" />
  </div>
  </div>
 

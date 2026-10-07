@@ -5,6 +5,9 @@ use App\Models\Urusan;
 use Illuminate\Validation\Rule;
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
 layout('layouts.app');
 
 state([
@@ -43,7 +46,7 @@ $urusans = computed(function () {
  ->when($search, fn($q) => $q->whereRaw('LOWER(urusan) LIKE ?', ['%' . strtolower($search) .'%'])
  ->orWhereRaw('LOWER(code) LIKE ?', ['%' . strtolower($search) .'%']))
  ->when($this->sortBy, fn($q) => $q->orderBy($this->sortBy, $this->sortDirection))
- ->paginate(10);
+ ->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 $resetForm = function () {
@@ -176,7 +179,7 @@ $delete = function () {
  </div>
 
  <div class="mt-4">
- {{ $this->urusans->links() }}
+ <x-pagination-footer :paginator="$this->urusans" />
  </div>
  </div>
 

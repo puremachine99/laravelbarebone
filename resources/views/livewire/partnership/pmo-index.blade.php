@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
 layout('layouts.app');
 
 state([
@@ -68,7 +71,7 @@ $employees = computed(function () {
  :'employees.' . $this->sortBy;
  $q->orderBy($column, $this->sortDirection);
  })
- ->paginate(10);
+ ->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 $statsStatus = computed(function () {
@@ -461,7 +464,7 @@ $delete = function () {
  </div>
 
  <div class="mt-4">
- {{ $this->employees->links() }}
+ <x-pagination-footer :paginator="$this->employees" />
  </div>
  </div>
 

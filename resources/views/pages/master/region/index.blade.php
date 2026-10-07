@@ -7,6 +7,13 @@ use App\Models\Regency;
 use Illuminate\Validation\Rule;
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = function () {
+    foreach (['regionsPage', 'provincesPage', 'regenciesPage'] as $pageName) {
+        $this->resetPage($pageName);
+    }
+};
 layout('layouts.app');
 
 state(['activeTab' =>'regions']);
@@ -22,7 +29,7 @@ state([
 state(['sortRegionBy' =>'name','sortRegionDir' =>'asc']);
 
 $regions = computed(fn() =>
- Region::orderBy($this->sortRegionBy, $this->sortRegionDir)->paginate(10, pageName:'regionsPage')
+ Region::orderBy($this->sortRegionBy, $this->sortRegionDir)->paginate(\App\Support\PerPage::resolve($this->perPage), pageName:'regionsPage')
 );
 
 $sortRegion = function ($col) {
@@ -91,7 +98,7 @@ $provinces = computed(fn() =>
  Province::with('regencies.region')
  ->withCount(['regencies as regencies_count' => fn($q) => $q->where('type','!=','Provinsi')])
  ->orderBy($this->sortProvinceBy, $this->sortProvinceDir)
- ->paginate(10, pageName:'provincesPage')
+ ->paginate(\App\Support\PerPage::resolve($this->perPage), pageName:'provincesPage')
 );
 
 $resetProvinceForm = fn() => $this->reset(['province_id','province_name','province_code','province_region_id','isEditProvince'])
@@ -152,7 +159,7 @@ $regencies = computed(function () {
  ->when($search, fn($q) => $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) .'%']))
  ->when($this->filterProvinceId, fn($q) => $q->where('province_id', $this->filterProvinceId))
  ->orderBy($this->sortRegencyBy, $this->sortRegencyDir)
- ->paginate(10, pageName:'regenciesPage');
+ ->paginate(\App\Support\PerPage::resolve($this->perPage), pageName:'regenciesPage');
 });
 
 $sortRegency = function ($col) {
@@ -233,7 +240,8 @@ $deleteRegency = function (string $id) {
  <x-tabs wire:model="activeTab">
  <x-tab name="regions" label="Regions" icon="o-map">
  <div class="space-y-4 pt-4">
- <div class="flex justify-end">
+ <div class="flex justify-end gap-2">
+ <x-csv-export-button slug="region-regions" show-label />
  <x-button variant="primary" icon="o-plus" size="btn-sm" label="Region" wire:click="resetRegionForm(); $set('showRegionModal', true);" />
  </div>
 
@@ -285,14 +293,15 @@ $deleteRegency = function (string $id) {
  </table>
  </div>
  <div class="mt-4">
- {{ $this->regions->links() }}
+ <x-pagination-footer :paginator="$this->regions" />
  </div>
  </div>
  </x-tab>
 
  <x-tab name="provinces" label="Provinces" icon="o-building-library">
  <div class="space-y-4 pt-4">
- <div class="flex justify-end">
+ <div class="flex justify-end gap-2">
+ <x-csv-export-button slug="region-provinces" show-label />
  <x-button variant="primary" icon="o-plus" size="btn-sm" label="Provinsi" wire:click="resetProvinceForm(); $set('showProvinceModal', true);" />
  </div>
 
@@ -347,7 +356,7 @@ $deleteRegency = function (string $id) {
  </table>
  </div>
  <div class="mt-4">
- {{ $this->provinces->links() }}
+ <x-pagination-footer :paginator="$this->provinces" />
  </div>
  </div>
  </x-tab>
@@ -361,6 +370,7 @@ $deleteRegency = function (string $id) {
  <div class="w-full sm:w-48">
  <x-select wire:model.live="filterProvinceId" :options="$this->provinceOptions" placeholder="Semua Provinsi" placeholder-value="" />
  </div>
+ <x-csv-export-button slug="region-regencies" show-label />
  <x-button variant="primary" icon="o-plus" size="btn-sm" label="Tambah" wire:click="resetRegencyForm(); $set('showRegencyModal', true);" />
  </div>
 
@@ -417,7 +427,7 @@ $deleteRegency = function (string $id) {
  </table>
  </div>
  <div class="mt-4">
- {{ $this->regencies->links() }}
+ <x-pagination-footer :paginator="$this->regencies" />
  </div>
  </div>
  </x-tab>

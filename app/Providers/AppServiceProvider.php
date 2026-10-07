@@ -8,6 +8,9 @@ use App\Models\ContactPosition;
 use App\Models\Employee;
 use App\Models\Opd;
 use App\Models\Output;
+use App\Models\Province;
+use App\Models\Regency;
+use App\Models\Region;
 use App\Models\Urusan;
 use App\Models\User;
 use App\Observers\EmployeeObserver;
@@ -184,6 +187,74 @@ class AppServiceProvider extends ServiceProvider
                 },
                 $user->employee?->employment_status,
                 $user->roles->pluck('name')->implode(', '),
+            ],
+        ));
+
+        $this->registerRegionCsvExports();
+    }
+
+    /**
+     * The /region page: one "export all" (navbar button, matched by route name) plus one partial export per tab.
+     * The partial ones use a routeName that is not a real route, so only the in-tab buttons reference them.
+     */
+    protected function registerRegionCsvExports(): void
+    {
+        CsvExportRegistry::register(new CsvExportDefinition(
+            slug: 'region',
+            routeName: 'region.index',
+            label: 'Export Semua Data Lokasi',
+            ability: 'region.view',
+            headers: ['Region', 'Provinsi', 'Kabupaten / Kota', 'Tipe', 'Kode'],
+            query: fn () => Regency::query()->with(['province', 'region']),
+            mapRow: fn (Regency $regency) => [
+                $regency->region?->name,
+                $regency->province?->name,
+                $regency->name,
+                $regency->type,
+                $regency->code,
+            ],
+        ));
+
+        CsvExportRegistry::register(new CsvExportDefinition(
+            slug: 'region-regions',
+            routeName: 'region.index#regions',
+            label: 'Export Region',
+            ability: 'region.view',
+            headers: ['Kode', 'Nama Region', 'Jumlah Kabupaten / Kota'],
+            query: fn () => Region::query()->withCount(['regencies as kabkota_count' => fn ($query) => $query->where('type', '!=', 'Provinsi')]),
+            mapRow: fn (Region $region) => [$region->code, $region->name, $region->kabkota_count],
+        ));
+
+        CsvExportRegistry::register(new CsvExportDefinition(
+            slug: 'region-provinces',
+            routeName: 'region.index#provinces',
+            label: 'Export Provinsi',
+            ability: 'region.view',
+            headers: ['Kode', 'Nama Provinsi', 'Region', 'Jumlah Kabupaten / Kota'],
+            query: fn () => Province::query()
+                ->with('regencies.region')
+                ->withCount(['regencies as kabkota_count' => fn ($query) => $query->where('type', '!=', 'Provinsi')]),
+            mapRow: fn (Province $province) => [
+                $province->code,
+                $province->name,
+                $province->regencies->pluck('region.name')->filter()->unique()->sort()->implode(', '),
+                $province->kabkota_count,
+            ],
+        ));
+
+        CsvExportRegistry::register(new CsvExportDefinition(
+            slug: 'region-regencies',
+            routeName: 'region.index#regencies',
+            label: 'Export Kabupaten / Kota',
+            ability: 'region.view',
+            headers: ['Kode', 'Nama', 'Tipe', 'Provinsi', 'Region'],
+            query: fn () => Regency::query()->with(['province', 'region']),
+            mapRow: fn (Regency $regency) => [
+                $regency->code,
+                $regency->name,
+                $regency->type,
+                $regency->province?->name,
+                $regency->region?->name,
             ],
         ));
     }

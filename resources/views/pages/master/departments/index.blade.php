@@ -6,6 +6,9 @@ use Illuminate\Validation\Rule;
 
 usesPagination();
 
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
+
 layout('layouts.app');
 
 state([
@@ -58,7 +61,7 @@ $colorOptions = computed(fn() => [
 ]);
 
 $departments = computed(function () {
- return Department::query()->when($this->sortBy, fn($query) => $query->orderBy($this->sortBy, $this->sortDirection))->paginate(10);
+ return Department::query()->when($this->sortBy, fn($query) => $query->orderBy($this->sortBy, $this->sortDirection))->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 $resetForm = function () {
@@ -184,7 +187,7 @@ $delete = function () {
  </div>
 
  <div class="mt-4">
- {{ $this->departments->links() }}
+ <x-pagination-footer :paginator="$this->departments" />
  </div>
  </div>
 

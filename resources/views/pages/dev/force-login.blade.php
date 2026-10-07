@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
 layout('layouts.app');
 
 state([
@@ -29,7 +32,7 @@ $users = computed(function () {
  )
  )
  ->orderBy('name')
- ->paginate(15);
+ ->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 $updatedSearch = function () {
@@ -148,7 +151,7 @@ $loginAs = function () {
  </div>
 
  <div class="mt-4">
- {{ $this->users->links() }}
+ <x-pagination-footer :paginator="$this->users" />
  </div>
  </div>
 

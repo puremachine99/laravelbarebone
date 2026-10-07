@@ -160,8 +160,22 @@
             </table>
         </div>
 
-        <div>
-            {{ $errors->links() }}
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <form method="GET" class="flex items-center gap-2 text-xs text-neutral-400">
+                @foreach (request()->except(['per_page', 'page']) as $key => $value)
+                    @if (is_scalar($value))
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endif
+                @endforeach
+                <span>Tampilkan</span>
+                <select name="per_page" onchange="this.form.submit()" class="rounded border border-neutral-700 bg-neutral-900 px-2 py-1">
+                    @foreach (\App\Support\PerPage::OPTIONS as $option)
+                        <option value="{{ $option }}" @selected($errors->perPage() === $option)>{{ $option }}</option>
+                    @endforeach
+                </select>
+                <span>data per halaman</span>
+            </form>
+            <div>{{ $errors->links() }}</div>
         </div>
     </div>
 

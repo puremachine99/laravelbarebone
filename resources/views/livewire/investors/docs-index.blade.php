@@ -12,6 +12,9 @@ use function Livewire\Volt\uses;
 use function Livewire\Volt\usesPagination;
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
 layout('layouts.app');
 uses([\Mary\Traits\Toast::class, \Livewire\WithFileUploads::class]);
 
@@ -46,7 +49,7 @@ $documents = computed(function () {
         ->with('uploader')
         ->when($search, fn ($q) => $q->whereRaw('LOWER(title) LIKE ?', ['%'.strtolower($search).'%']))
         ->latest('created_at')
-        ->paginate(12);
+        ->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 $trashedDocuments = computed(function () {
@@ -329,7 +332,7 @@ $openPreview = function ($id) {
             </div>
 
             <div class="mt-6">
-                {{ $this->documents->links() }}
+                <x-pagination-footer :paginator="$this->documents" />
             </div>
         @endif
     </div>

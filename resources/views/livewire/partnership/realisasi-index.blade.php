@@ -4,6 +4,9 @@ use function Livewire\Volt\{state, layout, computed, usesPagination, uses};
 use App\Notifications\ManagerVerifiedNotification;
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
 layout('layouts.app');
 uses([\Mary\Traits\Toast::class]);
 
@@ -95,7 +98,7 @@ $cards = computed(function () {
         })
         ->with(['contact.regency.province', 'contact.opd', 'contact.region', 'employee.user'])
         ->orderBy('updated_at', 'desc')
-        ->paginate(10);
+        ->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 $realisasiStats = computed(function () {
@@ -768,7 +771,7 @@ new class {};
         </div>
 
         <div class="mt-4">
-            {{ $this->cards->links() }}
+            <x-pagination-footer :paginator="$this->cards" />
         </div>
     </div>
 

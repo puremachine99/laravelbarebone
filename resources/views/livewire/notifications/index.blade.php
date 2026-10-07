@@ -3,6 +3,9 @@
 use function Livewire\Volt\{state, layout, computed, usesPagination};
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
 layout('layouts.app');
 
 state([
@@ -13,7 +16,7 @@ $notifications = computed(function () {
     return auth()->user()
         ->notifications()
         ->when($this->filter === 'unread', fn ($q) => $q->whereNull('read_at'))
-        ->paginate(15);
+        ->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 $unreadCount = computed(fn () => auth()->user()->unreadNotifications()->count());
@@ -74,5 +77,5 @@ $markAllAsRead = function () {
         @endforelse
     </div>
 
-    {{ $this->notifications->links() }}
+    <x-pagination-footer :paginator="$this->notifications" class="mt-4" />
 </div>

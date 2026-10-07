@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Debug;
 
 use App\Http\Controllers\Controller;
 use App\Models\ErrorLog;
+use App\Support\PerPage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -78,7 +79,7 @@ class ErrorLogController extends Controller
                 });
             })
             ->orderByDesc('created_at')
-            ->paginate(20)
+            ->paginate(PerPage::resolve($request->query('per_page')))
             ->withQueryString();
 
         $stats = [

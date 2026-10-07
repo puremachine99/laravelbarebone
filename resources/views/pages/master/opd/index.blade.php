@@ -8,6 +8,9 @@ use App\Models\Urusan;
 use Illuminate\Validation\Rule;
 
 usesPagination();
+
+state(['perPage' => 10]);
+$updatedPerPage = fn () => $this->resetPage();
 layout('layouts.app');
 
 state([
@@ -82,7 +85,7 @@ $opds = computed(function () {
  }, function ($q) {
  $q->orderBy('pmo_opds.' . $this->sortBy, $this->sortDirection);
  })
- ->paginate(10);
+ ->paginate(\App\Support\PerPage::resolve($this->perPage));
 });
 
 $sort = function ($column) {
@@ -281,7 +284,7 @@ $delete = function () {
  </div>
 
  <div class="mt-4">
- {{ $this->opds->links() }}
+ <x-pagination-footer :paginator="$this->opds" />
  </div>
  </div>
 

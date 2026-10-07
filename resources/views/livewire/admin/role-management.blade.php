@@ -147,7 +147,7 @@
         </div>
 
         <div class="mt-4">
-            {{ $roles->links() }}
+            <x-pagination-footer :paginator="$roles" />
         </div>
     </div>
 
