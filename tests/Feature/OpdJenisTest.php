@@ -109,3 +109,39 @@ it('matches CSV region spellings that differ from the database', function () {
     expect(Opd::where('regency_id', $diy->id)->exists())->toBeTrue()
         ->and(Opd::where('regency_id', $sultra->id)->exists())->toBeTrue();
 });
+
+it('searches across every column of the OPD table', function () {
+    $user = User::factory()->create();
+    ResourcePermissions::ensureExist();
+    $user->givePermissionTo(Permission::all());
+    $this->actingAs($user);
+
+    $urusanId = DB::table('pmo_urusans')->insertGetId(['code' => 'U9', 'urusan' => 'Pendidikan Dasar', 'created_at' => now(), 'updated_at' => now()]);
+    $alpha = Opd::factory()->create(['regency_id' => $this->regency->id, 'name' => 'Dinas Alpha', 'jenis' => 'OPD']);
+    DB::table('pmo_opd_urusan')->insert(['opd_id' => $alpha->id, 'urusan_id' => $urusanId]);
+    $otherRegency = Regency::factory()->create([
+        'province_id' => Province::factory()->create(['name' => 'Prov. Lain'])->id,
+        'name' => 'Kab. Lain', 'type' => 'Kabupaten', 'region_id' => null,
+    ]);
+    Opd::factory()->create(['regency_id' => $otherRegency->id, 'name' => 'Kementerian Beta', 'jenis' => 'Kementrian']);
+
+    foreach (['alpha', 'opd', 'prov. aceh', 'wilayah satu', 'pendidikan dasar', 'U9', 'alpha aceh'] as $keyword) {
+        Volt::test('master.opd.index')->set('search', $keyword)->assertSee('Dinas Alpha')->assertDontSee('Kementerian Beta');
+    }
+
+    Volt::test('master.opd.index')->set('search', 'kab. lain')->assertSee('Kementerian Beta')->assertDontSee('Dinas Alpha');
+    Volt::test('master.opd.index')->set('search', 'alpha lain')->assertDontSee('Dinas Alpha')->assertDontSee('Kementerian Beta');
+});
+
+it('attaches Kementerian to the numbered DKI Jakarta province regency used on dev', function () {
+    $jakarta = Regency::factory()->create([
+        'province_id' => Province::factory()->create(['name' => 'Prov. DKI Jakarta'])->id,
+        'name' => 'Prov. Daerah Khusus Jakarta 1',
+        'type' => 'Provinsi',
+        'region_id' => $this->region->id,
+    ]);
+
+    $this->seed(DataMasterInstansiSeeder::class);
+
+    expect(Opd::where('regency_id', $jakarta->id)->where('name', 'Kementerian Keuangan')->exists())->toBeTrue();
+});

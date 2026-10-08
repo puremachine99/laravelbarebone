@@ -53,6 +53,7 @@ class DataMasterRegionSeeder extends Seeder
         'Kota Padangsidimpuan' => ['Kota Padangsidempuan'],
         'Kota Padangsidempuan' => ['Kota Padangsidimpuan'],
         'Kota Pangkalpinang' => ['Kota Pangkal Pinang'],
+        'Prov. DKI Jakarta' => ['Prov. Daerah Khusus Jakarta', 'Prov. Daerah Khusus Jakarta 1'],
         'Kab. Pangkajene dan Kepulauan (Pangkep)' => ['Kab. Pangkajene Dan Kepulauan', 'Kab. Pangkajene dan Kepulauan'],
         'Kab. Sidenreng Rappang (Sidrap)' => ['Kab. Sidenreng Rappang'],
         'Kab. Sitaro' => ['Kab. Kepulauan Siau Tagulandang Biaro'],

@@ -74,7 +74,22 @@ $opds = computed(function () {
 
  return Opd::query()
  ->with(['regency.province','regency.region','urusans'])
- ->when($search, fn($q) => $q->whereRaw('LOWER(pmo_opds.name) LIKE ?', ['%' . strtolower($search) .'%']))
+ ->when($search, function ($q) use ($search) {
+ foreach (preg_split('/\s+/', mb_strtolower(trim($search)), -1, PREG_SPLIT_NO_EMPTY) as $keyword) {
+ $like = '%' . addcslashes($keyword, '%_\\') . '%';
+
+ $q->where(fn($w) => $w
+ ->whereRaw('LOWER(pmo_opds.name) LIKE ?', [$like])
+ ->orWhereRaw('LOWER(pmo_opds.jenis) LIKE ?', [$like])
+ ->orWhereHas('regency', fn($r) => $r
+ ->whereRaw('LOWER(regencies.name) LIKE ?', [$like])
+ ->orWhereHas('province', fn($p) => $p->whereRaw('LOWER(provinces.name) LIKE ?', [$like]))
+ ->orWhereHas('region', fn($g) => $g->whereRaw('LOWER(regions.name) LIKE ?', [$like])))
+ ->orWhereHas('urusans', fn($u) => $u
+ ->whereRaw('LOWER(pmo_urusans.urusan) LIKE ?', [$like])
+ ->orWhereRaw('LOWER(pmo_urusans.code) LIKE ?', [$like])));
+ }
+ })
  ->when($filterRegency, fn($q) => $q->where('pmo_opds.regency_id', $filterRegency))
  ->when($this->filterJenis, fn($q) => $q->where('pmo_opds.jenis', $this->filterJenis))
  ->when($this->filterRegion, fn($q) => $q->whereHas('regency', fn($r) => $r->where('region_id', $this->filterRegion)))
@@ -200,7 +215,7 @@ $delete = function () {
  <div class="flex-1">
  <x-input
  wire:model.live.debounce.300ms="search"
- placeholder="Cari nama OPD..."
+ placeholder="Cari nama, jenis, wilayah, provinsi, region, atau urusan..."
  icon="o-magnifying-glass"
  clearable
  />
