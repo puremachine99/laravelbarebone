@@ -145,3 +145,24 @@ it('attaches Kementerian to the numbered DKI Jakarta province regency used on de
 
     expect(Opd::where('regency_id', $jakarta->id)->where('name', 'Kementerian Keuangan')->exists())->toBeTrue();
 });
+
+it('shows a summary of instansi per jenis, coverage and region that follows the filters', function () {
+    $user = User::factory()->create();
+    ResourcePermissions::ensureExist();
+    $user->givePermissionTo(Permission::all());
+    $this->actingAs($user);
+
+    Opd::factory()->count(3)->create(['regency_id' => $this->regency->id, 'jenis' => 'OPD']);
+    Opd::factory()->count(2)->create(['regency_id' => $this->regency->id, 'jenis' => 'Kementrian']);
+    Opd::factory()->create(['regency_id' => $this->regency->id, 'jenis' => 'Unit Kesehatan']);
+
+    $component = Volt::test('master.opd.index');
+
+    expect($component->get('summary'))->toMatchArray(['total' => 6, 'regencies' => 1, 'provinces' => 1, 'withUrusan' => 0])
+        ->and($component->get('summary')['jenis']->all())->toBe(['OPD' => 3, 'Kementrian' => 2, 'Unit Kesehatan' => 1])
+        ->and($component->get('summary')['perRegion']->all())->toBe(['Wilayah Satu' => 6]);
+
+    $component->set('filterJenis', 'Kementrian')->assertSee('TOTAL INSTANSI & JENIS', false);
+
+    expect($component->get('summary')['total'])->toBe(2);
+});

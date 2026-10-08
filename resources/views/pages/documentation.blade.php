@@ -24,6 +24,7 @@
                         <a href="#provinces" class="btn btn-sm btn-ghost justify-start">GET /api/provinces</a>
                         <a href="#regencies" class="btn btn-sm btn-ghost justify-start">GET /api/regencies</a>
                         <a href="#opds" class="btn btn-sm btn-ghost justify-start">GET /api/opds</a>
+                        <a href="#opds-search" class="btn btn-sm btn-ghost justify-start">GET /api/opds/search</a>
                         <a href="#catatan" class="btn btn-sm btn-ghost justify-start">Catatan Implementasi</a>
                     </div>
                 </div>
@@ -37,10 +38,11 @@
                     <div class="card-body p-5 gap-3">
                         <h2 class="text-lg font-bold">Overview</h2>
                         <p class="text-sm text-base-content/70">
-                            Tiga endpoint publik, read-only, untuk mengisi dropdown cascading
-                            <span class="font-semibold">Provinsi &rarr; Kabupaten/Kota &rarr; OPD</span>.
-                            Response tidak dipaginasi &mdash; berisi seluruh hasil yang cocok dengan filter yang
-                            dikirim.
+                            Empat endpoint publik, read-only. Tiga pertama untuk mengisi dropdown cascading
+                            <span class="font-semibold">Provinsi &rarr; Kabupaten/Kota &rarr; OPD</span>
+                            (response tidak dipaginasi), dan
+                            <code class="text-xs">/api/opds/search</code> untuk pencarian OPD berdasarkan apa saja
+                            (dipaginasi).
                         </p>
                         <div class="mockup-code text-xs">
                             <pre data-prefix="$"><code>Base URL: {{ config('app.url') }}/api</code></pre>
@@ -342,14 +344,170 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                     </div>
                 </div>
 
+                {{-- /api/opds/search --}}
+                <div id="opds-search" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                    <div class="card-body p-5 gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-success font-mono font-bold">GET</span>
+                            <h2 class="text-lg font-bold font-mono">/api/opds/search</h2>
+                        </div>
+                        <p class="text-sm text-base-content/70">
+                            Pencarian OPD berdasarkan apa saja. Parameter
+                            <span class="font-semibold">q</span> dicocokkan ke semua kolom sekaligus: nama instansi,
+                            jenis, kabupaten/kota, provinsi, region, serta nama dan kode bidang urusan. Tidak ada
+                            parameter yang wajib; tanpa parameter, endpoint mengembalikan semua OPD per halaman.
+                        </p>
+                        <p class="text-sm text-base-content/70">
+                            Kata kunci dipisah spasi dan <span class="font-semibold">semuanya harus cocok</span>,
+                            tapi boleh di kolom yang berbeda. Contoh:
+                            <code class="text-xs">q=dinas malang</code> menemukan "Dinas Pendidikan" di Kabupaten
+                            Malang. Pencocokan partial dan tidak membedakan huruf besar/kecil.
+                        </p>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Query
+                            Parameters</p>
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Parameter</th>
+                                        <th>Wajib</th>
+                                        <th>Tipe</th>
+                                        <th>Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-mono">q</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>string</td>
+                                        <td>Pencarian bebas ke semua kolom (lihat di atas).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">jenis</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>string</td>
+                                        <td>Jenis instansi, harus persis sama: <code class="text-xs">OPD</code>,
+                                            <code class="text-xs">Kementrian</code>, atau
+                                            <code class="text-xs">Unit Kesehatan</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">provinsi</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>string</td>
+                                        <td>Nama provinsi, partial match.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">kabupaten</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>string</td>
+                                        <td>Nama kabupaten/kota, partial match.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">region</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>string</td>
+                                        <td>Nama region, partial match.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">urusan</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>string</td>
+                                        <td>Nama bidang urusan (partial match) atau kode urusan (persis).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">sort</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>string</td>
+                                        <td><code class="text-xs">name</code> (default) atau
+                                            <code class="text-xs">jenis</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">direction</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>string</td>
+                                        <td><code class="text-xs">asc</code> (default) atau
+                                            <code class="text-xs">desc</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">per_page</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>integer</td>
+                                        <td>Jumlah data per halaman, 1&ndash;100 (default 25).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">page</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>integer</td>
+                                        <td>Nomor halaman (default 1).</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-xs text-base-content/60">
+                            Semua parameter bisa digabung; hasilnya adalah irisan semua kondisi.
+                        </p>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Contoh
+                            Request</p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix="$"><code>curl "{{ config('app.url') }}/api/opds/search?q=dinas pendidikan malang"</code></pre>
+                            <pre data-prefix="$"><code>curl "{{ config('app.url') }}/api/opds/search?jenis=Kementrian&per_page=50"</code></pre>
+                            <pre data-prefix="$"><code>curl "{{ config('app.url') }}/api/opds/search?provinsi=Jawa Timur&urusan=pendidikan&sort=name&direction=desc"</code></pre>
+                        </div>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Response
+                            <span class="badge badge-success badge-sm">200 OK</span>
+                        </p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix=""><code>{
+  "data": [
+    {
+      "id": 45,
+      "name": "Dinas Pendidikan",
+      "jenis": "OPD",
+      "regency": "Kabupaten Malang",
+      "provinsi": "Jawa Timur",
+      "region": "Wilayah 3",
+      "urusans": ["Pendidikan"]
+    }
+  ],
+  "links": { "first": "...", "last": "...", "prev": null, "next": "..." },
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 25, "total": 1 }
+}</code></pre>
+                        </div>
+                        <p class="text-xs text-base-content/60">
+                            <code class="text-xs">region</code> bernilai <code class="text-xs">null</code> jika
+                            kabupaten/kota belum dipetakan ke region. <code class="text-xs">urusans</code> adalah
+                            array kosong jika OPD belum punya bidang urusan.
+                        </p>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Response
+                            <span class="badge badge-error badge-sm text-white">422 Unprocessable Content</span>
+                            &mdash; jika parameter tidak valid, misalnya <code class="text-xs">per_page=500</code>
+                        </p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix=""><code>{
+  "message": "The per page field must not be greater than 100.",
+  "errors": {
+    "per_page": ["The per page field must not be greater than 100."]
+  }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Catatan --}}
                 <div id="catatan" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <h2 class="text-lg font-bold">Catatan Implementasi</h2>
                         <ul class="list-disc list-inside text-sm text-base-content/70 space-y-1.5">
-                            <li>Response tidak dipaginasi &mdash; cocok untuk populate dropdown langsung, tapi hindari
-                                memanggil <code class="text-xs">/api/opds</code> tanpa filter yang cukup spesifik jika
-                                jumlah OPD sangat besar.</li>
+                            <li>Response <code class="text-xs">/api/provinces</code>,
+                                <code class="text-xs">/api/regencies</code>, dan
+                                <code class="text-xs">/api/opds</code> tidak dipaginasi &mdash; cocok untuk populate
+                                dropdown langsung, tapi hindari memanggil <code class="text-xs">/api/opds</code> tanpa
+                                filter yang cukup spesifik jika jumlah OPD sangat besar. Untuk pencarian umum gunakan
+                                <code class="text-xs">/api/opds/search</code> yang dipaginasi.</li>
                             <li>Pencarian <code class="text-xs">keyword</code> pada
                                 <code class="text-xs">/api/provinces</code> case-insensitive secara eksplisit
                                 (menggunakan <code class="text-xs">LOWER()</code> di query). Pencarian pada
