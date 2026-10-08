@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Actions\Users\OffboardUser;
 use App\Models\Employee;
 
 class EmployeeObserver
@@ -22,6 +23,27 @@ class EmployeeObserver
         if ($employee->wasChanged('department_id') || $employee->wasChanged('user_id')) {
             $this->syncUserDepartment($employee);
         }
+
+        if ($employee->wasChanged('status')) {
+            $this->syncUserAccess($employee);
+        }
+    }
+
+    /**
+     * An employee who is no longer active (resign, PHK, etc.) loses access to the app,
+     * while their record and everything they worked on stays intact.
+     */
+    protected function syncUserAccess(Employee $employee): void
+    {
+        $user = $employee->user;
+
+        if (! $user) {
+            return;
+        }
+
+        $offboardUser = app(OffboardUser::class);
+
+        $employee->isActive() ? $offboardUser->reactivate($user) : $offboardUser->handle($user);
     }
 
     /**

@@ -47,7 +47,13 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        Gate::before(fn ($user, $ability) => $user->hasRole('Super Admin') ? true : null);
+        Gate::before(function ($user, $ability) {
+            if ($user->isSuspended()) {
+                return false;
+            }
+
+            return $user->hasRole('Super Admin') ? true : null;
+        });
 
         Employee::observe(EmployeeObserver::class);
 

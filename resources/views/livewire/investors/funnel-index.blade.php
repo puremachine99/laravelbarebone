@@ -11,6 +11,7 @@ use App\Notifications\FundingDealAkadNotification;
 use App\Notifications\FundingDealClosedNotification;
 use App\Notifications\FundingDealLostNotification;
 use App\Support\Money;
+use App\Support\ResignedVisibility;
 use Illuminate\Support\Facades\Cache;
 
 use function Livewire\Volt\computed;
@@ -122,13 +123,17 @@ $contactOptions = computed(function () {
 });
 
 // Daftar Funding Officer buat dropdown filter Admin — sama buat semua orang, jarang berubah.
+// Saklar "tampilkan FO resign" dikontrol terpusat dari halaman FO Management.
+$showResigned = computed(fn () => ResignedVisibility::enabled('investors'));
+
 $foOptions = computed(function () {
-    return Cache::remember('fo-funnel:fo-options', 60, function () {
+    $includeResigned = $this->showResigned;
+
+    return Cache::remember('fo-funnel:fo-options'.($includeResigned ? ':with-resigned' : ''), 60, function () use ($includeResigned) {
         return Employee::with('user')
-            ->whereHas('department', fn ($q) => $q->where('name', 'Departemen Finance'))
-            ->whereHas('user.roles', fn ($q) => $q->whereIn('name', ['Funding Officer', 'Investor Admin']))
+            ->fundingOfficers($includeResigned)
             ->get()
-            ->map(fn ($e) => ['id' => $e->id, 'name' => $e->user?->name])
+            ->map(fn ($e) => ['id' => $e->id, 'name' => $e->optionName()])
             ->values()
             ->all();
     });

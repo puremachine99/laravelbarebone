@@ -3,6 +3,7 @@
 use App\Models\Employee;
 use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
+use App\Support\ResignedVisibility;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
@@ -38,13 +39,17 @@ mount(function () {
 });
 
 // Semua Funding Officer (+ Admin FO) aktif.
+// Saklar "tampilkan FO resign" dikontrol terpusat dari halaman FO Management.
+$showResigned = computed(fn () => ResignedVisibility::enabled('investors'));
+
 $foEmployees = computed(function () {
-    return Cache::remember('fo-dashboard-harian:fo-options', 60, function () {
+    $includeResigned = $this->showResigned;
+
+    return Cache::remember('fo-dashboard-harian:fo-options'.($includeResigned ? ':with-resigned' : ''), 60, function () use ($includeResigned) {
         return Employee::with('user')
-            ->whereHas('department', fn ($q) => $q->where('name', 'Departemen Finance'))
-            ->whereHas('user.roles', fn ($q) => $q->whereIn('name', ['Funding Officer', 'Investor Admin']))
+            ->fundingOfficers($includeResigned)
             ->get()
-            ->map(fn ($e) => ['id' => $e->id, 'name' => $e->user?->name])
+            ->map(fn ($e) => ['id' => $e->id, 'name' => $e->optionName()])
             ->sortBy('name')
             ->values()
             ->all();

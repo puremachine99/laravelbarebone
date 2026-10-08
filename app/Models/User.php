@@ -24,7 +24,11 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, SoftDeletes, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, PasskeyAuthenticatable, SoftDeletes, TwoFactorAuthenticatable;
+
+    use HasRoles {
+        hasPermissionTo as protected hasPermissionToIgnoringStatus;
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -129,6 +133,15 @@ class User extends Authenticatable implements PasskeyUser
         return $this->belongsToMany(Conversation::class, 'conversation_participants')
             ->withPivot('last_read_at')
             ->withTimestamps();
+    }
+
+    /**
+     * A suspended account holds no permissions, whatever roles or direct grants it still has.
+     * Overridden here because Spatie's own Gate::before resolves permissions before ours runs.
+     */
+    public function hasPermissionTo($permission, ?string $guardName = null): bool
+    {
+        return ! $this->isSuspended() && $this->hasPermissionToIgnoringStatus($permission, $guardName);
     }
 
     public function isActive(): bool

@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\FoContact;
 use App\Models\FoFunnel;
 use App\Models\FoTarget;
+use App\Support\ResignedVisibility;
 use Illuminate\Support\Facades\Cache;
 
 use function Livewire\Volt\computed;
@@ -72,17 +73,21 @@ $updatedFilterTimeEnd = function () {
     $this->resetPage();
 };
 
+// Saklar "tampilkan FO resign" dikontrol terpusat dari halaman FO Management.
+$showResigned = computed(fn () => ResignedVisibility::enabled('investors'));
+
 $actorOptions = computed(function () {
-    return Cache::remember('activity-log:actor-options', 60, function () {
+    $includeResigned = $this->showResigned;
+
+    return Cache::remember('activity-log:actor-options'.($includeResigned ? ':with-resigned' : ''), 60, function () use ($includeResigned) {
         return Employee::with('user')
-            ->where(function ($q) {
-                $q->where(function ($q2) {
-                    $q2->whereHas('department', fn($d) => $d->where('name', 'Departemen Finance'))->whereHas('user.roles', fn($r) => $r->whereIn('name', ['Funding Officer', 'Investor Admin']));
-                })->orWhereHas('user.roles', fn($r) => $r->where('name', 'Super Admin'));
+            ->where(function ($q) use ($includeResigned) {
+                $q->where(fn ($q2) => $q2->fundingOfficers($includeResigned))
+                    ->orWhereHas('user.roles', fn($r) => $r->where('name', 'Super Admin'));
             })
             ->get()
             ->filter(fn($e) => $e->user)
-            ->map(fn($e) => ['id' => $e->user->id, 'name' => $e->user->name])
+            ->map(fn($e) => ['id' => $e->user->id, 'name' => $e->optionName()])
             ->values()
             ->all();
     });

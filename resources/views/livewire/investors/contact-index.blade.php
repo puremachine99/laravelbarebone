@@ -4,6 +4,7 @@ use App\Enums\ActivityLogAction;
 use App\Models\ActivityLog;
 use App\Models\Employee;
 use App\Models\FoContact;
+use App\Support\ResignedVisibility;
 
 use function Livewire\Volt\computed;
 use function Livewire\Volt\layout;
@@ -33,12 +34,23 @@ state([
     'showDeleteModal' => false,
 ]);
 
+// Saklar "tampilkan FO resign" dikontrol terpusat dari halaman FO Management.
+$showResigned = computed(fn () => ResignedVisibility::enabled('investors'));
+
+// Filter PIC: FO resign disembunyikan kecuali admin menyalakan checkbox, supaya kontak lama mereka tetap bisa dicari.
 $employeeOptions = computed(function () {
-  
-    return Employee::with('user')
-        ->whereHas('department', fn ($q) => $q->where('name', 'Departemen Finance'))
-        ->whereHas('user.roles', fn ($q) => $q->whereIn('name', ['Funding Officer', 'Investor Admin']))
-        ->get();
+    return Employee::with('user')->fundingOfficers($this->showResigned)->get();
+});
+
+// Form input PIC: hanya FO aktif, plus PIC yang sedang terpasang di kontak yang diedit (meski sudah resign).
+$picFormOptions = computed(function () {
+    $options = Employee::with('user')->fundingOfficers()->get();
+    $current = $this->employee_id ? Employee::with('user')->find($this->employee_id) : null;
+
+    return $options
+        ->when($current && ! $options->contains('id', $current->id), fn ($collection) => $collection->push($current))
+        ->map(fn ($e) => ['id' => $e->id, 'name' => $e->optionName()])
+        ->values();
 });
 
 
@@ -305,7 +317,7 @@ $statsPic = computed(function () {
             </div>
             @if ($this->isAdminFo)
                 <div class="w-full sm:w-56">
-                    @php $picFilterOpts = $this->employeeOptions->map(fn ($e) => ['id' => $e->id, 'name' => $e->user?->name]); @endphp
+                    @php $picFilterOpts = $this->employeeOptions->map(fn ($e) => ['id' => $e->id, 'name' => $e->optionName()]); @endphp
                     <x-select wire:model.live="filterEmployee" :options="$picFilterOpts" placeholder="All PICs" placeholder-value="" />
                 </div>
             @endif
@@ -412,8 +424,7 @@ $statsPic = computed(function () {
             </div>
 
             @if ($this->isAdminFo)
-                @php $picFormOpts = $this->employeeOptions->map(fn ($e) => ['id' => $e->id, 'name' => $e->user?->name]); @endphp
-                <x-select label="PIC (Funding Officer)" wire:model="employee_id" :options="$picFormOpts" icon="o-user-circle" placeholder="Select PIC..." />
+                <x-select label="PIC (Funding Officer)" wire:model="employee_id" :options="$this->picFormOptions" icon="o-user-circle" placeholder="Select PIC..." />
             @else
                 <x-input label="PIC (Funding Officer)" value="{{ $this->currentEmployee?->user?->name ?? '-' }}" icon="o-user-circle" readonly hint="This contact will automatically be recorded under your name." />
             @endif

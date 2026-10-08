@@ -8,6 +8,7 @@ use App\Models\FoFunnelActivity;
 use App\Models\FoTarget;
 use App\Notifications\FoTargetUpdatedNotification;
 use App\Support\Money;
+use App\Support\ResignedVisibility;
 
 use function Livewire\Volt\computed;
 use function Livewire\Volt\layout;
@@ -21,6 +22,7 @@ uses(\Mary\Traits\Toast::class);
 state([
     'activePeriod' => 'tahunan',
     'targetSettingEmployeeId' => null,
+    'includeResigned' => false,
     'targetInputs' => [],
     'targetInputsSnapshot' => [],
 ]);
@@ -66,11 +68,29 @@ $loadTargetInputs = function () {
 mount(function () {
     abort_unless(auth()->user()->can('fo-targets.view'), 403);
 
+    $this->includeResigned = $this->showResigned;
+
     $this->targetSettingEmployeeId = $this->foEmployees[0]['id'] ?? null;
     $this->loadTargetInputs();
 });
 
 $updatedTargetSettingEmployeeId = function () {
+    $this->loadTargetInputs();
+};
+
+// Pusat kontrol "tampilkan FO resign" untuk seluruh halaman modul Investors (disimpan di sesi admin ini).
+// FO resign disembunyikan secara default; admin menyalakannya mis. untuk menyesuaikan target mereka.
+$showResigned = computed(fn () => ResignedVisibility::enabled('investors'));
+
+$updatedIncludeResigned = function () {
+    if (! ResignedVisibility::canToggle('investors')) {
+        $this->includeResigned = false;
+
+        return;
+    }
+
+    ResignedVisibility::set('investors', $this->includeResigned);
+    $this->targetSettingEmployeeId = $this->foEmployees[0]['id'] ?? null;
     $this->loadTargetInputs();
 };
 
@@ -83,11 +103,10 @@ $updatedActivePeriod = function () {
 // FO biasa (bukan Admin FO/Super Admin/Direksi) cuma boleh lihat datanya sendiri di sini.
 $foEmployees = computed(function () {
     return Employee::with('user')
-        ->whereHas('department', fn ($q) => $q->where('name', 'Departemen Finance'))
-        ->whereHas('user.roles', fn ($q) => $q->whereIn('name', ['Funding Officer', 'Investor Admin']))
+        ->fundingOfficers($this->showResigned)
         ->when(! $this->canViewAllFo, fn ($q) => $q->where('user_id', auth()->id()))
         ->get()
-        ->map(fn ($e) => ['id' => $e->id, 'name' => $e->user?->name])
+        ->map(fn ($e) => ['id' => $e->id, 'name' => $e->optionName()])
         ->sortBy('name')
         ->values()
         ->all();
@@ -455,6 +474,11 @@ $foRanking = computed(function () {
             Set & monitor Funding Officer work targets — edit from the Yearly, Monthly, or Daily tab, everything else adjusts automatically.
         </p>
         <div class="badge badge-warning badge-outline badge-sm mt-1.5">Suggested target based on historical data · can be edited manually · Realization & Projection from real funnel data</div>
+        @if ($this->canViewAllFo)
+            <div class="mt-2">
+                <x-checkbox label="Tampilkan FO resign" hint="Berlaku untuk semua halaman modul Investors (Dashboard, Monthly, Conversion, Funnel, Contact, Activity Log). Kontribusi & target mereka ikut dihitung di total tim." wire:model.live="includeResigned" />
+            </div>
+        @endif
     </div>
 
     <!-- Period (full width) -->
