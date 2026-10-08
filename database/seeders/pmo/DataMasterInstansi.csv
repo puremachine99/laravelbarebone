@@ -1,4 +1,4 @@
-Jenis,Provinsi,Prov/Kabupaten/Kota,INSTANSI
+,Provinsi,Prov/Kabupaten/Kota,INSTANSI
 OPD,Prov. Aceh,Prov. Aceh,Badan Kepegawaian Aceh
 OPD,Prov. Aceh,Prov. Aceh,Badan Kesatuan Bangsa dan Politik
 OPD,Prov. Aceh,Prov. Aceh,Badan Penanggulangan Bencana Daerah
@@ -18832,6 +18832,128 @@ OPD,Prov. Sumatera Utara,Kota Tebing Tinggi,Satuan Polisi Pamong Praja
 OPD,Prov. Sumatera Utara,Kota Tebing Tinggi,Sekretariat DPRD
 OPD,Prov. Sumatera Utara,Kota Tebing Tinggi,"Dinas Perumahan, Kawasan Permukiman Dan Pertanahan"
 OPD,Prov. Sumatera Utara,Kota Tebing Tinggi,"Dinas Pemberdayaan Perempuan, Perlindungan Anak Dan Pemberdayaan Masyarakat"
+Kementrian,,,Kementerian Sekretariat Negara
+Kementrian,,,Kementerian Dalam Negeri
+Kementrian,,,Kementerian Luar Negeri
+Kementrian,,,Kementerian Pertahanan
+Kementrian,,,Kementerian Hukum
+Kementrian,,,Kementerian Hak Asasi Manusia
+Kementrian,,,Kementerian Imigrasi dan Pemasyarakatan
+Kementrian,,,Kementerian Keuangan
+Kementrian,,,Kementerian Energi dan Sumber Daya Mineral
+Kementrian,,,Kementerian Perindustrian
+Kementrian,,,Kementerian Perdagangan
+Kementrian,,,Kementerian Koperasi
+Kementrian,,,"Kementerian Usaha Kecil, Mikro, dan Menengah (UMKM)"
+Kementrian,,,Kementerian Ketenagakerjaan
+Kementrian,,,Kementerian Investasi dan Hilirisasi/Badan Koordinasi Penanaman Modal
+Kementrian,,,Kementerian Pendidikan Dasar dan Menengah
+Kementrian,,,"Kementerian Pendidikan Tinggi, Sains, dan Teknologi"
+Kementrian,,,Kementerian Kebudayaan
+Kementrian,,,Kementerian Kesehatan
+Kementrian,,,Kementerian Sosial
+Kementrian,,,Kementerian Agama
+Kementrian,,,Kementerian Pemuda dan Olahraga
+Kementrian,,,Kementerian Pemberdayaan Perempuan dan Perlindungan Anak
+Kementrian,,,Kementerian Kependudukan dan Pembangunan Keluarga/Badan Kependudukan dan Keluarga Berencana Nasional
+Kementrian,,,Kementerian Haji dan Umrah
+Kementrian,,,Kementerian Pekerjaan Umum
+Kementrian,,,Kementerian Perumahan dan Kawasan Permukiman
+Kementrian,,,Kementerian Perhubungan
+Kementrian,,,Kementerian Komunikasi dan Digital
+Kementrian,,,Kementerian Agraria dan Tata Ruang/Badan Pertanahan Nasional
+Kementrian,,,Kementerian Desa dan Pembangunan Daerah Tertinggal
+Kementrian,,,Kementerian Transmigrasi
+Kementrian,,,Kementerian Pertanian
+Kementrian,,,Kementerian Kehutanan
+Kementrian,,,Kementerian Kelautan dan Perikanan
+Kementrian,,,Kementerian Perencanaan Pembangunan Nasional/Badan Perencanaan Pembangunan Nasional (Bappenas)
+Kementrian,,,Kementerian Pendayagunaan Aparatur Negara dan Reformasi Birokrasi
+Kementrian,,,Kementerian Lingkungan Hidup/Badan Pengendalian Lingkungan Hidup
+Kementrian,,,Kementerian Koordinator Bidang Politik dan Keamanan (Kemenko Polkam)
+Kementrian,,,"Kementerian Koordinator Bidang Hukum, Hak Asasi Manusia, Imigrasi, dan Pemasyarakatan (Kemenko Kumham Imipas)"
+Kementrian,,,Kementerian Koordinator Bidang Perekonomian (Kemenko Perekonomian)
+Kementrian,,,Kementerian Koordinator Bidang Pembangunan Manusia dan Kebudayaan (Kemenko PMK)
+Kementrian,,,Kementerian Koordinator Bidang Infrastruktur dan Pembangunan Kewilayahan (Kemenko Infra)
+Kementrian,,,Kementerian Koordinator Bidang Pemberdayaan Masyarakat (Kemenko PM)
+Kementrian,,,Kementerian Koordinator Bidang Pangan (Kemenko Pangan)
+Kementrian,,,Arsip Nasional Republik Indonesia (ANRI)
+Kementrian,,,Badan Bank Tanah
+Kementrian,,,Badan Ekonomi Kreatif (Bekraf)
+Kementrian,,,Badan Gizi Nasional (BGN)
+Kementrian,,,Badan Informasi Geospasial (BIG)
+Kementrian,,,Badan Intelijen Negara (BIN)
+Kementrian,,,Badan Kepegawaian Negara (BKN)
+Kementrian,,,Badan Komunikasi Pemerintah (Bakom)
+Kementrian,,,Badan Koordinasi Keamanan Laut (Bakamla)
+Kementrian,,,"Badan Meteorologi, Klimatologi, dan Geofisika (BMKG)"
+Kementrian,,,Badan Narkotika Nasional (BNN)
+Kementrian,,,Badan Nasional Penanggulangan Bencana (BNPB)
+Kementrian,,,Badan Nasional Penanggulangan Terorisme (BNPT)
+Kementrian,,,Badan Otorita Ibu Kota Nusantara
+Kementrian,,,Badan Otorita Pariwisata
+Kementrian,,,Badan Pemeriksa Keuangan (BPK)
+Kementrian,,,Badan Pengaturan Badan Usaha Milik Negara
+Kementrian,,,Badan Pengawas Obat dan Makanan (BPOM)
+Kementrian,,,Badan Pengawas Pemilihan Umum (Bawaslu)
+Kementrian,,,Badan Pengawasan Keuangan dan Pembangunan (BPKP)
+Kementrian,,,Badan Pengelola Perbatasan Negara
+Kementrian,,,Badan Pengelolaan Investasi Daya Anagata Nusantara (Danantara)
+Kementrian,,,Badan Pengembangan Wilayah Sarana dan Prasarana (Basarnas)
+Kementrian,,,Badan Pengkajian dan Penerapan Teknologi (BPPT)
+Kementrian,,,Badan Pengusahaan Kawasan Perdagangan Bebas dan Pelabuhan Bebas Batam
+Kementrian,,,Badan Perlindungan Pekerja Migran Indonesia (BP2MI)
+Kementrian,,,Badan Pusat Statistik (BPS)
+Kementrian,,,Badan Riset dan Inovasi Nasional (BRIN)
+Kementrian,,,Badan Siber dan Sandi Negara (BSSN)
+Kementrian,,,Badan Standardisasi Nasional (BSN)
+Kementrian,,,Badan Tenaga Nuklir Nasional (BATAN)
+Kementrian,,,Dewan Pers
+Kementrian,,,Dewan Perwakilan Daerah (DPD)
+Kementrian,,,Dewan Perwakilan Rakyat (DPR)
+Kementrian,,,Dewan Perwakilan Rakyat Daerah
+Kementrian,,,Jaksa Agung (Kejaksaan Agung RI)
+Kementrian,,,Kantor Staf Presiden (KSP)
+Kementrian,,,Kepolisian Negara RI (Polri)
+Kementrian,,,Komisi Aparatur Sipil Negara (KASN)
+Kementrian,,,Komisi Informasi Pusat (KIP)
+Kementrian,,,Komisi Kejaksaan RI
+Kementrian,,,Komisi Kepolisian Nasional (Kompolnas)
+Kementrian,,,Komisi Nasional Disabilitas
+Kementrian,,,Komisi Nasional Hak Asasi Manusia (Komnas HAM)
+Kementrian,,,Komisi Pemberantasan Korupsi (KPK)
+Kementrian,,,Komisi Pemilihan Umum (KPU)
+Kementrian,,,Komisi Pengawas Haji Indonesia
+Kementrian,,,Komisi Pengawas Persaingan Usaha (KPPU)
+Kementrian,,,Komisi Penyiaran Indonesia (KPI)
+Kementrian,,,Komisi Perlindungan Anak Indonesia (KPAI)
+Kementrian,,,Komisi Yudisial (KY)
+Kementrian,,,Lembaga Administrasi Negara (LAN)
+Kementrian,,,Lembaga Ilmu Pengetahuan Indonesia
+Kementrian,,,Lembaga Kebijakan Pengadaan Barang/Jasa Pemerintah (LKPP)
+Kementrian,,,Lembaga Penerbangan dan Antariksa Nasional (LAPAN)
+Kementrian,,,Lembaga Penjamin Simpanan (LPS)
+Kementrian,,,Lembaga Penyiaran Publik Televisi Republik Indonesia (LPP TVRI)
+Kementrian,,,Lembaga Perlindungan Saksi dan Korban (LPSK)
+Kementrian,,,Mahkamah Agung (MA)
+Kementrian,,,Mahkamah Konstitusi (MK)
+Kementrian,,,Majelis Permusyawaratan Rakyat (MPR)
+Kementrian,,,Ombudsman Republik Indonesia
+Kementrian,,,Otorita Ibu Kota Nusantara (OIKN)
+Kementrian,,,Otoritas Jasa Keuangan (OJK)
+Kementrian,,,Perpustakaan Nasional RI (Perpusnas)
+Kementrian,,,Pusat Pelaporan dan Analisis Transaksi Keuangan (PPATK)
+Kementrian,,,Tentara Nasional Indonesia (TNI)
+Kementrian,,,Badan Pengawas Tenaga Nuklir (BAPETEN)
+Kementrian,,,Dewan Pertahanan Nasional (DPN)
+Kementrian,,,Lembaga Ketahanan Nasional Republik Indonesia (Lemhannas RI)
+Kementrian,,,Kementerian Pariwisata Republik Indonesia (Kemenpar)
+Kementrian,,,Lembaga Penyiaran Publik Radio Republik Indonesia (LPP RRI)
+Kementrian,,,Badan Pengawasan Mahkamah Agung RI (Bawas MA RI)
+Kementrian,,,Badan Amil Zakat Nasional (BAZNAS)
+Kementrian,,,Dewan Ekonomi Nasional (DEN)
+Kementrian,,,Badan Urusan Logistik (BULOG)
+Kementrian,,,Sekretariat Kabinet Republik Indonesia
 Unit Kesehatan,Prov. Aceh,Kota Banda Aceh,RSUD dr. Zainoel Abidin
 Unit Kesehatan,Prov. Aceh,Kota Sabang,RSUD Kota Sabang
 Unit Kesehatan,Prov. Aceh,Kab. Aceh Besar,RSUD Aceh Besar
@@ -18855,75 +18977,23 @@ Unit Kesehatan,Prov. Aceh,Kab. Aceh Barat,RSUD Cut Nyak Dhien (Meulaboh)
 Unit Kesehatan,Prov. Aceh,Kab. Aceh Jaya,RSUD Teuku Umar (Calang)
 Unit Kesehatan,Prov. Aceh,Kab. Nagan Raya,RSUD Sultan Ibrahim (Nagan Raya)
 Unit Kesehatan,Prov. Aceh,Kab. Aceh Barat Daya,RSUD Aceh Barat Daya (Blangpidie)
-Unit Kesehatan,Prov. Sumatera Utara,Kota Medan,RSUD dr. Pirngadi Medan
-Unit Kesehatan,Prov. Sumatera Utara,Kota Binjai,RSUD dr. R.M. Djoelham
-Unit Kesehatan,Prov. Sumatera Utara,Kota Tebing Tinggi,RSUD Kumpulan Pane
-Unit Kesehatan,Prov. Sumatera Utara,Kota Pematangsiantar,RSUD dr. Djasamen Saragih
-Unit Kesehatan,Prov. Sumatera Utara,Kota Tanjungbalai,RSUD Tanjungbalai
-Unit Kesehatan,Prov. Sumatera Utara,Kota Sibolga,RSUD dr. F.L. Tobing
-Unit Kesehatan,Prov. Sumatera Utara,Kota Padangsidimpuan,RSUD Padangsidimpuan
-Unit Kesehatan,Prov. Sumatera Utara,Kota Gunungsitoli,RSUD Gunungsitoli
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Deli Serdang,RSUD Drs. H. Amri Tambunan
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Langkat,RSUD Tanjung Pura
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Karo,RSUD Kabanjahe
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Simalungun,RSUD Perdagangan
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Asahan,RSUD Abdul Manan Simatupang
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Labuhanbatu,RSUD Rantauprapat
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Labuhanbatu Utara,RSUD Aek Kanopan
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Labuhanbatu Selatan,RSUD Kotapinang
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Toba,RSUD Porsea
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Tapanuli Utara,RSUD Tarutung
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Tapanuli Tengah,RSUD Pandan
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Tapanuli Selatan,RSUD Sipirok
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Padang Lawas,RSUD Sibuhuan
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Padang Lawas Utara,RSUD Gunung Tua
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Mandailing Natal,RSUD Panyabungan
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Nias,RSUD dr. M. Thomsen Nias
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Nias Utara,RSUD Tafaeri (Lotu)
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Nias Selatan,RSUD Nias Selatan (Teluk Dalam)
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Nias Barat,RSUD Nias Barat
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Samosir,RSUD Samosir (Pangururan)
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Humbang Hasundutan,RSUD Doloksanggul
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Dairi,RSUD Sidikalang
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Pakpak Bharat,RSUD Salak
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Serdang Bedagai,RSUD Sultan Sulaiman Syariful Alamsyah
-Unit Kesehatan,Prov. Sumatera Utara,Kab. Batu Bara,RSUD Batu Bara (Lima Puluh)
-Unit Kesehatan,Prov. Sumatera Barat,Kota Padang,RSUD dr. Rasidin
-Unit Kesehatan,Prov. Sumatera Barat,Kota Bukittinggi,RSUD Dr. Achmad Mochtar
-Unit Kesehatan,Prov. Sumatera Barat,Kota Padang Panjang,RSUD Padang Panjang
-Unit Kesehatan,Prov. Sumatera Barat,Kota Payakumbuh,RSUD Dr. Adnaan WD
-Unit Kesehatan,Prov. Sumatera Barat,Kota Sawahlunto,RSUD Ahmad Syafii Maarif
-Unit Kesehatan,Prov. Sumatera Barat,Kota Solok,RSUD M. Natsir
-Unit Kesehatan,Prov. Sumatera Barat,Kota Pariaman,RSUD Pariaman
-Unit Kesehatan,Prov. Sumatera Barat,Kab. Agam,RSUD Lubuk Basung
-Unit Kesehatan,Prov. Sumatera Barat,Kab. Lima Puluh Kota,RSUD dr. Achmad Darwis (Suliki)
-Unit Kesehatan,Prov. Sumatera Barat,Kab. Padang Pariaman,RSUD Padang Pariaman (Parit Malintang)
-Unit Kesehatan,Prov. Sumatera Barat,Kab. Pasaman,RSUD Lubuk Sikaping
-Unit Kesehatan,Prov. Sumatera Barat,Kab. Pasaman Barat,RSUD Pasaman Barat
-Unit Kesehatan,Prov. Sumatera Barat,Kab. Pesisir Selatan,RSUD Dr. Muhammad Zein (Painan)
-Unit Kesehatan,Prov. Sumatera Barat,Kab. Sijunjung,RSUD Sijunjung
-Unit Kesehatan,Prov. Sumatera Barat,Kab. Solok,RSUD Arosuka
-Unit Kesehatan,Prov. Sumatera Barat,Kab. Solok Selatan,RSUD Solok Selatan (Muara Labuh)
-Unit Kesehatan,Prov. Sumatera Barat,Kab. Tanah Datar,"RSUD Prof. Dr. M.A. Hanafiah, SM (Batusangkar)"
-Unit Kesehatan,Prov. Sumatera Barat,Kab. Dharmasraya,RSUD Sungai Dareh
-Unit Kesehatan,Prov. Sumatera Barat,Kab. Kepulauan Mentawai,RSUD Kepulauan Mentawai
-Unit Kesehatan,Prov. Sumatera Selatan,Kota Palembang,RSUD Palembang BARI
-Unit Kesehatan,Prov. Sumatera Selatan,Kota Prabumulih,RSUD Prabumulih
-Unit Kesehatan,Prov. Sumatera Selatan,Kota Pagar Alam,RSUD Besemah
-Unit Kesehatan,Prov. Sumatera Selatan,Kota Lubuklinggau,RSUD Siti Aisyah
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. Ogan Komering Ulu (OKU),RSUD dr. Ibnu Sutowo (Baturaja)
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. OKU Selatan,RSUD Muaradua
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. OKU Timur,RSUD Martapura
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. Ogan Ilir,RSUD Ogan Ilir (Indralaya)
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. Ogan Komering Ilir (OKI),RSUD Kayuagung
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. Muara Enim,RSUD dr. H. M. Rabain Muara Enim
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. Lahat,RSUD Lahat
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. Musi Rawas,RSUD dr. Sobirin (Muara Beliti)
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. Musi Rawas Utara,RSUD Musi Rawas Utara (Rupit)
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. Musi Banyuasin,RSUD Sekayu
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. Banyuasin,RSUD Banyuasin
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. Empat Lawang,RSUD Empat Lawang (Tebing Tinggi)
-Unit Kesehatan,Prov. Sumatera Selatan,Kab. Penukal Abab Lematang Ilir (PALI),RSUD Talang Ubi
+Unit Kesehatan,Prov. Bali,Kota Denpasar,RSUD Wangaya
+Unit Kesehatan,Prov. Bali,Kab. Badung,RSUD Mangusada
+Unit Kesehatan,Prov. Bali,Kab. Gianyar,RSUD Sanjiwani
+Unit Kesehatan,Prov. Bali,Kab. Klungkung,RSUD Klungkung
+Unit Kesehatan,Prov. Bali,Kab. Bangli,RSUD Bangli
+Unit Kesehatan,Prov. Bali,Kab. Karangasem,RSUD Karangasem
+Unit Kesehatan,Prov. Bali,Kab. Buleleng,RSUD Buleleng
+Unit Kesehatan,Prov. Bali,Kab. Jembrana,RSUD Negara
+Unit Kesehatan,Prov. Bali,Kab. Tabanan,RSUD Tabanan
+Unit Kesehatan,Prov. Banten,Kota Tangerang,RSUD Kota Tangerang
+Unit Kesehatan,Prov. Banten,Kota Tangerang Selatan,RSUD Kota Tangerang Selatan (Pamulang)
+Unit Kesehatan,Prov. Banten,Kota Cilegon,RSUD Cilegon
+Unit Kesehatan,Prov. Banten,Kota Serang,RSUD Kota Serang
+Unit Kesehatan,Prov. Banten,Kab. Tangerang,RSUD Kabupaten Tangerang (Tigaraksa)
+Unit Kesehatan,Prov. Banten,Kab. Serang,RSUD dr. Drajat Prawiranegara
+Unit Kesehatan,Prov. Banten,Kab. Pandeglang,RSUD Berkah Pandeglang
+Unit Kesehatan,Prov. Banten,Kab. Lebak,RSUD dr. Adjidarmo
 Unit Kesehatan,Prov. Bengkulu,Prov. Bengkulu,RSUD dr. M. Yunus
 Unit Kesehatan,Prov. Bengkulu,Kota Bengkulu,RSUD Harapan dan Doa
 Unit Kesehatan,Prov. Bengkulu,Kab. Bengkulu Utara,RSUD Arga Makmur
@@ -18935,26 +19005,23 @@ Unit Kesehatan,Prov. Bengkulu,Kab. Lebong,RSUD Lebong
 Unit Kesehatan,Prov. Bengkulu,Kab. Kaur,RSUD Kaur (Bintuhan)
 Unit Kesehatan,Prov. Bengkulu,Kab. Seluma,RSUD Seluma (Tais)
 Unit Kesehatan,Prov. Bengkulu,Kab. Mukomuko,RSUD Mukomuko
-Unit Kesehatan,Prov. Riau,Prov. Riau,RSUD Arifin Achmad
-Unit Kesehatan,Prov. Riau,Kota Pekanbaru,RSUD Petala Bumi
-Unit Kesehatan,Prov. Riau,Kota Dumai,RSUD Kota Dumai
-Unit Kesehatan,Prov. Riau,Kab. Kampar,RSUD Bangkinang
-Unit Kesehatan,Prov. Riau,Kab. Rokan Hulu,RSUD Rokan Hulu (Pasir Pengaraian)
-Unit Kesehatan,Prov. Riau,Kab. Rokan Hilir,RSUD dr. RM. Pratomo Bagansiapiapi
-Unit Kesehatan,Prov. Riau,Kab. Bengkalis,RSUD Bengkalis
-Unit Kesehatan,Prov. Riau,Kab. Siak,RSUD Tengku Rafian Siak Sri Indrapura
-Unit Kesehatan,Prov. Riau,Kab. Pelalawan,RSUD Selasih
-Unit Kesehatan,Prov. Riau,Kab. Indragiri Hulu,RSUD Indrasari (Rengat)
-Unit Kesehatan,Prov. Riau,Kab. Indragiri Hilir,RSUD Puri Husada (Tembilahan)
-Unit Kesehatan,Prov. Riau,Kab. Kuantan Singingi,RSUD Teluk Kuantan
-Unit Kesehatan,Prov. Riau,Kab. Kepulauan Meranti,RSUD Kepulau
-Unit Kesehatan,Prov. Kepulauan Riau,Kota Tanjungpinang,RSUD Raja Ahmad Tabib
-Unit Kesehatan,Prov. Kepulauan Riau,Kota Batam,RSUD Embung Fatimah
-Unit Kesehatan,Prov. Kepulauan Riau,Kab. Bintan,RSUD Bintan
-Unit Kesehatan,Prov. Kepulauan Riau,Kab. Karimun,RSUD Muhammad Sani (Tanjung Balai Karimun)
-Unit Kesehatan,Prov. Kepulauan Riau,Kab. Lingga,RSUD Lingga
-Unit Kesehatan,Prov. Kepulauan Riau,Kab. Natuna,RSUD Natuna (Ranai)
-Unit Kesehatan,Prov. Kepulauan Riau,Kab. Kepulauan Anambas,RSUD Tarempa
+Unit Kesehatan,Prov. DI Yogyakarta,Kota Yogyakarta,RSUD Kota Yogyakarta
+Unit Kesehatan,Prov. DI Yogyakarta,Kab. Sleman,RSUD Sleman
+Unit Kesehatan,Prov. DI Yogyakarta,Kab. Bantul,RSUD Panembahan Senopati
+Unit Kesehatan,Prov. DI Yogyakarta,Kab. Kulon Progo,RSUD Wates
+Unit Kesehatan,Prov. DI Yogyakarta,Kab. Gunungkidul,RSUD Wonosari
+Unit Kesehatan,Prov. DKI Jakarta,Prov. DKI Jakarta,RSUD Tarakan
+Unit Kesehatan,Prov. DKI Jakarta,Prov. DKI Jakarta,RSUD Koja
+Unit Kesehatan,Prov. DKI Jakarta,Prov. DKI Jakarta,RSUD Cengkareng
+Unit Kesehatan,Prov. DKI Jakarta,Prov. DKI Jakarta,RSUD Pasar Minggu
+Unit Kesehatan,Prov. DKI Jakarta,Prov. DKI Jakarta,RSUD Budhi Asih
+Unit Kesehatan,Prov. DKI Jakarta,Prov. DKI Jakarta,RSUD Kepulauan Seribu
+Unit Kesehatan,Prov. Gorontalo,Kota Gorontalo,RSUD Prof. Dr. H. Aloei Saboe
+Unit Kesehatan,Prov. Gorontalo,Kab. Boalemo,RSUD drg. Clara Gobel
+Unit Kesehatan,Prov. Gorontalo,Kab. Gorontalo,RSUD dr. M.M. Dunda Limboto
+Unit Kesehatan,Prov. Gorontalo,Kab. Pohuwato,RSUD Bumi Panua
+Unit Kesehatan,Prov. Gorontalo,Kab. Bone Bolango,RSUD Toto Kabila
+Unit Kesehatan,Prov. Gorontalo,Kab. Gorontalo Utara,RSUD dr. Zainal Umar Sidiki
 Unit Kesehatan,Prov. Jambi,Prov. Jambi,RSUD Raden Mattaher Jambi
 Unit Kesehatan,Prov. Jambi,Kota Jambi,RSUD H. Abdul Manap
 Unit Kesehatan,Prov. Jambi,Kota Sungai Penuh,RSUD Mayjen H.A. Thalib
@@ -18967,46 +19034,18 @@ Unit Kesehatan,Prov. Jambi,Kab. Tanjung Jabung Timur,RSUD Nurdin Hamzah
 Unit Kesehatan,Prov. Jambi,Kab. Tanjung Jabung Barat,RSUD KH. Daud Arif
 Unit Kesehatan,Prov. Jambi,Kab. Tebo,RSUD Sultan Thaha Saifuddin
 Unit Kesehatan,Prov. Jambi,Kab. Bungo,RSUD H. Hanafie
-Unit Kesehatan,Prov. Lampung,Prov. Lampung,RSUD Dr. H. Abdul Moeloek
-Unit Kesehatan,Prov. Lampung,Kota Bandar Lampung,RSUD dr. A. Dadi Tjokrodipo
-Unit Kesehatan,Prov. Lampung,Kota Metro,RSUD Jend. A. Yani
-Unit Kesehatan,Prov. Lampung,Kab. Lampung Barat,RSUD Alimuddin Umar (Liwa)
-Unit Kesehatan,Prov. Lampung,Kab. Tanggamus,RSUD Kotaagung
-Unit Kesehatan,Prov. Lampung,Kab. Lampung Selatan,"RSUD Dr. H. Bob Bazar, SKM"
-Unit Kesehatan,Prov. Lampung,Kab. Lampung Timur,RSUD Sukadana
-Unit Kesehatan,Prov. Lampung,Kab. Lampung Tengah,RSUD Demang Sepulau Raya (Gunung Sugih)
-Unit Kesehatan,Prov. Lampung,Kab. Lampung Utara,RSUD Ryacudu (Kotabumi)
-Unit Kesehatan,Prov. Lampung,Kab. Way Kanan,RSUD Zainal Abidin Pagar Alam
-Unit Kesehatan,Prov. Lampung,Kab. Tulang Bawang,RSUD Menggala
-Unit Kesehatan,Prov. Lampung,Kab. Pesawaran,RSUD Pesawaran (Gedong Tataan)
-Unit Kesehatan,Prov. Lampung,Kab. Pringsewu,RSUD Pringsewu
-Unit Kesehatan,Prov. Lampung,Kab. Mesuji,RSUD Ragab Begawe Caram
-Unit Kesehatan,Prov. Lampung,Kab. Tulang Bawang Barat,RSUD Tubaba
-Unit Kesehatan,Prov. Lampung,Kab. Pesisir Barat,RSUD KH. Muhammad Thohir
-Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kota Pangkalpinang,RSUD Depati Hamzah
-Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kab. Bangka,RSUD Depati Bahrin (Sungailiat)
-Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kab. Bangka Barat,RSUD Sejiran Setason
-Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kab. Bangka Tengah,RSUD Bangka Tengah (Koba)
-Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kab. Bangka Selatan,RSUD Bangka Selatan (Toboali)
-Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kab. Belitung,RSUD dr. H. Marsidi Judono
-Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kab. Belitung Timur,RSUD Belitung Timur (Manggar)
-Unit Kesehatan,Prov. DKI Jakarta,Prov. DKI Jakarta,RSUD Tarakan
-Unit Kesehatan,Prov. DKI Jakarta,Prov. DKI Jakarta,RSUD Koja
-Unit Kesehatan,Prov. DKI Jakarta,Prov. DKI Jakarta,RSUD Cengkareng
-Unit Kesehatan,Prov. DKI Jakarta,Prov. DKI Jakarta,RSUD Pasar Minggu
-Unit Kesehatan,Prov. DKI Jakarta,Prov. DKI Jakarta,RSUD Budhi Asih
-Unit Kesehatan,Prov. DKI Jakarta,Prov. DKI Jakarta,RSUD Kepulauan Seribu
 Unit Kesehatan,Prov. Jawa Barat,Kota Bandung,RSUD Kota Bandung (Ujung Berung)
 Unit Kesehatan,Prov. Jawa Barat,Kota Bekasi,RSUD Kota Bekasi
 Unit Kesehatan,Prov. Jawa Barat,Kota Bogor,RSUD Kota Bogor
 Unit Kesehatan,Prov. Jawa Barat,Kota Cimahi,RSUD Cibabat
 Unit Kesehatan,Prov. Jawa Barat,Kota Cirebon,RSUD Gunung Jati
-Unit Kesehatan,Prov. Jawa Barat,Kota Depok,"RSUD Kota Depok, Kelas C"
+Unit Kesehatan,Prov. Jawa Barat,Kota Depok,RSUD Khidmat Sehat Afiat
 Unit Kesehatan,Prov. Jawa Barat,Kota Sukabumi,"RSUD R. Syamsudin, SH"
 Unit Kesehatan,Prov. Jawa Barat,Kota Tasikmalaya,RSUD dr. Soekardjo
 Unit Kesehatan,Prov. Jawa Barat,Kota Banjar,RSUD Kota Banjar
-Unit Kesehatan,Prov. Jawa Barat,Kab. Bandung,"RSUD Soreang, serta RSUD Majalaya"
-Unit Kesehatan,Prov. Jawa Barat,Kab. Bandung Barat,RSUD Cililin — perlu verifikasi nama resmi
+Unit Kesehatan,Prov. Jawa Barat,Kab. Bandung,RSUD Oto Iskandar Di Nata
+Unit Kesehatan,Prov. Jawa Barat,Kab. Bandung,RSUD Majalaya
+Unit Kesehatan,Prov. Jawa Barat,Kab. Bandung Barat,RSUD Cililin
 Unit Kesehatan,Prov. Jawa Barat,Kab. Bekasi,RSUD Kabupaten Bekasi
 Unit Kesehatan,Prov. Jawa Barat,Kab. Bogor,RSUD Cibinong
 Unit Kesehatan,Prov. Jawa Barat,Kab. Ciamis,RSUD Ciamis
@@ -19061,11 +19100,6 @@ Unit Kesehatan,Prov. Jawa Tengah,Kab. Pekalongan,RSUD Kajen
 Unit Kesehatan,Prov. Jawa Tengah,Kab. Pemalang,RSUD dr. M. Ashari
 Unit Kesehatan,Prov. Jawa Tengah,Kab. Tegal,RSUD dr. Soeselo (Slawi)
 Unit Kesehatan,Prov. Jawa Tengah,Kab. Brebes,RSUD Brebes
-Unit Kesehatan,Prov. DI Yogyakarta,Kota Yogyakarta,RSUD Kota Yogyakarta
-Unit Kesehatan,Prov. DI Yogyakarta,Kab. Sleman,RSUD Sleman
-Unit Kesehatan,Prov. DI Yogyakarta,Kab. Bantul,RSUD Panembahan Senopati
-Unit Kesehatan,Prov. DI Yogyakarta,Kab. Kulon Progo,RSUD Wates
-Unit Kesehatan,Prov. DI Yogyakarta,Kab. Gunungkidul,RSUD Wonosari
 Unit Kesehatan,Prov. Jawa Timur,Prov. Jawa Timur,RSUD Dr. Saiful Anwar
 Unit Kesehatan,Prov. Jawa Timur,Kota Surabaya,RSUD dr. Soewandhie
 Unit Kesehatan,Prov. Jawa Timur,Kota Surabaya,RSUD Bhakti Dharma Husada
@@ -19108,23 +19142,116 @@ Unit Kesehatan,Prov. Jawa Timur,Kab. Bangkalan,RSUD Syarifah Ambami Rato Ebu
 Unit Kesehatan,Prov. Jawa Timur,Kab. Sampang,RSUD Sampang
 Unit Kesehatan,Prov. Jawa Timur,Kab. Pamekasan,RSUD dr. Slamet Martodirdjo
 Unit Kesehatan,Prov. Jawa Timur,Kab. Sumenep,RSUD dr. H. Moh. Anwar
-Unit Kesehatan,Prov. Banten,Kota Tangerang,RSUD Kota Tangerang
-Unit Kesehatan,Prov. Banten,Kota Tangerang Selatan,RSUD Kota Tangerang Selatan (Pamulang)
-Unit Kesehatan,Prov. Banten,Kota Cilegon,RSUD Cilegon
-Unit Kesehatan,Prov. Banten,Kota Serang,RSUD Kota Serang
-Unit Kesehatan,Prov. Banten,Kab. Tangerang,RSUD Kabupaten Tangerang (Tigaraksa)
-Unit Kesehatan,Prov. Banten,Kab. Serang,RSUD dr. Drajat Prawiranegara
-Unit Kesehatan,Prov. Banten,Kab. Pandeglang,RSUD Berkah Pandeglang
-Unit Kesehatan,Prov. Banten,Kab. Lebak,RSUD dr. Adjidarmo
-Unit Kesehatan,Prov. Bali,Kota Denpasar,RSUD Wangaya
-Unit Kesehatan,Prov. Bali,Kab. Badung,RSUD Mangusada
-Unit Kesehatan,Prov. Bali,Kab. Gianyar,RSUD Sanjiwani
-Unit Kesehatan,Prov. Bali,Kab. Klungkung,RSUD Klungkung
-Unit Kesehatan,Prov. Bali,Kab. Bangli,RSUD Bangli
-Unit Kesehatan,Prov. Bali,Kab. Karangasem,RSUD Karangasem
-Unit Kesehatan,Prov. Bali,Kab. Buleleng,RSUD Buleleng
-Unit Kesehatan,Prov. Bali,Kab. Jembrana,RSUD Negara
-Unit Kesehatan,Prov. Bali,Kab. Tabanan,RSUD Tabanan
+Unit Kesehatan,Prov. Kalimantan Barat,Prov. Kalimantan Barat,RSUD dr. Soedarso
+Unit Kesehatan,Prov. Kalimantan Barat,Kota Pontianak,RSUD Sultan Syarif Mohamad Alkadrie
+Unit Kesehatan,Prov. Kalimantan Barat,Kota Singkawang,RSUD dr. Abdul Aziz
+Unit Kesehatan,Prov. Kalimantan Barat,Kab. Sambas,RSUD Sambas
+Unit Kesehatan,Prov. Kalimantan Barat,Kab. Bengkayang,RSUD Bengkayang
+Unit Kesehatan,Prov. Kalimantan Barat,Kab. Landak,RSUD Landak (Ngabang)
+Unit Kesehatan,Prov. Kalimantan Barat,Kab. Mempawah,RSUD Rubini
+Unit Kesehatan,Prov. Kalimantan Barat,Kab. Sanggau,RSUD M. Th. Djaman
+Unit Kesehatan,Prov. Kalimantan Barat,Kab. Ketapang,RSUD dr. Agoesdjam
+Unit Kesehatan,Prov. Kalimantan Barat,Kab. Sintang,RSUD Ade M. Djoen
+Unit Kesehatan,Prov. Kalimantan Barat,Kab. Kapuas Hulu,RSUD dr. Achmad Diponegoro (Putussibau)
+Unit Kesehatan,Prov. Kalimantan Barat,Kab. Sekadau,RSUD Sekadau
+Unit Kesehatan,Prov. Kalimantan Barat,Kab. Melawi,RSUD Nanga Pinoh
+Unit Kesehatan,Prov. Kalimantan Barat,Kab. Kayong Utara,RSUD Kayong Utara (Sukadana)
+Unit Kesehatan,Prov. Kalimantan Barat,Kab. Kubu Raya,RSUD Sungai Raya
+Unit Kesehatan,Prov. Kalimantan Selatan,Prov. Kalimantan Selatan,RSUD Ulin
+Unit Kesehatan,Prov. Kalimantan Selatan,Kota Banjarmasin,RSUD Sultan Suriansyah
+Unit Kesehatan,Prov. Kalimantan Selatan,Kota Banjarbaru,RSUD Idaman Banjarbaru
+Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Tanah Laut,RSUD Boejasin (Pelaihari)
+Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Banjar,RSUD Ratu Zalecha (Martapura)
+Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Barito Kuala,RSUD H. Abdul Aziz Marabahan
+Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Tapin,RSUD Datu Sanggul (Rantau)
+Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Hulu Sungai Selatan,RSUD Brigjen H. Hasan Basry (Kandangan)
+Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Hulu Sungai Tengah,RSUD Damanhuri (Barabai)
+Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Hulu Sungai Utara,RSUD Pambalah Batung (Amuntai)
+Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Tabalong,RSUD H. Badaruddin (Tanjung)
+Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Tanah Bumbu,RSUD dr. H. Andi Abdurrahman Noor
+Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Kotabaru,RSUD Kotabaru
+Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Balangan,RSUD Balangan (Paringin)
+Unit Kesehatan,Prov. Kalimantan Tengah,Prov. Kalimantan Tengah,RSUD dr. Doris Sylvanus
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Kotawaringin Barat,RSUD Sultan Imanuddin (Pangkalan Bun)
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Kotawaringin Timur,RSUD dr. Murjani (Sampit)
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Kapuas,RSUD dr. H. Soemarno Sosroatmodjo (Kuala Kapuas)
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Barito Selatan,RSUD Jaraga Sasameh (Buntok)
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Barito Utara,RSUD Muara Teweh
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Barito Timur,RSUD Barito Timur (Tamiang Layang)
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Sukamara,RSUD Sukamara
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Lamandau,RSUD Lamandau (Nanga Bulik)
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Seruyan,RSUD Seruyan (Kuala Pembuang)
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Katingan,RSUD Mas Amsyar (Kasongan)
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Pulang Pisau,RSUD Pulang Pisau
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Gunung Mas,RSUD Kuala Kurun
+Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Murung Raya,RSUD Murung Raya (Puruk Cahu)
+Unit Kesehatan,Prov. Kalimantan Timur,Prov. Kalimantan Timur,RSUD Abdoel Wahab Sjahranie
+Unit Kesehatan,Prov. Kalimantan Timur,Kota Samarinda,RSUD Inche Abdoel Moeis
+Unit Kesehatan,Prov. Kalimantan Timur,Kota Balikpapan,RSUD dr. Kanujoso Djatiwibowo Balikpapan
+Unit Kesehatan,Prov. Kalimantan Timur,Kota Bontang,RSUD Taman Husada
+Unit Kesehatan,Prov. Kalimantan Timur,Kab. Paser,RSUD Panglima Sebaya (Tana Paser)
+Unit Kesehatan,Prov. Kalimantan Timur,Kab. Kutai Barat,RSUD Harapan Insan Sendawar
+Unit Kesehatan,Prov. Kalimantan Timur,Kab. Kutai Kartanegara,RSUD Aji Muhammad Parikesit (Tenggarong)
+Unit Kesehatan,Prov. Kalimantan Timur,Kab. Kutai Timur,RSUD Kudungga (Sangatta)
+Unit Kesehatan,Prov. Kalimantan Timur,Kab. Berau,RSUD dr. Abdul Rivai (Tanjung Redeb)
+Unit Kesehatan,Prov. Kalimantan Timur,Kab. Penajam Paser Utara,RSUD Ratu Aji Putri Botung (Penajam)
+Unit Kesehatan,Prov. Kalimantan Timur,Kab. Mahakam Ulu,RSUD Mahakam Ulu (Ujoh Bilang)
+Unit Kesehatan,Prov. Kalimantan Utara,Kota Tarakan,RSUD Kota Tarakan
+Unit Kesehatan,Prov. Kalimantan Utara,Kab. Bulungan,RSUD dr. H. Jusuf SK
+Unit Kesehatan,Prov. Kalimantan Utara,Kab. Malinau,RSUD Malinau
+Unit Kesehatan,Prov. Kalimantan Utara,Kab. Nunukan,RSUD Nunukan
+Unit Kesehatan,Prov. Kalimantan Utara,Kab. Tana Tidung,RSUD Akhmad Berahim
+Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kota Pangkalpinang,RSUD Depati Hamzah
+Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kab. Bangka,RSUD Depati Bahrin (Sungailiat)
+Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kab. Bangka Barat,RSUD Sejiran Setason
+Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kab. Bangka Tengah,RSUD Bangka Tengah (Koba)
+Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kab. Bangka Selatan,RSUD Bangka Selatan (Toboali)
+Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kab. Belitung,RSUD dr. H. Marsidi Judono
+Unit Kesehatan,Prov. Kepulauan Bangka Belitung,Kab. Belitung Timur,RSUD Belitung Timur (Manggar)
+Unit Kesehatan,Prov. Kepulauan Riau,Kota Tanjungpinang,RSUD Raja Ahmad Tabib
+Unit Kesehatan,Prov. Kepulauan Riau,Kota Batam,RSUD Embung Fatimah
+Unit Kesehatan,Prov. Kepulauan Riau,Kab. Bintan,RSUD Bintan
+Unit Kesehatan,Prov. Kepulauan Riau,Kab. Karimun,RSUD Muhammad Sani (Tanjung Balai Karimun)
+Unit Kesehatan,Prov. Kepulauan Riau,Kab. Lingga,RSUD Lingga
+Unit Kesehatan,Prov. Kepulauan Riau,Kab. Natuna,RSUD Natuna (Ranai)
+Unit Kesehatan,Prov. Kepulauan Riau,Kab. Kepulauan Anambas,RSUD Tarempa
+Unit Kesehatan,Prov. Lampung,Prov. Lampung,RSUD Dr. H. Abdul Moeloek
+Unit Kesehatan,Prov. Lampung,Kota Bandar Lampung,RSUD dr. A. Dadi Tjokrodipo
+Unit Kesehatan,Prov. Lampung,Kota Metro,RSUD Jend. A. Yani
+Unit Kesehatan,Prov. Lampung,Kab. Lampung Barat,RSUD Alimuddin Umar (Liwa)
+Unit Kesehatan,Prov. Lampung,Kab. Tanggamus,RSUD Kotaagung
+Unit Kesehatan,Prov. Lampung,Kab. Lampung Selatan,"RSUD Dr. H. Bob Bazar, SKM"
+Unit Kesehatan,Prov. Lampung,Kab. Lampung Timur,RSUD Sukadana
+Unit Kesehatan,Prov. Lampung,Kab. Lampung Tengah,RSUD Demang Sepulau Raya (Gunung Sugih)
+Unit Kesehatan,Prov. Lampung,Kab. Lampung Utara,RSUD Ryacudu (Kotabumi)
+Unit Kesehatan,Prov. Lampung,Kab. Way Kanan,RSUD Zainal Abidin Pagar Alam
+Unit Kesehatan,Prov. Lampung,Kab. Tulang Bawang,RSUD Menggala
+Unit Kesehatan,Prov. Lampung,Kab. Pesawaran,RSUD Pesawaran (Gedong Tataan)
+Unit Kesehatan,Prov. Lampung,Kab. Pringsewu,RSUD Pringsewu
+Unit Kesehatan,Prov. Lampung,Kab. Mesuji,RSUD Ragab Begawe Caram
+Unit Kesehatan,Prov. Lampung,Kab. Tulang Bawang Barat,RSUD Tubaba
+Unit Kesehatan,Prov. Lampung,Kab. Pesisir Barat,RSUD KH. Muhammad Thohir
+Unit Kesehatan,Prov. Maluku,Prov. Maluku,RSUD dr. M. Haulussy Ambon
+Unit Kesehatan,Prov. Maluku,Kota Tual,RSUD Maren H. Noho Renuat
+Unit Kesehatan,Prov. Maluku,Kab. Maluku Tengah,RSUD Masohi
+Unit Kesehatan,Prov. Maluku,Kab. Maluku Tenggara,RSUD Karel Sadsuitubun (Langgur)
+Unit Kesehatan,Prov. Maluku,Kab. Kepulauan Tanimbar,RSUD dr. P. P. Magretti Saumlaki
+Unit Kesehatan,Prov. Maluku,Kab. Kepulauan Aru,RSUD Cendrawasih Dobo
+Unit Kesehatan,Prov. Maluku,Kab. Seram Bagian Barat,RS Umum Piru
+Unit Kesehatan,Prov. Maluku,Kab. Seram Bagian Timur,RSUD Bula
+Unit Kesehatan,Prov. Maluku,Kab. Buru,RSUD Buru
+Unit Kesehatan,Prov. Maluku,Kab. Buru Selatan,RSUD Namrole
+Unit Kesehatan,Prov. Maluku,Kab. Maluku Barat Daya,RSUD Tiakur Kabupaten Maluku Barat Daya
+Unit Kesehatan,Prov. Maluku Utara,Kota Ternate,RSUD dr. H. Chasan Boesoirie
+Unit Kesehatan,Prov. Maluku Utara,Kota Tidore Kepulauan,RSUD Kota Tidore Kepulauan
+Unit Kesehatan,Prov. Maluku Utara,Kab. Halmahera Barat,RSUD Jailolo
+Unit Kesehatan,Prov. Maluku Utara,Kab. Halmahera Tengah,RSUD Weda
+Unit Kesehatan,Prov. Maluku Utara,Kab. Halmahera Utara,RSUD Tobelo
+Unit Kesehatan,Prov. Maluku Utara,Kab. Halmahera Timur,RSUD Maba
+Unit Kesehatan,Prov. Maluku Utara,Kab. Halmahera Selatan,RSUD Labuha
+Unit Kesehatan,Prov. Maluku Utara,Kab. Kepulauan Sula,RSUD Sanana
+Unit Kesehatan,Prov. Maluku Utara,Kab. Pulau Morotai,RSUD Ir. Soekarno
+Unit Kesehatan,Prov. Maluku Utara,Kab. Pulau Taliabu,RSUD Bobong
 Unit Kesehatan,Prov. Nusa Tenggara Barat,Kota Mataram,RSUD Kota Mataram
 Unit Kesehatan,Prov. Nusa Tenggara Barat,Kota Bima,RSUD Kota Bima
 Unit Kesehatan,Prov. Nusa Tenggara Barat,Kab. Lombok Barat,RSUD Patut Patuh Patju (Gerung)
@@ -19158,103 +19285,77 @@ Unit Kesehatan,Prov. Nusa Tenggara Timur,Kab. Sumba Barat Daya,RSUD Karitas (Wai
 Unit Kesehatan,Prov. Nusa Tenggara Timur,Kab. Sumba Timur,RSUD Umbu Rara Meha (Waingapu)
 Unit Kesehatan,Prov. Nusa Tenggara Timur,Kab. Rote Ndao,RSUD Ba'a
 Unit Kesehatan,Prov. Nusa Tenggara Timur,Kab. Sabu Raijua,RSUD Sabu Raijua (Seba)
-Unit Kesehatan,Prov. Kalimantan Barat,Prov. Kalimantan Barat,RSUD dr. Soedarso
-Unit Kesehatan,Prov. Kalimantan Barat,Kota Pontianak,RSUD Sultan Syarif Mohamad Alkadrie
-Unit Kesehatan,Prov. Kalimantan Barat,Kota Singkawang,RSUD dr. Abdul Aziz
-Unit Kesehatan,Prov. Kalimantan Barat,Kab. Sambas,RSUD Sambas
-Unit Kesehatan,Prov. Kalimantan Barat,Kab. Bengkayang,RSUD Bengkayang
-Unit Kesehatan,Prov. Kalimantan Barat,Kab. Landak,RSUD Landak (Ngabang)
-Unit Kesehatan,Prov. Kalimantan Barat,Kab. Mempawah,RSUD Rubini
-Unit Kesehatan,Prov. Kalimantan Barat,Kab. Sanggau,RSUD M. Th. Djaman
-Unit Kesehatan,Prov. Kalimantan Barat,Kab. Ketapang,RSUD dr. Agoesdjam
-Unit Kesehatan,Prov. Kalimantan Barat,Kab. Sintang,RSUD Ade M. Djoen
-Unit Kesehatan,Prov. Kalimantan Barat,Kab. Kapuas Hulu,RSUD dr. Achmad Diponegoro (Putussibau)
-Unit Kesehatan,Prov. Kalimantan Barat,Kab. Sekadau,RSUD Sekadau
-Unit Kesehatan,Prov. Kalimantan Barat,Kab. Melawi,RSUD Nanga Pinoh
-Unit Kesehatan,Prov. Kalimantan Barat,Kab. Kayong Utara,RSUD Kayong Utara (Sukadana)
-Unit Kesehatan,Prov. Kalimantan Barat,Kab. Kubu Raya,RSUD Sungai Raya
-Unit Kesehatan,Prov. Kalimantan Tengah,Prov. Kalimantan Tengah,RSUD dr. Doris Sylvanus
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Kotawaringin Barat,RSUD Sultan Imanuddin (Pangkalan Bun)
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Kotawaringin Timur,RSUD dr. Murjani (Sampit)
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Kapuas,RSUD dr. H. Soemarno Sosroatmodjo (Kuala Kapuas)
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Barito Selatan,RSUD Jaraga Sasameh (Buntok)
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Barito Utara,RSUD Muara Teweh
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Barito Timur,RSUD Barito Timur (Tamiang Layang)
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Sukamara,RSUD Sukamara
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Lamandau,RSUD Lamandau (Nanga Bulik)
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Seruyan,RSUD Seruyan (Kuala Pembuang)
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Katingan,RSUD Mas Amsyar (Kasongan)
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Pulang Pisau,RSUD Pulang Pisau
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Gunung Mas,RSUD Kuala Kurun
-Unit Kesehatan,Prov. Kalimantan Tengah,Kab. Murung Raya,RSUD Murung Raya (Puruk Cahu)
-Unit Kesehatan,Prov. Kalimantan Selatan,Prov. Kalimantan Selatan,RSUD Ulin
-Unit Kesehatan,Prov. Kalimantan Selatan,Kota Banjarmasin,RSUD Sultan Suriansyah
-Unit Kesehatan,Prov. Kalimantan Selatan,Kota Banjarbaru,RSUD Idaman Banjarbaru
-Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Tanah Laut,RSUD Boejasin (Pelaihari)
-Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Banjar,RSUD Ratu Zalecha (Martapura)
-Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Barito Kuala,RSUD H. Abdul Aziz Marabahan
-Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Tapin,RSUD Datu Sanggul (Rantau)
-Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Hulu Sungai Selatan,RSUD Brigjen H. Hasan Basry (Kandangan)
-Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Hulu Sungai Tengah,RSUD Damanhuri (Barabai)
-Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Hulu Sungai Utara,RSUD Pambalah Batung (Amuntai)
-Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Tabalong,RSUD H. Badaruddin (Tanjung)
-Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Tanah Bumbu,RSUD dr. H. Andi Abdurrahman Noor
-Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Kotabaru,RSUD Kotabaru
-Unit Kesehatan,Prov. Kalimantan Selatan,Kab. Balangan,RSUD Balangan (Paringin)
-Unit Kesehatan,Prov. Kalimantan Timur,Prov. Kalimantan Timur,RSUD Abdoel Wahab Sjahranie
-Unit Kesehatan,Prov. Kalimantan Timur,Kota Samarinda,RSUD Inche Abdoel Moeis
-Unit Kesehatan,Prov. Kalimantan Timur,Kota Balikpapan,RSUD dr. Kanujoso Djatiwibowo Balikpapan
-Unit Kesehatan,Prov. Kalimantan Timur,Kota Bontang,RSUD Taman Husada
-Unit Kesehatan,Prov. Kalimantan Timur,Kab. Paser,RSUD Panglima Sebaya (Tana Paser)
-Unit Kesehatan,Prov. Kalimantan Timur,Kab. Kutai Barat,RSUD Harapan Insan Sendawar
-Unit Kesehatan,Prov. Kalimantan Timur,Kab. Kutai Kartanegara,RSUD Aji Muhammad Parikesit (Tenggarong)
-Unit Kesehatan,Prov. Kalimantan Timur,Kab. Kutai Timur,RSUD Kudungga (Sangatta)
-Unit Kesehatan,Prov. Kalimantan Timur,Kab. Berau,RSUD dr. Abdul Rivai (Tanjung Redeb)
-Unit Kesehatan,Prov. Kalimantan Timur,Kab. Penajam Paser Utara,RSUD Ratu Aji Putri Botung (Penajam)
-Unit Kesehatan,Prov. Kalimantan Timur,Kab. Mahakam Ulu,RSUD Mahakam Ulu (Ujoh Bilang)
-Unit Kesehatan,Prov. Kalimantan Utara,Kota Tarakan,RSUD Kota Tarakan
-Unit Kesehatan,Prov. Kalimantan Utara,Kab. Bulungan,RSUD dr. H. Jusuf SK
-Unit Kesehatan,Prov. Kalimantan Utara,Kab. Malinau,RSUD Malinau
-Unit Kesehatan,Prov. Kalimantan Utara,Kab. Nunukan,RSUD Nunukan
-Unit Kesehatan,Prov. Kalimantan Utara,Kab. Tana Tidung,RSUD Akhmad Berahim
-Unit Kesehatan,Prov. Sulawesi Utara,Kota Manado,"Dilayani RSUP Prof. Dr. R.D. Kandou (RS vertikal Kemenkes, bukan RSUD; Kota Manado tidak memiliki RSUD kota tersendiri) — perlu verifikasi"
-Unit Kesehatan,Prov. Sulawesi Utara,Kota Bitung,RSUD Manembo-nembo
-Unit Kesehatan,Prov. Sulawesi Utara,Kota Tomohon,RSUD Tomohon
-Unit Kesehatan,Prov. Sulawesi Utara,Kota Kotamobagu,RSUD Kotamobagu
-Unit Kesehatan,Prov. Sulawesi Utara,Kab. Bolaang Mongondow,RSUD Datoe Binangkang (Lolak)
-Unit Kesehatan,Prov. Sulawesi Utara,Kab. Bolaang Mongondow Utara,RSUD Bolmong Utara (Boroko) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Utara,Kab. Bolaang Mongondow Timur,RSUD Bolmong Timur (Tutuyan) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Utara,Kab. Bolaang Mongondow Selatan,RSUD Bolmong Selatan (Molibagu) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Utara,Kab. Minahasa,RSUD dr. Sam Ratulangi (Tondano)
-Unit Kesehatan,Prov. Sulawesi Utara,Kab. Minahasa Utara,RSUD Minahasa Utara (Airmadidi)
-Unit Kesehatan,Prov. Sulawesi Utara,Kab. Minahasa Selatan,RSUD Amurang
-Unit Kesehatan,Prov. Sulawesi Utara,Kab. Minahasa Tenggara,RSUD Minahasa Tenggara (Ratahan) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Utara,Kab. Kepulauan Sangihe,RSUD Liun Kendage (Tahuna)
-Unit Kesehatan,Prov. Sulawesi Utara,Kab. Kepulauan Talaud,RSUD Talaud (Melonguane) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Utara,Kab. Sitaro,RSUD Sitaro (Ondong) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tengah,Kota Palu,Dilayani RSUD Undata (berstatus RS milik Provinsi Sulteng; Kota Palu tidak memiliki RSUD kota tersendiri)
-Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Banggai,RSUD Luwuk
-Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Banggai Kepulauan,RSUD Banggai Kepulauan (Salakan)
-Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Banggai Laut,RSUD Banggai Laut (Banggai) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Morowali,RSUD Morowali (Bungku)
-Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Morowali Utara,RSUD Morowali Utara (Kolonodale) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Poso,RSUD Poso
-Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Donggala,RSUD Donggala
-Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Toli-Toli,RSUD Mokopido
-Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Buol,RSUD Buol
-Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Parigi Moutong,RSUD Anuntaloko (Parigi) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Tojo Una-Una,RSUD Ampana
-Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Sigi,RSUD Sigi — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Selatan,Kota Makassar,RSUD Kota Makassar (Daya)
-Unit Kesehatan,Prov. Sulawesi Selatan,Kota Parepare,RSUD Andi Makkasau
+Unit Kesehatan,Prov. Papua,Prov. Papua,RSUD Jayapura
+Unit Kesehatan,Prov. Papua,Kab. Jayapura,RSUD Yowari Sentani
+Unit Kesehatan,Prov. Papua,Kab. Keerom,RSUD Kwaingga Kabupaten Keerom
+Unit Kesehatan,Prov. Papua,Kab. Sarmi,RS Hendrik Fintay Kabupaten Sarmi
+Unit Kesehatan,Prov. Papua,Kab. Biak Numfor,RS Umum Biak
+Unit Kesehatan,Prov. Papua,Kab. Supiori,RSUD Supiori
+Unit Kesehatan,Prov. Papua,Kab. Kepulauan Yapen,RSUD Serui
+Unit Kesehatan,Prov. Papua,Kab. Waropen,RSUD Rumah Rodo Fabo
+Unit Kesehatan,Prov. Papua,Kab. Mamberamo Raya,RSUD Kawera
+Unit Kesehatan,Prov. Papua Barat,Kab. Manokwari,RSUD Manokwari
+Unit Kesehatan,Prov. Papua Barat,Kab. Manokwari Selatan,RS Umum Elia Waran
+Unit Kesehatan,Prov. Papua Barat,Kab. Pegunungan Arfak,RSUD Pratama Pegunungan Arfak
+Unit Kesehatan,Prov. Papua Barat,Kab. Teluk Bintuni,RSUD Teluk Bintuni
+Unit Kesehatan,Prov. Papua Barat,Kab. Teluk Wondama,RSUD Dr. Alberth H. Torey
+Unit Kesehatan,Prov. Papua Barat,Kab. Fakfak,RSUD Fakfak
+Unit Kesehatan,Prov. Papua Barat,Kab. Kaimana,RSUD Kaimana
+Unit Kesehatan,Prov. Papua Barat Daya,Kota Sorong,RSUD Sele Be Solu
+Unit Kesehatan,Prov. Papua Barat Daya,Kab. Sorong,RSUD Kabupaten Sorong
+Unit Kesehatan,Prov. Papua Barat Daya,Kab. Sorong Selatan,RSUD Scholoo Keyen
+Unit Kesehatan,Prov. Papua Barat Daya,Kab. Raja Ampat,RSUD Raja Ampat
+Unit Kesehatan,Prov. Papua Barat Daya,Kab. Tambrauw,RS Umum Kelas Pratama
+Unit Kesehatan,Prov. Papua Barat Daya,Kab. Maybrat,RS Umum Pratama
+Unit Kesehatan,Prov. Papua Pegunungan,Kab. Jayawijaya,RS Umum Wamena
+Unit Kesehatan,Prov. Papua Pegunungan,Kab. Yahukimo,RSUD Dekai
+Unit Kesehatan,Prov. Papua Pegunungan,Kab. Pegunungan Bintang,RSUD Oksibil
+Unit Kesehatan,Prov. Papua Pegunungan,Kab. Tolikara,RSUD Karubaga
+Unit Kesehatan,Prov. Papua Pegunungan,Kab. Yalimo,RSUD Er Dabi
+Unit Kesehatan,Prov. Papua Pegunungan,Kab. Mamberamo Tengah,RSUD Lukas Enembe
+Unit Kesehatan,Prov. Papua Pegunungan,Kab. Nduga,RS Pratama Elvrida Sara
+Unit Kesehatan,Prov. Papua Pegunungan,Kab. Lanny Jaya,RSUD Tiom
+Unit Kesehatan,Prov. Papua Selatan,Kab. Merauke,RS Umum Merauke
+Unit Kesehatan,Prov. Papua Selatan,Kab. Boven Digoel,RSUD Boven Digoel
+Unit Kesehatan,Prov. Papua Selatan,Kab. Mappi,RSUD Kabupaten Mappi
+Unit Kesehatan,Prov. Papua Selatan,Kab. Asmat,RSUD Perpetua J. Safanpo
+Unit Kesehatan,Prov. Papua Tengah,Kab. Nabire,RS Umum Nabire
+Unit Kesehatan,Prov. Papua Tengah,Kab. Mimika,RSUD Kabupaten Mimika
+Unit Kesehatan,Prov. Papua Tengah,Kab. Puncak Jaya,RSUD Mulia
+Unit Kesehatan,Prov. Papua Tengah,Kab. Paniai,RSUD Paniai
+Unit Kesehatan,Prov. Papua Tengah,Kab. Puncak,RSUD Ilaga
+Unit Kesehatan,Prov. Papua Tengah,Kab. Dogiyai,RSUD Pratama Dogiyai
+Unit Kesehatan,Prov. Papua Tengah,Kab. Intan Jaya,RSUD Kabupaten Intan Jaya
+Unit Kesehatan,Prov. Papua Tengah,Kab. Deiyai,RSUD Pratama Waghete
+Unit Kesehatan,Prov. Riau,Prov. Riau,RSUD Arifin Achmad
+Unit Kesehatan,Prov. Riau,Kota Pekanbaru,RSUD Petala Bumi
+Unit Kesehatan,Prov. Riau,Kota Dumai,RSUD Kota Dumai
+Unit Kesehatan,Prov. Riau,Kab. Kampar,RSUD Bangkinang
+Unit Kesehatan,Prov. Riau,Kab. Rokan Hulu,RSUD Rokan Hulu (Pasir Pengaraian)
+Unit Kesehatan,Prov. Riau,Kab. Rokan Hilir,RSUD dr. RM. Pratomo Bagansiapiapi
+Unit Kesehatan,Prov. Riau,Kab. Bengkalis,RSUD Bengkalis
+Unit Kesehatan,Prov. Riau,Kab. Siak,RSUD Tengku Rafian Siak Sri Indrapura
+Unit Kesehatan,Prov. Riau,Kab. Pelalawan,RSUD Selasih
+Unit Kesehatan,Prov. Riau,Kab. Indragiri Hulu,RSUD Indrasari (Rengat)
+Unit Kesehatan,Prov. Riau,Kab. Indragiri Hilir,RSUD Puri Husada (Tembilahan)
+Unit Kesehatan,Prov. Riau,Kab. Kuantan Singingi,RSUD Teluk Kuantan
+Unit Kesehatan,Prov. Riau,Kab. Kepulauan Meranti,RSUD Kepulau
+Unit Kesehatan,Prov. Sulawesi Barat,Kab. Mamuju,RSUD Kabupaten Mamuju
+Unit Kesehatan,Prov. Sulawesi Barat,Kab. Majene,RSUD Kabupaten Majene
+Unit Kesehatan,Prov. Sulawesi Barat,Kab. Polewali Mandar,RSUD Hajjah Andi Depu
+Unit Kesehatan,Prov. Sulawesi Barat,Kab. Mamasa,RSUD Kondosapata Kab. Mamasa
+Unit Kesehatan,Prov. Sulawesi Barat,Kab. Pasangkayu,RSUD Pasangkayu
+Unit Kesehatan,Prov. Sulawesi Barat,Kab. Mamuju Tengah,RSUD Kabupaten Mamuju Tengah
+Unit Kesehatan,Prov. Sulawesi Selatan,Kota Makassar,RSUD Kota Makassar
+Unit Kesehatan,Prov. Sulawesi Selatan,Kota Parepare,RSUD Andi Makkasau Parepare
 Unit Kesehatan,Prov. Sulawesi Selatan,Kota Palopo,RSUD Sawerigading
 Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Gowa,RSUD Syekh Yusuf
 Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Takalar,RSUD H. Padjonga Dg. Ngalle
 Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Jeneponto,RSUD Lanto Dg. Pasewang
 Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Bantaeng,RSUD Prof. dr. Anwar Makkatutu
-Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Bulukumba,RSUD H. Andi Sulthan Daeng Radja
-Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Kepulauan Selayar,RSUD Kepulauan Selayar (Benteng)
-Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Sinjai,RSUD Sinjai
+Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Bulukumba,RSUD H.A. Sulthan Daeng Radja
+Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Kepulauan Selayar,RSUD KH. Hayyung Kepulauan Selayar
+Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Sinjai,RSUD Kabupaten Sinjai
 Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Bone,RSUD Tenriawaru (Watampone)
 Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Maros,RSUD Salewangang
 Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Pangkajene dan Kepulauan (Pangkep),RSUD Pangkep
@@ -19266,213 +19367,120 @@ Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Pinrang,RSUD Lasinrang
 Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Enrekang,RSUD Massenrempulu
 Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Luwu,RSUD Batara Guru (Belopa)
 Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Luwu Utara,RSUD I Lagaligo (Masamba)
-Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Luwu Timur,RSUD Luwu Timur (Malili) — perlu verifikasi nama resmi
+Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Luwu Timur,RSUD I Lagaligo
 Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Tana Toraja,RSUD Lakipadada (Makale)
-Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Toraja Utara,RSUD Toraja Utara (Rantepao) — perlu verifikasi nama resmi
+Unit Kesehatan,Prov. Sulawesi Selatan,Kab. Toraja Utara,RSUD Pongtiku
 Unit Kesehatan,Prov. Sulawesi Selatan,Kota Kendari,RSUD Abunawas
+Unit Kesehatan,Prov. Sulawesi Tengah,Prov. Sulawesi Tengah,RSUD Undata
+Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Banggai,RSUD Luwuk
+Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Banggai Kepulauan,RSUD Trikora Salakan
+Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Banggai Laut,RSUD Banggai
+Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Morowali,RSUD Morowali
+Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Morowali Utara,RSUD Kolonodale
+Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Poso,RSUD Poso
+Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Donggala,RSUD Kabelota
+Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Toli-Toli,RSUD Mokopido
+Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Buol,RSUD Mokoyurli Buol
+Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Parigi Moutong,RSUD Anuntaloko Parigi
+Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Tojo Una-Una,RSUD Ampana
+Unit Kesehatan,Prov. Sulawesi Tengah,Kab. Sigi,RSUD Tora Belo
 Unit Kesehatan,Prov. Sulawesi Tenggara,Kota Baubau,RSUD Kota Baubau
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Konawe,RSUD Konawe (Unaaha) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Konawe Selatan,RSUD Konawe Selatan (Andoolo) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Konawe Utara,RSUD Konawe Utara (Wanggudu) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Konawe Kepulauan,RSUD Konawe Kepulauan (Langara) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Kolaka,RSUD Benyamin Guluh
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Kolaka Utara,RSUD Kolaka Utara (Lasusua) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Kolaka Timur,RSUD Kolaka Timur (Tirawuta) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Muna,RSUD Muna (Raha) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Muna Barat,RSUD Muna Barat (Laworo) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Buton,RSUD Buton (Pasarwajo) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Buton Utara,RSUD Buton Utara (Buranga) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Buton Selatan,RSUD Buton Selatan (Batauga) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Buton Tengah,RSUD Buton Tengah (Labungkari) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Wakatobi,RSUD Wakatobi (Wanci) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Bombana,RSUD Bombana (Rumbia) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Gorontalo,Kota Gorontalo,RSUD Prof. Dr. H. Aloei Saboe
-Unit Kesehatan,Prov. Gorontalo,Kab. Boalemo,RSUD Boalemo (Tilamuta) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Gorontalo,Kab. Gorontalo,RSUD Toto Kabila
-Unit Kesehatan,Prov. Gorontalo,Kab. Pohuwato,RSUD Pohuwato (Marisa) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Gorontalo,Kab. Bone Bolango,RSUD Bone Bolango (Suwawa) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Gorontalo,Kab. Gorontalo Utara,RSUD Gorontalo Utara (Kwandang) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Barat,Kab. Mamuju,RSUD Kabupaten Mamuju (RSUD Provinsi Sulbar juga berlokasi di Mamuju sebagai ibu kota provinsi) — perlu verifikasi
-Unit Kesehatan,Prov. Sulawesi Barat,Kab. Majene,RSUD Majene
-Unit Kesehatan,Prov. Sulawesi Barat,Kab. Polewali Mandar,RSUD Polewali (Polman) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Barat,Kab. Mamasa,RSUD Mamasa — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Barat,Kab. Pasangkayu,RSUD Pasangkayu — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Sulawesi Barat,Kab. Mamuju Tengah,RSUD Mamuju Tengah (Tobadak) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku,Kota Ambon,Dilayani RSUD dr. M. Haulussy (berstatus RS milik Provinsi Maluku; Kota Ambon tidak memiliki RSUD kota tersendiri) — perlu verifikasi
-Unit Kesehatan,Prov. Maluku,Kota Tual,RSUD Tual — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku,Kab. Maluku Tengah,RSUD Masohi — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku,Kab. Maluku Tenggara,RSUD Karel Sadsuitubun (Langgur)
-Unit Kesehatan,Prov. Maluku,Kab. Kepulauan Tanimbar,RSUD Kepulauan Tanimbar (Saumlaki) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku,Kab. Kepulauan Aru,RSUD Kepulauan Aru (Dobo) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku,Kab. Seram Bagian Barat,RSUD Seram Bagian Barat (Piru) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku,Kab. Seram Bagian Timur,RSUD Seram Bagian Timur (Bula) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku,Kab. Buru,RSUD Buru (Namlea) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku,Kab. Buru Selatan,RSUD Buru Selatan (Namrole) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku,Kab. Maluku Barat Daya,RSUD Maluku Barat Daya (Tiakur) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku Utara,Kota Ternate,Dilayani RSUD dr. H. Chasan Boesoirie (berstatus RS milik Provinsi Maluku Utara; Kota Ternate tidak memiliki RSUD kota tersendiri) — perlu verifikasi
-Unit Kesehatan,Prov. Maluku Utara,Kota Tidore Kepulauan,RSUD Tidore Kepulauan — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku Utara,Kab. Halmahera Barat,RSUD Halmahera Barat (Jailolo) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku Utara,Kab. Halmahera Tengah,RSUD Halmahera Tengah (Weda) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku Utara,Kab. Halmahera Utara,RSUD Tobelo — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku Utara,Kab. Halmahera Timur,RSUD Halmahera Timur (Maba) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku Utara,Kab. Halmahera Selatan,RSUD Halmahera Selatan (Labuha) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku Utara,Kab. Kepulauan Sula,RSUD Kepulauan Sula (Sanana) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku Utara,Kab. Pulau Morotai,RSUD Pulau Morotai (Daruba) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Maluku Utara,Kab. Pulau Taliabu,RSUD Pulau Taliabu (Bobong) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua,Kota Jayapura,Dilayani RSUD Dok II Jayapura (berstatus RS milik Provinsi Papua) — perlu verifikasi
-Unit Kesehatan,Prov. Papua,Kab. Jayapura,RSUD Yowari (Sentani) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua,Kab. Keerom,RSUD Keerom — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua,Kab. Sarmi,RSUD Sarmi — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua,Kab. Biak Numfor,RSUD Biak — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua,Kab. Supiori,RSUD Supiori (Sorendiweri) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua,Kab. Kepulauan Yapen,RSUD Yapen (Serui) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua,Kab. Waropen,RSUD Waropen (Botawa) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua,Kab. Mamberamo Raya,RSUD Mamberamo Raya (Burmeso) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat,Kab. Manokwari,RSUD Manokwari — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat,Kab. Manokwari Selatan,RSUD Manokwari Selatan (Ransiki) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat,Kab. Pegunungan Arfak,RSUD Pegunungan Arfak (Anggi) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat,Kab. Teluk Bintuni,RSUD Teluk Bintuni — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat,Kab. Teluk Wondama,RSUD Teluk Wondama (Rasiei) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat,Kab. Fakfak,RSUD Fakfak — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat,Kab. Kaimana,RSUD Kaimana — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Selatan,Kab. Merauke,RSUD Merauke — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Selatan,Kab. Boven Digoel,RSUD Boven Digoel (Tanah Merah) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Selatan,Kab. Mappi,RSUD Mappi (Kepi) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Selatan,Kab. Asmat,RSUD Asmat (Agats) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Tengah,Kab. Nabire,RSUD Nabire — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Tengah,Kab. Mimika,RSUD Mimika (Timika) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Tengah,Kab. Puncak Jaya,RSUD Puncak Jaya (Mulia) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Tengah,Kab. Paniai,RSUD Paniai (Enarotali) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Tengah,Kab. Puncak,RSUD Puncak (Ilaga) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Tengah,Kab. Dogiyai,RSUD Dogiyai (Kigamani) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Tengah,Kab. Intan Jaya,RSUD Intan Jaya (Sugapa) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Tengah,Kab. Deiyai,RSUD Deiyai (Tigi) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Pegunungan,Kab. Jayawijaya,RSUD Wamena — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Pegunungan,Kab. Yahukimo,RSUD Yahukimo (Dekai) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Pegunungan,Kab. Pegunungan Bintang,RSUD Pegunungan Bintang (Oksibil) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Pegunungan,Kab. Tolikara,RSUD Tolikara (Karubaga) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Pegunungan,Kab. Yalimo,RSUD Yalimo (Elelim) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Pegunungan,Kab. Mamberamo Tengah,RSUD Mamberamo Tengah (Kobakma) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Pegunungan,Kab. Nduga,RSUD Nduga (Kenyam) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Pegunungan,Kab. Lanny Jaya,RSUD Lanny Jaya (Tiom) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat Daya,Kota Sorong,RSUD Sele Be Solu — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat Daya,Kab. Sorong,RSUD Kabupaten Sorong (Aimas) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat Daya,Kab. Sorong Selatan,RSUD Sorong Selatan (Teminabuan) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat Daya,Kab. Raja Ampat,RSUD Raja Ampat (Waisai) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat Daya,Kab. Tambrauw,RSUD Tambrauw (Fef) — perlu verifikasi nama resmi
-Unit Kesehatan,Prov. Papua Barat Daya,Kab. Maybrat,RSUD Maybrat (Kumurkek) — perlu verifikasi nama resmi
-Kementrian,,,Kementerian Sekretariat Negara
-Kementrian,,,Kementerian Dalam Negeri
-Kementrian,,,Kementerian Luar Negeri
-Kementrian,,,Kementerian Pertahanan
-Kementrian,,,Kementerian Hukum
-Kementrian,,,Kementerian Hak Asasi Manusia
-Kementrian,,,Kementerian Imigrasi dan Pemasyarakatan
-Kementrian,,,Kementerian Keuangan
-Kementrian,,,Kementerian Energi dan Sumber Daya Mineral
-Kementrian,,,Kementerian Perindustrian
-Kementrian,,,Kementerian Perdagangan
-Kementrian,,,Kementerian Koperasi
-Kementrian,,,"Kementerian Usaha Kecil, Mikro, dan Menengah (UMKM)"
-Kementrian,,,Kementerian Ketenagakerjaan
-Kementrian,,,Kementerian Investasi dan Hilirisasi/Badan Koordinasi Penanaman Modal
-Kementrian,,,Kementerian Pendidikan Dasar dan Menengah
-Kementrian,,,"Kementerian Pendidikan Tinggi, Sains, dan Teknologi"
-Kementrian,,,Kementerian Kebudayaan
-Kementrian,,,Kementerian Kesehatan
-Kementrian,,,Kementerian Sosial
-Kementrian,,,Kementerian Agama
-Kementrian,,,Kementerian Pemuda dan Olahraga
-Kementrian,,,Kementerian Pemberdayaan Perempuan dan Perlindungan Anak
-Kementrian,,,Kementerian Kependudukan dan Pembangunan Keluarga/Badan Kependudukan dan Keluarga Berencana Nasional
-Kementrian,,,Kementerian Haji dan Umrah
-Kementrian,,,Kementerian Pekerjaan Umum
-Kementrian,,,Kementerian Perumahan dan Kawasan Permukiman
-Kementrian,,,Kementerian Perhubungan
-Kementrian,,,Kementerian Komunikasi dan Digital
-Kementrian,,,Kementerian Agraria dan Tata Ruang/Badan Pertanahan Nasional
-Kementrian,,,Kementerian Desa dan Pembangunan Daerah Tertinggal
-Kementrian,,,Kementerian Transmigrasi
-Kementrian,,,Kementerian Pertanian
-Kementrian,,,Kementerian Kehutanan
-Kementrian,,,Kementerian Kelautan dan Perikanan
-Kementrian,,,Kementerian Perencanaan Pembangunan Nasional/Badan Perencanaan Pembangunan Nasional (Bappenas)
-Kementrian,,,Kementerian Pendayagunaan Aparatur Negara dan Reformasi Birokrasi
-Kementrian,,,Kementerian Lingkungan Hidup/Badan Pengendalian Lingkungan Hidup
-Kementrian,,,Kementerian Koordinator Bidang Politik dan Keamanan (Kemenko Polkam)
-Kementrian,,,"Kementerian Koordinator Bidang Hukum, Hak Asasi Manusia, Imigrasi, dan Pemasyarakatan (Kemenko Kumham Imipas)"
-Kementrian,,,Kementerian Koordinator Bidang Perekonomian (Kemenko Perekonomian)
-Kementrian,,,Kementerian Koordinator Bidang Pembangunan Manusia dan Kebudayaan (Kemenko PMK)
-Kementrian,,,Kementerian Koordinator Bidang Infrastruktur dan Pembangunan Kewilayahan (Kemenko Infra)
-Kementrian,,,Kementerian Koordinator Bidang Pemberdayaan Masyarakat (Kemenko PM)
-Kementrian,,,Kementerian Koordinator Bidang Pangan (Kemenko Pangan)
-Kementrian,,,Jaksa Agung (Kejaksaan Agung RI)
-Kementrian,,,Tentara Nasional Indonesia TNI
-Kementrian,,,Kepolisian Negara RI (Polri)
-Kementrian,,,Badan Intelijen Negara (BIN)
-Kementrian,,,Kantor Staf Presiden (KSP)
-Kementrian,,,Badan Gizi Nasional (BGN)
-Kementrian,,,Badan Pengelolaan Investasi Daya Anagata Nusantara (Danantara)
-Kementrian,,,Badan Komunikasi Pemerintah (Bakom)
-Kementrian,,,Otorita Ibu Kota Nusantara (OIKN)
-Kementrian,,,Badan Pengaturan Badan Usaha Milik Negara
-Kementrian,,,Badan Pusat Statistik (BPS)
-Kementrian,,,Badan Pengawas Obat dan Makanan (BPOM)
-Kementrian,,,Badan Standardisasi Nasional (BSN)
-Kementrian,,,Badan Siber dan Sandi Negara (BSSN)
-Kementrian,,,Badan Informasi Geospasial (BIG)
-Kementrian,,,"Badan Meteorologi, Klimatologi, dan Geofisika (BMKG)"
-Kementrian,,,Badan Tenaga Nuklir Nasional — kini bagian dari Badan Riset dan Inovasi Nasional (BRIN)
-Kementrian,,,Badan Riset dan Inovasi Nasional (BRIN)
-Kementrian,,,Lembaga Ilmu Pengetahuan Indonesia — melebur ke BRIN
-Kementrian,,,Lembaga Penerbangan dan Antariksa Nasional (LAPAN) — melebur ke BRIN
-Kementrian,,,Badan Pengkajian dan Penerapan Teknologi (BPPT) — melebur ke BRIN
-Kementrian,,,Badan Tenaga Nuklir Nasional (BATAN) — melebur ke BRIN
-Kementrian,,,Arsip Nasional Republik Indonesia (ANRI)
-Kementrian,,,Perpustakaan Nasional RI (Perpusnas)
-Kementrian,,,Badan Kepegawaian Negara (BKN)
-Kementrian,,,Lembaga Administrasi Negara (LAN)
-Kementrian,,,Badan Pengawasan Keuangan dan Pembangunan (BPKP)
-Kementrian,,,Badan Koordinasi Keamanan Laut (Bakamla)
-Kementrian,,,Badan Nasional Penanggulangan Bencana (BNPB)
-Kementrian,,,Badan Nasional Penanggulangan Terorisme (BNPT)
-Kementrian,,,Badan Narkotika Nasional (BNN)
-Kementrian,,,Badan Perlindungan Pekerja Migran Indonesia (BP2MI)
-Kementrian,,,Badan Pengembangan Wilayah Sarana dan Prasarana (Basarnas)
-Kementrian,,,Badan Pengusahaan Kawasan Perdagangan Bebas dan Pelabuhan Bebas Batam
-Kementrian,,,Badan Ekonomi Kreatif (Bekraf) — fungsinya kini melekat pada Kementerian Pariwisata/Ekraf
-Kementrian,,,"Badan Otorita Pariwisata (mis. Otorita Borobudur, Otorita Danau Toba)"
-Kementrian,,,Badan Pengaturan Badan Usaha Milik Negara — baru dibentuk Oktober 2025
-Kementrian,,,Badan Gizi Nasional
-Kementrian,,,Badan Bank Tanah
-Kementrian,,,Badan Pengelola Perbatasan Negara
-Kementrian,,,Badan Otorita Ibu Kota Nusantara
-Kementrian,,,Komisi Pemberantasan Korupsi (KPK)
-Kementrian,,,Komisi Pemilihan Umum (KPU)
-Kementrian,,,Badan Pengawas Pemilihan Umum (Bawaslu)
-Kementrian,,,Komisi Yudisial (KY)
-Kementrian,,,Komisi Nasional Hak Asasi Manusia (Komnas HAM)
-Kementrian,,,Komisi Pengawas Persaingan Usaha (KPPU)
-Kementrian,,,Komisi Informasi Pusat (KIP)
-Kementrian,,,Komisi Perlindungan Anak Indonesia (KPAI)
-Kementrian,,,Komisi Penyiaran Indonesia (KPI)
-Kementrian,,,Ombudsman Republik Indonesia
-Kementrian,,,Pusat Pelaporan dan Analisis Transaksi Keuangan (PPATK)
-Kementrian,,,Lembaga Perlindungan Saksi dan Korban (LPSK)
-Kementrian,,,Otoritas Jasa Keuangan (OJK)
-Kementrian,,,Lembaga Penjamin Simpanan (LPS)
-Kementrian,,,Dewan Perwakilan Rakyat Daerah
-Kementrian,,,Komisi Aparatur Sipil Negara (KASN)
-Kementrian,,,Komisi Nasional Disabilitas
-Kementrian,,,Dewan Pers
-Kementrian,,,Komisi Kejaksaan RI
-Kementrian,,,Komisi Kepolisian Nasional (Kompolnas)
-Kementrian,,,Komisi Pengawas Haji Indonesia
-Kementrian,,,Majelis Permusyawaratan Rakyat (MPR)
-Kementrian,,,Dewan Perwakilan Rakyat (DPR)
-Kementrian,,,Dewan Perwakilan Daerah (DPD)
-Kementrian,,,Mahkamah Agung (MA)
-Kementrian,,,Mahkamah Konstitusi (MK)
-Kementrian,,,Badan Pemeriksa Keuangan (BPK)
-Kementrian,,,Lembaga Penyiaran Publik Televisi Republik Indonesia (LPP TVRI)
-Kementrian,,,Lembaga Kebijakan Pengadaan Barang/Jasa Pemerintah (LKPP)
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Konawe,RSUD Kabupaten Konawe
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Konawe Selatan,RSUD Kabupaten Konawe Selatan
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Konawe Utara,RSUD Kabupaten Konawe Utara
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Konawe Kepulauan,RSUD Kabupaten Konawe Kepulauan
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Kolaka,RS Benyamin Guluh Kolaka
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Kolaka Utara,RSUD H.M. Djafar Harun
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Kolaka Timur,RSUD Kabupaten Kolaka Timur
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Muna,"RSUD dr. L.M Baharuddin, M. Kes Kab. Muna"
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Muna Barat,RSUD Kabupaten Muna Barat
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Buton,RSUD Kabupaten Buton
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Buton Utara,RSUD Kabupaten Buton Utara
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Buton Selatan,RSUD Kabupaten Buton Selatan
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Buton Tengah,RSUD Kabupaten Buton Tengah
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Wakatobi,RSUD Kabupaten Wakatobi
+Unit Kesehatan,Prov. Sulawesi Tenggara,Kab. Bombana,RSUD Kabupaten Bombana
+Unit Kesehatan,Prov. Sulawesi Utara,Kota Manado,RS R. D. Kandou
+Unit Kesehatan,Prov. Sulawesi Utara,Kota Bitung,RSUD Manembo-Nembo Bitung
+Unit Kesehatan,Prov. Sulawesi Utara,Kota Tomohon,RSUD Anugerah
+Unit Kesehatan,Prov. Sulawesi Utara,Kota Kotamobagu,RSUD Kota Kotamobagu
+Unit Kesehatan,Prov. Sulawesi Utara,Kab. Bolaang Mongondow,RS Umum Datoe Binangkang
+Unit Kesehatan,Prov. Sulawesi Utara,Kab. Bolaang Mongondow Utara,RSUD Bolaang Mongondow Utara
+Unit Kesehatan,Prov. Sulawesi Utara,Kab. Bolaang Mongondow Timur,RSUD Bolaang Mongondow Timur
+Unit Kesehatan,Prov. Sulawesi Utara,Kab. Bolaang Mongondow Selatan,RSUD Bolaang Mongondow Selatan
+Unit Kesehatan,Prov. Sulawesi Utara,Kab. Minahasa,RSUD Dr. Sam Ratulangi Tondano
+Unit Kesehatan,Prov. Sulawesi Utara,Kab. Minahasa Utara,RSUD Maria Walanda Maramis
+Unit Kesehatan,Prov. Sulawesi Utara,Kab. Minahasa Selatan,RSUD Amurang
+Unit Kesehatan,Prov. Sulawesi Utara,Kab. Minahasa Tenggara,RSUD Mitra Sehat
+Unit Kesehatan,Prov. Sulawesi Utara,Kab. Kepulauan Sangihe,RSD Liun Kendage
+Unit Kesehatan,Prov. Sulawesi Utara,Kab. Kepulauan Talaud,RSUD Talaud
+Unit Kesehatan,Prov. Sulawesi Utara,Kab. Sitaro,RSUD Lapangan Sawang
+Unit Kesehatan,Prov. Sumatera Barat,Kota Padang,RSUD dr. Rasidin
+Unit Kesehatan,Prov. Sumatera Barat,Kota Bukittinggi,RSUD Dr. Achmad Mochtar
+Unit Kesehatan,Prov. Sumatera Barat,Kota Padang Panjang,RSUD Padang Panjang
+Unit Kesehatan,Prov. Sumatera Barat,Kota Payakumbuh,RSUD Dr. Adnaan WD
+Unit Kesehatan,Prov. Sumatera Barat,Kota Sawahlunto,RSUD Ahmad Syafii Maarif
+Unit Kesehatan,Prov. Sumatera Barat,Kota Solok,RSUD M. Natsir
+Unit Kesehatan,Prov. Sumatera Barat,Kota Pariaman,RSUD Pariaman
+Unit Kesehatan,Prov. Sumatera Barat,Kab. Agam,RSUD Lubuk Basung
+Unit Kesehatan,Prov. Sumatera Barat,Kab. Lima Puluh Kota,RSUD dr. Achmad Darwis (Suliki)
+Unit Kesehatan,Prov. Sumatera Barat,Kab. Padang Pariaman,RSUD Padang Pariaman (Parit Malintang)
+Unit Kesehatan,Prov. Sumatera Barat,Kab. Pasaman,RSUD Lubuk Sikaping
+Unit Kesehatan,Prov. Sumatera Barat,Kab. Pasaman Barat,RSUD Pasaman Barat
+Unit Kesehatan,Prov. Sumatera Barat,Kab. Pesisir Selatan,RSUD Dr. Muhammad Zein (Painan)
+Unit Kesehatan,Prov. Sumatera Barat,Kab. Sijunjung,RSUD Sijunjung
+Unit Kesehatan,Prov. Sumatera Barat,Kab. Solok,RSUD Arosuka
+Unit Kesehatan,Prov. Sumatera Barat,Kab. Solok Selatan,RSUD Solok Selatan (Muara Labuh)
+Unit Kesehatan,Prov. Sumatera Barat,Kab. Tanah Datar,"RSUD Prof. Dr. M.A. Hanafiah, SM (Batusangkar)"
+Unit Kesehatan,Prov. Sumatera Barat,Kab. Dharmasraya,RSUD Sungai Dareh
+Unit Kesehatan,Prov. Sumatera Barat,Kab. Kepulauan Mentawai,RSUD Kepulauan Mentawai
+Unit Kesehatan,Prov. Sumatera Selatan,Kota Palembang,RSUD Palembang BARI
+Unit Kesehatan,Prov. Sumatera Selatan,Kota Prabumulih,RSUD Prabumulih
+Unit Kesehatan,Prov. Sumatera Selatan,Kota Pagar Alam,RSUD Besemah
+Unit Kesehatan,Prov. Sumatera Selatan,Kota Lubuklinggau,RSUD Siti Aisyah
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. Ogan Komering Ulu (OKU),RSUD dr. Ibnu Sutowo (Baturaja)
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. OKU Selatan,RSUD Muaradua
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. OKU Timur,RSUD Martapura
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. Ogan Ilir,RSUD Ogan Ilir (Indralaya)
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. Ogan Komering Ilir (OKI),RSUD Kayuagung
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. Muara Enim,RSUD dr. H. M. Rabain Muara Enim
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. Lahat,RSUD Lahat
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. Musi Rawas,RSUD dr. Sobirin (Muara Beliti)
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. Musi Rawas Utara,RSUD Musi Rawas Utara (Rupit)
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. Musi Banyuasin,RSUD Sekayu
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. Banyuasin,RSUD Banyuasin
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. Empat Lawang,RSUD Empat Lawang (Tebing Tinggi)
+Unit Kesehatan,Prov. Sumatera Selatan,Kab. Penukal Abab Lematang Ilir (PALI),RSUD Talang Ubi
+Unit Kesehatan,Prov. Sumatera Utara,Kota Medan,RSUD dr. Pirngadi Medan
+Unit Kesehatan,Prov. Sumatera Utara,Kota Binjai,RSUD dr. R.M. Djoelham
+Unit Kesehatan,Prov. Sumatera Utara,Kota Tebing Tinggi,RSUD Kumpulan Pane
+Unit Kesehatan,Prov. Sumatera Utara,Kota Pematangsiantar,RSUD dr. Djasamen Saragih
+Unit Kesehatan,Prov. Sumatera Utara,Kota Tanjungbalai,RSUD Tanjungbalai
+Unit Kesehatan,Prov. Sumatera Utara,Kota Sibolga,RSUD dr. F.L. Tobing
+Unit Kesehatan,Prov. Sumatera Utara,Kota Padangsidimpuan,RSUD Padangsidimpuan
+Unit Kesehatan,Prov. Sumatera Utara,Kota Gunungsitoli,RSUD Gunungsitoli
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Deli Serdang,RSUD Drs. H. Amri Tambunan
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Langkat,RSUD Tanjung Pura
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Karo,RSUD Kabanjahe
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Simalungun,RSUD Perdagangan
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Asahan,RSUD Abdul Manan Simatupang
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Labuhanbatu,RSUD Rantauprapat
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Labuhanbatu Utara,RSUD Aek Kanopan
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Labuhanbatu Selatan,RSUD Kotapinang
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Toba,RSUD Porsea
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Tapanuli Utara,RSUD Tarutung
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Tapanuli Tengah,RSUD Pandan
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Tapanuli Selatan,RSUD Sipirok
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Padang Lawas,RSUD Sibuhuan
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Padang Lawas Utara,RSUD Gunung Tua
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Mandailing Natal,RSUD Panyabungan
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Nias,RSUD dr. M. Thomsen Nias
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Nias Utara,RSUD Tafaeri (Lotu)
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Nias Selatan,RSUD Nias Selatan (Teluk Dalam)
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Nias Barat,RSUD Nias Barat
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Samosir,RSUD Samosir (Pangururan)
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Humbang Hasundutan,RSUD Doloksanggul
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Dairi,RSUD Sidikalang
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Pakpak Bharat,RSUD Salak
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Serdang Bedagai,RSUD Sultan Sulaiman Syariful Alamsyah
+Unit Kesehatan,Prov. Sumatera Utara,Kab. Batu Bara,RSUD Batu Bara (Lima Puluh)

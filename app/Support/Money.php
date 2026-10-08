@@ -36,21 +36,22 @@ class Money
     }
 
     /**
-     * Short display form: Rp 0, Rp 3,5 Jt, Rp 3,5 M.
+     * Short display form with two decimals, truncated rather than rounded so the figure
+     * never overstates the real value: Rp 0, Rp 3,50 Jt, Rp 3,57 M.
      */
     public static function abbreviate(mixed $value): string
     {
-        $value = (float) $value;
+        $value = (int) $value;
 
         if (! $value) {
             return 'Rp 0';
         }
 
-        if ($value >= 1_000_000_000) {
-            return 'Rp '.rtrim(rtrim(number_format($value / 1_000_000_000, 1, ',', '.'), '0'), ',').' M';
+        if (abs($value) >= 1_000_000_000) {
+            return 'Rp '.number_format(intdiv($value, 10_000_000) / 100, 2, ',', '.').' M';
         }
 
-        return 'Rp '.rtrim(rtrim(number_format($value / 1_000_000, 1, ',', '.'), '0'), ',').' Jt';
+        return 'Rp '.number_format(intdiv($value, 10_000) / 100, 2, ',', '.').' Jt';
     }
 
     /**

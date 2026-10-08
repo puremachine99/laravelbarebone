@@ -196,7 +196,7 @@ $monthlyTrend = computed(function () {
                     </div>
                 @else
                     <div class="text-sm text-base-content/50">
-                        Viewing as <span class="font-semibold text-base-content">{{ $this->currentEmployee?->user?->name }}</span>
+                        Viewing as <span class="font-semibold text-base-content"><x-short-name :name="$this->currentEmployee?->user?->name" /></span>
                     </div>
                 @endif
             </div>
@@ -240,7 +240,7 @@ $monthlyTrend = computed(function () {
                 <tbody>
                     @forelse ($this->realisasiPerFo as $row)
                         <tr class="border-b border-base-300 hover:bg-base-200">
-                            <td class="font-medium text-base-content">{{ $row['name'] }}</td>
+                            <td class="font-medium text-base-content"><x-short-name :name="$row['name']" /></td>
                             <td class="text-right">{{ number_format($row['leads']) }}</td>
                             <td class="text-right">{{ number_format($row['ql']) }}</td>
                             <td class="text-right">{{ number_format($row['pitching']) }}</td>

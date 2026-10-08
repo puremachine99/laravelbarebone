@@ -239,7 +239,7 @@ $funnelKumulatif = computed(function () {
                     </div>
                 @else
                     <div class="text-sm text-base-content/50">
-                        Viewing as <span class="font-semibold text-base-content">{{ $this->currentEmployee?->user?->name }}</span>
+                        Viewing as <span class="font-semibold text-base-content"><x-short-name :name="$this->currentEmployee?->user?->name" /></span>
                     </div>
                 @endif
             </div>

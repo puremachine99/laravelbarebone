@@ -28,12 +28,20 @@ test('normalize drops a stray decimal suffix instead of folding it into the inte
 
 test('abbreviate formats millions and billions in Indonesian short form', function () {
     expect(Money::abbreviate(0))->toBe('Rp 0')
-        ->and(Money::abbreviate(500_000_000))->toBe('Rp 500 Jt')
-        ->and(Money::abbreviate(3_500_000_000))->toBe('Rp 3,5 M')
-        ->and(Money::abbreviate(1_200_000_000))->toBe('Rp 1,2 M');
+        ->and(Money::abbreviate(500_000_000))->toBe('Rp 500,00 Jt')
+        ->and(Money::abbreviate(3_500_000_000))->toBe('Rp 3,50 M')
+        ->and(Money::abbreviate(1_200_000_000))->toBe('Rp 1,20 M');
 });
 
 test('exact formats the full, non-abbreviated Rupiah value', function () {
     expect(Money::exact(3_500_000_000))->toBe('Rp 3.500.000.000')
         ->and(Money::exact(0))->toBe('Rp 0');
+});
+
+it('truncates abbreviated amounts to two decimals instead of rounding', function () {
+    expect(Money::abbreviate(3_579_999_999))->toBe('Rp 3,57 M')
+        ->and(Money::abbreviate(1_999_999_999))->toBe('Rp 1,99 M')
+        ->and(Money::abbreviate(12_345_678_000))->toBe('Rp 12,34 M')
+        ->and(Money::abbreviate(2_999_999))->toBe('Rp 2,99 Jt')
+        ->and(Money::abbreviate(1_234_567))->toBe('Rp 1,23 Jt');
 });

@@ -292,7 +292,7 @@ $statsPic = computed(function () {
             <div class="space-y-1.5 pt-2">
                 @foreach ($this->statsPic['pics']->take(3) as $row)
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-medium text-base-content/70">{{ $row->employee?->user?->name ?? '-' }}</span>
+                        <span class="font-medium text-base-content/70"><x-short-name :name="$row->employee?->user?->name" /></span>
                         <span class="text-base-content/50 font-semibold">{{ $row->count }} Contacts</span>
                     </div>
                 @endforeach
@@ -365,7 +365,7 @@ $statsPic = computed(function () {
                                 @if ($contact->employee?->user?->name)
                                     <div class="flex items-center gap-2">
                                         <x-user-avatar :user="$contact->employee->user" size="size-6" />
-                                        <span class="text-sm">{{ $contact->employee->user->name }}</span>
+                                        <span class="text-sm"><x-short-name :name="$contact->employee->user->name" /></span>
                                     </div>
                                 @else
                                     <span class="text-base-content/40">-</span>

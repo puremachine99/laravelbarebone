@@ -261,7 +261,7 @@ $formatChanges = function ($log) {
                     @forelse ($this->logs as $log)
                         <tr class="border-b border-base-300 align-top">
                             <td class="whitespace-nowrap">{{ $log->created_at->format('d/m/Y H:i') }}</td>
-                            <td>{{ $log->causer?->name ?? '-' }}</td>
+                            <td><x-short-name :name="$log->causer?->name" /></td>
                             <td>
                                 <span
                                     class="badge badge-sm badge-outline">{{ $this->moduleLabel($log->loggable_type) }}</span>

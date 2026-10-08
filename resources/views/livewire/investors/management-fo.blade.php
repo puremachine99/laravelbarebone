@@ -562,7 +562,7 @@ $foRanking = computed(function () {
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 @foreach ($this->foEmployees as $fo)
                     <div class="card bg-base-100 border border-base-300 p-3 rounded-xl">
-                        <div class="font-semibold text-sm text-base-content truncate mb-2" title="{{ $fo['name'] }}">{{ $fo['name'] }}</div>
+                        <div class="font-semibold text-sm text-base-content truncate mb-2"><x-short-name :name="$fo['name']" /></div>
 
                         <div class="space-y-1">
                             @foreach ($metrics as $metric)
@@ -573,7 +573,7 @@ $foRanking = computed(function () {
                                     $proyeksi = $hasProyeksi ? $this->proyeksiFor($fo['id'], $metric['key']) : null;
                                     $realisasi = $this->realisasiFor($fo['id'], $metric['key']);
                                     $gap = $realisasi - $target;
-                                    $fmt = fn ($v) => $isCurrency ? Money::abbreviate($v) : number_format($v, $activePeriod === 'harian' ? 1 : 0);
+                                    $fmt = fn ($v) => $isCurrency ? Money::exact($v) : number_format($v, $activePeriod === 'harian' ? 1 : 0);
                                     $exactSuffix = fn ($v) => $isCurrency ? ' Value: '.Money::exact($v).'.' : '';
                                 @endphp
                                 <div class="flex items-center justify-between gap-1 text-xs">
@@ -708,7 +708,7 @@ $foRanking = computed(function () {
                         @forelse ($this->foRanking as $i => $fo)
                             <tr class="border-b border-base-300">
                                 <td>{{ $i + 1 }}</td>
-                                <td class="font-medium text-base-content">{{ $fo['name'] }}</td>
+                                <td class="font-medium text-base-content"><x-short-name :name="$fo['name']" /></td>
                                 <td class="text-right">{{ number_format($fo['won']) }}</td>
                                 <td class="text-right">{{ number_format($fo['closing']) }}</td>
                                 <td class="text-right"><x-currency-abbr :value="$fo['nilai_closing']" /></td>
@@ -759,7 +759,7 @@ $foRanking = computed(function () {
                         @endphp
                         <tr class="border-b border-base-300">
                             <td class="whitespace-nowrap">{{ $log->created_at->format('d/m/Y H:i') }}</td>
-                            <td>{{ $log->causer?->name ?? '-' }}</td>
+                            <td><x-short-name :name="$log->causer?->name" /></td>
                             <td>{{ $log->targetOwnerName ?? '-' }}</td>
                             <td>{{ $logMetric['label'] ?? $logMetricKey }}</td>
                             <td class="text-right text-base-content/50">

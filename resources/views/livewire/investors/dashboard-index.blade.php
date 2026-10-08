@@ -297,7 +297,7 @@ $leaderboard = computed(function () {
                     </div>
                 @else
                     <div class="text-sm text-base-content/50 pb-2.5">
-                        Viewing as <span class="font-semibold text-base-content">{{ $this->currentEmployee?->user?->name }}</span>
+                        Viewing as <span class="font-semibold text-base-content"><x-short-name :name="$this->currentEmployee?->user?->name" /></span>
                     </div>
                 @endif
 
@@ -428,7 +428,7 @@ $leaderboard = computed(function () {
                     <tbody>
                         @forelse ($this->realisasiPerFo as $row)
                             <tr class="border-b border-base-300 hover:bg-base-200">
-                                <td class="font-medium text-base-content">{{ $row['name'] }}</td>
+                                <td class="font-medium text-base-content"><x-short-name :name="$row['name']" /></td>
                                 <td class="text-right">{{ number_format($row['leads']) }}</td>
                                 <td class="text-right">{{ number_format($row['ql']) }}</td>
                                 <td class="text-right">{{ number_format($row['pitching']) }}</td>
@@ -478,7 +478,7 @@ $leaderboard = computed(function () {
                         @forelse ($this->leaderboard as $i => $fo)
                             <tr class="border-b border-base-300">
                                 <td>{{ $i + 1 }}</td>
-                                <td class="font-medium text-base-content">{{ $fo['name'] }}</td>
+                                <td class="font-medium text-base-content"><x-short-name :name="$fo['name']" /></td>
                                 <td class="text-right">{{ number_format($fo['lead']) }}</td>
                                 <td class="text-right">{{ number_format($fo['won']) }}</td>
                                 <td class="text-right">{{ number_format($fo['closing']) }}</td>

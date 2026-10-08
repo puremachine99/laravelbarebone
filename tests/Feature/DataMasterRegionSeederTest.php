@@ -55,3 +55,16 @@ it('overrides an existing region assignment', function () {
 
     expect($this->acehBaratRegency->fresh()->region_id)->toBe($this->region2->id);
 });
+
+it('renames provinces to the spelling used in the CSV', function () {
+    $region3 = Region::factory()->create(['code' => 'REG-3']);
+    $province = Province::factory()->create(['name' => 'Prov. Daerah Khusus Jakarta']);
+    $jakarta = Regency::factory()->create([
+        'province_id' => $province->id, 'name' => 'Prov. DKI Jakarta', 'type' => 'Provinsi', 'region_id' => null,
+    ]);
+
+    $this->seed(DataMasterRegionSeeder::class);
+
+    expect($jakarta->fresh()->region_id)->toBe($region3->id)
+        ->and($province->fresh()->name)->toBe('Prov. DKI Jakarta');
+});

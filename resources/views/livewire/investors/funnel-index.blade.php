@@ -982,7 +982,7 @@ $closeActivityLog = function () {
                         @endif
                         <span class="text-xs font-semibold text-base-content/40">{{ $stageFunnels->count() }}</span>
                     </div>
-                    <span class="text-xs font-bold text-primary"><x-currency-abbr :value="$this->stageSum($stage['key'])" /></span>
+                    <span class="text-xs font-bold text-primary"><x-currency-abbr abbreviated :value="$this->stageSum($stage['key'])" /></span>
                 </div>
 
                 <div class="flex flex-col gap-2 min-h-[80px] overflow-y-auto flex-1">
@@ -1045,8 +1045,8 @@ $closeActivityLog = function () {
                                 $amountBadgeClass = collect($stages)->firstWhere('key', $funnel->stage)['badge'] ?? 'badge-ghost';
                             @endphp
                             <div class="flex items-center justify-between pt-1">
-                                <span class="badge badge-sm {{ $amountBadgeClass }} font-semibold"><x-currency-abbr :value="$displayAmount" /></span>
-                                <span class="text-[11px] text-base-content/50 truncate max-w-[110px]" title="{{ $funnel->employee?->user?->name }}">{{ $funnel->employee?->user?->name }}</span>
+                                <span class="badge badge-sm {{ $amountBadgeClass }} font-semibold"><x-currency-abbr abbreviated :value="$displayAmount" /></span>
+                                <x-short-name class="text-[11px] text-base-content/50 truncate max-w-[110px]" :name="$funnel->employee?->user?->name" />
                             </div>
                             @php $fuCount = $funnel->followup_count; @endphp
                             <div class="flex items-center justify-between gap-1">
@@ -1056,7 +1056,7 @@ $closeActivityLog = function () {
                             @if ($showWonComparison)
                                 <div class="tooltip w-full" data-tip="Committed amount (Won) differs from final amount (Closing).">
                                     <div class="text-[11px] text-warning/80 bg-warning/10 rounded-lg px-2 py-1 truncate">
-                                        Committed: <x-currency-abbr :value="$funnel->nominal_won" />
+                                        Committed: <x-currency-abbr abbreviated :value="$funnel->nominal_won" />
                                     </div>
                                 </div>
                             @endif
@@ -1153,8 +1153,8 @@ $closeActivityLog = function () {
                         <tr class="border-b border-base-300 hover:bg-base-200">
                             <td class="font-semibold text-base-content py-3">{{ $this->contactLabel($funnel) }}</td>
                             <td class="max-w-[220px] truncate">{{ $funnel->contact?->profesi }}</td>
-                            <td><x-currency-abbr :value="$displayAmountTable" /></td>
-                            <td>{{ $funnel->employee?->user?->name }}</td>
+                            <td><x-currency-abbr abbreviated :value="$displayAmountTable" /></td>
+                            <td><x-short-name :name="$funnel->employee?->user?->name" /></td>
                             <td>{{ $funnel->sumber }}</td>
                             <td>
                                 @php $meta = collect($stages)->firstWhere('key', $funnel->stage); @endphp
@@ -1429,7 +1429,7 @@ $closeActivityLog = function () {
                     @forelse ($this->activityLogs as $log)
                         <tr class="border-b border-base-300 align-top">
                             <td class="whitespace-nowrap">{{ $log->created_at->format('d/m/Y H:i') }}</td>
-                            <td>{{ $log->changedBy?->name ?? '-' }}</td>
+                            <td><x-short-name :name="$log->changedBy?->name" /></td>
                             <td class="text-xs">
                                 {{ $log->old_tanggal?->format('d M Y') ?? '-' }}
                                 <x-icon name="o-arrow-right" class="w-3 h-3 inline text-base-content/30" />
