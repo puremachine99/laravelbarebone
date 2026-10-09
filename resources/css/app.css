@@ -131,6 +131,73 @@
     @apply text-white/40;
 }
 
+/* ─── AI Center: Markdown answers ──────────── */
+
+.ai-markdown {
+    @apply text-sm leading-relaxed wrap-break-word;
+}
+
+.ai-markdown > * + * {
+    @apply mt-2;
+}
+
+.ai-markdown h1,
+.ai-markdown h2,
+.ai-markdown h3,
+.ai-markdown h4 {
+    @apply font-semibold text-base-content;
+}
+
+.ai-markdown h1,
+.ai-markdown h2 {
+    @apply text-base;
+}
+
+.ai-markdown ul {
+    @apply list-disc ps-5 space-y-1;
+}
+
+.ai-markdown ol {
+    @apply list-decimal ps-5 space-y-1;
+}
+
+.ai-markdown a {
+    @apply text-indigo-600 dark:text-indigo-400 underline;
+}
+
+.ai-markdown code {
+    @apply px-1 py-0.5 rounded bg-base-200 font-mono text-[0.8125rem];
+}
+
+.ai-markdown pre {
+    @apply p-3 rounded-lg bg-base-200 overflow-x-auto;
+}
+
+.ai-markdown pre code {
+    @apply p-0 bg-transparent;
+}
+
+.ai-markdown blockquote {
+    @apply border-s-4 border-base-300 ps-3 text-base-content/70;
+}
+
+.ai-markdown table {
+    @apply w-full text-xs border-collapse block overflow-x-auto;
+}
+
+.ai-markdown th,
+.ai-markdown td {
+    @apply border border-base-300 px-2 py-1 text-left;
+}
+
+.ai-markdown th {
+    @apply bg-base-200 font-semibold;
+}
+
+.ai-markdown hr {
+    @apply border-base-300;
+}
+
 /* ─── Icon-only Collapsed Sidebar (desktop only) ──────────── */
 
 @media (min-width: 1024px) {

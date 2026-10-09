@@ -14,6 +14,9 @@ use App\Models\Region;
 use App\Models\Urusan;
 use App\Models\User;
 use App\Observers\EmployeeObserver;
+use App\Services\AiCenter\AiGateway;
+use App\Services\AiCenter\FakeAiGateway;
+use App\Services\AiCenter\NakamaAiGateway;
 use App\Support\CsvExport\CsvExportDefinition;
 use App\Support\CsvExport\CsvExportRegistry;
 use App\View\Components\AccessibleSelect;
@@ -25,6 +28,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use InvalidArgumentException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,7 +37,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(AiGateway::class, fn () => match (config('ai_center.driver')) {
+            'fake' => new FakeAiGateway(delayMs: $this->app->runningUnitTests() ? 0 : 25),
+            'nakama' => new NakamaAiGateway,
+            default => throw new InvalidArgumentException('AI Center driver ['.config('ai_center.driver').'] is not available yet.'),
+        });
     }
 
     /**

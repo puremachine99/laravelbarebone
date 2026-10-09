@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AiCenter\StreamMessageController;
 use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\CsvExportController;
 use App\Http\Controllers\Debug\ErrorLogController;
@@ -85,6 +86,7 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
 
     Route::middleware('can:manage-ai-center')->group(function () {
         Route::get('/ai-center', AiCenter::class)->name('ai-center');
+        Route::post('/ai-center/messages', StreamMessageController::class)->name('ai-center.messages.stream');
     });
 
     Volt::route('/partnership/test/pitching', 'partnership.test-pitching-compare')->name('partnership.test.pitching');

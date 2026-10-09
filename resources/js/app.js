@@ -117,6 +117,156 @@ window.csvDownloadManager = function () {
     };
 };
 
+// Backs the AI Center chat box (resources/views/livewire/ai/ai-center.blade.php). Sending a message is a plain
+// fetch() to the SSE endpoint rather than a Livewire action, so the answer can be shown as it streams in and the
+// Stop button can cut the request off. Once the stream ends, Livewire re-renders the thread from the database.
+window.aiCenterChat = function ({ streamUrl, maxChars }) {
+    return {
+        maxChars,
+        input: '',
+        quickAction: null,
+        pending: null,
+        errorMessage: null,
+        controller: null,
+
+        get isStreaming() {
+            return this.controller !== null;
+        },
+
+        get overLimit() {
+            return this.input.length > this.maxChars;
+        },
+
+        resize() {
+            const el = this.$refs.input;
+            if (!el) return;
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+        },
+
+        scrollToBottom() {
+            this.$nextTick(() => {
+                const el = this.$refs.thread;
+                if (el) el.scrollTop = el.scrollHeight;
+            });
+        },
+
+        useQuickAction(key, template) {
+            this.quickAction = key;
+            this.input = template;
+            this.errorMessage = null;
+            this.$nextTick(() => {
+                const el = this.$refs.input;
+                el.focus();
+                el.setSelectionRange(el.value.length, el.value.length);
+                this.resize();
+            });
+        },
+
+        stop() {
+            this.controller?.abort();
+        },
+
+        async send(text = null) {
+            const message = (text ?? this.input).trim();
+            if (message === '' || this.isStreaming) return;
+
+            if (message.length > this.maxChars) {
+                this.errorMessage = `Pesan terlalu panjang (maks ${this.maxChars.toLocaleString('id-ID')} karakter).`;
+                return;
+            }
+
+            const quickAction = text === null ? this.quickAction : null;
+            let conversationId = this.$wire.selectedConversationId;
+            let refused = false;
+            let aborted = false;
+
+            this.errorMessage = null;
+            if (text === null) {
+                this.input = '';
+                this.quickAction = null;
+                this.$nextTick(() => this.resize());
+            }
+            this.pending = { prompt: message, text: '', error: null };
+            this.controller = new AbortController();
+            this.scrollToBottom();
+
+            try {
+                const response = await fetch(streamUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'text/event-stream',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                    },
+                    body: JSON.stringify({ conversation_id: conversationId, message, quick_action: quickAction }),
+                    signal: this.controller.signal,
+                });
+
+                if (!response.ok) throw new Error('stream failed: ' + response.status);
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                // eslint-disable-next-line no-constant-condition
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+
+                    let boundary;
+                    while ((boundary = buffer.indexOf('\n\n')) !== -1) {
+                        const block = buffer.slice(0, boundary);
+                        buffer = buffer.slice(boundary + 2);
+
+                        const name = block.match(/^event: (.*)$/m)?.[1];
+                        const data = JSON.parse(block.match(/^data: (.*)$/m)?.[1] ?? '{}');
+
+                        if (name === 'conversation') {
+                            conversationId = data.id;
+                        } else if (name === 'delta') {
+                            this.pending.text += data.text;
+                            this.scrollToBottom();
+                        } else if (name === 'error') {
+                            if (['rate_limited', 'input_too_long'].includes(data.code)) {
+                                refused = true;
+                                this.errorMessage = data.message;
+                            } else {
+                                this.pending.error = data.message;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                aborted = e.name === 'AbortError';
+                if (!aborted) this.pending.error = 'Terjadi gangguan pada layanan AI.';
+            } finally {
+                this.controller = null;
+
+                if (refused || !conversationId) {
+                    // Nothing was saved: put the text back so the user can edit and resend it.
+                    if (!refused) this.errorMessage = this.pending.error ?? 'Terjadi gangguan pada layanan AI.';
+                    if (text === null) {
+                        this.input = message;
+                        this.quickAction = quickAction;
+                        this.$nextTick(() => this.resize());
+                    }
+                    this.pending = null;
+                } else {
+                    // After Stop, give the server a moment to save the reply as "cancelled" before re-rendering.
+                    if (aborted) await new Promise((resolve) => setTimeout(resolve, 600));
+                    await this.$wire.streamFinished(conversationId);
+                    this.pending = null;
+                    this.scrollToBottom();
+                }
+            }
+        },
+    };
+};
+
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
  * for events that are broadcast by Laravel. Echo and event broadcasting

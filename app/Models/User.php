@@ -9,6 +9,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -75,6 +76,14 @@ class User extends Authenticatable implements PasskeyUser
     public function employee()
     {
         return $this->hasOne(Employee::class);
+    }
+
+    /**
+     * The user's own AI Center chats — the only way AI conversations should be looked up (owner-only privacy).
+     */
+    public function aiConversations(): HasMany
+    {
+        return $this->hasMany(AiConversation::class);
     }
 
     /**
