@@ -3,6 +3,7 @@
 use App\Enums\ChatPresenceStatus;
 use App\Events\Chat\UserStatusChanged;
 use App\Livewire\Chat\ChatIndex;
+use App\Livewire\Chat\UnreadBadge;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
@@ -142,4 +143,23 @@ test('a user can change their own presence status and it broadcasts to others', 
     expect($me->fresh()->presence_status)->toBe(ChatPresenceStatus::Busy);
 
     Event::assertDispatched(UserStatusChanged::class, fn (UserStatusChanged $event) => $event->user->is($me));
+});
+
+test('sidebar unread badge counts only unread messages from others', function () {
+    $me = chatUser();
+    $other = User::factory()->create();
+    $conversation = Conversation::findOrCreateDirect($me, $other);
+
+    Message::factory()->count(2)->create(['conversation_id' => $conversation->id, 'user_id' => $other->id]);
+    Message::factory()->create(['conversation_id' => $conversation->id, 'user_id' => $me->id]);
+
+    Livewire::actingAs($me)
+        ->test(UnreadBadge::class)
+        ->assertSeeText('2');
+
+    $conversation->participants()->updateExistingPivot($me->id, ['last_read_at' => now()->addMinute()]);
+
+    Livewire::actingAs($me)
+        ->test(UnreadBadge::class)
+        ->assertDontSeeHtml('rounded-full');
 });

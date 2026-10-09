@@ -110,11 +110,6 @@ new #[Layout('layouts.app')] class extends Component {
                             </div>
 
                             <div class="flex justify-between items-center border-b border-base-300 pb-2">
-                                <span class="font-semibold text-base-content/70">{{ __('Status Kepegawaian') }}</span>
-                                <span class="font-medium text-base-content">{{ $this->employee->employment_status ?? '-' }}</span>
-                            </div>
-
-                            <div class="flex justify-between items-center border-b border-base-300 pb-2">
                                 <span class="font-semibold text-base-content/70">{{ __('Departemen') }}</span>
                                 <span class="font-medium text-base-content">{{ $this->employee->department->name ?? '-' }}</span>
                             </div>

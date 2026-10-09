@@ -159,6 +159,7 @@ class ChatIndex extends Component
 
         unset($this->conversations);
 
+        $this->dispatch('chat-read');
         $this->dispatch('message-sent');
         $this->dispatch('conversation-selected', conversationId: $conversationId);
     }
@@ -182,6 +183,7 @@ class ChatIndex extends Component
 
         unset($this->selectedConversation);
 
+        $this->dispatch('chat-read');
         $this->dispatch('message-sent');
     }
 
