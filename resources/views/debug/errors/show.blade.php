@@ -29,7 +29,9 @@
 @endphp
 
 <x-layouts::app.sidebar :title="'Error '.$error->error_code">
-    <div class="space-y-4" x-data="{
+    {{-- On desktop the page is exactly one screen tall (viewport minus the 4rem top bar and 3rem main padding);
+         the cards scroll internally instead of the page. --}}
+    <div class="flex flex-col gap-4 lg:h-[calc(100dvh-7rem)] lg:overflow-hidden" x-data="{
         copied: null,
         resolved: @js((bool) $error->resolved),
         async copy(key, text) {
@@ -47,7 +49,7 @@
     }">
 
         {{-- Page Header --}}
-        <div class="card bg-base-100 border border-base-300 shadow-sm">
+        <div class="card bg-base-100 border border-base-300 shadow-sm shrink-0">
             <div class="card-body p-5 gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div class="min-w-0 space-y-1.5">
                     <a href="{{ route('dev.errors.index') }}" wire:navigate class="link link-primary text-xs">&larr; Kembali ke daftar</a>
@@ -59,7 +61,7 @@
                         </svg>
                         {{ $error->error_code }}
                     </h1>
-                    <p class="text-base-content/80 wrap-break-word">{{ $error->message }}</p>
+                    <p class="text-base-content/80 wrap-break-word line-clamp-2" title="{{ $error->message }}">{{ $error->message }}</p>
                     <div class="flex flex-wrap gap-1.5">
                         <span class="badge badge-sm {{ $severityBadge }}">{{ $error->severity }}</span>
                         @if ($error->status)
@@ -88,110 +90,105 @@
             </div>
         </div>
 
-        {{-- Code for the user to report --}}
-        <div class="card bg-base-100 border border-base-300 shadow-sm">
-            <div class="card-body p-5 gap-3">
-                <p class="text-xs font-semibold text-base-content/60 uppercase tracking-wider">Kode untuk dilaporkan user</p>
-                <p class="text-sm text-base-content/70">User cukup kirim kode ini ke developer:</p>
-                <div class="flex items-center justify-between gap-3 rounded-lg border border-base-300 bg-base-200 px-4 py-3">
-                    <span class="font-mono text-lg tracking-wider">{{ $error->error_code }}</span>
-                    <button type="button" class="btn btn-xs btn-primary" x-on:click="copy('code', @js($error->error_code))"
-                        x-text="copied === 'code' ? 'Tersalin!' : 'Copy'">Copy</button>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:flex-1 lg:min-h-0">
+            {{-- LEFT: info error + info user, each scrolls on its own --}}
+            <div class="flex flex-col gap-4 lg:min-h-0">
+                <div class="card bg-base-100 border border-base-300 shadow-sm lg:flex-1 lg:min-h-0">
+                    <div class="card-body p-5 gap-4 lg:overflow-y-auto">
+                        <p class="text-xs font-semibold text-base-content/60 uppercase tracking-wider">Info Error</p>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p class="text-xs text-base-content/50 uppercase">Waktu</p>
+                                <p>{{ $error->created_at->format('d M Y H:i:s') }}</p>
+                                <p class="text-xs text-base-content/50">{{ $error->created_at->diffForHumans() }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-base-content/50 uppercase">Triggered By</p>
+                                <p class="font-mono break-all" title="{{ $error->exception_class }}">{{ $triggeredBy }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-base-content/50 uppercase">HTTP Method</p>
+                                <p class="font-mono">{{ $error->method ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-base-content/50 uppercase">Route</p>
+                                <p class="font-mono text-xs break-all">{{ $error->route_name ?? '-' }}</p>
+                            </div>
+                            <div class="col-span-2">
+                                <p class="text-xs text-base-content/50 uppercase">File</p>
+                                <p class="font-mono text-xs break-all">{{ $error->file ?? '-' }}{{ $error->line ? ':'.$error->line : '' }}</p>
+                            </div>
+                        </div>
+                        <div class="text-sm">
+                            <p class="text-xs text-base-content/50 uppercase mb-1">URL</p>
+                            <div class="rounded-lg border border-base-300 bg-base-200 px-3 py-2 font-mono text-xs break-all">
+                                @if ($error->url)
+                                    <a href="{{ $error->url }}" target="_blank" rel="noopener noreferrer" class="link link-primary">{{ $error->url }}</a>
+                                @else
+                                    -
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="card bg-base-100 border border-base-300 shadow-sm lg:flex-1 lg:min-h-0">
+                    <div class="card-body p-5 gap-4 lg:overflow-y-auto">
+                        <p class="text-xs font-semibold text-base-content/60 uppercase tracking-wider">Info User</p>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p class="text-xs text-base-content/50 uppercase">Nama</p>
+                                <p class="wrap-break-word">{{ $error->user_name ?? 'Guest' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-base-content/50 uppercase">Email</p>
+                                <p class="break-all">{{ $error->user_email ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-base-content/50 uppercase">User ID</p>
+                                <p class="font-mono">{{ $error->user_id ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-base-content/50 uppercase">IP Address</p>
+                                <p class="font-mono">{{ $ip ?? '-' }}</p>
+                            </div>
+                        </div>
+                        <div class="text-sm">
+                            <p class="text-xs text-base-content/50 uppercase mb-1">User Agent</p>
+                            <p class="font-mono text-xs text-base-content/70 break-all">{{ $userAgent ?? '-' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- RIGHT: stack trace fills the remaining height and scrolls inside; context sits under it --}}
+            <div class="flex flex-col gap-4 lg:col-span-2 lg:min-h-0">
+                @if ($error->stack_trace)
+                    <div class="card bg-base-100 border border-base-300 shadow-sm lg:flex-1 lg:min-h-0">
+                        <div class="card-body p-5 gap-3 lg:min-h-0">
+                            <div class="flex items-center justify-between gap-2 shrink-0">
+                                <p class="text-xs font-semibold text-base-content/60 uppercase tracking-wider">Stack Trace</p>
+                                <button type="button" class="btn btn-xs btn-ghost" x-on:click="copy('trace', @js($error->stack_trace))"
+                                    x-text="copied === 'trace' ? 'Tersalin!' : 'Copy'">Copy</button>
+                            </div>
+                            <pre class="max-h-96 lg:max-h-none lg:flex-1 lg:min-h-0 overflow-auto rounded-lg border border-base-300 bg-base-200 p-3 text-xs leading-relaxed">{{ $error->stack_trace }}</pre>
+                        </div>
+                    </div>
+                @endif
+
+                @if ($context)
+                    <div @class(['card bg-base-100 border border-base-300 shadow-sm', 'lg:shrink-0' => $error->stack_trace, 'lg:flex-1 lg:min-h-0' => ! $error->stack_trace])>
+                        <div class="card-body p-5 gap-3 lg:min-h-0">
+                            <p class="text-xs font-semibold text-base-content/60 uppercase tracking-wider shrink-0">Context</p>
+                            <pre @class([
+                                'overflow-auto rounded-lg border border-base-300 bg-base-200 p-3 text-xs whitespace-pre-wrap',
+                                'max-h-40' => $error->stack_trace,
+                                'max-h-96 lg:max-h-none lg:flex-1 lg:min-h-0' => ! $error->stack_trace,
+                            ])>{{ json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
-
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {{-- Info error --}}
-            <div class="card bg-base-100 border border-base-300 shadow-sm">
-                <div class="card-body p-5 gap-4">
-                    <p class="text-xs font-semibold text-base-content/60 uppercase tracking-wider">Info Error</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                        <div>
-                            <p class="text-xs text-base-content/50 uppercase">Waktu</p>
-                            <p>{{ $error->created_at->format('d M Y H:i:s') }}</p>
-                            <p class="text-xs text-base-content/50">{{ $error->created_at->diffForHumans() }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-base-content/50 uppercase">Triggered By</p>
-                            <p class="font-mono break-all" title="{{ $error->exception_class }}">{{ $triggeredBy }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-base-content/50 uppercase">HTTP Method</p>
-                            <p class="font-mono">{{ $error->method ?? '-' }}</p>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <p class="text-xs text-base-content/50 uppercase">File</p>
-                            <p class="font-mono text-xs break-all">{{ $error->file ?? '-' }}{{ $error->line ? ':'.$error->line : '' }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-base-content/50 uppercase">Route</p>
-                            <p class="font-mono text-xs break-all">{{ $error->route_name ?? '-' }}</p>
-                        </div>
-                    </div>
-                    <div class="text-sm">
-                        <p class="text-xs text-base-content/50 uppercase mb-1">URL</p>
-                        <div class="rounded-lg border border-base-300 bg-base-200 px-3 py-2 font-mono text-xs break-all">
-                            @if ($error->url)
-                                <a href="{{ $error->url }}" target="_blank" rel="noopener noreferrer" class="link link-primary">{{ $error->url }}</a>
-                            @else
-                                -
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Info user --}}
-            <div class="card bg-base-100 border border-base-300 shadow-sm">
-                <div class="card-body p-5 gap-4">
-                    <p class="text-xs font-semibold text-base-content/60 uppercase tracking-wider">Info User</p>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                        <div>
-                            <p class="text-xs text-base-content/50 uppercase">Nama</p>
-                            <p class="wrap-break-word">{{ $error->user_name ?? 'Guest' }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-base-content/50 uppercase">Email</p>
-                            <p class="break-all">{{ $error->user_email ?? '-' }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-base-content/50 uppercase">User ID</p>
-                            <p class="font-mono">{{ $error->user_id ?? '-' }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-base-content/50 uppercase">IP Address</p>
-                            <p class="font-mono">{{ $ip ?? '-' }}</p>
-                        </div>
-                    </div>
-                    <div class="text-sm">
-                        <p class="text-xs text-base-content/50 uppercase mb-1">User Agent</p>
-                        <p class="font-mono text-xs text-base-content/70 break-all">{{ $userAgent ?? '-' }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @if ($error->stack_trace)
-            <div class="card bg-base-100 border border-base-300 shadow-sm">
-                <div class="card-body p-5 gap-3">
-                    <div class="flex items-center justify-between gap-2">
-                        <p class="text-xs font-semibold text-base-content/60 uppercase tracking-wider">Stack Trace</p>
-                        <button type="button" class="btn btn-xs btn-ghost" x-on:click="copy('trace', @js($error->stack_trace))"
-                            x-text="copied === 'trace' ? 'Tersalin!' : 'Copy'">Copy</button>
-                    </div>
-                    <pre class="max-h-112 overflow-auto rounded-lg border border-base-300 bg-base-200 p-3 text-xs leading-relaxed">{{ $error->stack_trace }}</pre>
-                </div>
-            </div>
-        @endif
-
-        @if ($context)
-            <div class="card bg-base-100 border border-base-300 shadow-sm">
-                <div class="card-body p-5 gap-3">
-                    <p class="text-xs font-semibold text-base-content/60 uppercase tracking-wider">Context</p>
-                    <pre class="max-h-96 overflow-auto rounded-lg border border-base-300 bg-base-200 p-3 text-xs whitespace-pre-wrap">{{ json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
-                </div>
-            </div>
-        @endif
     </div>
 </x-layouts::app.sidebar>

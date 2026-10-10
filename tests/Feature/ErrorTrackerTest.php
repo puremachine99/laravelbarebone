@@ -108,7 +108,7 @@ test('the error detail page shows the stack trace', function () {
         ->assertOk()
         ->assertSee('DEF45678')
         ->assertSee('Trace line 1')
-        ->assertSee('Kode untuk dilaporkan user')
+        ->assertDontSee('Kode untuk dilaporkan user')
         ->assertSee('Copy Error')
         ->assertSee('Siti')
         ->assertSee('172.71.215.58')
