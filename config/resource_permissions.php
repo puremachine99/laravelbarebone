@@ -11,7 +11,7 @@
  * Groups render as one card each: `section` picks the heading ("module" = Application Modules, "master" = Data Master).
  * Two groups may share a module permission (Partnership is both an application module and a Data Master block).
  *
- * @return array{actions: array<string, string>, groups: array<string, array{section: string, label: string, description: string, icon: string, module: string, resources: array<string, array{label: string, actions: array<int, string>, legacy_write_permission?: string}>}>}
+ * @return array{actions: array<string, string>, groups: array<string, array{section: string, label: string, description: string, icon: string, module: string, legacy_grant?: bool, resources: array<string, array{label: string, actions: array<int, string>, legacy_write_permission?: string}>}>}
  */
 return [
     'actions' => [
@@ -78,6 +78,20 @@ return [
             'module' => 'access-technology',
             'resources' => [
                 'tech-timeline-calc' => ['label' => 'Timeline Calculator', 'actions' => ['view']],
+            ],
+        ],
+        'ai-data' => [
+            'section' => 'module',
+            'label' => 'AI Center Data',
+            'description' => 'Aggregated data the AI Center may read for the user (config/ai_datasets.php).',
+            'icon' => 'sparkles',
+            'module' => 'manage-ai-center',
+            // Data access is never handed out in bulk by ResourcePermissions::grantLegacyAccess(): tick it per role.
+            'legacy_grant' => false,
+            'resources' => [
+                'ai-data-ai-usage' => ['label' => 'AI Center Usage', 'actions' => ['view']],
+                'ai-data-fo-achievement' => ['label' => 'Funding Officer Achievement (per person)', 'actions' => ['view']],
+                'ai-data-all-departments' => ['label' => 'All Departments (otherwise own department only)', 'actions' => ['view']],
             ],
         ],
 

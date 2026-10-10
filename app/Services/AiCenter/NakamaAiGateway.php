@@ -135,7 +135,7 @@ class NakamaAiGateway implements AiGateway
             'session_id' => 'ai-center-'.$request->conversationId,
             'provider' => config('ai_center.nakama.provider'),
             'model' => config('ai_center.nakama.model'),
-            'system_prompt' => config('ai_center.nakama.system_prompt'),
+            'system_prompt' => $request->systemPrompt ?? config('ai_center.nakama.system_prompt'),
             'effort' => config('ai_center.nakama.effort'),
         ], fn ($value) => $value !== null && $value !== '') + [
             'stream' => true,

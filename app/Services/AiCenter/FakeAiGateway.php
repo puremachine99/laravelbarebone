@@ -24,6 +24,11 @@ class FakeAiGateway implements AiGateway
      */
     public array $forgotten = [];
 
+    /**
+     * What a data-planning call answers (a JSON plan). Defaults to "no data needed".
+     */
+    public string $planReply = '{"queries":[]}';
+
     public function __construct(
         private int $delayMs = 0,
         private ?AiErrorCode $failWith = null,
@@ -37,6 +42,13 @@ class FakeAiGateway implements AiGateway
 
         if ($failure) {
             yield AiStreamEvent::error($failure);
+
+            return;
+        }
+
+        if ($request->purpose === AiChatRequest::PURPOSE_DATA_PLAN) {
+            yield AiStreamEvent::delta($this->planReply);
+            yield AiStreamEvent::done(model: 'fake', finishReason: 'STOP');
 
             return;
         }

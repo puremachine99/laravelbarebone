@@ -8,10 +8,12 @@ use App\Enums\AiMessageStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AiConversation;
 use App\Models\AiMessage;
+use App\Models\User;
 use App\Services\AiCenter\AiChatRequest;
 use App\Services\AiCenter\AiGateway;
 use App\Services\AiCenter\AiStreamEvent;
 use App\Services\AiCenter\DailyQuota;
+use App\Services\AiCenter\DataAssistant;
 use Generator;
 use Illuminate\Http\Request;
 use Illuminate\Http\StreamedEvent;
@@ -98,24 +100,35 @@ class StreamMessageController extends Controller
         ignore_user_abort(true);
         set_time_limit(config('ai_center.timeouts.total') + 30);
 
-        return response()->eventStream(fn () => $this->relay($conversation, $aiRequest, $reply), endStreamWith: null);
+        return response()->eventStream(fn () => $this->relay($user, $conversation, $aiRequest, $reply), endStreamWith: null);
     }
 
     /**
      * Forwards the gateway's events to the browser and always saves the reply's final text and status — the
      * `finally` also runs when the client disconnects, because the stream loop then abandons this generator.
      *
+     * For users with data access, the DataAssistant first fetches the data the question needs (as that user) and the
+     * answer gets a "data source" line appended.
+     *
      * @return Generator<int, StreamedEvent>
      */
-    private function relay(AiConversation $conversation, AiChatRequest $aiRequest, AiMessage $reply): Generator
+    private function relay(User $user, AiConversation $conversation, AiChatRequest $aiRequest, AiMessage $reply): Generator
     {
         $content = '';
         $status = AiMessageStatus::Cancelled;
         $errorCode = null;
+        $sources = null;
 
         yield new StreamedEvent('conversation', ['id' => $conversation->id]);
 
         try {
+            $prepared = app(DataAssistant::class)->prepare($user, $aiRequest);
+
+            if ($prepared) {
+                $aiRequest = $prepared['request'];
+                $sources = $prepared['sources'];
+            }
+
             foreach (app(AiGateway::class)->stream($aiRequest) as $event) {
                 if ($event->isStarted()) {
                     $conversation->update(['remote_conversation_id' => $event->remoteConversationId]);
@@ -127,6 +140,12 @@ class StreamMessageController extends Controller
                     $content .= $event->text;
                 } elseif ($event->isDone()) {
                     $status = AiMessageStatus::Complete;
+
+                    if ($sources !== null) {
+                        $content .= $sources;
+
+                        yield AiStreamEvent::delta($sources)->toStreamedEvent();
+                    }
                 } else {
                     $status = AiMessageStatus::Error;
                     $errorCode = $event->errorCode;

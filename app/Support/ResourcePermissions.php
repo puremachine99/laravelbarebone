@@ -96,13 +96,18 @@ class ResourcePermissions
     /**
      * One-off migration of existing access: every role or user that already holds a module permission
      * keeps doing everything it could do before (Direksi stays view-only, and resources that used to
-     * be write-protected by another permission only hand out their write actions to its holders).
+     * be write-protected by another permission only hand out their write actions to its holders). Groups marked
+     * `legacy_grant => false` are skipped: their permissions are only ever ticked by hand.
      */
     public static function grantLegacyAccess(): void
     {
         self::ensureExist();
 
         foreach (self::groups() as $group) {
+            if (($group['legacy_grant'] ?? true) === false) {
+                continue;
+            }
+
             $modulePermission = Permission::where('name', $group['module'])->first();
 
             if (! $modulePermission) {

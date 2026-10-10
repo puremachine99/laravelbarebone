@@ -4,6 +4,7 @@
 > Sisi Gemini / Layanan AI dikerjakan **Mas Faizal**. Titik temu: kontrak JSON `AiGateway` (lihat `PLAN-ai-center-mvp.md` bagian 4).
 > Jadwal ±9 minggu. Tanda 🤝 = dikerjakan bersama Mas Faizal. Tanda ⛔ = menunggu keputusan pimpinan.
 > Tanda ⚠️ = sudah dikerjakan tapi **berbeda dari rencana** (lihat catatan di item). Status per 9 Okt 2026.
+> **Update:** AI sungguhan sekarang lewat **Nakama LLM API** (`nakama-ai.smartid.or.id`, driver `nakama`), bukan `GeminiGateway` langsung. Chat teks + hapus percakapan sudah jalan di lokal.
 
 ---
 
@@ -11,7 +12,8 @@
 
 - [ ] 🤝 Sepakati kontrak JSON request/response/stream + kode error dengan Mas Faizal
   - Kontrak sudah ditulis di kode (`AiChatRequest`, `AiStreamEvent`, enum `AiErrorCode`) mengikuti plan bagian 4, tapi **belum dikonfirmasi ke Faizal**
-- [ ] 🤝 Putuskan: Layanan AI di dalam Laravel (Laravel AI SDK / `GeminiGateway`) atau layanan terpisah
+- [x] ⚠️ 🤝 Putuskan: Layanan AI di dalam Laravel (Laravel AI SDK / `GeminiGateway`) atau layanan terpisah
+  - Dipakai **layanan terpisah: Nakama LLM API** (`NakamaAiGateway`, `POST /v1/chat` SSE). Kontraknya milik Nakama, dipetakan ke `AiStreamEvent` / `AiErrorCode`. Perlu konfirmasi ke Faizal bahwa ini jalur final
 - [ ] 🤝 Putuskan: PDF dibaca via temporary URL S3 atau isi file dikirim Laravel (untuk Fase 2)
 - [x] Eksplorasi repo SmartID ERP (tanpa ubah kode), catat:
   - [x] Versi Laravel & PHP, ada/tidaknya Laravel AI SDK → Laravel 13, PHP 8.4, **tidak ada** `laravel/ai`
@@ -42,7 +44,8 @@
 - [x] ⚠️ `ConversationPolicy`: hanya pemilik yang bisa lihat/ubah/hapus → diganti query terbatas pemilik (`$user->aiConversations()`, orang lain → 404), karena `Gate::before` meloloskan Super Admin di semua policy
 - [ ] ⚠️ Terima `AiGateway` + `FakeAiGateway` dari Mas Faizal (target hari 1–2), pasang binding di service provider
   - Interface, DTO, dan `FakeAiGateway` **dibuat sendiri** di `app/Services/AiCenter/`; perlu dicocokkan dengan versi Faizal
-  - Binding baru mendukung driver `fake`; `gemini` dan `http` belum
+  - Binding mendukung driver `fake` dan `nakama`; `gemini` langsung dan `http` belum (tidak dipakai)
+  - ✅ `NakamaAiGateway`: stream SSE, mapping error, cancel saat klien putus, hapus thread remote (`forget`)
 - [x] Test:
   - [x] Tamu → redirect login
   - [x] User tanpa permission → 403
@@ -79,14 +82,16 @@
   - [x] Label "Jawaban AI, perlu dicek" di tiap balasan
   - [x] Tombol salin + suka/tidak suka (P1)
   - [x] Pilihan cepat: Ringkas teks, Rapikan surat/laporan, Buat draf email, Jelaskan istilah (P1)
-  - [ ] Cek tampilan langsung di browser (menunggu migration dijalankan di DB lokal)
+  - [x] Cek tampilan langsung di browser (lokal, dengan Nakama — berjalan)
 - [x] Ganti teks placeholder "Upcoming Feature"; hapus contoh "Update proyek Pemkab Malang jadi 50 juta…"
 - [ ] Batas & log pemakaian (M5):
   - [x] Batas pesan per pengguna per hari (zona waktu Asia/Jakarta) — dihitung dari `ai_messages` (⚠️ plan: dari `ai_usage_logs`)
   - [x] Tampilkan sisa kuota di UI (mis. "12/50 pesan hari ini")
   - [ ] Hitung `est_cost_usd` dari token × tarif
   - [ ] (Opsional) batas anggaran bulanan
-- [ ] 🤝 Integrasi: ganti Fake → Gemini asli di staging
+- [ ] 🤝 Integrasi: ganti Fake → AI asli di staging
+  - [x] Lokal: Fake → Nakama LLM API (Gemini) berjalan; kolom `ai_conversations.remote_conversation_id` ditambah
+  - [ ] Staging/produksi: set `AI_CENTER_DRIVER=nakama` + `NAKAMA_AI_API_KEY`, jalankan migration
 - [ ] 🤝 Cek nginx: `proxy_buffering off`, `X-Accel-Buffering: no` (header sudah dikirim oleh `eventStream`), timeout PHP-FPM ≥ 120 dtk
 - [ ] 🤝 Ukur waktu sampai token pertama (target < 3 detik)
 
@@ -99,12 +104,14 @@
   - [ ] Rasio suka vs tidak suka, rata-rata latensi token pertama, error per kode
   - [ ] Filter tanggal; hanya angka per pengguna, **bukan isi chat**
 - [ ] Checklist keamanan:
-  - [ ] API key tidak muncul di response, view, JS, atau log (belum ada kode yang memakai key)
+  - [x] API key tidak muncul di response, view, JS, atau log — key hanya di header server-ke-server; ada test (body request & pesan error tidak memuat key)
+  - [ ] ⚠️ Satu API key dipakai semua pegawai dan jadi satu-satunya "pemilik" percakapan di Nakama → key wajib hanya di `.env`; tanyakan ke tim Nakama soal key per aplikasi/lingkungan
+  - [x] Semua tool Nakama (web search/fetch, memory, gambar, dokumen) dimatikan di request; hanya `user_id` samaran `smartid-{id}` yang dikirim (tanpa nama/email)
   - [ ] CSRF di semua POST/PATCH/DELETE ✅ (route di grup `web`, `fetch` mengirim token) + throttle per menit ❌ (`AI_PER_MINUTE_LIMIT` sudah di `.env.example`, belum dipakai)
   - [x] Output Markdown disanitasi
   - [ ] Test arsitektur: modul AI tidak query tabel ERP lain
 - [ ] Simulasi Gemini mati / kuota habis → menu ERP lain tetap normal (jalur error sudah teruji dengan Fake; simulasi nyata menunggu Gemini)
-- [ ] Semua test otomatis hijau (saat ini 26 test AI Center hijau; belum lengkap)
+- [ ] Semua test otomatis hijau (saat ini 39 test AI Center hijau, termasuk 9 test `NakamaAiGateway`; belum lengkap)
 - [ ] **Gerbang 1:** 30 pertanyaan lolos (dari Mas Faizal), 0 data bocor, disetujui pimpinan
 
 ---
@@ -145,8 +152,8 @@
 ## Aturan yang tidak boleh dilanggar
 
 - [x] AI **tidak** membaca/menulis tabel ERP selain tabel `ai_*` (belum dikunci dengan test arsitektur)
-- [x] **Tidak ada** function/tool calling ke Gemini
-- [ ] API key Gemini hanya di server (belum teruji, belum ada kode yang memakai key)
+- [x] **Tidak ada** function/tool calling ke Gemini (semua tool Nakama dimatikan; `ai-center-testcase.md` TC-02…TC-05 — gambar, dokumen, analisis file — **belum diimplementasikan**, menunggu keputusan)
+- [x] API key hanya di server (`NAKAMA_AI_API_KEY` di `.env`; teruji tidak bocor ke body request/pesan error)
 - [x] Riwayat chat privat per pengguna (ada test, termasuk Super Admin)
 - [ ] Gemini gagal ≠ ERP lain error (jalur error teruji dengan Fake; simulasi Gemini nyata belum)
 
@@ -161,15 +168,16 @@
 | Yang ditunggu | Dari | Dibutuhkan sebelum |
 |---|---|---|
 | `AiGateway` + `FakeAiGateway` | Mas Faizal | Minggu 1 (hari 2) — ⚠️ sudah dibuat sendiri, perlu dicocokkan |
-| `GeminiGateway` + system prompt | Mas Faizal | Minggu 3 (integrasi) |
+| ~~`GeminiGateway`~~ → Nakama LLM API (sudah tersedia) + konfirmasi batas laju per key & system prompt | Mas Faizal | Minggu 3 (integrasi) |
 | 30 pertanyaan uji lolos | Mas Faizal | Gerbang 1 (minggu 4) |
 | Teks peringatan, data terlarang, batas harian, anggaran, daftar pilot | Pimpinan | Pilot (minggu 5) |
 | Pengolahan PDF ke Gemini | Mas Faizal | Minggu 8 |
 
 ## Langkah berikutnya (urutan usulan)
 
-1. Jalankan migration di DB lokal (2 tabel baru) lalu cek tampilan `/ai-center` di browser
-2. `ai_usage_logs` + pencatatan di blok `finally` + izin `ai-center.admin`
-3. Estimasi biaya + throttle per menit
+1. ~~Migration lokal + cek tampilan + sambung AI asli~~ ✅ (Nakama LLM API)
+2. `ai_usage_logs` + pencatatan di blok `finally` + izin `ai-center.admin` (token sudah tersedia dari event `done`)
+3. Estimasi biaya + throttle per menit (`AI_PER_MINUTE_LIMIT`) + baca `Retry-After` dari respons 429 Nakama
 4. Halaman pemakaian Super Admin (M6)
-5. Cocokkan `AiGateway` dengan Mas Faizal, lalu sambungkan Gemini
+5. Tanyakan ke tim Nakama: batas laju per key, key per lingkungan, dan retensi riwayat di server mereka
+6. Putuskan TC-02…TC-05 (gambar, dokumen, unggah file): aktifkan tool Nakama atau tetap chat teks saja
