@@ -504,6 +504,17 @@
                                 <span class="grow">Timeline Calculator</span>
                             </a>
                             @endcan
+                            @role('Super Admin')
+                            <a @class(['menu-item', 'active' => request()->routeIs('dev.errors.*')]) href="{{ route('dev.errors.index') }}"
+                                wire:navigate title="Sentry">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                                </svg>
+                                <span class="grow">Sentry</span>
+                            </a>
+                            @endrole
                             {{-- The documentation page itself is public, so no extra permission beyond the Technology menu. --}}
                             <a @class(['menu-item', 'active' => request()->routeIs('documentation')]) href="{{ route('documentation') }}"
                                 wire:navigate title="API Documentation">
@@ -668,30 +679,16 @@
                 @endguest
 
                 {{-- Version & Copyright --}}
-                @if (auth()->check() && auth()->user()->hasRole('Super Admin'))
-                    <a href="{{ route('dev.login') }}" title="Error Tracker (Dev Panel)"
-                        class="shrink-0 block border-t border-white/10 px-4 py-3 text-center transition-colors hover:bg-white/5">
-                        <p class="text-[11px] font-medium text-white/40"
-                            :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
-                            SmartID ERP v{{ config('app.version', '1.0.0') }}
-                        </p>
-                        <p class="text-[10px] text-white/25"
-                            :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
-                            &copy; {{ now()->year }} SmartID
-                        </p>
-                    </a>
-                @else
-                    <div class="shrink-0 border-t border-white/10 px-4 py-3 text-center">
-                        <p class="text-[11px] font-medium text-white/40"
-                            :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
-                            SmartID ERP v{{ config('app.version', '1.0.0') }}
-                        </p>
-                        <p class="text-[10px] text-white/25"
-                            :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
-                            &copy; {{ now()->year }} SmartID
-                        </p>
-                    </div>
-                @endif
+                <div class="shrink-0 border-t border-white/10 px-4 py-3 text-center">
+                    <p class="text-[11px] font-medium text-white/40"
+                        :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
+                        SmartID ERP v{{ config('app.version', '1.0.0') }}
+                    </p>
+                    <p class="text-[10px] text-white/25"
+                        :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
+                        &copy; {{ now()->year }} SmartID
+                    </p>
+                </div>
 
             </aside>
         </div>

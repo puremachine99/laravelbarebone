@@ -7,7 +7,10 @@ test('renders the API documentation page publicly without authentication', funct
     $response = $this->get('/documentation');
 
     $response->assertOk()
-        ->assertSee('OPD Lookup API Documentation')
+        ->assertSee('Dokumentasi Teknis Nakama')
+        ->assertSee('Cari di dokumentasi')
+        ->assertSee('OPD Lookup API')
+        ->assertSee('AI Data API')
         ->assertSee('/api/provinces')
         ->assertSee('/api/regencies')
         ->assertSee('/api/opds')
@@ -33,4 +36,21 @@ test('users without the Technology menu do not get the link', function () {
     $this->actingAs(User::factory()->create())->get('/documentation')
         ->assertOk()
         ->assertDontSee('title="API Documentation"', false);
+});
+
+test('the page is split into vertical tabs with only the first section shown before Alpine starts', function () {
+    $html = $this->get('/documentation')->assertOk()->getContent();
+
+    expect($html)
+        ->toContain('role="tablist"')
+        ->toContain('id="overview" role="tabpanel" x-show="active === \'overview\'" class=')
+        ->toContain('id="ai-auth" role="tabpanel" x-show="active === \'ai-auth\'" style="display: none"')
+        ->toContain('href="#ai-auth" role="tab"')
+        ->toContain('aria-selected:bg-primary ');
+
+    // Every tab in the menu has a matching section.
+    preg_match_all('/href="#([a-z-]+)" role="tab"/', $html, $tabs);
+    preg_match_all('/id="([a-z-]+)" role="tabpanel"/', $html, $panels);
+
+    expect($tabs[1])->toBe($panels[1])->toHaveCount(15);
 });

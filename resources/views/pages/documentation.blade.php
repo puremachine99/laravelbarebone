@@ -1,48 +1,213 @@
-<x-layouts::app.sidebar title="API Documentation">
-    <div x-data="{ activeSection: 'overview' }" class="space-y-4">
+@php
+    $groups = [
+        [
+            'label' => 'OPD Lookup API',
+            'badge' => null,
+            'tabs' => [
+                'overview' => 'Overview',
+                'alur' => 'Alur Cascading Dropdown',
+                'cara-pakai' => 'Cara Pakai (Contoh Kode)',
+                'provinces' => 'GET /api/provinces',
+                'regencies' => 'GET /api/regencies',
+                'opds' => 'GET /api/opds',
+                'opds-search' => 'GET /api/opds/search',
+                'catatan' => 'Catatan Implementasi',
+            ],
+        ],
+        [
+            'label' => 'AI Data API',
+            'badge' => 'Internal',
+            'tabs' => [
+                'ai-data' => 'Overview',
+                'ai-auth' => 'Autentikasi',
+                'ai-datasets' => 'GET /api/ai/datasets',
+                'ai-query' => 'POST /api/ai/query',
+                'ai-testing' => 'Cara Testing',
+            ],
+        ],
+        [
+            'label' => 'Employee API',
+            'badge' => 'Internal',
+            'tabs' => [
+                'employees' => 'GET /api/employees',
+                'employee-detail' => 'GET /api/employees/{id}',
+            ],
+        ],
+    ];
 
-        {{-- Page Header --}}
-        <div>
-            <h1 class="text-xl font-bold text-base-content">OPD Lookup API Documentation</h1>
-            <p class="text-sm text-base-content/60 mt-0.5">
-                Dokumentasi teknis untuk developer yang ingin mengintegrasikan dropdown Provinsi &rarr; Kabupaten/Kota
-                &rarr; OPD dari aplikasi lain, dan untuk layanan AI yang membaca data Nakama lewat
-                <a href="#ai-data" class="link">AI Data API</a>.
-            </p>
+    $tabIds = collect($groups)->flatMap(fn (array $group) => array_keys($group['tabs']))->values()->all();
+
+    $titles = collect($groups)
+        ->flatMap(fn (array $group) => collect($group['tabs'])->map(fn (string $tab) => ['group' => $group['label'], 'tab' => $tab]))
+        ->all();
+@endphp
+
+<x-layouts::app.sidebar title="Dokumentasi Teknis">
+    {{-- Vertical tabs: one section at a time. The URL hash (#ai-auth, ...) opens a tab directly and stays shareable. --}}
+    <div x-data="{
+        tabs: @js($tabIds),
+        titles: @js($titles),
+        active: @js($tabIds[0]),
+        get previous() {
+            return this.tabs[this.tabs.indexOf(this.active) - 1] ?? null;
+        },
+        get next() {
+            return this.tabs[this.tabs.indexOf(this.active) + 1] ?? null;
+        },
+        query: '',
+        index: [],
+        init() {
+            this.fromHash();
+            window.addEventListener('hashchange', () => this.fromHash());
+
+            // Search index: every tab's own text (hidden tabs still have their textContent).
+            this.index = this.tabs.map((id) => ({
+                id,
+                text: [this.titles[id].group, this.titles[id].tab, document.getElementById(id)?.textContent ?? '']
+                    .join(' ')
+                    .replace(/\s+/g, ' ')
+                    .trim(),
+            }));
+
+            // Press / anywhere (outside a field) to jump to the search box.
+            window.addEventListener('keydown', (event) => {
+                if (event.key === '/' && ! ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+                    event.preventDefault();
+                    this.$refs.search.focus();
+                }
+            });
+        },
+        get searching() {
+            return this.query.trim().length >= 2;
+        },
+        get results() {
+            const needle = this.query.trim().toLowerCase();
+
+            if (! this.searching) {
+                return [];
+            }
+
+            return this.index
+                .filter((entry) => entry.text.toLowerCase().includes(needle))
+                .map((entry) => {
+                    const at = entry.text.toLowerCase().indexOf(needle);
+                    const start = Math.max(0, at - 40);
+
+                    return {
+                        id: entry.id,
+                        snippet: (start > 0 ? '…' : '') + entry.text.slice(start, at + needle.length + 70) + '…',
+                    };
+                });
+        },
+        matches(id) {
+            return ! this.searching || this.results.some((result) => result.id === id);
+        },
+        pick(id) {
+            this.open(id);
+            this.query = '';
+        },
+        fromHash() {
+            const id = window.location.hash.slice(1);
+
+            if (this.tabs.includes(id)) {
+                this.active = id;
+            }
+        },
+        open(id) {
+            this.active = id;
+            history.replaceState(null, '', '#' + id);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+    }" class="space-y-4">
+
+        {{-- Page Header: title left, search top right --}}
+        <div class="card bg-base-100 border border-base-300 shadow-sm">
+        <div class="card-body p-5 flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div class="min-w-0">
+                <h1 class="text-xl font-bold text-base-content">Dokumentasi Teknis Nakama</h1>
+                <p class="text-sm text-base-content/60 mt-0.5">
+                    Referensi teknis aplikasi Nakama untuk developer: daftar API, cara autentikasi, contoh request
+                    dan response, serta cara testing. Pilih bagian di menu kiri atau cari topik di kotak pencarian.
+                </p>
+            </div>
+
+            <div class="relative w-full sm:w-80 shrink-0" x-on:click.outside="query = ''"
+                x-on:keydown.escape="query = ''; $refs.search.blur()">
+                <label class="input input-sm input-bordered flex items-center gap-2 w-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4 shrink-0 text-base-content/50" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" />
+                    </svg>
+                    <input type="search" x-ref="search" x-model="query" class="grow"
+                        placeholder="Cari di dokumentasi…" aria-label="Cari di dokumentasi"
+                        x-on:keydown.enter.prevent="results.length && pick(results[0].id)" />
+                    <kbd class="kbd kbd-xs hidden sm:inline-flex" x-show="! query">/</kbd>
+                </label>
+
+                {{-- Results --}}
+                <div x-show="searching" style="display: none"
+                    class="absolute right-0 z-30 mt-1 w-full sm:w-md max-h-96 overflow-y-auto rounded-xl border border-base-300 bg-base-100 shadow-lg">
+                    <template x-for="result in results" :key="result.id">
+                        <button type="button" x-on:click="pick(result.id)"
+                            class="block w-full text-left px-3 py-2 border-b border-base-200 last:border-b-0 hover:bg-base-200 focus:bg-base-200 focus:outline-none">
+                            <p class="text-xs text-base-content/50">
+                                <span x-text="titles[result.id].group"></span> &rsaquo;
+                                <span class="font-semibold text-base-content" x-text="titles[result.id].tab"></span>
+                            </p>
+                            <p class="text-xs text-base-content/70 truncate" x-text="result.snippet"></p>
+                        </button>
+                    </template>
+                    <p x-show="results.length === 0" class="px-3 py-3 text-sm text-base-content/50">
+                        Tidak ada hasil untuk &ldquo;<span x-text="query.trim()"></span>&rdquo;.
+                    </p>
+                </div>
+            </div>
+        </div>
         </div>
 
         <div class="flex flex-col lg:flex-row gap-4 items-start">
 
-            {{-- LEFT: Table of contents --}}
-            <div class="lg:w-56 w-full shrink-0 lg:sticky lg:top-4">
+            {{-- LEFT: vertical tabs. Only the active tab's card is shown on the right. --}}
+            <nav class="lg:w-64 w-full shrink-0 lg:sticky lg:top-4" aria-label="Bagian dokumentasi">
                 <div class="card bg-base-100 border border-base-300 shadow-sm">
-                    <div class="card-body p-3 gap-1">
-                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider px-2 pb-1">
-                            Daftar Isi</p>
-                        <a href="#overview" class="btn btn-sm btn-ghost justify-start">Overview</a>
-                        <a href="#alur" class="btn btn-sm btn-ghost justify-start">Alur Cascading Dropdown</a>
-                        <a href="#cara-pakai" class="btn btn-sm btn-ghost justify-start">Cara Pakai (Contoh Kode)</a>
-                        <a href="#provinces" class="btn btn-sm btn-ghost justify-start">GET /api/provinces</a>
-                        <a href="#regencies" class="btn btn-sm btn-ghost justify-start">GET /api/regencies</a>
-                        <a href="#opds" class="btn btn-sm btn-ghost justify-start">GET /api/opds</a>
-                        <a href="#opds-search" class="btn btn-sm btn-ghost justify-start">GET /api/opds/search</a>
-                        <a href="#catatan" class="btn btn-sm btn-ghost justify-start">Catatan Implementasi</a>
-                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider px-2 pt-3 pb-1">
-                            AI Data API</p>
-                        <a href="#ai-data" class="btn btn-sm btn-ghost justify-start">Overview AI Data</a>
-                        <a href="#ai-auth" class="btn btn-sm btn-ghost justify-start">Autentikasi</a>
-                        <a href="#ai-datasets" class="btn btn-sm btn-ghost justify-start">GET /api/ai/datasets</a>
-                        <a href="#ai-query" class="btn btn-sm btn-ghost justify-start">POST /api/ai/query</a>
-                        <a href="#ai-testing" class="btn btn-sm btn-ghost justify-start">Cara Testing</a>
+                    <div class="card-body p-3 gap-3">
+                        @foreach ($groups as $group)
+                            <div class="{{ ! $loop->first ? 'border-t border-base-300 pt-3' : '' }}">
+                                <p class="flex items-center gap-2 text-xs font-bold text-base-content uppercase tracking-wider rounded-lg bg-base-200 px-3 py-1.5 mb-1.5">
+                                    {{ $group['label'] }}
+                                    @if ($group['badge'])
+                                        <span class="badge badge-warning badge-xs normal-case tracking-normal">{{ $group['badge'] }}</span>
+                                    @endif
+                                </p>
+                                <div class="flex flex-col gap-0.5" role="tablist" aria-orientation="vertical">
+                                    @foreach ($group['tabs'] as $id => $label)
+                                        <a href="#{{ $id }}" role="tab" aria-controls="{{ $id }}"
+                                            x-on:click.prevent="open('{{ $id }}')"
+                                            :class="! matches('{{ $id }}') && 'opacity-40'"
+                                            aria-selected="{{ $id === $tabIds[0] ? 'true' : 'false' }}"
+                                            :aria-selected="(active === '{{ $id }}').toString()"
+                                            class="block rounded-r-lg border-l-2 border-transparent px-3 py-1.5 ml-2 text-sm text-base-content transition-colors hover:bg-base-200 aria-selected:border-primary aria-selected:bg-primary aria-selected:font-semibold aria-selected:text-primary-content">{{ $label }}</a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
-            </div>
+            </nav>
 
             {{-- RIGHT: Content --}}
             <div class="flex-1 min-w-0 space-y-4 w-full">
 
+                {{-- Where am I: group › tab --}}
+                <p class="text-xs text-base-content/50">
+                    <span x-text="titles[active].group">{{ $titles[$tabIds[0]]['group'] }}</span>
+                    <span aria-hidden="true">&rsaquo;</span>
+                    <span class="font-semibold text-base-content/80" x-text="titles[active].tab">{{ $titles[$tabIds[0]]['tab'] }}</span>
+                </p>
+
                 {{-- Overview --}}
-                <div id="overview" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="overview" role="tabpanel" x-show="active === 'overview'" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <h2 class="text-lg font-bold">Overview</h2>
                         <p class="text-sm text-base-content/70">
@@ -59,7 +224,7 @@
                 </div>
 
                 {{-- Alur --}}
-                <div id="alur" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="alur" role="tabpanel" x-show="active === 'alur'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <h2 class="text-lg font-bold">Alur Cascading Dropdown</h2>
                         <ol class="list-decimal list-inside text-sm text-base-content/70 space-y-1.5">
@@ -88,7 +253,7 @@
                 </div>
 
                 {{-- Cara Pakai --}}
-                <div id="cara-pakai" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="cara-pakai" role="tabpanel" x-show="active === 'cara-pakai'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <h2 class="text-lg font-bold">Cara Pakai (Contoh Kode)</h2>
 
@@ -147,7 +312,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                 </div>
 
                 {{-- /api/provinces --}}
-                <div id="provinces" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="provinces" role="tabpanel" x-show="active === 'provinces'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <div class="flex items-center gap-2">
                             <span class="badge badge-success font-mono font-bold">GET</span>
@@ -200,7 +365,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                 </div>
 
                 {{-- /api/regencies --}}
-                <div id="regencies" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="regencies" role="tabpanel" x-show="active === 'regencies'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <div class="flex items-center gap-2">
                             <span class="badge badge-success font-mono font-bold">GET</span>
@@ -273,7 +438,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                 </div>
 
                 {{-- /api/opds --}}
-                <div id="opds" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="opds" role="tabpanel" x-show="active === 'opds'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <div class="flex items-center gap-2">
                             <span class="badge badge-success font-mono font-bold">GET</span>
@@ -353,7 +518,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                 </div>
 
                 {{-- /api/opds/search --}}
-                <div id="opds-search" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="opds-search" role="tabpanel" x-show="active === 'opds-search'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <div class="flex items-center gap-2">
                             <span class="badge badge-success font-mono font-bold">GET</span>
@@ -506,7 +671,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                 </div>
 
                 {{-- Catatan --}}
-                <div id="catatan" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="catatan" role="tabpanel" x-show="active === 'catatan'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <h2 class="text-lg font-bold">Catatan Implementasi</h2>
                         <ul class="list-disc list-inside text-sm text-base-content/70 space-y-1.5">
@@ -523,6 +688,12 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                                 menggunakan <code class="text-xs">LIKE</code> biasa &mdash; case-insensitive selama
                                 collation database default.
                             </li>
+                            <li>Keempat endpoint ini publik (tanpa token) tetapi dibatasi <strong>120 request per menit
+                                    per IP</strong>, dihitung gabungan untuk semua endpoint OPD Lookup. Lewat batas itu,
+                                response-nya <code class="text-xs">429 Too Many Requests</code>; header
+                                <code class="text-xs">X-RateLimit-Remaining</code> menunjukkan sisa kuota dan
+                                <code class="text-xs">Retry-After</code> (saat 429) lama menunggu dalam detik. Untuk
+                                pemakaian normal (mengisi dropdown) batas ini tidak akan tercapai.</li>
                             <li>Relasi data: <code class="text-xs">Opd belongsTo Regency</code>,
                                 <code class="text-xs">Regency belongsTo Province</code>.
                             </li>
@@ -535,7 +706,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                 </div>
 
                 {{-- AI Data API: overview --}}
-                <div id="ai-data" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="ai-data" role="tabpanel" x-show="active === 'ai-data'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <div class="flex items-center gap-2">
                             <h2 class="text-lg font-bold">AI Data API</h2>
@@ -575,7 +746,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                 </div>
 
                 {{-- AI Data API: auth --}}
-                <div id="ai-auth" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="ai-auth" role="tabpanel" x-show="active === 'ai-auth'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <h2 class="text-lg font-bold">Autentikasi</h2>
                         <p class="text-sm text-base-content/70">Setiap request wajib membawa <strong>dua</strong>
@@ -672,7 +843,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                 </div>
 
                 {{-- AI Data API: datasets --}}
-                <div id="ai-datasets" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="ai-datasets" role="tabpanel" x-show="active === 'ai-datasets'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <div class="flex items-center gap-2">
                             <span class="badge badge-success font-mono font-bold">GET</span>
@@ -795,7 +966,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                 </div>
 
                 {{-- AI Data API: query --}}
-                <div id="ai-query" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="ai-query" role="tabpanel" x-show="active === 'ai-query'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <div class="flex items-center gap-2">
                             <span class="badge badge-info font-mono font-bold">POST</span>
@@ -956,7 +1127,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                 </div>
 
                 {{-- AI Data API: testing --}}
-                <div id="ai-testing" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                <div id="ai-testing" role="tabpanel" x-show="active === 'ai-testing'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
                         <h2 class="text-lg font-bold">Cara Testing</h2>
 
@@ -1113,6 +1284,183 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                                 <code>config/ai_datasets.php</code>.</span>
                         </div>
                     </div>
+                </div>
+
+                {{-- Employee API: list/search --}}
+                <div id="employees" role="tabpanel" x-show="active === 'employees'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                    <div class="card-body p-5 gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-success font-mono font-bold">GET</span>
+                            <h2 class="text-lg font-bold font-mono">/api/employees</h2>
+                        </div>
+                        <p class="text-sm text-base-content/70">
+                            Daftar dan pencarian karyawan, dipaginasi. Khusus layanan internal: wajib
+                            <code class="text-xs">Authorization: Bearer &lt;AI_DATA_API_TOKEN&gt;</code> (token yang
+                            sama dengan AI Data API), <strong>tanpa</strong> header
+                            <code class="text-xs">X-AI-User-Assertion</code>, jadi tidak dibatasi per user atau
+                            departemen. Batas 120 request per menit.
+                        </p>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Query
+                            Parameter (semua opsional)</p>
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Parameter</th>
+                                        <th>Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-mono">q</td>
+                                        <td>Pencarian bebas pada nama, email, username, dan NIS (partial match, tidak
+                                            peka huruf besar/kecil).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">department</td>
+                                        <td>Nama departemen (partial match).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">region</td>
+                                        <td>Nama region (partial match).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">position</td>
+                                        <td>Nama jabatan struktural, fungsional, atau teknis (partial match).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">status</td>
+                                        <td><code class="text-xs">active</code>, <code class="text-xs">resign</code>,
+                                            <code class="text-xs">discontinued</code>, <code class="text-xs">phk</code>,
+                                            atau <code class="text-xs">inactive</code>. Tanpa parameter ini, semua status
+                                            ikut tampil, jadi filter <code class="text-xs">active</code> jika hanya
+                                            butuh yang masih bekerja.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">employment_status</td>
+                                        <td>Cocok persis, mis. <code class="text-xs">PKWT</code>,
+                                            <code class="text-xs">PKWTT</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">sort, direction</td>
+                                        <td><code class="text-xs">sort</code>: <code class="text-xs">name</code>
+                                            (default) atau <code class="text-xs">nis</code>;
+                                            <code class="text-xs">direction</code>: <code class="text-xs">asc</code>
+                                            (default) atau <code class="text-xs">desc</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">per_page, page</td>
+                                        <td>Default 25, maksimal 100.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Contoh
+                            Request</p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix="$"><code>curl -H "Authorization: Bearer $AI_DATA_API_TOKEN" \
+  "{{ config('app.url') }}/api/employees?q=budi&amp;department=finance&amp;status=active"</code></pre>
+                        </div>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Response
+                            <span class="badge badge-success badge-sm">200 OK</span>
+                        </p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix=""><code>{
+  "data": [
+    {
+      "id": 7,
+      "nis": "NIS-001",
+      "name": "Budi Santoso",
+      "email": "budi@smartid.co.id",
+      "username": "budi",
+      "gender": "L",
+      "department": "Departemen Finance",
+      "region": "Jawa Barat",
+      "position_struktural": null,
+      "position_fungsional": "Funding Officer",
+      "position_teknis": null,
+      "employment_status": "PKWTT",
+      "is_cltp": false,
+      "contract_start_date": "2024-01-01",
+      "contract_end_date": null,
+      "status": "active"
+    }
+  ],
+  "links": { "first": "...", "last": "...", "prev": null, "next": null },
+  "meta": { "current_page": 1, "per_page": 25, "total": 1, "last_page": 1 }
+}</code></pre>
+                        </div>
+
+                        <div class="alert alert-info text-xs mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4 shrink-0" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Data sensitif (NIK, NPWP, tanggal lahir, nomor telepon, status pernikahan, target
+                                dan KPI) sengaja <strong>tidak</strong> disertakan.</span>
+                        </div>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Kode Status
+                        </p>
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm w-full">
+                                <tbody>
+                                    <tr>
+                                        <td><span class="badge badge-error badge-sm text-white">401</span></td>
+                                        <td>Token kosong/salah, atau API belum dikonfigurasi.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-error badge-sm text-white">422</span></td>
+                                        <td>Parameter tidak valid (mis. <code class="text-xs">status</code> di luar
+                                            daftar, <code class="text-xs">per_page</code> &gt; 100).</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-warning badge-sm">429</span></td>
+                                        <td>Batas 120 request per menit tercapai.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Employee API: detail --}}
+                <div id="employee-detail" role="tabpanel" x-show="active === 'employee-detail'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                    <div class="card-body p-5 gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-success font-mono font-bold">GET</span>
+                            <h2 class="text-lg font-bold font-mono">/api/employees/{id}</h2>
+                        </div>
+                        <p class="text-sm text-base-content/70">
+                            Satu karyawan berdasarkan <code class="text-xs">id</code> (dari hasil
+                            <code class="text-xs">/api/employees</code>). Autentikasi dan field sama dengan list;
+                            response berupa <code class="text-xs">{ "data": { ... } }</code>.
+                        </p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix="$"><code>curl -H "Authorization: Bearer $AI_DATA_API_TOKEN" \
+  {{ config('app.url') }}/api/employees/7</code></pre>
+                        </div>
+                        <p class="text-sm text-base-content/70">
+                            <span class="badge badge-error badge-sm text-white">401</span> token salah &middot;
+                            <span class="badge badge-error badge-sm text-white">404</span> id tidak ditemukan atau
+                            karyawan sudah dihapus.
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Previous / next tab --}}
+                <div class="flex items-center justify-between gap-2">
+                    <a x-show="previous" style="display: none" :href="'#' + previous" x-on:click.prevent="open(previous)"
+                        class="btn btn-sm btn-ghost">
+                        &larr; <span x-text="previous && titles[previous].tab"></span>
+                    </a>
+                    <a x-show="next" :href="'#' + next" x-on:click.prevent="open(next)" class="btn btn-sm btn-ghost ms-auto">
+                        <span x-text="next && titles[next].tab">{{ $titles[$tabIds[1]]['tab'] }}</span> &rarr;
+                    </a>
                 </div>
 
             </div>

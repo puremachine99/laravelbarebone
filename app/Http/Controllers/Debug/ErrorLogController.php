@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Debug;
 use App\Http\Controllers\Controller;
 use App\Models\ErrorLog;
 use App\Support\PerPage;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -12,53 +13,13 @@ use Illuminate\View\View;
 
 class ErrorLogController extends Controller
 {
-    public const SESSION_KEY = 'debug_page_access';
-
     /**
-     * Block access to every action below unless the debug-page session flag is set.
+     * Sentry page: the error log list, or (?tab=force-login) the force login tool.
      */
-    protected function guard(): ?RedirectResponse
+    public function index(Request $request): View
     {
-        if (! session(self::SESSION_KEY)) {
-            return redirect()->route('dev.login');
-        }
-
-        return null;
-    }
-
-    public function loginForm(): View|RedirectResponse
-    {
-        if (session(self::SESSION_KEY)) {
-            return redirect()->route('dev.errors.index');
-        }
-
-        return view('debug.login');
-    }
-
-    public function login(Request $request): RedirectResponse
-    {
-        $request->validate(['password' => ['required', 'string']]);
-
-        if (! hash_equals((string) config('services.debug_panel.password'), (string) $request->input('password'))) {
-            return back()->withErrors(['password' => 'Password salah.']);
-        }
-
-        $request->session()->put(self::SESSION_KEY, true);
-
-        return redirect()->route('dev.errors.index');
-    }
-
-    public function logout(Request $request): RedirectResponse
-    {
-        $request->session()->forget(self::SESSION_KEY);
-
-        return redirect()->route('dev.login');
-    }
-
-    public function index(Request $request): View|RedirectResponse
-    {
-        if ($redirect = $this->guard()) {
-            return $redirect;
+        if ($request->query('tab') === 'force-login') {
+            return view('debug.errors.index', ['tab' => 'force-login']);
         }
 
         $this->purgeOldErrorsWeekly();
@@ -90,29 +51,22 @@ class ErrorLogController extends Controller
         ];
 
         return view('debug.errors.index', [
+            'tab' => 'errors',
             'errors' => $errors,
             'stats' => $stats,
             'filters' => $request->only(['type', 'status', 'severity', 'resolved', 'search']),
         ]);
     }
 
-    public function show(string $code): View|RedirectResponse
+    public function show(string $code): View
     {
-        if ($redirect = $this->guard()) {
-            return $redirect;
-        }
-
         $error = ErrorLog::where('error_code', $code)->firstOrFail();
 
         return view('debug.errors.show', ['error' => $error]);
     }
 
-    public function resolve(Request $request, int $id)
+    public function resolve(int $id): JsonResponse
     {
-        if ($redirect = $this->guard()) {
-            return $redirect;
-        }
-
         $error = ErrorLog::findOrFail($id);
         $error->update([
             'resolved' => ! $error->resolved,
@@ -122,23 +76,20 @@ class ErrorLogController extends Controller
         return response()->json(['resolved' => $error->resolved]);
     }
 
-    public function destroy(int $id): RedirectResponse
+    public function destroy(Request $request, int $id): RedirectResponse
     {
-        if ($redirect = $this->guard()) {
-            return $redirect;
-        }
-
         ErrorLog::findOrFail($id)->delete();
+
+        // Deleting from the detail page can't go "back" to a page that no longer exists.
+        if ($request->boolean('to_index')) {
+            return redirect()->route('dev.errors.index')->with('status', 'Log error berhasil dihapus.');
+        }
 
         return back()->with('status', 'Log error berhasil dihapus.');
     }
 
     public function purge(): RedirectResponse
     {
-        if ($redirect = $this->guard()) {
-            return $redirect;
-        }
-
         ErrorLog::query()->delete();
 
         return back()->with('status', 'Semua log error berhasil dihapus.');

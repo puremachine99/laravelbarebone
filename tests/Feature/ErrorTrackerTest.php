@@ -30,40 +30,31 @@ test('non super admins get a 404, not a 403', function () {
         ->assertNotFound();
 });
 
-test('wrong password is rejected', function () {
+test('super admins open the error tracker directly, without the debug panel password', function () {
     loginAsSuperAdminForDevPanel();
-
-    $this->post(route('dev.login.store'), ['password' => 'wrong-password'])
-        ->assertSessionHasErrors('password');
-
-    $this->get(route('dev.errors.index'))
-        ->assertNotFound();
-});
-
-test('correct password grants access to the debug panel', function () {
-    loginAsSuperAdminForDevPanel();
-
-    $this->post(route('dev.login.store'), ['password' => config('services.debug_panel.password')])
-        ->assertRedirect(route('dev.errors.index'));
 
     $this->get(route('dev.errors.index'))
         ->assertOk()
-        ->assertSee('Error Tracker');
+        ->assertSee('Sentry');
 });
 
-test('logout clears debug panel access', function () {
+test('the error tracker is served under /tech/sentry and the old url redirects there', function () {
+    expect(route('dev.errors.index', absolute: false))->toBe('/tech/sentry');
+
+    $this->get('/dev/errors')->assertNotFound();
+
     loginAsSuperAdminForDevPanel();
-
-    $this->post(route('dev.login.store'), ['password' => config('services.debug_panel.password')]);
-    $this->get(route('dev.errors.index'))->assertOk();
-
-    $this->get(route('dev.logout'));
-
-    $this->get(route('dev.errors.index'))->assertNotFound();
+    $this->get('/dev/errors')->assertRedirect('/tech/sentry');
 });
 
-test('destroy, resolve and purge actions are guarded without session access', function () {
+test('the technology menu links super admins to the error tracker', function () {
     loginAsSuperAdminForDevPanel();
+
+    $this->get(route('documentation'))->assertSee(route('dev.errors.index'));
+});
+
+test('destroy, resolve and purge actions are hidden from non super admins', function () {
+    $this->actingAs(User::factory()->create(['status' => UserStatus::Active]));
 
     $error = ErrorLog::create([
         'error_code' => 'ABC12345',
@@ -79,10 +70,8 @@ test('destroy, resolve and purge actions are guarded without session access', fu
     expect(ErrorLog::count())->toBe(1);
 });
 
-test('an authenticated debug session can resolve and delete an error log', function () {
+test('a super admin can resolve and delete an error log', function () {
     loginAsSuperAdminForDevPanel();
-
-    $this->post(route('dev.login.store'), ['password' => config('services.debug_panel.password')]);
 
     $error = ErrorLog::create([
         'error_code' => 'XYZ98765',
@@ -104,8 +93,6 @@ test('an authenticated debug session can resolve and delete an error log', funct
 test('the error detail page shows the stack trace', function () {
     loginAsSuperAdminForDevPanel();
 
-    $this->post(route('dev.login.store'), ['password' => config('services.debug_panel.password')]);
-
     $error = ErrorLog::create([
         'error_code' => 'DEF45678',
         'type' => 'http',
@@ -113,12 +100,39 @@ test('the error detail page shows the stack trace', function () {
         'severity' => 'critical',
         'message' => 'Boom',
         'stack_trace' => 'Trace line 1',
+        'user_name' => 'Siti',
+        'context' => ['ip' => '172.71.215.58', 'user_agent' => 'Mozilla/5.0 TestAgent'],
     ]);
 
     $this->get(route('dev.errors.show', $error->error_code))
         ->assertOk()
         ->assertSee('DEF45678')
-        ->assertSee('Trace line 1');
+        ->assertSee('Trace line 1')
+        ->assertSee('Kode untuk dilaporkan user')
+        ->assertSee('Copy for AI')
+        ->assertSee('Siti')
+        ->assertSee('172.71.215.58')
+        ->assertSee('Mozilla/5.0 TestAgent');
+});
+
+test('deleting from the detail page returns to the list', function () {
+    loginAsSuperAdminForDevPanel();
+
+    $error = ErrorLog::create(['error_code' => 'GHI11111', 'type' => 'http', 'severity' => 'error', 'message' => 'Boom']);
+
+    $this->delete(route('dev.errors.destroy', $error->id), ['to_index' => 1])
+        ->assertRedirect(route('dev.errors.index'));
+
+    expect(ErrorLog::count())->toBe(0);
+});
+
+test('captured errors record the client ip and user agent', function () {
+    $this->withServerVariables(['REMOTE_ADDR' => '10.1.2.3', 'HTTP_USER_AGENT' => 'TestBrowser/1.0'])
+        ->postJson('/api/error-track', ['message' => 'TypeError'])
+        ->assertOk();
+
+    expect(ErrorLog::first()->context)
+        ->toMatchArray(['ip' => '10.1.2.3', 'user_agent' => 'TestBrowser/1.0']);
 });
 
 test('ErrorTracker redacts sensitive fields and never throws', function () {

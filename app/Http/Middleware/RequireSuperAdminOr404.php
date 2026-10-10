@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Gate for the /dev/* group: anyone who isn't an active, verified Super
+ * Gate for Sentry (/tech/sentry) and the old /dev/* URLs: anyone who isn't an active, verified Super
  * Admin gets a plain 404 instead of a redirect-to-login or 403, so the
  * existence of these routes isn't revealed to unauthorized visitors.
  */

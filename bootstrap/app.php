@@ -4,7 +4,6 @@ use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\AuthenticateAiUserAssertion;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureUserAccountIsActive;
-use App\Http\Middleware\RequireDebugPanelSession;
 use App\Http\Middleware\RequireSuperAdminOr404;
 use App\Services\ErrorTracker;
 use Illuminate\Foundation\Application;
@@ -29,7 +28,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'ai.assertion' => AuthenticateAiUserAssertion::class,
             'active' => EnsureUserAccountIsActive::class,
             'role' => RoleMiddleware::class,
-            'dev.session' => RequireDebugPanelSession::class,
             'dev.super-admin' => RequireSuperAdminOr404::class,
         ]);
         $middleware->append(AddSecurityHeaders::class);

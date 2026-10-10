@@ -68,6 +68,10 @@ class AppServiceProvider extends ServiceProvider
 
         Employee::observe(EmployeeObserver::class);
 
+        // Public OPD lookup API (no token): generous per-IP limit so normal dropdown use never hits it, while scraping
+        // or a runaway client does.
+        RateLimiter::for('public-api', fn (Request $request) => Limit::perMinute(60)->by('public-api:'.$request->ip()));
+
         // Data API queries the AI service runs for a user (path B), counted per asserted user.
         RateLimiter::for('ai-data', fn (Request $request) => Limit::perHour(config('ai_center.data.queries_per_hour'))
             ->by('ai-data-api:'.$request->user()?->id));

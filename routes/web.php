@@ -109,25 +109,22 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
     });
 });
 
-// ─── Custom Error Tracker (dev-only debug panel) ───
-// Gated by app auth (must already be logged in as Super Admin); the debug
-// panel password below is a second factor on top of that, not a replacement.
+// ─── Sentry: error tracker + force login (Super Admin only) ───
 // Anyone who isn't an active Super Admin gets a 404, not a redirect/403 —
 // so the existence of these routes isn't revealed to unauthorized visitors.
-Route::middleware('dev.super-admin')->prefix('dev')->name('dev.')->group(function () {
-    Route::get('/login', [ErrorLogController::class, 'loginForm'])->name('login');
-    Route::post('/login', [ErrorLogController::class, 'login'])->name('login.store');
-    Route::get('/logout', [ErrorLogController::class, 'logout'])->name('logout');
+Route::middleware('dev.super-admin')->prefix('dev')->group(function () {
+    // Old dev panel URLs, kept so existing bookmarks still land on Sentry.
+    Route::permanentRedirect('/errors', '/tech/sentry');
+    Route::permanentRedirect('/login', '/tech/sentry');
+    Route::permanentRedirect('/force-login', '/tech/sentry?tab=force-login');
+});
 
-    Volt::route('/force-login', 'dev.force-login')->name('force-login')->middleware('dev.session');
-
-    Route::middleware('dev.session')->prefix('errors')->name('errors.')->group(function () {
-        Route::get('/', [ErrorLogController::class, 'index'])->name('index');
-        Route::post('/purge', [ErrorLogController::class, 'purge'])->name('purge');
-        Route::get('/{code}', [ErrorLogController::class, 'show'])->name('show');
-        Route::post('/{id}/resolve', [ErrorLogController::class, 'resolve'])->name('resolve');
-        Route::delete('/{id}', [ErrorLogController::class, 'destroy'])->name('destroy');
-    });
+Route::middleware('dev.super-admin')->prefix('tech/sentry')->name('dev.errors.')->group(function () {
+    Route::get('/', [ErrorLogController::class, 'index'])->name('index');
+    Route::post('/purge', [ErrorLogController::class, 'purge'])->name('purge');
+    Route::get('/{code}', [ErrorLogController::class, 'show'])->name('show');
+    Route::post('/{id}/resolve', [ErrorLogController::class, 'resolve'])->name('resolve');
+    Route::delete('/{id}', [ErrorLogController::class, 'destroy'])->name('destroy');
 });
 
 // Public intake for browser-side JS errors (e.g. window.onerror) — no session guard,

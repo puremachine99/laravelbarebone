@@ -1,6 +1,6 @@
 <?php
 
-use function Livewire\Volt\{state, layout, computed, usesPagination};
+use function Livewire\Volt\{state, mount, computed, usesPagination};
 use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -9,8 +9,19 @@ use Illuminate\Support\Facades\Log;
 usesPagination();
 
 state(['perPage' => 10]);
-$updatedPerPage = fn () => $this->resetPage();
-layout('layouts.app');
+$updatedPerPage = fn () => $this->resetPage('usersPage');
+
+/**
+ * Embedded in the Sentry page; checked here too so the actions are never reachable by anyone but an active
+ * Super Admin, whatever page hosts the component.
+ */
+$ensureSuperAdmin = function () {
+ $user = auth()->user();
+
+ abort_unless($user && $user->isActive() && $user->hasRole('Super Admin'), 404);
+};
+
+mount(fn () => $this->ensureSuperAdmin());
 
 state([
 'search' =>'',
@@ -32,11 +43,11 @@ $users = computed(function () {
  )
  )
  ->orderBy('name')
- ->paginate(\App\Support\PerPage::resolve($this->perPage));
+ ->paginate(\App\Support\PerPage::resolve($this->perPage), pageName: 'usersPage');
 });
 
 $updatedSearch = function () {
- $this->resetPage();
+ $this->resetPage('usersPage');
 };
 
 $confirm = function (int $userId) {
@@ -50,6 +61,8 @@ $cancel = function () {
 };
 
 $loginAs = function () {
+ $this->ensureSuperAdmin();
+
  $target = User::findOrFail($this->confirmTargetId);
 
  if (! $target->isActive()) {

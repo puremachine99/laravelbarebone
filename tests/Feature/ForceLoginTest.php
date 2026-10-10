@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\UserStatus;
-use App\Http\Controllers\Debug\ErrorLogController;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
@@ -24,36 +23,37 @@ test('super admin can force login as an active user', function () {
     expect(auth()->id())->toBe($target->id);
 });
 
-test('non super admin gets a 404, not a 403', function () {
-    $regularUser = User::factory()->create(['status' => UserStatus::Active]);
-
-    $this->actingAs($regularUser)
-        ->withSession([ErrorLogController::SESSION_KEY => true])
-        ->get(route('dev.force-login'))
-        ->assertNotFound();
-});
-
-test('guests get a 404, not a redirect to login', function () {
-    $this->get(route('dev.force-login'))->assertNotFound();
-});
-
-test('super admin without an unlocked debug panel session gets a 404', function () {
+test('force login is a tab on the Sentry page for super admins', function () {
     $superAdmin = User::factory()->create(['status' => UserStatus::Active]);
     $superAdmin->assignRole(Role::findOrCreate('Super Admin'));
 
     $this->actingAs($superAdmin)
-        ->get(route('dev.force-login'))
+        ->get(route('dev.errors.index', ['tab' => 'force-login']))
+        ->assertOk()
+        ->assertSeeLivewire('dev.force-login');
+});
+
+test('non super admins and guests get a 404, not a 403 or a redirect', function () {
+    $this->get(route('dev.errors.index', ['tab' => 'force-login']))->assertNotFound();
+
+    $this->actingAs(User::factory()->create(['status' => UserStatus::Active]))
+        ->get(route('dev.errors.index', ['tab' => 'force-login']))
         ->assertNotFound();
 });
 
-test('super admin with an unlocked debug panel session can reach the force login page', function () {
+test('the component itself refuses anyone but a super admin', function () {
+    $this->actingAs(User::factory()->create(['status' => UserStatus::Active]));
+
+    Volt::test('dev.force-login')->assertNotFound();
+});
+
+test('the old force login url redirects to the Sentry tab', function () {
     $superAdmin = User::factory()->create(['status' => UserStatus::Active]);
     $superAdmin->assignRole(Role::findOrCreate('Super Admin'));
 
     $this->actingAs($superAdmin)
-        ->withSession([ErrorLogController::SESSION_KEY => true])
-        ->get(route('dev.force-login'))
-        ->assertOk();
+        ->get('/dev/force-login')
+        ->assertRedirect('/tech/sentry?tab=force-login');
 });
 
 test('super admin cannot force login as a suspended or invited user', function () {

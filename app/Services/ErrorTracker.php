@@ -28,6 +28,12 @@ class ErrorTracker
         try {
             $user = auth()->user();
 
+            // Who/where the error came from, kept in context so no extra columns are needed.
+            $attributes['context'] = array_merge([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ], $attributes['context'] ?? []);
+
             return ErrorLog::create(array_merge([
                 'error_code' => Str::upper(Str::random(8)),
                 'type' => 'exception',
