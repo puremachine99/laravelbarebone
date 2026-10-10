@@ -24,7 +24,7 @@ test('renders the API documentation page publicly without authentication', funct
 
 test('the Technology menu links to the API documentation', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo(Permission::findOrCreate('access-technology'));
+    $user->givePermissionTo(Permission::findOrCreate('access-technology'), Permission::findOrCreate('tech-documentation.view'));
 
     $this->actingAs($user)->get('/documentation')
         ->assertOk()
@@ -34,6 +34,15 @@ test('the Technology menu links to the API documentation', function () {
 
 test('users without the Technology menu do not get the link', function () {
     $this->actingAs(User::factory()->create())->get('/documentation')
+        ->assertOk()
+        ->assertDontSee('title="API Documentation"', false);
+});
+
+test('users with Technology access but not the documentation permission do not get the link', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-technology'));
+
+    $this->actingAs($user)->get('/documentation')
         ->assertOk()
         ->assertDontSee('title="API Documentation"', false);
 });

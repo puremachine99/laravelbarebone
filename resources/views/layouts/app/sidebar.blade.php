@@ -504,7 +504,7 @@
                                 <span class="grow">Timeline Calculator</span>
                             </a>
                             @endcan
-                            @role('Super Admin')
+                            @can('tech-sentry.view')
                             <a @class(['menu-item', 'active' => request()->routeIs('dev.errors.*')]) href="{{ route('dev.errors.index') }}"
                                 wire:navigate title="Sentry">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
@@ -514,8 +514,9 @@
                                 </svg>
                                 <span class="grow">Sentry</span>
                             </a>
-                            @endrole
-                            {{-- The documentation page itself is public, so no extra permission beyond the Technology menu. --}}
+                            @endcan
+                            {{-- The page itself stays public (external devs read it without an account); this only controls the menu link. --}}
+                            @can('tech-documentation.view')
                             <a @class(['menu-item', 'active' => request()->routeIs('documentation')]) href="{{ route('documentation') }}"
                                 wire:navigate title="API Documentation">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
@@ -525,6 +526,7 @@
                                 </svg>
                                 <span class="grow">API Documentation</span>
                             </a>
+                            @endcan
                         </div>
                     @endhasanyrole
 

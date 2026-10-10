@@ -152,7 +152,7 @@
     </div>
 
     <!-- Role Create/Edit Modal -->
-    <x-modal wire:model="showRoleModal" title="{{ $isEdit ? 'Edit Role & Permissions' : 'Add New Role' }}" subtitle="Enable a module, then choose which sub-menus and actions it allows." box-class="w-11/12 max-w-5xl">
+    <x-modal wire:model="showRoleModal" title="{{ $isEdit ? 'Edit Role Permissions' : 'Add New Role' }}" subtitle="Enable a module, then choose which sub-menus and actions it allows." box-class="w-11/12 max-w-5xl">
         @php
             // Full class strings on purpose: Tailwind only generates classes it can find literally in the source.
             $sections = [

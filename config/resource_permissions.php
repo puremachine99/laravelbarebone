@@ -78,6 +78,8 @@ return [
             'module' => 'access-technology',
             'resources' => [
                 'tech-timeline-calc' => ['label' => 'Timeline Calculator', 'actions' => ['view']],
+                'tech-sentry' => ['label' => 'Sentry', 'actions' => ['view']],
+                'tech-documentation' => ['label' => 'API Documentation', 'actions' => ['view']],
             ],
         ],
         'ai-data' => [
