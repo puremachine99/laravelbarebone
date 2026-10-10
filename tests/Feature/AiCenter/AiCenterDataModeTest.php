@@ -10,8 +10,10 @@ use App\Models\User;
 use App\Services\AiCenter\AiChatRequest;
 use App\Services\AiCenter\AiGateway;
 use App\Services\AiCenter\FakeAiGateway;
+use App\Services\AiData\UserAssertion;
 use App\Support\ResourcePermissions;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 function dataModeUser(array $permissions): User
 {
@@ -168,5 +170,41 @@ test('data mode can be switched off', function () {
     askAi(dataModeUser(['ai-data-fo-achievement.view']), 'Siapa FO terbaik?');
 
     expect($fake->requests)->toHaveCount(1)
+        ->and($fake->requests[0]->systemPrompt)->toBeNull();
+});
+
+test('gateway mode sends the user context instead of planning in Laravel', function () {
+    config(['ai_center.data.mode' => 'gateway', 'ai_center.data_api.assertion_secret' => 'assertion-secret']);
+    $fake = dataModeAi(FO_TOP_PLAN);
+    $finance = Department::firstWhere('name', 'Departemen Finance');
+    $user = dataModeUser(['ai-data-fo-achievement.view']);
+    $user->update(['department_id' => $finance->id]);
+    $user->assignRole(Role::findOrCreate('Investor Admin'));
+
+    $content = askAi($user, 'Siapa FO terbaik?');
+
+    expect($fake->requests)->toHaveCount(1);
+
+    $request = $fake->requests[0];
+    $claims = app(UserAssertion::class)->verify($request->userContext['assertion']);
+
+    expect($request->purpose)->toBe(AiChatRequest::PURPOSE_CHAT)
+        ->and($request->message)->toBe('Siapa FO terbaik?')
+        ->and($request->systemPrompt)->toBe(config('ai_center.data.gateway_system_prompt'))
+        ->and($request->userContext['department'])->toBe('Departemen Finance')
+        ->and($request->userContext['roles'])->toBe(['Investor Admin'])
+        ->and($request->userContext['available_tools'])->toBe(['fo_achievement'])
+        ->and($claims)->toBe(['user_id' => $user->id, 'conversation_id' => AiConversation::sole()->id])
+        ->and($content)->not->toContain('Sumber data');
+    expect(AiDataQueryLog::count())->toBe(0);
+});
+
+test('gateway mode leaves users without data access untouched', function () {
+    config(['ai_center.data.mode' => 'gateway']);
+    $fake = dataModeAi();
+
+    askAi(dataModeUser([]), 'Halo');
+
+    expect($fake->requests[0]->userContext)->toBeNull()
         ->and($fake->requests[0]->systemPrompt)->toBeNull();
 });

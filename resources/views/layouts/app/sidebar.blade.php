@@ -504,6 +504,16 @@
                                 <span class="grow">Timeline Calculator</span>
                             </a>
                             @endcan
+                            {{-- The documentation page itself is public, so no extra permission beyond the Technology menu. --}}
+                            <a @class(['menu-item', 'active' => request()->routeIs('documentation')]) href="{{ route('documentation') }}"
+                                wire:navigate title="API Documentation">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                                </svg>
+                                <span class="grow">API Documentation</span>
+                            </a>
                         </div>
                     @endhasanyrole
 

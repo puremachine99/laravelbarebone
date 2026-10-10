@@ -91,6 +91,13 @@ return [
             'resources' => [
                 'ai-data-ai-usage' => ['label' => 'AI Center Usage', 'actions' => ['view']],
                 'ai-data-fo-achievement' => ['label' => 'Funding Officer Achievement (per person)', 'actions' => ['view']],
+                'ai-data-employees' => ['label' => 'Master: Employees (name, NIS, department, position)', 'actions' => ['view']],
+                'ai-data-departments' => ['label' => 'Master: Departments', 'actions' => ['view']],
+                'ai-data-roles' => ['label' => 'Master: Roles (user counts)', 'actions' => ['view']],
+                'ai-data-regions' => ['label' => 'Master: Regions', 'actions' => ['view']],
+                'ai-data-opds' => ['label' => 'Master: OPD', 'actions' => ['view']],
+                'ai-data-urusans' => ['label' => 'Master: Urusan', 'actions' => ['view']],
+                'ai-data-products' => ['label' => 'Master: Products', 'actions' => ['view']],
                 'ai-data-all-departments' => ['label' => 'All Departments (otherwise own department only)', 'actions' => ['view']],
             ],
         ],

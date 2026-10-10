@@ -23,7 +23,7 @@ class FoAchievementDataset implements Dataset
 {
     private const COUNT_METRICS = ['leads', 'ql', 'pitching', 'won', 'closing'];
 
-    public function rows(CarbonImmutable $from, CarbonImmutable $to, array $groupBy, ?array $departmentIds): Collection
+    public function rows(CarbonImmutable $from, CarbonImmutable $to, array $groupBy, ?array $departmentIds, array $filters = []): Collection
     {
         $byMonth = in_array('month', $groupBy, true);
         $period = [$from->toDateString(), $to->toDateString()];
@@ -92,7 +92,8 @@ class FoAchievementDataset implements Dataset
     }
 
     /**
-     * Spreads each saved yearly `nilai_closing` target evenly over its 12 months, so any period gets its share.
+     * Spreads each saved yearly `nilai_closing` target evenly over its 12 months, and a month's share over its days,
+     * so any period (whole months or a date range such as the last 30 days) gets its share.
      *
      * @param  array<string, array<string, mixed>>  $base
      * @param  array<int, int>|null  $departmentIds
@@ -108,6 +109,10 @@ class FoAchievementDataset implements Dataset
             ->groupBy('employee_id');
 
         foreach (CarbonPeriod::create($from->startOfMonth(), '1 month', $to->startOfMonth()) as $month) {
+            $month = CarbonImmutable::instance($month);
+            $coveredDays = $month->max($from)->startOfDay()->diffInDays($month->endOfMonth()->min($to)->startOfDay()) + 1;
+            $shareOfMonth = $coveredDays / $month->daysInMonth;
+
             foreach ($yearly as $employeeId => $targets) {
                 $target = $targets->firstWhere('year', $month->year);
 
@@ -117,7 +122,7 @@ class FoAchievementDataset implements Dataset
 
                 $key = $employeeId.'|'.($byMonth ? $month->format('Y-m') : '');
                 $base[$key] ??= ['employee_id' => (int) $employeeId, 'month' => $byMonth ? $month->format('Y-m') : null];
-                $base[$key]['target_nilai_closing'] = ($base[$key]['target_nilai_closing'] ?? 0) + (float) $target->yearly_target / 12;
+                $base[$key]['target_nilai_closing'] = ($base[$key]['target_nilai_closing'] ?? 0) + (float) $target->yearly_target / 12 * $shareOfMonth;
             }
         }
     }

@@ -137,6 +137,9 @@ class NakamaAiGateway implements AiGateway
             'model' => config('ai_center.nakama.model'),
             'system_prompt' => $request->systemPrompt ?? config('ai_center.nakama.system_prompt'),
             'effort' => config('ai_center.nakama.effort'),
+            // Gateway data mode only: department/roles for routing, the tools this user may call, and the signed
+            // assertion the service must forward in the X-AI-User-Assertion header (never to the model).
+            'user_context' => $request->userContext,
         ], fn ($value) => $value !== null && $value !== '') + [
             'stream' => true,
             'include_thinking' => false,

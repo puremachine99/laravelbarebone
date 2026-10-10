@@ -163,3 +163,53 @@ test('rejects invalid ranking and period combinations', function (array $params)
     'all time with comparison' => [['all_time' => true, 'compare_previous' => true]],
     'nik as dimension' => [['group_by' => ['nik']]],
 ]);
+
+test('a date range such as the last 30 days is supported, with the target prorated by day', function () {
+    $officer = fundingOfficer('Hana', $this->finance);
+    closedDeal($officer, '2026-08-25', 99_000_000);
+    closedDeal($officer, '2026-09-20', 30_000_000);
+    closedDeal($officer, '2026-10-05', 20_000_000);
+    FoTarget::create(['employee_id' => $officer->id, 'year' => 2026, 'metric_key' => 'nilai_closing', 'yearly_target' => 365_000_000]);
+    $this->travelTo('2026-10-10');
+
+    $result = $this->service->run(foDataUser($this->allAccess), [
+        'dataset' => 'fo_achievement', 'group_by' => ['employee'], 'metrics' => ['nilai_closing', 'target_nilai_closing'],
+        'from_date' => '2026-09-11', 'to_date' => '2026-10-10', 'compare_previous' => true,
+    ]);
+
+    // 11-30 Sep = 20/30 of a 30.4M month; 1-10 Oct = 10/31 of a 30.4M month.
+    $target = round(365_000_000 / 12 * 20 / 30 + 365_000_000 / 12 * 10 / 31, 2);
+
+    expect($result['period'])->toBe(['from' => '2026-09-11', 'to' => '2026-10-10'])
+        ->and($result['compared_to'])->toBe(['from' => '2026-08-12', 'to' => '2026-09-10'])
+        ->and($result['rows'][0])->toMatchArray([
+            'employee' => 'Hana',
+            'nilai_closing' => 50_000_000.0,
+            'nilai_closing_previous' => 99_000_000.0,
+            'target_nilai_closing' => $target,
+        ]);
+});
+
+test('from_date alone runs until today', function () {
+    closedDeal(fundingOfficer('Indra', $this->finance), '2026-10-01', 5_000_000);
+    $this->travelTo('2026-10-10');
+
+    $result = $this->service->run(foDataUser($this->allAccess), [
+        'dataset' => 'fo_achievement', 'group_by' => ['employee'], 'from_date' => '2026-09-30',
+    ]);
+
+    expect($result['period'])->toBe(['from' => '2026-09-30', 'to' => '2026-10-10'])
+        ->and($result['rows'][0]['nilai_closing'])->toBe(5_000_000.0);
+});
+
+test('rejects invalid date ranges', function (array $params) {
+    expect(fn () => $this->service->run(foDataUser($this->allAccess), ['dataset' => 'fo_achievement', ...$params]))
+        ->toThrow(ValidationException::class);
+})->with([
+    'months and dates mixed' => [['from' => '2026-09', 'from_date' => '2026-09-01']],
+    'to_date without from_date' => [['to_date' => '2026-10-01']],
+    'end before start' => [['from_date' => '2026-10-01', 'to_date' => '2026-09-01']],
+    'longer than 24 months' => [['from_date' => '2024-01-01', 'to_date' => '2026-01-01']],
+    'all time with dates' => [['all_time' => true, 'from_date' => '2026-09-01']],
+    'bad date' => [['from_date' => '30-09-2026']],
+]);

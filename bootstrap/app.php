@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\AuthenticateAiUserAssertion;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureUserAccountIsActive;
 use App\Http\Middleware\RequireDebugPanelSession;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->alias([
             'api.token' => AuthenticateApiToken::class,
+            'ai.assertion' => AuthenticateAiUserAssertion::class,
             'active' => EnsureUserAccountIsActive::class,
             'role' => RoleMiddleware::class,
             'dev.session' => RequireDebugPanelSession::class,

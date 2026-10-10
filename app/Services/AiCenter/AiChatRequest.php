@@ -18,6 +18,7 @@ final readonly class AiChatRequest
      * @param  array<int, array{role: string, content: string}>  $history  Oldest first, without the new message.
      * @param  array{url: string, mime: string, name: string, size_bytes: int}|null  $attachment
      * @param  string|null  $systemPrompt  Overrides config('ai_center.nakama.system_prompt') for this call.
+     * @param  array{department: string|null, roles: array<int, string>, available_tools: array<int, string>, assertion: string|null}|null  $userContext  What the AI service needs to call the data API as tools for this user (gateway mode).
      */
     public function __construct(
         public string $requestId,
@@ -31,6 +32,7 @@ final readonly class AiChatRequest
         public ?string $remoteConversationId = null,
         public ?string $systemPrompt = null,
         public string $purpose = self::PURPOSE_CHAT,
+        public ?array $userContext = null,
     ) {}
 
     /**
@@ -38,19 +40,25 @@ final readonly class AiChatRequest
      */
     public function withMessage(string $message, ?string $systemPrompt): self
     {
-        return new self(
-            requestId: $this->requestId,
-            userId: $this->userId,
-            userName: $this->userName,
-            conversationId: $this->conversationId,
-            message: $message,
-            history: $this->history,
-            attachment: $this->attachment,
-            quickAction: $this->quickAction,
-            remoteConversationId: $this->remoteConversationId,
-            systemPrompt: $systemPrompt,
-            purpose: $this->purpose,
-        );
+        return $this->copy(['message' => $message, 'systemPrompt' => $systemPrompt]);
+    }
+
+    /**
+     * Same turn with the user context for the AI service's data tools (gateway mode).
+     *
+     * @param  array{department: string|null, roles: array<int, string>, available_tools: array<int, string>, assertion: string|null}  $userContext
+     */
+    public function withUserContext(array $userContext, ?string $systemPrompt): self
+    {
+        return $this->copy(['userContext' => $userContext, 'systemPrompt' => $systemPrompt]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $changes
+     */
+    private function copy(array $changes): self
+    {
+        return new self(...[...get_object_vars($this), ...$changes]);
     }
 
     /**

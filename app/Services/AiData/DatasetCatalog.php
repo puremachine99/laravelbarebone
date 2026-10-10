@@ -51,14 +51,17 @@ class DatasetCatalog
     /**
      * What the AI is told it can ask for: only the datasets this user may use, without internal details.
      *
-     * @return array<int, array{dataset: string, label: string, description: string, dimensions: array<string, string>, metrics: array<string, string>, filters: array<int, string>}>
+     * @return array<int, array{skill: string, department: string|null, dataset: string, time_based: bool, label: string, description: string, dimensions: array<string, string>, metrics: array<string, string>, filters: array<int, string>}>
      */
     public function describeFor(User $user): array
     {
         return collect($this->all())
             ->filter(fn (array $dataset, string $key) => $this->canUse($user, $key))
             ->map(fn (array $dataset, string $key) => [
+                'skill' => $dataset['skill'],
+                'department' => $dataset['department'],
                 'dataset' => $key,
+                'time_based' => $dataset['time_based'] ?? true,
                 'label' => $dataset['label'],
                 'description' => $dataset['description'],
                 'dimensions' => $dataset['dimensions'],

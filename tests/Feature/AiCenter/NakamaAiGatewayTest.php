@@ -180,3 +180,17 @@ test('the chat endpoint saves the remote thread id and reuses it on the next mes
 
     Http::assertSent(fn (Request $request) => ($request->data()['conversation_id'] ?? null) === 'conv_9b17');
 });
+
+test('the user context is sent only when present', function () {
+    Http::fake(['*/v1/chat' => Http::response(sse([['done', ['message' => ['tokens' => []]]]]))]);
+    $context = ['department' => 'Departemen Finance', 'roles' => ['Investor Admin'], 'available_tools' => ['fo_achievement'], 'assertion' => 'payload.signature'];
+
+    collectNakama(nakamaRequest());
+    collectNakama(nakamaRequest()->withUserContext($context, 'prompt mode data'));
+
+    $bodies = collect(Http::recorded())->map(fn (array $pair) => $pair[0]->data());
+
+    expect($bodies[0])->not->toHaveKey('user_context')
+        ->and($bodies[1]['user_context'])->toBe($context)
+        ->and($bodies[1]['system_prompt'])->toBe('prompt mode data');
+});
