@@ -72,7 +72,7 @@
 
                 <div class="flex flex-wrap gap-2 shrink-0">
                     <button type="button" class="btn btn-sm btn-secondary" x-on:click="copy('ai', @js($aiReport))">
-                        <span x-text="copied === 'ai' ? 'Tersalin!' : 'Copy for AI'">Copy for AI</span>
+                        <span x-text="copied === 'ai' ? 'Tersalin!' : 'Copy Error'">Copy Error</span>
                     </button>
                     <button type="button" class="btn btn-sm" :class="resolved ? 'btn-ghost border-base-300' : 'btn-success'"
                         x-on:click="toggleResolved()">

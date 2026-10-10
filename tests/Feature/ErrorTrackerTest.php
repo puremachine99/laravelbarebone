@@ -109,7 +109,7 @@ test('the error detail page shows the stack trace', function () {
         ->assertSee('DEF45678')
         ->assertSee('Trace line 1')
         ->assertSee('Kode untuk dilaporkan user')
-        ->assertSee('Copy for AI')
+        ->assertSee('Copy Error')
         ->assertSee('Siti')
         ->assertSee('172.71.215.58')
         ->assertSee('Mozilla/5.0 TestAgent');
@@ -133,6 +133,22 @@ test('captured errors record the client ip and user agent', function () {
 
     expect(ErrorLog::first()->context)
         ->toMatchArray(['ip' => '10.1.2.3', 'user_agent' => 'TestBrowser/1.0']);
+});
+
+test('an IPv6-mapped or loopback client address is recorded as plain IPv4', function () {
+    $this->withServerVariables(['REMOTE_ADDR' => '::ffff:192.168.1.5'])
+        ->postJson('/api/error-track', ['message' => 'TypeError'])
+        ->assertOk();
+
+    expect(ErrorLog::first()->context['ip'])->toBe('192.168.1.5');
+});
+
+test('a genuinely IPv6-only client still gets its real address recorded', function () {
+    $this->withServerVariables(['REMOTE_ADDR' => '2001:db8::1'])
+        ->postJson('/api/error-track', ['message' => 'TypeError'])
+        ->assertOk();
+
+    expect(ErrorLog::first()->context['ip'])->toBe('2001:db8::1');
 });
 
 test('ErrorTracker redacts sensitive fields and never throws', function () {

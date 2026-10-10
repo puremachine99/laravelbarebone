@@ -30,7 +30,7 @@ class ErrorTracker
 
             // Who/where the error came from, kept in context so no extra columns are needed.
             $attributes['context'] = array_merge([
-                'ip' => request()->ip(),
+                'ip' => self::clientIp(request()),
                 'user_agent' => request()->userAgent(),
             ], $attributes['context'] ?? []);
 
@@ -96,6 +96,23 @@ class ErrorTracker
                 'payload' => $payload,
             ],
         ]);
+    }
+
+    /**
+     * The client's IPv4 address, e.g. "192.168.1.5" instead of the IPv6 ("::1", "::ffff:192.168.1.5") that
+     * local/LAN requests often report. Falls back to whatever Request::ip() gives if no IPv4 candidate exists.
+     */
+    protected static function clientIp(Request $request): ?string
+    {
+        foreach (array_filter([$request->ip(), ...$request->ips()]) as $ip) {
+            $ip = str_contains($ip, '::ffff:') ? substr($ip, strrpos($ip, ':') + 1) : $ip;
+
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                return $ip;
+            }
+        }
+
+        return $request->ip();
     }
 
     /**
