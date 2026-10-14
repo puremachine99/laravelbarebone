@@ -66,7 +66,7 @@ test('the page is split into vertical tabs with only the first section shown bef
     preg_match_all('/href="#([a-z-]+)" role="tab"/', $html, $tabs);
     preg_match_all('/id="([a-z-]+)" role="tabpanel"/', $html, $panels);
 
-    expect($tabs[1])->toBe($panels[1])->toHaveCount(21);
+    expect($tabs[1])->toBe($panels[1])->toHaveCount(22);
 });
 
 test('the playground tab ships the ready-made commands to the page', function () {
@@ -78,13 +78,16 @@ test('the playground tab ships the ready-made commands to the page', function ()
         ->assertSee('+ Tambah command');
 });
 
-test('the playground opens with the Region → Provinsi → Kabupaten → OPD simulation and how to build it', function () {
+test('the playground opens with the Jenis → Region → Provinsi → Kabupaten → OPD simulation and how to build it', function () {
     $this->get('/tech/documentation')
         ->assertOk()
-        ->assertSeeInOrder(['Coba API (Playground)', 'Simulasi dropdown Region', 'Cara pakai di aplikasi Anda', 'Command siap pakai'])
-        ->assertSee("this.call('region', '/api/regions')", false)
-        ->assertSee("'/api/opds?regency_id=' + regencyId", false)
-        ->assertSee('fill(opdSelect, await get(`/opds?regency_id=${regencySelect.value}`));', false);
+        ->assertSeeInOrder(['Coba API (Playground)', 'Simulasi dropdown Jenis', 'Cara pakai di aplikasi Anda', 'Command siap pakai'])
+        ->assertSee("this.call('jenis', '/api/opd-types')", false)
+        ->assertSee("this.call('opd', '/api/opds?jenis=' + encodeURIComponent(jenis))", false)
+        ->assertSee("this.call('region', '/api/regions?jenis=' + encodeURIComponent(jenis))", false)
+        ->assertSee("'/api/opds?province_id=' + this.provinceId + this.jenisParam", false)
+        ->assertSee('&opd_lv=1', false)
+        ->assertSee('fill(opdSelect, await get(`/opds?province_id=${provinceSelect.value}${jenis()}`));', false);
 });
 
 test('the playground no longer lists validation-error commands', function () {

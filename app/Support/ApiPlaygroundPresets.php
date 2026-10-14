@@ -12,21 +12,34 @@ class ApiPlaygroundPresets
      * @var array<string, array<int, array{0: string, 1: string, 2: int}>>
      */
     private const GROUPS = [
+        'Jenis' => [
+            ['List semua jenis (+ has_location)', '/api/opd-types', 200],
+        ],
         'Region' => [
             ['List semua region', '/api/regions', 200],
+            ['Region yang punya Unit Kesehatan', '/api/regions?jenis=Unit Kesehatan', 200],
         ],
         'Provinsi' => [
             ['List semua provinsi', '/api/provinces', 200],
             ['Filter keyword (case-insensitive)', '/api/provinces?keyword=jawa', 200],
             ['Provinsi di satu region', '/api/provinces?region_id=1', 200],
+            ['Region + jenis', '/api/provinces?region_id=1&jenis=Unit Kesehatan', 200],
         ],
         'Kabupaten / Kota' => [
             ['Kabupaten/kota di satu provinsi (nama)', '/api/regencies?provinsi=Jawa Timur', 200],
             ['+ keyword nama kabupaten', '/api/regencies?provinsi=Jawa Timur&keyword=Malang', 200],
             ['Kabupaten/kota di satu region', '/api/regencies?region_id=1', 200],
             ['Region + provinsi (id)', '/api/regencies?region_id=3&province_id=21', 200],
+            ['Region + jenis', '/api/regencies?region_id=1&jenis=Unit Kesehatan', 200],
+            ['Provinsi, tanpa entri tingkat provinsi', '/api/regencies?province_id=21&opd_lv=1', 200],
+        ],
+        'Kementrian (tanpa lokasi)' => [
+            ['Semua kementerian, tanpa provinsi/kabupaten', '/api/opds?jenis=Kementrian', 200],
+            ['+ keyword nama', '/api/opds?jenis=Kementrian&keyword=Keuangan', 200],
         ],
         'OPD (dropdown)' => [
+            ['OPD tingkat provinsi (tanpa kabupaten)', '/api/opds?province_id=21&jenis=OPD', 200],
+            ['Unit Kesehatan di satu kabupaten/kota (id)', '/api/opds?regency_id=315&jenis=Unit Kesehatan', 200],
             ['OPD di satu kabupaten/kota (id)', '/api/opds?regency_id=315', 200],
             ['Provinsi saja (nama)', '/api/opds?provinsi=Jawa Timur', 200],
             ['+ kabupaten', '/api/opds?provinsi=Jawa Timur&kabupaten=Malang', 200],

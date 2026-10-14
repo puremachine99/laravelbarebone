@@ -8,6 +8,7 @@
                 'alur' => 'Alur Cascading Dropdown',
                 'cara-pakai' => 'Cara Pakai (Contoh Kode)',
                 'playground' => 'Coba API (Playground)',
+                'opd-types' => 'GET /api/opd-types',
                 'regions' => 'GET /api/regions',
                 'provinces' => 'GET /api/provinces',
                 'regencies' => 'GET /api/regencies',
@@ -448,7 +449,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                         },
                     }">
                         <h2 class="text-lg font-bold">Coba API (Playground)</h2>
-                        {{-- Cascading dropdown simulation: Region → Provinsi → Kabupaten/Kota → OPD, every step calls the real API --}}
+                        {{-- Cascading dropdown simulation: Jenis → (Region → Provinsi → Kabupaten/Kota) → OPD, every step calls the real API --}}
                         @php
                             $cascadeExample = <<<'JS'
 // Ganti dengan URL SmartID.
@@ -460,45 +461,73 @@ const get = async (path) => {
     return (await response.json()).data;
 };
 
-const fill = (select, items, label = (item) => item.name) => {
+const fill = (select, items, label = (item) => item.name, value = (item) => item.id) => {
     select.innerHTML = '<option value="">-- pilih --</option>'
-        + items.map((item) => `<option value="${item.id}">${label(item)}</option>`).join('');
+        + items.map((item) => `<option value="${value(item)}">${label(item)}</option>`).join('');
 };
 
-// 1. Halaman dibuka: isi dropdown region.
-fill(regionSelect, await get('/regions'));
+const jenis = () => `&jenis=${encodeURIComponent(jenisSelect.value)}`;
+let types = [];
 
-// 2. Region dipilih: provinsi & kabupaten/kota di region itu.
+// 1. Halaman dibuka: isi dropdown jenis (OPD, Unit Kesehatan, Kementrian, ...).
+types = await get('/opd-types');
+fill(jenisSelect, types, (t) => `${t.name} (${t.opds_count})`, (t) => t.name);
+
+// 2. Jenis dipilih. Tanpa lokasi (has_location = false, mis. Kementrian): langsung list, tanpa region/provinsi/kabupaten.
+//    Selain itu: isi region yang punya data jenis tsb.
+jenisSelect.addEventListener('change', async () => {
+    const type = types.find((t) => t.name === jenisSelect.value);
+    [regionSelect, provinceSelect, regencySelect, opdSelect].forEach((select) => fill(select, []));
+    locationFields.hidden = ! type?.has_location;
+
+    if (type && ! type.has_location) {
+        fill(opdSelect, await get(`/opds?jenis=${encodeURIComponent(type.name)}`));
+    } else if (type) {
+        fill(regionSelect, await get(`/regions?${jenis().slice(1)}`));
+    }
+});
+
+// 3. Region dipilih: provinsi & kabupaten/kota di region itu (ikut filter jenis).
 regionSelect.addEventListener('change', async () => {
-    fill(provinceSelect, await get(`/provinces?region_id=${regionSelect.value}`));
-    fill(regencySelect, await get(`/regencies?region_id=${regionSelect.value}`), (r) => `${r.name} (${r.provinsi})`);
+    fill(provinceSelect, await get(`/provinces?region_id=${regionSelect.value}${jenis()}`));
+    fill(regencySelect, await get(`/regencies?region_id=${regionSelect.value}${jenis()}`), (r) => `${r.name} (${r.provinsi})`);
     fill(opdSelect, []);
 });
 
-// 3. Provinsi dipilih (opsional): saring kabupaten/kota ke provinsi itu.
+// 4. Provinsi dipilih: langsung tampilkan OPD tingkat provinsi, dan kabupaten/kota di provinsi itu
+//    (tanpa entri "Prov. ..." karena OPD-nya sudah tampil).
 provinceSelect.addEventListener('change', async () => {
-    const province = provinceSelect.value ? `&province_id=${provinceSelect.value}` : '';
+    if (! provinceSelect.value) {
+        fill(regencySelect, await get(`/regencies?region_id=${regionSelect.value}${jenis()}`));
+        fill(opdSelect, []);
 
-    fill(regencySelect, await get(`/regencies?region_id=${regionSelect.value}${province}`));
-    fill(opdSelect, []);
+        return;
+    }
+
+    fill(regencySelect, await get(`/regencies?region_id=${regionSelect.value}&province_id=${provinceSelect.value}&opd_lv=1${jenis()}`));
+    fill(opdSelect, await get(`/opds?province_id=${provinceSelect.value}${jenis()}`));
 });
 
-// 4. Kabupaten/kota dipilih: daftar OPD-nya.
+// 5. Kabupaten/kota dipilih (opsional): OPD yang lebih spesifik. Dikosongkan lagi: kembali ke tingkat provinsi.
 regencySelect.addEventListener('change', async () => {
-    fill(opdSelect, await get(`/opds?regency_id=${regencySelect.value}`));
+    fill(opdSelect, await get(regencySelect.value
+        ? `/opds?regency_id=${regencySelect.value}${jenis()}`
+        : `/opds?province_id=${provinceSelect.value}${jenis()}`));
 });
 JS;
                         @endphp
                         <div class="rounded-box border border-primary/30 bg-primary/5 p-4 space-y-4" x-data="{
+                            types: [],
                             regions: [],
                             provinces: [],
                             regencies: [],
                             opds: [],
+                            jenis: '',
                             regionId: '',
                             provinceId: '',
                             regencyId: '',
                             opdSearch: '',
-                            loading: { region: false, provinsi: false, kabupaten: false, opd: false },
+                            loading: { jenis: false, region: false, provinsi: false, kabupaten: false, opd: false },
                             calls: [],
                             openCall: null,
                             async call(step, path) {
@@ -526,7 +555,47 @@ JS;
                                 }
                             },
                             async init() {
-                                this.regions = await this.call('region', '/api/regions');
+                                this.types = await this.call('jenis', '/api/opd-types');
+                            },
+                            get selectedType() {
+                                return this.types.find((type) => type.name === this.jenis) ?? null;
+                            },
+                            get withoutLocation() {
+                                return this.selectedType !== null && ! this.selectedType.has_location;
+                            },
+                            get jenisParam() {
+                                return '&jenis=' + encodeURIComponent(this.jenis);
+                            },
+                            async pickJenis() {
+                                const jenis = this.jenis;
+                                this.regionId = '';
+                                this.provinceId = '';
+                                this.regencyId = '';
+                                this.regions = [];
+                                this.provinces = [];
+                                this.regencies = [];
+                                this.opds = [];
+                                this.opdSearch = '';
+
+                                if (! jenis) {
+                                    return;
+                                }
+
+                                if (this.withoutLocation) {
+                                    const opds = await this.call('opd', '/api/opds?jenis=' + encodeURIComponent(jenis));
+
+                                    if (jenis === this.jenis) {
+                                        this.opds = opds;
+                                    }
+
+                                    return;
+                                }
+
+                                const regions = await this.call('region', '/api/regions?jenis=' + encodeURIComponent(jenis));
+
+                                if (jenis === this.jenis) {
+                                    this.regions = regions;
+                                }
                             },
                             async pickRegion() {
                                 const regionId = this.regionId;
@@ -541,8 +610,8 @@ JS;
                                 }
 
                                 const [provinces, regencies] = await Promise.all([
-                                    this.call('provinsi', '/api/provinces?region_id=' + regionId),
-                                    this.call('kabupaten', '/api/regencies?region_id=' + regionId),
+                                    this.call('provinsi', '/api/provinces?region_id=' + regionId + this.jenisParam),
+                                    this.call('kabupaten', '/api/regencies?region_id=' + regionId + this.jenisParam),
                                 ]);
 
                                 if (regionId === this.regionId) {
@@ -554,27 +623,54 @@ JS;
                                 const key = this.regionId + ':' + this.provinceId;
                                 this.regencyId = '';
                                 this.opds = [];
-
-                                const regencies = await this.call('kabupaten', '/api/regencies?region_id=' + this.regionId + (this.provinceId ? '&province_id=' + this.provinceId : ''));
-
-                                if (key === this.regionId + ':' + this.provinceId) {
-                                    this.regencies = regencies;
-                                }
-                            },
-                            async pickRegency() {
-                                const regencyId = this.regencyId;
-                                this.opds = [];
                                 this.opdSearch = '';
 
-                                if (! regencyId) {
+                                if (! this.provinceId) {
+                                    const regencies = await this.call('kabupaten', '/api/regencies?region_id=' + this.regionId + this.jenisParam);
+
+                                    if (key === this.regionId + ':' + this.provinceId) {
+                                        this.regencies = regencies;
+                                    }
+
                                     return;
                                 }
 
-                                const opds = await this.call('opd', '/api/opds?regency_id=' + regencyId);
+                                // A province alone already lists its province-level OPDs; the kab/kota dropdown only narrows further.
+                                const [regencies, opds] = await Promise.all([
+                                    this.call('kabupaten', '/api/regencies?region_id=' + this.regionId + '&province_id=' + this.provinceId + '&opd_lv=1' + this.jenisParam),
+                                    this.call('opd', '/api/opds?province_id=' + this.provinceId + this.jenisParam),
+                                ]);
 
-                                if (regencyId === this.regencyId) {
+                                if (key === this.regionId + ':' + this.provinceId) {
+                                    this.regencies = regencies;
                                     this.opds = opds;
                                 }
+                            },
+                            async pickRegency() {
+                                const key = this.provinceId + ':' + this.regencyId;
+                                this.opds = [];
+                                this.opdSearch = '';
+
+                                if (! this.regencyId && ! this.provinceId) {
+                                    return;
+                                }
+
+                                const opds = await this.call('opd', this.regencyId
+                                    ? '/api/opds?regency_id=' + this.regencyId + this.jenisParam
+                                    : '/api/opds?province_id=' + this.provinceId + this.jenisParam);
+
+                                if (key === this.provinceId + ':' + this.regencyId) {
+                                    this.opds = opds;
+                                }
+                            },
+                            get opdLevelLabel() {
+                                if (this.withoutLocation) {
+                                    return '2. Daftar ' + this.jenis;
+                                }
+
+                                return this.regencyId
+                                    ? '5. ' + this.jenis + ' di kabupaten/kota terpilih'
+                                    : '5. ' + this.jenis + ' tingkat provinsi (isi kabupaten/kota untuk yang lebih spesifik)';
                             },
                             get filteredOpds() {
                                 const needle = this.opdSearch.trim().toLowerCase();
@@ -583,25 +679,41 @@ JS;
                             },
                         }">
                             <div>
-                                <h3 class="font-bold">Simulasi dropdown Region &rarr; Provinsi &rarr; Kabupaten/Kota &rarr; OPD</h3>
+                                <h3 class="font-bold">Simulasi dropdown Jenis &rarr; Region &rarr; Provinsi &rarr; Kabupaten/Kota &rarr; OPD</h3>
                                 <p class="text-sm text-base-content/70">
                                     Pilih dari kiri ke kanan. Setiap pilihan memanggil API sungguhan; request-nya tampil
-                                    di log di bawah, persis seperti yang perlu dilakukan aplikasi Anda.
+                                    di log di bawah, persis seperti yang perlu dilakukan aplikasi Anda. Jenis tanpa lokasi
+                                    (Kementrian) langsung menampilkan list, tanpa region/provinsi/kabupaten.
                                 </p>
                             </div>
 
-                            <div class="grid sm:grid-cols-3 gap-3">
+                            <label class="block space-y-1 sm:max-w-xs">
+                                <span class="text-xs font-semibold">1. Jenis</span>
+                                <select x-model="jenis" x-on:change="pickJenis()" class="select select-sm select-bordered w-full" aria-label="Jenis">
+                                    <option value="">-- pilih jenis --</option>
+                                    <template x-for="type in types" :key="type.name">
+                                        <option :value="type.name" x-text="type.name + ' (' + type.opds_count + ')' + (type.has_location ? '' : ' — tanpa lokasi')"></option>
+                                    </template>
+                                </select>
+                            </label>
+
+                            <div x-show="withoutLocation" style="display: none" class="alert alert-info py-2 text-xs">
+                                <span><strong x-text="jenis"></strong> tidak punya provinsi atau kabupaten/kota, jadi langsung
+                                    <code>GET /api/opds?jenis=<span x-text="jenis"></span></code> tanpa filter lokasi.</span>
+                            </div>
+
+                            <div x-show="! withoutLocation" class="grid sm:grid-cols-3 gap-3">
                                 <label class="space-y-1">
-                                    <span class="text-xs font-semibold">1. Region</span>
-                                    <select x-model="regionId" x-on:change="pickRegion()" class="select select-sm select-bordered w-full" aria-label="Region">
-                                        <option value="">-- pilih region --</option>
+                                    <span class="text-xs font-semibold">2. Region</span>
+                                    <select x-model="regionId" x-on:change="pickRegion()" x-bind:disabled="! jenis" class="select select-sm select-bordered w-full" aria-label="Region">
+                                        <option value="" x-text="jenis ? '-- pilih region (' + regions.length + ') --' : '-- pilih jenis dulu --'"></option>
                                         <template x-for="region in regions" :key="region.id">
                                             <option :value="region.id" x-text="region.name + ' (' + region.regencies_count + ' kab/kota)'"></option>
                                         </template>
                                     </select>
                                 </label>
                                 <label class="space-y-1">
-                                    <span class="text-xs font-semibold">2. Provinsi <span class="font-normal text-base-content/60">(opsional, menyaring kab/kota)</span></span>
+                                    <span class="text-xs font-semibold">3. Provinsi <span class="font-normal text-base-content/60">(langsung tampil OPD tingkat provinsi)</span></span>
                                     <select x-model="provinceId" x-on:change="pickProvince()" x-bind:disabled="! regionId" class="select select-sm select-bordered w-full" aria-label="Provinsi">
                                         <option value="" x-text="regionId ? '-- semua provinsi (' + provinces.length + ') --' : '-- pilih region dulu --'"></option>
                                         <template x-for="province in provinces" :key="province.id">
@@ -610,9 +722,9 @@ JS;
                                     </select>
                                 </label>
                                 <label class="space-y-1">
-                                    <span class="text-xs font-semibold">3. Kabupaten / Kota</span>
+                                    <span class="text-xs font-semibold">4. Kabupaten / Kota <span class="font-normal text-base-content/60" x-show="provinceId">(opsional, lebih spesifik)</span></span>
                                     <select x-model="regencyId" x-on:change="pickRegency()" x-bind:disabled="! regionId" class="select select-sm select-bordered w-full" aria-label="Kabupaten / Kota">
-                                        <option value="" x-text="regionId ? '-- pilih dari ' + regencies.length + ' kab/kota --' : '-- pilih region dulu --'"></option>
+                                        <option value="" x-text="! regionId ? '-- pilih region dulu --' : (provinceId ? '-- tingkat provinsi (' + regencies.length + ' kab/kota) --' : '-- pilih dari ' + regencies.length + ' kab/kota --')"></option>
                                         <template x-for="regency in regencies" :key="regency.id">
                                             <option :value="regency.id" x-text="provinceId ? regency.name : regency.name + ' — ' + regency.provinsi"></option>
                                         </template>
@@ -624,11 +736,12 @@ JS;
                                 <span class="loading loading-spinner loading-xs"></span> Memanggil API&hellip;
                             </div>
 
-                            {{-- 4. OPD list --}}
-                            <div x-show="regencyId" style="display: none" class="space-y-2">
+                            {{-- 5. OPD list (straight after Jenis for a jenis without location) --}}
+                            <div x-show="regencyId || provinceId || withoutLocation" style="display: none" class="space-y-2">
                                 <div class="flex flex-wrap items-center justify-between gap-2">
-                                    <p class="text-xs font-semibold">4. OPD di kabupaten/kota terpilih
-                                        <span class="badge badge-sm badge-ghost ml-1" x-text="opds.length + ' OPD'"></span>
+                                    <p class="text-xs font-semibold">
+                                        <span x-text="opdLevelLabel"></span>
+                                        <span class="badge badge-sm badge-ghost ml-1" x-text="opds.length + ' data'"></span>
                                     </p>
                                     <input type="search" x-model="opdSearch" placeholder="Saring nama OPD…" aria-label="Saring nama OPD"
                                         class="input input-xs input-bordered w-full sm:w-56" />
@@ -651,7 +764,7 @@ JS;
                                                 </tr>
                                             </template>
                                             <tr x-show="! loading.opd && filteredOpds.length === 0">
-                                                <td colspan="3" class="text-center text-base-content/60">Tidak ada OPD.</td>
+                                                <td colspan="3" class="text-center text-base-content/60">Tidak ada data.</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -698,23 +811,33 @@ JS;
                                             <tbody>
                                                 <tr>
                                                     <td>Halaman dibuka</td>
-                                                    <td class="font-mono text-xs">GET /api/regions</td>
-                                                    <td>Region</td>
+                                                    <td class="font-mono text-xs">GET /api/opd-types</td>
+                                                    <td>Jenis (OPD, Unit Kesehatan, Kementrian, &hellip;)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Jenis dipilih, <span class="font-mono">has_location: false</span> <span class="text-base-content/60">(Kementrian)</span></td>
+                                                    <td class="font-mono text-xs">GET /api/opds?jenis={jenis}</td>
+                                                    <td>Langsung list, sembunyikan dropdown Region/Provinsi/Kabupaten</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Jenis dipilih, <span class="font-mono">has_location: true</span></td>
+                                                    <td class="font-mono text-xs">GET /api/regions?jenis={jenis}</td>
+                                                    <td>Region yang punya data jenis itu</td>
                                                 </tr>
                                                 <tr>
                                                     <td>Region dipilih</td>
-                                                    <td class="font-mono text-xs">GET /api/provinces?region_id={id}<br>GET /api/regencies?region_id={id}</td>
+                                                    <td class="font-mono text-xs">GET /api/provinces?region_id={id}&amp;jenis={jenis}<br>GET /api/regencies?region_id={id}&amp;jenis={jenis}</td>
                                                     <td>Provinsi &amp; Kabupaten/Kota (boleh dipanggil bersamaan)</td>
                                                 </tr>
                                                 <tr>
-                                                    <td>Provinsi dipilih <span class="text-base-content/60">(opsional)</span></td>
-                                                    <td class="font-mono text-xs">GET /api/regencies?region_id={id}&amp;province_id={id}</td>
-                                                    <td>Kabupaten/Kota, disaring ke provinsi itu</td>
+                                                    <td>Provinsi dipilih</td>
+                                                    <td class="font-mono text-xs">GET /api/opds?province_id={id}&amp;jenis={jenis}<br>GET /api/regencies?region_id={id}&amp;province_id={id}&amp;opd_lv=1&amp;jenis={jenis}</td>
+                                                    <td>OPD tingkat provinsi (langsung tampil) &amp; Kabupaten/Kota di provinsi itu</td>
                                                 </tr>
                                                 <tr>
-                                                    <td>Kabupaten/Kota dipilih</td>
-                                                    <td class="font-mono text-xs">GET /api/opds?regency_id={id}</td>
-                                                    <td>OPD</td>
+                                                    <td>Kabupaten/Kota dipilih <span class="text-base-content/60">(opsional)</span></td>
+                                                    <td class="font-mono text-xs">GET /api/opds?regency_id={id}&amp;jenis={jenis}</td>
+                                                    <td>OPD / Unit Kesehatan di kabupaten/kota itu</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -834,6 +957,46 @@ JS;
                     </div>
                 </div>
 
+                {{-- /api/opd-types --}}
+                <div id="opd-types" role="tabpanel" x-show="active === 'opd-types'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                    <div class="card-body p-5 gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-success font-mono font-bold">GET</span>
+                            <h2 class="text-lg font-bold font-mono">/api/opd-types</h2>
+                        </div>
+                        <p class="text-sm text-base-content/70">List jenis instansi, level pertama dropdown (sebelum Region /
+                            Provinsi). Tanpa parameter. Nilai <span class="font-mono">name</span> dipakai sebagai parameter
+                            <span class="font-mono">jenis</span> di endpoint lain.</p>
+                        <ul class="list-disc list-inside text-sm text-base-content/70 space-y-1">
+                            <li><span class="font-mono">has_location: false</span> (Kementrian): tidak punya provinsi atau
+                                kabupaten/kota. Langsung panggil <span class="font-mono">/api/opds?jenis=Kementrian</span>;
+                                field <span class="font-mono">regency</span> dan <span class="font-mono">provinsi</span> bernilai
+                                <span class="font-mono">null</span>.</li>
+                            <li><span class="font-mono">has_location: true</span>: lanjut ke
+                                <span class="font-mono">/api/regions?jenis=…</span>, lalu provinsi, kabupaten/kota, dan OPD
+                                dengan <span class="font-mono">jenis</span> yang sama.</li>
+                        </ul>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Contoh Request</p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix="$"><code>curl "{{ config('app.url') }}/api/opd-types"</code></pre>
+                        </div>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Response
+                            <span class="badge badge-success badge-sm">200 OK</span>
+                        </p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix=""><code>{
+  "data": [
+    { "name": "Kementrian", "has_location": false, "opds_count": 122 },
+    { "name": "OPD", "has_location": true, "opds_count": 18833 },
+    { "name": "Unit Kesehatan", "has_location": true, "opds_count": 530 }
+  ]
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- /api/regions --}}
                 <div id="regions" role="tabpanel" x-show="active === 'regions'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
@@ -903,6 +1066,12 @@ JS;
                                         <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
                                         <td>integer</td>
                                         <td>Hanya provinsi yang punya kabupaten/kota di region ini (id dari <span class="font-mono">/api/regions</span>).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">jenis</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>string</td>
+                                        <td>Hanya provinsi yang punya data jenis ini (dari <span class="font-mono">/api/opd-types</span>). Kementrian selalu kosong.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -977,6 +1146,20 @@ JS;
                                         <td>string</td>
                                         <td>Filter tambahan nama kabupaten/kota, partial match.</td>
                                     </tr>
+                                    <tr>
+                                        <td class="font-mono">jenis</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>string</td>
+                                        <td>Hanya kabupaten/kota yang punya data jenis ini (dari <span class="font-mono">/api/opd-types</span>).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">opd_lv</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>boolean</td>
+                                        <td><span class="font-mono">1</span> = buang entri bertipe <span class="font-mono">Provinsi</span> (&ldquo;Prov. …&rdquo;).
+                                            Dipakai setelah provinsi dipilih, karena OPD tingkat provinsi sudah tampil lewat
+                                            <span class="font-mono">/api/opds?province_id=</span>.</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1021,10 +1204,13 @@ JS;
                             <span class="badge badge-success font-mono font-bold">GET</span>
                             <h2 class="text-lg font-bold font-mono">/api/opds</h2>
                         </div>
-                        <p class="text-sm text-base-content/70">List OPD (Organisasi Perangkat Daerah).
+                        <p class="text-sm text-base-content/70">List OPD (Organisasi Perangkat Daerah), Unit Kesehatan, dan Kementrian.
                             Isi <span class="font-semibold">provinsi</span> atau <span class="font-semibold">regency_id</span>,
                             <span class="font-semibold">kabupaten</span> dan
-                            <span class="font-semibold">keyword</span> opsional untuk mempersempit hasil.
+                            <span class="font-semibold">keyword</span> opsional untuk mempersempit hasil. Untuk
+                            <span class="font-mono">jenis=Kementrian</span> provinsi/regency tidak diperlukan: semua
+                            kementerian langsung dikembalikan, dengan <span class="font-mono">regency</span> dan
+                            <span class="font-mono">provinsi</span> <span class="font-mono">null</span>.
                         </p>
 
                         <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Query
@@ -1051,6 +1237,20 @@ JS;
                                         <td><span class="badge badge-warning badge-sm">Salah satu</span></td>
                                         <td>integer</td>
                                         <td>Id kabupaten/kota, cocok persis. Disarankan untuk dropdown (lihat Playground).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">province_id</td>
+                                        <td><span class="badge badge-warning badge-sm">Salah satu</span></td>
+                                        <td>integer</td>
+                                        <td>Id provinsi. Tanpa <span class="font-mono">regency_id</span>: hanya OPD <strong>tingkat provinsi</strong>
+                                            (kabupaten/kota bertipe <span class="font-mono">Provinsi</span>, mis. &ldquo;Prov. Jawa Timur&rdquo;).
+                                            Dengan <span class="font-mono">regency_id</span>: OPD kabupaten/kota itu.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">jenis</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>string</td>
+                                        <td>Nama jenis dari <span class="font-mono">/api/opd-types</span>, cocok persis (case-insensitive). Jenis tanpa lokasi (Kementrian) tidak butuh provinsi/regency_id.</td>
                                     </tr>
                                     <tr>
                                         <td class="font-mono">kabupaten</td>

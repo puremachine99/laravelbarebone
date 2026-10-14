@@ -14,6 +14,24 @@ class Opd extends Model
 
     protected $guarded = ['id'];
 
+    /**
+     * Jenis that are national bodies: they are not tied to a provinsi or kabupaten/kota (their regency_id is only a
+     * placeholder), so location filters skip them and the API returns no location for them.
+     *
+     * @var list<string>
+     */
+    public const JENIS_WITHOUT_LOCATION = ['kementrian', 'kementerian'];
+
+    public static function jenisHasLocation(?string $jenis): bool
+    {
+        return ! in_array(mb_strtolower(trim((string) $jenis)), self::JENIS_WITHOUT_LOCATION, true);
+    }
+
+    public function hasLocation(): bool
+    {
+        return self::jenisHasLocation($this->jenis);
+    }
+
     public function regency()
     {
         return $this->belongsTo(Regency::class);
@@ -22,6 +40,30 @@ class Opd extends Model
     public function urusans()
     {
         return $this->belongsToMany(Urusan::class, 'pmo_opd_urusan', 'opd_id', 'urusan_id');
+    }
+
+    /**
+     * Exact jenis match, case-insensitive.
+     *
+     * @param  Builder<Opd>  $query
+     */
+    public function scopeOfJenis(Builder $query, ?string $jenis): void
+    {
+        if (filled($jenis)) {
+            $query->whereRaw('LOWER(pmo_opds.jenis) = ?', [mb_strtolower(trim($jenis))]);
+        }
+    }
+
+    /**
+     * Only OPDs that belong to a provinsi / kabupaten/kota (everything except the national jenis like Kementrian).
+     *
+     * @param  Builder<Opd>  $query
+     */
+    public function scopeWithLocation(Builder $query): void
+    {
+        $query->where(fn (Builder $located) => $located
+            ->whereNull('pmo_opds.jenis')
+            ->orWhereRaw('LOWER(pmo_opds.jenis) NOT IN ('.implode(',', array_fill(0, count(self::JENIS_WITHOUT_LOCATION), '?')).')', self::JENIS_WITHOUT_LOCATION));
     }
 
     /**

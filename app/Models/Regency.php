@@ -9,6 +9,11 @@ class Regency extends Model
 {
     use HasFactory;
 
+    /**
+     * Type of the per-province placeholder regency (e.g. "Prov. Jawa Timur") that holds the province-level OPDs.
+     */
+    public const TYPE_PROVINCE = 'Provinsi';
+
     protected $guarded = ['id'];
 
     public function province()

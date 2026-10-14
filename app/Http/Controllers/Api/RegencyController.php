@@ -12,7 +12,9 @@ class RegencyController extends Controller
 {
     /**
      * Search regencies (kabupaten/kota) by province name keyword, or — for cascading dropdowns — by region and/or
-     * province id. At least one of provinsi, province_id or region_id is required. Used to populate dropdowns.
+     * province id. At least one of provinsi, province_id or region_id is required. "jenis" keeps only regencies with
+     * an OPD of that jenis (none for Kementrian, which has no location). "opd_lv" (kabupaten/kota level only) drops the per-province
+     * "Provinsi" placeholder regencies, whose OPDs a dropdown already shows once a province is picked.
      */
     public function index(Request $request): AnonymousResourceCollection
     {
@@ -21,6 +23,8 @@ class RegencyController extends Controller
             'province_id' => ['nullable', 'integer'],
             'region_id' => ['nullable', 'integer'],
             'keyword' => ['nullable', 'string', 'min:1'],
+            'jenis' => ['nullable', 'string', 'max:50'],
+            'opd_lv' => ['nullable', 'boolean'],
         ]);
 
         $regencies = Regency::query()
@@ -35,6 +39,8 @@ class RegencyController extends Controller
             ->when($validated['keyword'] ?? null, function ($query, $keyword) {
                 $query->where('name', 'like', '%'.$keyword.'%');
             })
+            ->when($validated['jenis'] ?? null, fn ($query, $jenis) => $query->whereHas('opds', fn ($opds) => $opds->ofJenis($jenis)->withLocation()))
+            ->when($request->boolean('opd_lv'), fn ($query) => $query->where(fn ($type) => $type->whereNull('type')->orWhere('type', '!=', Regency::TYPE_PROVINCE)))
             ->orderBy('name')
             ->get();
 

@@ -100,7 +100,9 @@ describe('GET /api/opds/search', function () {
 
     test('per column filters narrow the result and can be combined', function () {
         $this->getJson('/api/opds/search?jenis=kementrian')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $this->kementerian->id);
-        $this->getJson('/api/opds/search?provinsi=timur&kabupaten=sidoarjo')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $this->kementerian->id);
+        $this->getJson('/api/opds/search?provinsi=timur&kabupaten=malang')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $this->dinas->id);
+        // Kementrian has no location, so location filters never return it.
+        $this->getJson('/api/opds/search?provinsi=timur&kabupaten=sidoarjo')->assertOk()->assertJsonCount(0, 'data');
         $this->getJson('/api/opds/search?region=dua')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $this->dinas->id);
         $this->getJson('/api/opds/search?urusan=pendidikan')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $this->dinas->id);
         $this->getJson('/api/opds/search?jenis=opd&provinsi=timur')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $this->dinas->id);

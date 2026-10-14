@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OpdResource;
 use App\Models\Opd;
+use App\Models\Regency;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -14,19 +15,35 @@ class OpdController extends Controller
 {
     /**
      * Search OPDs by province name keyword, or — for cascading dropdowns — by the exact regency id; optionally
-     * narrowed by regency (kabupaten/kota) and OPD name keywords. Used to populate dropdowns.
+     * narrowed by regency (kabupaten/kota) and OPD name keywords. Optionally narrowed by jenis; a jenis without a
+     * location (Kementrian) needs no provinsi / regency_id and lists every entry of that jenis. "province_id" without
+     * "regency_id" gives the province-level OPDs (those of the province's "Provinsi" regency). Used to populate
+     * dropdowns.
      */
     public function index(Request $request): AnonymousResourceCollection
     {
         $validated = $request->validate([
-            'provinsi' => ['required_without:regency_id', 'nullable', 'string', 'min:1'],
+            'jenis' => ['nullable', 'string', 'max:50'],
+            'provinsi' => [
+                Rule::requiredIf(fn () => ! $request->filled('regency_id') && ! $request->filled('province_id') && Opd::jenisHasLocation($request->string('jenis')->value())),
+                'nullable', 'string', 'min:1',
+            ],
+            'province_id' => ['nullable', 'integer'],
             'regency_id' => ['nullable', 'integer'],
             'kabupaten' => ['nullable', 'string', 'min:1'],
             'keyword' => ['nullable', 'string', 'min:1'],
         ]);
 
+        $filtersByLocation = collect(['provinsi', 'province_id', 'regency_id', 'kabupaten'])->contains(fn (string $key) => filled($validated[$key] ?? null));
+        $provinceLevelOnly = filled($validated['province_id'] ?? null) && blank($validated['regency_id'] ?? null);
+
         $opds = Opd::query()
             ->with(['regency.province'])
+            ->ofJenis($validated['jenis'] ?? null)
+            ->when($filtersByLocation, fn ($query) => $query->withLocation())
+            ->when($validated['province_id'] ?? null, fn ($query, $provinceId) => $query->whereHas('regency', fn ($regency) => $regency
+                ->where('province_id', $provinceId)
+                ->when($provinceLevelOnly, fn ($regency) => $regency->where('type', Regency::TYPE_PROVINCE))))
             ->when($validated['provinsi'] ?? null, function ($query, $provinsi) {
                 $query->whereHas('regency.province', function ($query) use ($provinsi) {
                     $query->where('name', 'like', '%'.$provinsi.'%');
@@ -68,10 +85,13 @@ class OpdController extends Controller
         $contains = fn (Builder $query, string $column, string $value) => $query
             ->whereRaw("LOWER({$column}) LIKE ?", ['%'.addcslashes(mb_strtolower($value), '%_\\').'%']);
 
+        $filtersByLocation = filled($validated['provinsi'] ?? null) || filled($validated['kabupaten'] ?? null) || filled($validated['region'] ?? null);
+
         $opds = Opd::query()
             ->with(['regency.province', 'regency.region', 'urusans'])
             ->search($validated['q'] ?? null)
-            ->when($validated['jenis'] ?? null, fn ($query, $jenis) => $query->whereRaw('LOWER(pmo_opds.jenis) = ?', [mb_strtolower($jenis)]))
+            ->ofJenis($validated['jenis'] ?? null)
+            ->when($filtersByLocation, fn ($query) => $query->withLocation())
             ->when($validated['provinsi'] ?? null, fn ($query, $provinsi) => $query->whereHas('regency.province', fn ($province) => $contains($province, 'provinces.name', $provinsi)))
             ->when($validated['kabupaten'] ?? null, fn ($query, $kabupaten) => $query->whereHas('regency', fn ($regency) => $contains($regency, 'regencies.name', $kabupaten)))
             ->when($validated['region'] ?? null, fn ($query, $region) => $query->whereHas('regency.region', fn ($regionQuery) => $contains($regionQuery, 'regions.name', $region)))
