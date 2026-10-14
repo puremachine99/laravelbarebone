@@ -7,6 +7,8 @@
                 'overview' => 'Overview',
                 'alur' => 'Alur Cascading Dropdown',
                 'cara-pakai' => 'Cara Pakai (Contoh Kode)',
+                'playground' => 'Coba API (Playground)',
+                'regions' => 'GET /api/regions',
                 'provinces' => 'GET /api/provinces',
                 'regencies' => 'GET /api/regencies',
                 'opds' => 'GET /api/opds',
@@ -31,6 +33,16 @@
             'tabs' => [
                 'employees' => 'GET /api/employees',
                 'employee-detail' => 'GET /api/employees/{id}',
+            ],
+        ],
+        [
+            'label' => 'SSO (Login with SmartID)',
+            'badge' => null,
+            'tabs' => [
+                'sso-overview' => 'Overview & Alur',
+                'sso-laravel' => 'Pasang di Laravel / Filament',
+                'sso-api' => 'GET /api/me',
+                'sso-troubleshooting' => 'Troubleshooting',
             ],
         ],
     ];
@@ -311,6 +323,552 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                     </div>
                 </div>
 
+                {{-- Playground: editable GET commands run from the browser against this app's own /api --}}
+                <div id="playground" role="tabpanel" x-show="active === 'playground'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                    <div class="card-body p-5 gap-3" x-data="{
+                        rows: [],
+                        selected: null,
+                        shell: 'powershell',
+                        runningAll: false,
+                        origin: window.location.origin,
+                        init() {
+                            this.rows = @js(\App\Support\ApiPlaygroundPresets::all()).map((row, index) => ({ ...row, id: index, original: row.path, result: null, running: false }));
+                        },
+                        normalize(input) {
+                            const raw = (input || '').trim();
+                            const quoted = raw.match(/[\x22']([^\x22']*\/api\/[^\x22']*)[\x22']/);
+                            let path = quoted ? quoted[1] : raw;
+                            const at = path.indexOf('/api/');
+
+                            if (at === -1) {
+                                return null;
+                            }
+
+                            path = path.slice(at);
+
+                            if (! quoted && /^curl/i.test(raw)) {
+                                path = path.split(/\s/)[0];
+                            }
+
+                            return path;
+                        },
+                        urlFor(row) {
+                            const path = this.normalize(row.path);
+
+                            return path ? new URL(path, this.origin).href : null;
+                        },
+                        curlFor(row) {
+                            const url = this.urlFor(row);
+                            const dq = String.fromCharCode(34);
+
+                            return url ? (this.shell === 'powershell' ? 'curl.exe' : 'curl') + ' -s -H ' + dq + 'Accept: application/json' + dq + ' ' + dq + url + dq : '';
+                        },
+                        expected(row) {
+                            return row.path === row.original ? row.expect : null;
+                        },
+                        passed(row) {
+                            return row.result?.status !== undefined && this.expected(row) !== null && row.result.status === this.expected(row);
+                        },
+                        failed(row) {
+                            return !! row.result && this.expected(row) !== null && ! this.passed(row);
+                        },
+                        get summary() {
+                            const checked = this.rows.filter((row) => row.result && this.expected(row) !== null);
+
+                            return { checked: checked.length, passed: checked.filter((row) => this.passed(row)).length };
+                        },
+                        async run(row) {
+                            this.selected = row.id;
+                            const url = this.urlFor(row);
+
+                            if (! url) {
+                                row.result = { error: 'Command harus berisi path /api/... (contoh: /api/opds?provinsi=Jawa Timur).' };
+
+                                return;
+                            }
+
+                            row.running = true;
+                            const started = performance.now();
+
+                            try {
+                                const response = await fetch(url, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+                                const text = await response.text();
+                                let body = text;
+                                let count = null;
+                                let total = null;
+
+                                try {
+                                    const json = JSON.parse(text);
+                                    body = JSON.stringify(json, null, 2);
+                                    count = Array.isArray(json.data) ? json.data.length : null;
+                                    total = json.meta?.total ?? null;
+                                } catch (error) {}
+
+                                row.result = {
+                                    url,
+                                    status: response.status,
+                                    ms: Math.round(performance.now() - started),
+                                    limit: response.headers.get('X-RateLimit-Limit'),
+                                    remaining: response.headers.get('X-RateLimit-Remaining'),
+                                    count,
+                                    total,
+                                    body: body.length > 100000 ? body.slice(0, 100000) + ' … (dipotong, response terlalu besar)' : body,
+                                };
+                            } catch (error) {
+                                row.result = { error: 'Request gagal: ' + error.message };
+                            }
+
+                            row.running = false;
+                        },
+                        async runAll() {
+                            this.runningAll = true;
+
+                            for (const row of this.rows) {
+                                await this.run(row);
+                            }
+
+                            this.selected = null;
+                            this.runningAll = false;
+                        },
+                        add() {
+                            const id = Math.max(-1, ...this.rows.map((row) => row.id)) + 1;
+                            this.rows.push({ id, group: 'Command custom', label: 'Command baru', path: '/api/', original: null, expect: null, result: null, running: false, custom: true });
+                            this.selected = id;
+                            this.$nextTick(() => document.getElementById('playground-input-' + id)?.focus());
+                        },
+                        remove(row) {
+                            this.rows = this.rows.filter((other) => other.id !== row.id);
+                        },
+                        reset(row) {
+                            row.path = row.original;
+                            row.result = null;
+                        },
+                        copy(text) {
+                            navigator.clipboard?.writeText(text);
+                        },
+                    }">
+                        <h2 class="text-lg font-bold">Coba API (Playground)</h2>
+                        {{-- Cascading dropdown simulation: Region → Provinsi → Kabupaten/Kota → OPD, every step calls the real API --}}
+                        @php
+                            $cascadeExample = <<<'JS'
+// Ganti dengan URL SmartID.
+const API = 'https://smartdashboard.example.com/api';
+
+const get = async (path) => {
+    const response = await fetch(API + path, { headers: { Accept: 'application/json' } });
+
+    return (await response.json()).data;
+};
+
+const fill = (select, items, label = (item) => item.name) => {
+    select.innerHTML = '<option value="">-- pilih --</option>'
+        + items.map((item) => `<option value="${item.id}">${label(item)}</option>`).join('');
+};
+
+// 1. Halaman dibuka: isi dropdown region.
+fill(regionSelect, await get('/regions'));
+
+// 2. Region dipilih: provinsi & kabupaten/kota di region itu.
+regionSelect.addEventListener('change', async () => {
+    fill(provinceSelect, await get(`/provinces?region_id=${regionSelect.value}`));
+    fill(regencySelect, await get(`/regencies?region_id=${regionSelect.value}`), (r) => `${r.name} (${r.provinsi})`);
+    fill(opdSelect, []);
+});
+
+// 3. Provinsi dipilih (opsional): saring kabupaten/kota ke provinsi itu.
+provinceSelect.addEventListener('change', async () => {
+    const province = provinceSelect.value ? `&province_id=${provinceSelect.value}` : '';
+
+    fill(regencySelect, await get(`/regencies?region_id=${regionSelect.value}${province}`));
+    fill(opdSelect, []);
+});
+
+// 4. Kabupaten/kota dipilih: daftar OPD-nya.
+regencySelect.addEventListener('change', async () => {
+    fill(opdSelect, await get(`/opds?regency_id=${regencySelect.value}`));
+});
+JS;
+                        @endphp
+                        <div class="rounded-box border border-primary/30 bg-primary/5 p-4 space-y-4" x-data="{
+                            regions: [],
+                            provinces: [],
+                            regencies: [],
+                            opds: [],
+                            regionId: '',
+                            provinceId: '',
+                            regencyId: '',
+                            opdSearch: '',
+                            loading: { region: false, provinsi: false, kabupaten: false, opd: false },
+                            calls: [],
+                            openCall: null,
+                            async call(step, path) {
+                                const started = performance.now();
+                                const entry = { id: Math.random().toString(36).slice(2), step, path, status: null, ms: 0, count: null, body: '' };
+                                this.loading[step] = true;
+
+                                try {
+                                    const response = await fetch(new URL(path, window.location.origin), { headers: { Accept: 'application/json' } });
+                                    const json = await response.json().catch(() => null);
+                                    entry.status = response.status;
+                                    entry.count = Array.isArray(json?.data) ? json.data.length : null;
+                                    entry.body = JSON.stringify(json, null, 2);
+
+                                    return response.ok ? (json?.data ?? []) : [];
+                                } catch (error) {
+                                    entry.status = 'ERR';
+                                    entry.body = error.message;
+
+                                    return [];
+                                } finally {
+                                    entry.ms = Math.round(performance.now() - started);
+                                    this.calls = [entry, ...this.calls].slice(0, 10);
+                                    this.loading[step] = false;
+                                }
+                            },
+                            async init() {
+                                this.regions = await this.call('region', '/api/regions');
+                            },
+                            async pickRegion() {
+                                const regionId = this.regionId;
+                                this.provinceId = '';
+                                this.regencyId = '';
+                                this.provinces = [];
+                                this.regencies = [];
+                                this.opds = [];
+
+                                if (! regionId) {
+                                    return;
+                                }
+
+                                const [provinces, regencies] = await Promise.all([
+                                    this.call('provinsi', '/api/provinces?region_id=' + regionId),
+                                    this.call('kabupaten', '/api/regencies?region_id=' + regionId),
+                                ]);
+
+                                if (regionId === this.regionId) {
+                                    this.provinces = provinces;
+                                    this.regencies = regencies;
+                                }
+                            },
+                            async pickProvince() {
+                                const key = this.regionId + ':' + this.provinceId;
+                                this.regencyId = '';
+                                this.opds = [];
+
+                                const regencies = await this.call('kabupaten', '/api/regencies?region_id=' + this.regionId + (this.provinceId ? '&province_id=' + this.provinceId : ''));
+
+                                if (key === this.regionId + ':' + this.provinceId) {
+                                    this.regencies = regencies;
+                                }
+                            },
+                            async pickRegency() {
+                                const regencyId = this.regencyId;
+                                this.opds = [];
+                                this.opdSearch = '';
+
+                                if (! regencyId) {
+                                    return;
+                                }
+
+                                const opds = await this.call('opd', '/api/opds?regency_id=' + regencyId);
+
+                                if (regencyId === this.regencyId) {
+                                    this.opds = opds;
+                                }
+                            },
+                            get filteredOpds() {
+                                const needle = this.opdSearch.trim().toLowerCase();
+
+                                return needle ? this.opds.filter((opd) => opd.name.toLowerCase().includes(needle)) : this.opds;
+                            },
+                        }">
+                            <div>
+                                <h3 class="font-bold">Simulasi dropdown Region &rarr; Provinsi &rarr; Kabupaten/Kota &rarr; OPD</h3>
+                                <p class="text-sm text-base-content/70">
+                                    Pilih dari kiri ke kanan. Setiap pilihan memanggil API sungguhan; request-nya tampil
+                                    di log di bawah, persis seperti yang perlu dilakukan aplikasi Anda.
+                                </p>
+                            </div>
+
+                            <div class="grid sm:grid-cols-3 gap-3">
+                                <label class="space-y-1">
+                                    <span class="text-xs font-semibold">1. Region</span>
+                                    <select x-model="regionId" x-on:change="pickRegion()" class="select select-sm select-bordered w-full" aria-label="Region">
+                                        <option value="">-- pilih region --</option>
+                                        <template x-for="region in regions" :key="region.id">
+                                            <option :value="region.id" x-text="region.name + ' (' + region.regencies_count + ' kab/kota)'"></option>
+                                        </template>
+                                    </select>
+                                </label>
+                                <label class="space-y-1">
+                                    <span class="text-xs font-semibold">2. Provinsi <span class="font-normal text-base-content/60">(opsional, menyaring kab/kota)</span></span>
+                                    <select x-model="provinceId" x-on:change="pickProvince()" x-bind:disabled="! regionId" class="select select-sm select-bordered w-full" aria-label="Provinsi">
+                                        <option value="" x-text="regionId ? '-- semua provinsi (' + provinces.length + ') --' : '-- pilih region dulu --'"></option>
+                                        <template x-for="province in provinces" :key="province.id">
+                                            <option :value="province.id" x-text="province.name"></option>
+                                        </template>
+                                    </select>
+                                </label>
+                                <label class="space-y-1">
+                                    <span class="text-xs font-semibold">3. Kabupaten / Kota</span>
+                                    <select x-model="regencyId" x-on:change="pickRegency()" x-bind:disabled="! regionId" class="select select-sm select-bordered w-full" aria-label="Kabupaten / Kota">
+                                        <option value="" x-text="regionId ? '-- pilih dari ' + regencies.length + ' kab/kota --' : '-- pilih region dulu --'"></option>
+                                        <template x-for="regency in regencies" :key="regency.id">
+                                            <option :value="regency.id" x-text="provinceId ? regency.name : regency.name + ' — ' + regency.provinsi"></option>
+                                        </template>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center gap-2 text-xs text-base-content/60" x-show="Object.values(loading).some(Boolean)" style="display: none">
+                                <span class="loading loading-spinner loading-xs"></span> Memanggil API&hellip;
+                            </div>
+
+                            {{-- 4. OPD list --}}
+                            <div x-show="regencyId" style="display: none" class="space-y-2">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <p class="text-xs font-semibold">4. OPD di kabupaten/kota terpilih
+                                        <span class="badge badge-sm badge-ghost ml-1" x-text="opds.length + ' OPD'"></span>
+                                    </p>
+                                    <input type="search" x-model="opdSearch" placeholder="Saring nama OPD…" aria-label="Saring nama OPD"
+                                        class="input input-xs input-bordered w-full sm:w-56" />
+                                </div>
+                                <div class="max-h-72 overflow-y-auto rounded-box border border-base-300 bg-base-100">
+                                    <table class="table table-xs">
+                                        <thead class="sticky top-0 bg-base-100">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Nama OPD</th>
+                                                <th>Jenis</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="opd in filteredOpds" :key="opd.id">
+                                                <tr>
+                                                    <td class="font-mono" x-text="opd.id"></td>
+                                                    <td x-text="opd.name"></td>
+                                                    <td x-text="opd.jenis ?? '-'"></td>
+                                                </tr>
+                                            </template>
+                                            <tr x-show="! loading.opd && filteredOpds.length === 0">
+                                                <td colspan="3" class="text-center text-base-content/60">Tidak ada OPD.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- API calls made by the simulation --}}
+                            <div class="space-y-1">
+                                <p class="text-xs font-semibold">Request API yang dipanggil <span class="font-normal text-base-content/60">(terbaru di atas, klik untuk lihat response)</span></p>
+                                <div class="rounded-box bg-[#0d1117] p-2 font-mono text-xs text-[#c9d1d9] space-y-0.5">
+                                    <template x-for="entry in calls" :key="entry.id">
+                                        <div>
+                                            <button type="button" x-on:click="openCall = openCall === entry.id ? null : entry.id" class="flex w-full flex-wrap items-center gap-x-2 text-left hover:bg-white/5 rounded px-1">
+                                                <span class="text-[#d2a8ff] w-16 shrink-0" x-text="entry.step"></span>
+                                                <span class="text-[#3fb950]">GET</span>
+                                                <span class="grow break-all" x-text="entry.path"></span>
+                                                <span x-bind:class="entry.status === 200 ? 'text-[#3fb950]' : 'text-[#f85149]'" x-text="entry.status"></span>
+                                                <span class="text-[#8b949e]" x-text="entry.ms + 'ms'"></span>
+                                                <span class="text-[#79c0ff]" x-show="entry.count !== null" x-text="entry.count + ' item'"></span>
+                                            </button>
+                                            <pre x-show="openCall === entry.id" class="mt-1 max-h-64 overflow-auto rounded bg-black/30 p-2" x-text="entry.body"></pre>
+                                        </div>
+                                    </template>
+                                    <p x-show="calls.length === 0" class="text-[#8b949e] px-1">$ belum ada request</p>
+                                </div>
+                            </div>
+
+                            {{-- How to build the same dropdowns --}}
+                            <div x-data="{ guide: false, copied: false }" class="rounded-box border border-base-300 bg-base-100">
+                                <button type="button" x-on:click="guide = ! guide" class="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold">
+                                    Cara pakai di aplikasi Anda
+                                    <span class="text-xs font-normal text-base-content/60" x-text="guide ? 'Sembunyikan' : 'Tampilkan'"></span>
+                                </button>
+                                <div x-show="guide" x-cloak class="space-y-3 border-t border-base-300 p-3 text-sm">
+                                    <div class="overflow-x-auto">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Kapan</th>
+                                                    <th>Panggil</th>
+                                                    <th>Isi dropdown</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Halaman dibuka</td>
+                                                    <td class="font-mono text-xs">GET /api/regions</td>
+                                                    <td>Region</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Region dipilih</td>
+                                                    <td class="font-mono text-xs">GET /api/provinces?region_id={id}<br>GET /api/regencies?region_id={id}</td>
+                                                    <td>Provinsi &amp; Kabupaten/Kota (boleh dipanggil bersamaan)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Provinsi dipilih <span class="text-base-content/60">(opsional)</span></td>
+                                                    <td class="font-mono text-xs">GET /api/regencies?region_id={id}&amp;province_id={id}</td>
+                                                    <td>Kabupaten/Kota, disaring ke provinsi itu</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Kabupaten/Kota dipilih</td>
+                                                    <td class="font-mono text-xs">GET /api/opds?regency_id={id}</td>
+                                                    <td>OPD</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <ul class="list-disc list-inside space-y-1 text-base-content/70">
+                                        <li>Simpan <strong>id</strong> sebagai value option, bukan nama. Filter <span class="font-mono">*_id</span> mencocokkan persis, sedangkan filter nama bersifat partial
+                                            (&ldquo;Kab. Bandung&rdquo; juga cocok dengan &ldquo;Kab. Bandung Barat&rdquo;).</li>
+                                        <li>Saat pilihan di atas berubah, kosongkan dropdown di bawahnya sebelum memanggil API lagi.</li>
+                                        <li>Region dipetakan per kabupaten/kota, jadi satu provinsi bisa muncul di lebih dari satu region.</li>
+                                        <li>Semua endpoint publik dan read-only (60 request/menit per IP). Dari domain lain di browser, pastikan CORS mengizinkan, atau panggil dari backend.</li>
+                                    </ul>
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-xs font-semibold">Contoh JavaScript (tanpa library)</p>
+                                        <button type="button" class="btn btn-ghost btn-xs"
+                                            x-on:click="navigator.clipboard.writeText($refs.cascadeCode.innerText); copied = true; setTimeout(() => copied = false, 1500)">
+                                            <span x-show="! copied">Salin</span><span x-show="copied" x-cloak>✓ Tersalin</span>
+                                        </button>
+                                    </div>
+                                    <pre class="max-h-96 overflow-auto rounded-box bg-[#0d1117] p-3 text-xs text-[#c9d1d9]"><code x-ref="cascadeCode">{{ $cascadeExample }}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="divider my-1 text-xs">Command siap pakai</div>
+                        <p class="text-sm text-base-content/70">
+                            Command GET siap pakai untuk endpoint OPD Lookup. Klik <span class="font-semibold">Test</span>
+                            untuk menjalankan satu command, atau <span class="font-semibold">Jalankan semua</span> untuk
+                            mengecek semuanya sekaligus. Setiap command bisa diubah langsung: ketik path
+                            (<code class="text-xs">/api/opds?provinsi=Jawa Barat</code>), URL lengkap, atau tempel command
+                            <code class="text-xs">curl</code>. Request selalu dikirim ke server ini
+                            (<code class="text-xs" x-text="origin"></code>).
+                        </p>
+
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" class="btn btn-primary btn-sm" x-on:click="runAll()" x-bind:disabled="runningAll">
+                                <span x-show="runningAll" class="loading loading-spinner loading-xs"></span>
+                                Jalankan semua
+                            </button>
+                            <button type="button" class="btn btn-ghost btn-sm" x-on:click="add()">+ Tambah command</button>
+                            <span class="text-sm" x-show="summary.checked > 0" style="display: none">
+                                <span x-bind:class="summary.passed === summary.checked ? 'text-success' : 'text-error'" class="font-semibold"
+                                    x-text="summary.passed + '/' + summary.checked + ' sesuai harapan'"></span>
+                            </span>
+                            <label class="ml-auto flex items-center gap-2 text-xs text-base-content/70">
+                                Salin sebagai
+                                <select x-model="shell" class="select select-xs select-bordered">
+                                    <option value="powershell">PowerShell (curl.exe)</option>
+                                    <option value="bash">Bash (curl)</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="alert alert-warning text-xs">
+                            <span>Endpoint publik dibatasi <strong>60 request/menit per IP</strong>. &ldquo;Jalankan semua&rdquo;
+                                memakai satu request per baris; kalau mulai mendapat <code>429</code>, tunggu 1 menit.</span>
+                        </div>
+
+                        <div class="divide-y divide-base-200 border border-base-300 rounded-box">
+                            <template x-for="(row, index) in rows" :key="row.id">
+                                <div>
+                                    <p x-show="index === 0 || rows[index - 1].group !== row.group"
+                                        class="bg-base-200 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-base-content/70" x-text="row.group"></p>
+
+                                    <div class="px-3 py-2 space-y-1.5">
+                                        <div class="flex flex-wrap items-center gap-2 text-xs">
+                                            <span class="font-medium text-base-content/80" x-text="row.label"></span>
+                                            <span x-show="expected(row) !== null" class="text-base-content/50" x-text="'harapan: ' + expected(row)"></span>
+                                            <span x-show="row.original !== null && row.path !== row.original" class="badge badge-ghost badge-xs">diubah</span>
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <span class="badge badge-success badge-sm font-mono font-bold shrink-0">GET</span>
+                                            <input type="text" x-model="row.path" x-bind:id="'playground-input-' + row.id"
+                                                x-on:keydown.enter.prevent="run(row)" spellcheck="false" aria-label="Command"
+                                                class="input input-sm input-bordered font-mono text-xs grow min-w-0" />
+                                            <button type="button" class="btn btn-sm btn-primary btn-outline shrink-0" x-on:click="run(row)" x-bind:disabled="row.running">
+                                                <span x-show="row.running" class="loading loading-spinner loading-xs"></span>
+                                                Test
+                                            </button>
+                                            <button type="button" x-show="row.result && row.result.status !== undefined" x-on:click="selected = selected === row.id ? null : row.id"
+                                                class="badge badge-sm font-mono shrink-0 cursor-pointer" title="Tampilkan / sembunyikan response"
+                                                x-bind:class="row.result?.status < 300 ? 'badge-success' : (row.result?.status < 500 ? 'badge-warning' : 'badge-error')"
+                                                x-text="row.result?.status"></button>
+                                            <span x-show="passed(row)" class="text-success font-bold shrink-0" title="Sesuai harapan">✓</span>
+                                            <span x-show="failed(row)" class="text-error font-bold shrink-0" title="Tidak sesuai harapan">✗</span>
+                                            <button type="button" x-show="row.original !== null && row.path !== row.original" x-on:click="reset(row)" class="btn btn-ghost btn-xs shrink-0">Reset</button>
+                                            <button type="button" x-show="row.custom" x-on:click="remove(row)" class="btn btn-ghost btn-xs shrink-0">Hapus</button>
+                                        </div>
+
+                                        <div x-show="selected === row.id && row.result" class="space-y-2 pt-1">
+                                            <p x-show="row.result?.error" class="text-xs text-error" x-text="row.result?.error"></p>
+                                            <div x-show="row.result && ! row.result.error" class="space-y-2">
+                                                <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-base-content/70">
+                                                    <span>Status <strong x-text="row.result?.status"></strong></span>
+                                                    <span x-text="row.result?.ms + ' ms'"></span>
+                                                    <span x-show="row.result?.count != null" x-text="row.result?.count + ' item di data'"></span>
+                                                    <span x-show="row.result?.total != null" x-text="'total ' + row.result?.total"></span>
+                                                    <span x-show="row.result?.remaining != null" x-text="'rate limit sisa ' + row.result?.remaining + '/' + row.result?.limit"></span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <code class="text-xs bg-base-200 rounded px-2 py-1 grow break-all" x-text="curlFor(row)"></code>
+                                                    <button type="button" class="btn btn-ghost btn-xs shrink-0" x-on:click="copy(curlFor(row))">Salin</button>
+                                                </div>
+                                                <pre class="bg-[#0d1117] text-[#c9d1d9] rounded-box p-3 text-xs overflow-auto max-h-96"><code x-text="row.result?.body"></code></pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <p class="text-xs text-base-content/50">
+                            Playground hanya mengirim GET ke <code>/api/...</code> di server ini. Endpoint internal
+                            (AI Data API, Employee API) butuh header token, jadi dari sini akan mendapat <code>401</code>;
+                            untuk itu ikuti tab <a href="#ai-testing" x-on:click.prevent="open('ai-testing')" class="link">Cara Testing</a>.
+                        </p>
+                    </div>
+                </div>
+
+                {{-- /api/regions --}}
+                <div id="regions" role="tabpanel" x-show="active === 'regions'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                    <div class="card-body p-5 gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-success font-mono font-bold">GET</span>
+                            <h2 class="text-lg font-bold font-mono">/api/regions</h2>
+                        </div>
+                        <p class="text-sm text-base-content/70">List region bisnis, level pertama dropdown
+                            Region &rarr; Provinsi &rarr; Kabupaten/Kota &rarr; OPD. Tanpa parameter. Region dipetakan per
+                            kabupaten/kota; <span class="font-mono">regencies_count</span> = jumlah kabupaten/kota di region itu.</p>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Contoh Request</p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix="$"><code>curl "{{ config('app.url') }}/api/regions"</code></pre>
+                        </div>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Response
+                            <span class="badge badge-success badge-sm">200 OK</span>
+                        </p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix=""><code>{
+  "data": [
+    { "id": 1, "name": "Region 1", "code": "REG-1", "regencies_count": 140 },
+    { "id": 2, "name": "Region 2", "code": "REG-2", "regencies_count": 86 }
+  ]
+}</code></pre>
+                        </div>
+
+                        <p class="text-sm text-base-content/70">Lanjutkan dengan
+                            <span class="font-mono">/api/provinces?region_id={id}</span> dan
+                            <span class="font-mono">/api/regencies?region_id={id}</span>. Coba langsung di tab
+                            <a href="#playground" x-on:click.prevent="open('playground')" class="link">Coba API (Playground)</a>.</p>
+                    </div>
+                </div>
+
                 {{-- /api/provinces --}}
                 <div id="provinces" role="tabpanel" x-show="active === 'provinces'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
                     <div class="card-body p-5 gap-3">
@@ -339,6 +897,12 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                                         <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
                                         <td>string</td>
                                         <td>Filter nama provinsi, partial match, case-insensitive.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">region_id</td>
+                                        <td><span class="badge badge-ghost badge-sm">Tidak</span></td>
+                                        <td>integer</td>
+                                        <td>Hanya provinsi yang punya kabupaten/kota di region ini (id dari <span class="font-mono">/api/regions</span>).</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -371,8 +935,9 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                             <span class="badge badge-success font-mono font-bold">GET</span>
                             <h2 class="text-lg font-bold font-mono">/api/regencies</h2>
                         </div>
-                        <p class="text-sm text-base-content/70">List kabupaten/kota dalam suatu provinsi.
-                            <span class="font-semibold">provinsi</span> wajib diisi.
+                        <p class="text-sm text-base-content/70">List kabupaten/kota. Isi minimal salah satu dari
+                            <span class="font-semibold">provinsi</span>, <span class="font-semibold">province_id</span>, atau
+                            <span class="font-semibold">region_id</span>.
                         </p>
 
                         <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Query
@@ -390,9 +955,21 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                                 <tbody>
                                     <tr>
                                         <td class="font-mono">provinsi</td>
-                                        <td><span class="badge badge-error badge-sm text-white">Ya</span></td>
+                                        <td><span class="badge badge-warning badge-sm">Salah satu</span></td>
                                         <td>string</td>
                                         <td>Nama provinsi, partial match.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">province_id</td>
+                                        <td><span class="badge badge-warning badge-sm">Salah satu</span></td>
+                                        <td>integer</td>
+                                        <td>Id provinsi, cocok persis.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">region_id</td>
+                                        <td><span class="badge badge-warning badge-sm">Salah satu</span></td>
+                                        <td>integer</td>
+                                        <td>Id region, cocok persis. Bisa digabung dengan <span class="font-mono">province_id</span>.</td>
                                     </tr>
                                     <tr>
                                         <td class="font-mono">keyword</td>
@@ -445,7 +1022,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                             <h2 class="text-lg font-bold font-mono">/api/opds</h2>
                         </div>
                         <p class="text-sm text-base-content/70">List OPD (Organisasi Perangkat Daerah).
-                            <span class="font-semibold">provinsi</span> wajib diisi,
+                            Isi <span class="font-semibold">provinsi</span> atau <span class="font-semibold">regency_id</span>,
                             <span class="font-semibold">kabupaten</span> dan
                             <span class="font-semibold">keyword</span> opsional untuk mempersempit hasil.
                         </p>
@@ -465,9 +1042,15 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                                 <tbody>
                                     <tr>
                                         <td class="font-mono">provinsi</td>
-                                        <td><span class="badge badge-error badge-sm text-white">Ya</span></td>
+                                        <td><span class="badge badge-warning badge-sm">Salah satu</span></td>
                                         <td>string</td>
                                         <td>Nama provinsi, partial match.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono">regency_id</td>
+                                        <td><span class="badge badge-warning badge-sm">Salah satu</span></td>
+                                        <td>integer</td>
+                                        <td>Id kabupaten/kota, cocok persis. Disarankan untuk dropdown (lihat Playground).</td>
                                     </tr>
                                     <tr>
                                         <td class="font-mono">kabupaten</td>
@@ -1449,6 +2032,219 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                             <span class="badge badge-error badge-sm text-white">404</span> id tidak ditemukan atau
                             karyawan sudah dihapus.
                         </p>
+                    </div>
+                </div>
+
+                {{-- SSO: overview --}}
+                <div id="sso-overview" role="tabpanel" x-show="active === 'sso-overview'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                    <div class="card-body p-5 gap-3">
+                        <h2 class="text-lg font-bold">Login with SmartID</h2>
+                        <p class="text-sm text-base-content/70">
+                            Aplikasi internal lain bisa memakai akun SmartID untuk login, jadi user tidak perlu akun
+                            dan password terpisah. Password hanya pernah diketik di SmartID; aplikasi lain cuma menerima
+                            profil user (nama, email, dan data lain yang diizinkan). Standarnya OAuth2 authorization code.
+                        </p>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Pemasangan dalam 3 langkah</p>
+                        <ol class="space-y-2 text-sm">
+                            <li class="flex gap-3">
+                                <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-content">1</span>
+                                <span><strong>Admin SmartID</strong> mendaftarkan aplikasi di <span class="font-mono">Technology › SSO / Connected Apps</span>
+                                    (<span class="font-mono">/tech/sso</span>): cukup isi nama dan URL aplikasi.</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-content">2</span>
+                                <span><strong>Developer aplikasi client</strong> mengikuti tab
+                                    <a href="#sso-laravel" x-on:click.prevent="open('sso-laravel')" class="link">Pasang di Laravel</a>.
+                                    Versi yang nilainya sudah terisi (Client ID, secret, callback) ada di tombol
+                                    <span class="font-semibold">Kredensial</span> pada halaman SSO.</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-content">3</span>
+                                <span>Buka halaman login aplikasi client, klik <span class="font-semibold">Login with SmartID</span>.
+                                    Kalau gagal, lihat <a href="#sso-troubleshooting" x-on:click.prevent="open('sso-troubleshooting')" class="link">Troubleshooting</a>.</span>
+                            </li>
+                        </ol>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Yang terjadi saat user klik "Login with SmartID"</p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix="1"><code>Aplikasi client  → redirect ke  {{ config('app.url') }}/oauth/authorize</code></pre>
+                            <pre data-prefix="2"><code>SmartID          → user login (kalau belum) + layar "Izinkan akses?"</code></pre>
+                            <pre data-prefix="3"><code>SmartID          → redirect balik ke callback client dengan ?code=...&amp;state=...</code></pre>
+                            <pre data-prefix="4"><code>Server client    → POST {{ config('app.url') }}/oauth/token  (code + client secret → access token)</code></pre>
+                            <pre data-prefix="5"><code>Server client    → GET  {{ config('app.url') }}/api/me      (access token → profil user)</code></pre>
+                            <pre data-prefix="6"><code>Aplikasi client  → cari/buat user lokal, login, selesai</code></pre>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Endpoint</th>
+                                        <th>URL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Authorize</td><td class="font-mono text-xs">{{ config('app.url') }}/oauth/authorize</td></tr>
+                                    <tr><td>Token</td><td class="font-mono text-xs">{{ config('app.url') }}/oauth/token</td></tr>
+                                    <tr><td>User info</td><td class="font-mono text-xs">{{ config('app.url') }}/api/me</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="alert alert-info text-xs mt-1">
+                            <span>Akses bisa dibatasi per aplikasi ke role atau departemen tertentu. User yang
+                                di-suspend otomatis tidak bisa login lagi, dan admin bisa mencabut sesi kapan saja dari
+                                halaman SSO.</span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- SSO: client setup --}}
+                <div id="sso-laravel" role="tabpanel" x-show="active === 'sso-laravel'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                    <div class="card-body p-5 gap-3">
+                        <h2 class="text-lg font-bold">Pasang di aplikasi Laravel (+ Filament)</h2>
+                        <p class="text-sm text-base-content/70">
+                            Untuk Laravel 11 ke atas, tanpa package tambahan. Ganti nilai
+                            <code class="text-xs">CLIENT_ID_DARI_SMARTID</code>, <code class="text-xs">SECRET_DARI_SMARTID</code>, dan URL aplikasi
+                            dengan milik Anda, atau salin versi yang sudah terisi dari tombol <span class="font-semibold">Kredensial</span>
+                            di halaman <span class="font-mono">/tech/sso</span>.
+                        </p>
+
+                        @include('partials.sso-laravel-guide', [
+                            'host' => rtrim(config('app.url'), '/'),
+                            'clientId' => 'CLIENT_ID_DARI_SMARTID',
+                            'clientSecret' => 'SECRET_DARI_SMARTID',
+                            'redirect' => 'https://aplikasi-anda.co.id/auth/smartid/callback',
+                            'scopes' => 'profile email',
+                            'confidential' => true,
+                        ])
+                    </div>
+                </div>
+
+                {{-- SSO: /api/me --}}
+                <div id="sso-api" role="tabpanel" x-show="active === 'sso-api'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                    <div class="card-body p-5 gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-success font-mono font-bold">GET</span>
+                            <h2 class="text-lg font-bold font-mono">/api/me</h2>
+                        </div>
+                        <p class="text-sm text-base-content/70">
+                            Profil user pemilik access token. Field yang dikembalikan mengikuti scope yang diminta
+                            aplikasi <em>dan</em> diizinkan admin untuk aplikasi tersebut.
+                        </p>
+
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Scope</th>
+                                        <th>Field</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td class="font-mono">profile</td><td><code class="text-xs">id, name, username, avatar</code> (selalu ada)</td></tr>
+                                    <tr><td class="font-mono">email</td><td><code class="text-xs">email, email_verified</code></td></tr>
+                                    <tr><td class="font-mono">department</td><td><code class="text-xs">department { id, name }</code></td></tr>
+                                    <tr><td class="font-mono">roles</td><td><code class="text-xs">roles[], permissions[]</code></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Contoh Request</p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix="$"><code>curl -H "Authorization: Bearer ACCESS_TOKEN" -H "Accept: application/json" {{ config('app.url') }}/api/me</code></pre>
+                        </div>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Response
+                            <span class="badge badge-success badge-sm">200 OK</span> &mdash; scope <code class="text-xs">profile email department</code>
+                        </p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix=""><code>{
+  "id": 42,
+  "name": "Budi Santoso",
+  "username": "budi",
+  "avatar": null,
+  "email": "budi@smartid.co.id",
+  "email_verified": true,
+  "department": { "id": 3, "name": "Departemen Finance" }
+}</code></pre>
+                        </div>
+
+                        <p class="text-sm text-base-content/70">
+                            <span class="badge badge-error badge-sm text-white">401</span> token tidak ada, salah, kedaluwarsa, atau sudah dicabut &middot;
+                            <span class="badge badge-error badge-sm text-white">403</span> user sudah tidak aktif atau tidak lagi diizinkan ke aplikasi ini.
+                        </p>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Masa berlaku token</p>
+                        <p class="text-sm text-base-content/70">
+                            Access token berlaku <strong>8 jam</strong>, refresh token <strong>30 hari</strong>. Panduan
+                            pemasangan hanya memakai token sekali saat login (aplikasi client lalu memakai session-nya
+                            sendiri), jadi refresh token tidak wajib dipakai.
+                        </p>
+                    </div>
+                </div>
+
+                {{-- SSO: troubleshooting --}}
+                <div id="sso-troubleshooting" role="tabpanel" x-show="active === 'sso-troubleshooting'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                    <div class="card-body p-5 gap-3">
+                        <h2 class="text-lg font-bold">Troubleshooting SSO</h2>
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Gejala</th>
+                                        <th>Penyebab &amp; solusi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code class="text-xs">invalid_client</code> / error 401 di halaman SmartID</td>
+                                        <td>Client ID salah, aplikasi dinonaktifkan, atau <strong>Redirect URI tidak sama persis</strong>
+                                            (http vs https, port, garis miring di akhir). Samakan <code class="text-xs">SMARTID_REDIRECT_URI</code>
+                                            dengan callback di halaman SSO, lalu <code class="text-xs">php artisan config:clear</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>"Sesi login SmartID kedaluwarsa" (403) setelah kembali dari SmartID</td>
+                                        <td>Session aplikasi client hilang di tengah jalan. Paling sering terjadi di <strong>localhost</strong>:
+                                            cookie tidak dipisah per port, jadi session SmartID dan client saling menimpa. Isi
+                                            <code class="text-xs">SESSION_COOKIE=nama_unik_session</code> di <code class="text-xs">.env</code> client.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="text-xs">401</code> saat menukar code (<code class="text-xs">/oauth/token</code>)</td>
+                                        <td>Client secret salah atau sudah di-generate ulang. Klik <em>Tampilkan secret</em> di halaman SSO,
+                                            perbarui <code class="text-xs">.env</code> client, lalu <code class="text-xs">php artisan config:clear</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="text-xs">invalid_grant</code> saat menukar code</td>
+                                        <td>Code hanya berlaku sekali dan sebentar. Jangan me-refresh halaman callback; ulangi login dari awal.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>"Tidak bisa masuk ke &hellip;" di SmartID</td>
+                                        <td>Aplikasi dibatasi ke role/departemen tertentu dan user tidak termasuk. Ubah di halaman SSO (Edit).</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="text-xs">Undefined array key "email"</code> di controller client</td>
+                                        <td>Scope <code class="text-xs">email</code> tidak diminta atau tidak diizinkan. Pastikan
+                                            <code class="text-xs">SMARTID_SCOPES="profile email"</code> dan <em>Alamat email</em> tercentang di pengaturan aplikasi.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="text-xs">cURL error 60</code> / SSL certificate</td>
+                                        <td>Server client tidak mempercayai sertifikat HTTPS SmartID (biasanya sertifikat lokal/self-signed).
+                                            Pakai sertifikat valid, atau untuk development arahkan <code class="text-xs">SMARTID_HOST</code> ke http lokal.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Filament: sudah login tapi 403</td>
+                                        <td>Model User di aplikasi client belum mengizinkan akses panel. Implementasikan
+                                            <code class="text-xs">FilamentUser::canAccessPanel()</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Logout di client tapi langsung login lagi tanpa ditanya</td>
+                                        <td>Normal: user masih login di SmartID. Logout dari SmartID juga kalau ingin ganti akun.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 

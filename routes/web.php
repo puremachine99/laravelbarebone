@@ -14,6 +14,7 @@ use App\Livewire\Finance\FinanceIntakeIndex;
 use App\Livewire\Finance\Reconciliation;
 use App\Livewire\Talent\Leaderboard;
 use App\Livewire\Tech\AiMonitor;
+use App\Livewire\Tech\SsoClients;
 use App\Services\ErrorTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,7 +22,9 @@ use Livewire\Volt\Volt;
 
 Route::redirect('/', '/login')->name('home');
 
-Route::view('/documentation', 'pages.documentation')->name('documentation');
+// Public on purpose: external developers read it without an account. Old /documentation links keep working.
+Route::view('/tech/documentation', 'pages.documentation')->name('tech.documentation');
+Route::permanentRedirect('/documentation', '/tech/documentation');
 
 Route::get('/set-password/{token}', [SetPasswordController::class, 'create'])->name('password.setup');
 Route::post('/set-password/{token}', [SetPasswordController::class, 'store'])->name('password.setup.store');
@@ -108,6 +111,7 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
     Route::prefix('tech')->name('tech.')->middleware('can:access-technology')->group(function () {
         Route::view('/timeline-calc', 'pages.tech')->name('timeline-calc')->middleware('can:tech-timeline-calc.view');
         Route::get('/ai-monitor', AiMonitor::class)->name('ai-monitor')->middleware('can:tech-ai-monitor.view');
+        Route::get('/sso', SsoClients::class)->name('sso')->middleware(['can:tech-sso.view', 'password.confirm']);
     });
 });
 

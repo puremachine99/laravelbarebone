@@ -81,6 +81,7 @@ return [
                 'tech-sentry' => ['label' => 'Sentry', 'actions' => ['view']],
                 'tech-documentation' => ['label' => 'API Documentation', 'actions' => ['view']],
                 'tech-ai-monitor' => ['label' => 'AI Monitor (token usage & request log, no chat content)', 'actions' => ['view']],
+                'tech-sso' => ['label' => 'SSO / Connected Apps (OAuth clients & secrets)', 'actions' => ['view']],
             ],
         ],
         'ai-data' => [

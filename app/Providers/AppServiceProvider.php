@@ -6,6 +6,7 @@ use App\Enums\UserStatus;
 use App\Models\Contact;
 use App\Models\ContactPosition;
 use App\Models\Employee;
+use App\Models\OAuthClient;
 use App\Models\Opd;
 use App\Models\Output;
 use App\Models\Province;
@@ -32,6 +33,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use InvalidArgumentException;
+use Laravel\Passport\Passport;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -40,6 +42,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Must be set before Passport registers its routes. Connected apps only use the authorization-code grant.
+        Passport::$deviceCodeGrantEnabled = false;
+
         $this->app->bind(AiGateway::class, fn () => match (config('ai_center.driver')) {
             'fake' => new FakeAiGateway(delayMs: $this->app->runningUnitTests() ? 0 : 25),
             'nakama' => new NakamaAiGateway,
@@ -76,9 +81,25 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('ai-data', fn (Request $request) => Limit::perHour(config('ai_center.data.queries_per_hour'))
             ->by('ai-data-api:'.$request->user()?->id));
 
+        $this->configurePassport();
+
         $this->configureAccessibleSelect();
 
         $this->registerCsvExports();
+    }
+
+    /**
+     * SSO for other internal apps ("Login with SmartID"): authorization-code grant only, clients managed from
+     * /tech/sso. Access tokens are short-lived; the connected app keeps its own session after login.
+     */
+    protected function configurePassport(): void
+    {
+        Passport::useClientModel(OAuthClient::class);
+        Passport::tokensCan(OAuthClient::SCOPES);
+        Passport::defaultScopes(['profile']);
+        Passport::tokensExpireIn(now()->addHours(8));
+        Passport::refreshTokensExpireIn(now()->addDays(30));
+        Passport::authorizationView('pages::auth.oauth-authorize');
     }
 
     /**

@@ -13,22 +13,26 @@ use Illuminate\Validation\Rule;
 class OpdController extends Controller
 {
     /**
-     * Search OPDs by province name (required keyword), optionally narrowed by
-     * regency (kabupaten/kota) and OPD name keywords. Used to populate dropdowns.
+     * Search OPDs by province name keyword, or — for cascading dropdowns — by the exact regency id; optionally
+     * narrowed by regency (kabupaten/kota) and OPD name keywords. Used to populate dropdowns.
      */
     public function index(Request $request): AnonymousResourceCollection
     {
         $validated = $request->validate([
-            'provinsi' => ['required', 'string', 'min:1'],
+            'provinsi' => ['required_without:regency_id', 'nullable', 'string', 'min:1'],
+            'regency_id' => ['nullable', 'integer'],
             'kabupaten' => ['nullable', 'string', 'min:1'],
             'keyword' => ['nullable', 'string', 'min:1'],
         ]);
 
         $opds = Opd::query()
             ->with(['regency.province'])
-            ->whereHas('regency.province', function ($query) use ($validated) {
-                $query->where('name', 'like', '%'.$validated['provinsi'].'%');
+            ->when($validated['provinsi'] ?? null, function ($query, $provinsi) {
+                $query->whereHas('regency.province', function ($query) use ($provinsi) {
+                    $query->where('name', 'like', '%'.$provinsi.'%');
+                });
             })
+            ->when($validated['regency_id'] ?? null, fn ($query, $regencyId) => $query->where('regency_id', $regencyId))
             ->when($validated['kabupaten'] ?? null, function ($query, $kabupaten) {
                 $query->whereHas('regency', function ($query) use ($kabupaten) {
                     $query->where('name', 'like', '%'.$kabupaten.'%');

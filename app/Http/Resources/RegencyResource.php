@@ -18,7 +18,10 @@ class RegencyResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'type' => $this->type,
+            'province_id' => $this->province_id,
             'provinsi' => $this->whenLoaded('province', fn () => $this->province->name),
+            'region_id' => $this->region_id,
+            'region' => $this->whenLoaded('region', fn () => $this->region?->name),
         ];
     }
 }

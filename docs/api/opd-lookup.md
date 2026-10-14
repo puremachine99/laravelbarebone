@@ -10,6 +10,15 @@ Base URL: `{APP_URL}/api`
 2. Setelah user memilih provinsi, panggil `GET /api/regencies?provinsi=<nama provinsi>` untuk populate dropdown kabupaten/kota.
 3. Setelah user memilih kabupaten/kota (opsional), panggil `GET /api/opds?provinsi=<nama provinsi>&kabupaten=<nama kabupaten>` untuk populate dropdown OPD.
 
+### Alur berbasis id (disarankan): Region → Provinsi → Kabupaten/Kota → OPD
+
+1. `GET /api/regions` → dropdown region.
+2. Region dipilih → `GET /api/provinces?region_id={id}` dan `GET /api/regencies?region_id={id}`.
+3. Provinsi dipilih (opsional) → `GET /api/regencies?region_id={id}&province_id={id}`.
+4. Kabupaten/kota dipilih → `GET /api/opds?regency_id={id}`.
+
+Filter `*_id` mencocokkan persis, jadi tidak tertukar antara nama yang mirip ("Kab. Bandung" vs "Kab. Bandung Barat"). Region dipetakan per kabupaten/kota, sehingga satu provinsi bisa muncul di lebih dari satu region. Simulasi interaktifnya ada di `/tech/documentation#playground`.
+
 Semua pencarian nama menggunakan **partial match** (`LIKE %keyword%`), jadi tidak perlu mengirim nama yang persis sama — cukup id/nama yang ditampilkan pada dropdown sebelumnya.
 
 ---

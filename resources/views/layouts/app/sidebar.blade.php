@@ -526,9 +526,20 @@
                                 <span class="grow">AI Monitor</span>
                             </a>
                             @endcan
+                            @can('tech-sso.view')
+                            <a @class(['menu-item', 'active' => request()->routeIs('tech.sso')]) href="{{ route('tech.sso') }}"
+                                wire:navigate title="SSO / Connected Apps">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                </svg>
+                                <span class="grow">SSO / Connected Apps</span>
+                            </a>
+                            @endcan
                             {{-- The page itself stays public (external devs read it without an account); this only controls the menu link. --}}
                             @can('tech-documentation.view')
-                            <a @class(['menu-item', 'active' => request()->routeIs('documentation')]) href="{{ route('documentation') }}"
+                            <a @class(['menu-item', 'active' => request()->routeIs('tech.documentation')]) href="{{ route('tech.documentation') }}"
                                 wire:navigate title="API Documentation">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">

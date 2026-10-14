@@ -50,7 +50,7 @@ test('the error tracker is served under /tech/sentry and the old url redirects t
 test('the technology menu links super admins to the error tracker', function () {
     loginAsSuperAdminForDevPanel();
 
-    $this->get(route('documentation'))->assertSee(route('dev.errors.index'));
+    $this->get(route('tech.documentation'))->assertSee(route('dev.errors.index'));
 });
 
 test('destroy, resolve and purge actions are hidden from non super admins', function () {
