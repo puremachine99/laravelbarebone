@@ -5,6 +5,8 @@ namespace App\Http\Controllers\AiCenter;
 use App\Enums\AiErrorCode;
 use App\Enums\AiMessageRole;
 use App\Enums\AiMessageStatus;
+use App\Enums\AiUsageKind;
+use App\Enums\AiUsageOutcome;
 use App\Http\Controllers\Controller;
 use App\Models\AiConversation;
 use App\Models\AiMessage;
@@ -12,6 +14,7 @@ use App\Models\User;
 use App\Services\AiCenter\AiChatRequest;
 use App\Services\AiCenter\AiGateway;
 use App\Services\AiCenter\AiStreamEvent;
+use App\Services\AiCenter\AiUsageRecorder;
 use App\Services\AiCenter\DailyQuota;
 use App\Services\AiCenter\DataAssistant;
 use Generator;
@@ -27,6 +30,8 @@ use Throwable;
  * `conversation` (the thread id, sent first), then `delta`… and finally one `done` or `error`.
  *
  * Refusals (quota reached, message too long) are sent as an `error` event before anything is saved or the AI is called.
+ *
+ * Every request — answered, failed, cancelled or refused — also leaves one row in the AI usage log (no message text).
  */
 class StreamMessageController extends Controller
 {
@@ -53,6 +58,8 @@ class StreamMessageController extends Controller
         };
 
         if ($refusal) {
+            app(AiUsageRecorder::class)->record($user, AiUsageKind::Chat, AiUsageOutcome::Denied, errorCode: $refusal);
+
             return response()->eventStream(fn () => yield AiStreamEvent::error($refusal)->toStreamedEvent(), endStreamWith: null);
         }
 
@@ -118,6 +125,9 @@ class StreamMessageController extends Controller
         $status = AiMessageStatus::Cancelled;
         $errorCode = null;
         $sources = null;
+        $doneEvent = null;
+        $startedAt = hrtime(true);
+        $firstTokenMs = null;
 
         yield new StreamedEvent('conversation', ['id' => $conversation->id]);
 
@@ -137,9 +147,11 @@ class StreamMessageController extends Controller
                 }
 
                 if ($event->isDelta()) {
+                    $firstTokenMs ??= AiUsageRecorder::elapsedMs($startedAt);
                     $content .= $event->text;
                 } elseif ($event->isDone()) {
                     $status = AiMessageStatus::Complete;
+                    $doneEvent = $event;
 
                     if ($sources !== null) {
                         $content .= $sources;
@@ -170,6 +182,20 @@ class StreamMessageController extends Controller
                 'status' => $status,
                 'error_code' => $errorCode,
             ]);
+
+            app(AiUsageRecorder::class)->record(
+                $user,
+                AiUsageKind::Chat,
+                match ($status) {
+                    AiMessageStatus::Complete => AiUsageOutcome::Ok,
+                    AiMessageStatus::Error => AiUsageOutcome::Error,
+                    default => AiUsageOutcome::Cancelled,
+                },
+                done: $doneEvent,
+                errorCode: $errorCode,
+                firstTokenMs: $firstTokenMs,
+                durationMs: AiUsageRecorder::elapsedMs($startedAt),
+            );
         }
     }
 }

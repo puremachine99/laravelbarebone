@@ -13,6 +13,7 @@ use App\Livewire\Finance\Disbursements;
 use App\Livewire\Finance\FinanceIntakeIndex;
 use App\Livewire\Finance\Reconciliation;
 use App\Livewire\Talent\Leaderboard;
+use App\Livewire\Tech\AiMonitor;
 use App\Services\ErrorTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -106,6 +107,7 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
 
     Route::prefix('tech')->name('tech.')->middleware('can:access-technology')->group(function () {
         Route::view('/timeline-calc', 'pages.tech')->name('timeline-calc')->middleware('can:tech-timeline-calc.view');
+        Route::get('/ai-monitor', AiMonitor::class)->name('ai-monitor')->middleware('can:tech-ai-monitor.view');
     });
 });
 

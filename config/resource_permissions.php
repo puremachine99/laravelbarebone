@@ -80,6 +80,7 @@ return [
                 'tech-timeline-calc' => ['label' => 'Timeline Calculator', 'actions' => ['view']],
                 'tech-sentry' => ['label' => 'Sentry', 'actions' => ['view']],
                 'tech-documentation' => ['label' => 'API Documentation', 'actions' => ['view']],
+                'tech-ai-monitor' => ['label' => 'AI Monitor (token usage & request log, no chat content)', 'actions' => ['view']],
             ],
         ],
         'ai-data' => [

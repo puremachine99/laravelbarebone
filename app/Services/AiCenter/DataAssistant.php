@@ -2,6 +2,9 @@
 
 namespace App\Services\AiCenter;
 
+use App\Enums\AiErrorCode;
+use App\Enums\AiUsageKind;
+use App\Enums\AiUsageOutcome;
 use App\Models\User;
 use App\Services\AiData\DataQueryService;
 use App\Services\AiData\DatasetCatalog;
@@ -105,6 +108,9 @@ class DataAssistant
         $gateway = app(AiGateway::class);
         $reply = '';
         $remoteId = null;
+        $startedAt = hrtime(true);
+        $doneEvent = null;
+        $errorCode = null;
 
         try {
             foreach ($gateway->stream($planRequest) as $event) {
@@ -113,16 +119,34 @@ class DataAssistant
                 } elseif ($event->isDelta()) {
                     $reply .= $event->text;
                 } elseif ($event->isError()) {
+                    $errorCode = $event->errorCode;
+
                     return [];
                 } else {
+                    $doneEvent = $event;
+
                     break;
                 }
             }
         } catch (Throwable $e) {
             report($e);
+            $errorCode = AiErrorCode::UpstreamError;
 
             return [];
         } finally {
+            app(AiUsageRecorder::class)->record(
+                $user,
+                AiUsageKind::DataPlan,
+                match (true) {
+                    $doneEvent !== null => AiUsageOutcome::Ok,
+                    $errorCode !== null => AiUsageOutcome::Error,
+                    default => AiUsageOutcome::Cancelled,
+                },
+                done: $doneEvent,
+                errorCode: $errorCode,
+                durationMs: AiUsageRecorder::elapsedMs($startedAt),
+            );
+
             // The planning call is not part of the user's thread on the AI service.
             if ($remoteId) {
                 $gateway->forget($remoteId);
