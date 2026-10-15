@@ -7,6 +7,7 @@ use App\Models\OAuthClient;
 use App\Models\OAuthClientAudit;
 use App\Models\User;
 use App\Services\Sso\SsoClientManager;
+use App\Services\Sso\SsoUserProfile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -83,6 +84,19 @@ class SsoClients extends Component
 
     public ?string $guideClientId = null;
 
+    /**
+     * Simulation modal: what an app would receive for one user (/api/me) and from a sync (/api/sso/members).
+     */
+    public bool $showSimulation = false;
+
+    public ?string $simulationClientId = null;
+
+    public string $simulationSearch = '';
+
+    public ?int $simulationUserId = null;
+
+    public bool $simulateSync = false;
+
     public function mount(): void
     {
         $this->authorizeAccess();
@@ -155,6 +169,115 @@ class SsoClients extends Component
     public function guideClient(): ?OAuthClient
     {
         return $this->guideClientId ? OAuthClient::query()->find($this->guideClientId) : null;
+    }
+
+    #[Computed]
+    public function simulationClient(): ?OAuthClient
+    {
+        return $this->simulationClientId ? OAuthClient::query()->find($this->simulationClientId) : null;
+    }
+
+    /**
+     * Users matching the search, whatever their status, so a suspended account can be checked too.
+     *
+     * @return Collection<int, User>
+     */
+    #[Computed]
+    public function simulationUserOptions(): Collection
+    {
+        $search = trim($this->simulationSearch);
+
+        if (mb_strlen($search) < 2) {
+            return new Collection;
+        }
+
+        return User::query()
+            ->where(fn ($query) => $query->whereLike('name', "%{$search}%")->orWhereLike('email', "%{$search}%"))
+            ->orderBy('name')
+            ->limit(8)
+            ->get(['id', 'name', 'email', 'status']);
+    }
+
+    /**
+     * The response the app would get from /api/me for the picked user.
+     *
+     * @return array{user: User, allowed: bool, reason: string, status: int, json: string}|null
+     */
+    #[Computed]
+    public function simulation(): ?array
+    {
+        $client = $this->simulationClient;
+        $user = $this->simulationUserId ? User::query()->with(SsoUserProfile::RELATIONS)->find($this->simulationUserId) : null;
+
+        if (! $client || ! $user) {
+            return null;
+        }
+
+        $allowed = $client->allowsUser($user);
+        $body = $allowed
+            ? app(SsoUserProfile::class)->toArray($user, $client->scopes ?? array_keys(OAuthClient::SCOPES))
+            : ['message' => 'Akun ini tidak memiliki akses ke aplikasi ini.'];
+
+        return [
+            'user' => $user,
+            'allowed' => $allowed,
+            'reason' => $this->accessReason($client, $user, $allowed),
+            'status' => $allowed ? 200 : 403,
+            'json' => json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+        ];
+    }
+
+    /**
+     * What `php artisan smartid:sync` would receive: the member count and the first rows of /api/sso/members.
+     *
+     * @return array{total: int, json: string}|null
+     */
+    #[Computed]
+    public function syncPreview(): ?array
+    {
+        $client = $this->simulationClient;
+
+        if (! $this->simulateSync || ! $client) {
+            return null;
+        }
+
+        $scopes = $client->scopes ?? array_keys(OAuthClient::SCOPES);
+        $sample = $client->allowedUsers()->with(SsoUserProfile::RELATIONS)->orderBy('id')->limit(5)->get()
+            ->map(fn (User $user) => app(SsoUserProfile::class)->toArray($user, $scopes));
+
+        return [
+            'total' => $client->allowedUsers()->count(),
+            'json' => json_encode($sample, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+        ];
+    }
+
+    public function openSimulation(string $clientId): void
+    {
+        $this->authorizeAccess();
+
+        $this->simulationClientId = OAuthClient::query()->findOrFail($clientId)->getKey();
+        $this->simulationSearch = '';
+        $this->simulationUserId = null;
+        $this->simulateSync = false;
+        $this->showSimulation = true;
+        unset($this->simulationClient, $this->simulation, $this->syncPreview);
+    }
+
+    public function simulateUser(int $userId): void
+    {
+        $this->authorizeAccess();
+
+        $this->simulationUserId = $userId;
+        $this->simulationSearch = '';
+        unset($this->simulation);
+    }
+
+    public function runSyncSimulation(): void
+    {
+        $this->authorizeAccess();
+
+        $this->simulateSync = true;
+        unset($this->syncPreview);
     }
 
     public function create(): void
@@ -394,6 +517,21 @@ class SsoClients extends Component
         return $scheme === 'https'
             || ($scheme === 'http' && in_array($host, ['localhost', '127.0.0.1'], true))
             || ($scheme === 'http' && str_ends_with((string) $host, '.test'));
+    }
+
+    private function accessReason(OAuthClient $client, User $user, bool $allowed): string
+    {
+        if (! $user->isActive()) {
+            return "Akun berstatus {$user->status->value}: tidak bisa login ke aplikasi mana pun.";
+        }
+
+        if (empty($client->allowed_roles) && empty($client->allowed_department_ids)) {
+            return 'Aplikasi terbuka untuk semua user aktif.';
+        }
+
+        return $allowed
+            ? 'Memenuhi pembatasan role/departemen aplikasi.'
+            : 'Bukan role/departemen yang diizinkan untuk aplikasi ini.';
     }
 
     private function manager(): SsoClientManager

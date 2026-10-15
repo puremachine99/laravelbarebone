@@ -4,6 +4,7 @@ namespace App\Services\Sso;
 
 use App\Models\OAuthClient;
 use App\Models\OAuthClientAudit;
+use App\Models\User;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -30,7 +31,10 @@ class SsoClientManager
             $client = OAuthClient::query()->forceCreate([
                 ...$this->settings($data),
                 'secret' => $secret,
-                'grant_types' => ['authorization_code', 'refresh_token'],
+                // Confidential apps may also call /api/sso/members with their own client-credentials token.
+                'grant_types' => $secret !== null
+                    ? ['authorization_code', 'refresh_token', 'client_credentials']
+                    : ['authorization_code', 'refresh_token'],
                 'revoked' => false,
             ]);
 
@@ -97,18 +101,36 @@ class SsoClientManager
      */
     public function revokeTokens(OAuthClient $client, ?int $userId = null): int
     {
-        $tokenIds = Passport::token()->newQuery()
-            ->where('client_id', $client->getKey())
-            ->where('revoked', false)
-            ->when($userId, fn ($query) => $query->where('user_id', $userId))
-            ->pluck('id');
-
-        Passport::token()->newQuery()->whereKey($tokenIds)->update(['revoked' => true]);
-        Passport::refreshToken()->newQuery()->whereIn('access_token_id', $tokenIds)->update(['revoked' => true]);
+        $revoked = $this->revokeActiveTokens($client, $userId);
 
         OAuthClientAudit::record($client, $userId ? 'user_tokens_revoked' : 'tokens_revoked');
 
-        return $tokenIds->count();
+        return $revoked;
+    }
+
+    /**
+     * Sign the user out of every app they may no longer use: suspended, deleted, or moved out of the app's allowed
+     * roles/departments. Apps that still allow the user keep their tokens.
+     */
+    public function revokeLostAccess(User $user): int
+    {
+        $clientIds = Passport::token()->newQuery()
+            ->where('user_id', $user->getKey())
+            ->where('revoked', false)
+            ->distinct()
+            ->pluck('client_id');
+
+        $revoked = 0;
+
+        OAuthClient::query()->whereKey($clientIds)->get()
+            ->reject(fn (OAuthClient $client) => ! $user->trashed() && $client->allowsUser($user))
+            ->each(function (OAuthClient $client) use ($user, &$revoked) {
+                $revoked += $this->revokeActiveTokens($client, $user->getKey());
+
+                OAuthClientAudit::record($client, 'access_lost');
+            });
+
+        return $revoked;
     }
 
     /**
@@ -141,6 +163,23 @@ class SsoClientManager
 
             $client->delete();
         });
+    }
+
+    /**
+     * Revoke the app's live access tokens (optionally only one user's) together with their refresh tokens.
+     */
+    private function revokeActiveTokens(OAuthClient $client, ?int $userId = null): int
+    {
+        $tokenIds = Passport::token()->newQuery()
+            ->where('client_id', $client->getKey())
+            ->where('revoked', false)
+            ->when($userId, fn ($query) => $query->where('user_id', $userId))
+            ->pluck('id');
+
+        Passport::token()->newQuery()->whereKey($tokenIds)->update(['revoked' => true]);
+        Passport::refreshToken()->newQuery()->whereIn('access_token_id', $tokenIds)->update(['revoked' => true]);
+
+        return $tokenIds->count();
     }
 
     /**

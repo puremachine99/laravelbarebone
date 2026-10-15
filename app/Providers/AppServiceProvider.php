@@ -15,6 +15,7 @@ use App\Models\Region;
 use App\Models\Urusan;
 use App\Models\User;
 use App\Observers\EmployeeObserver;
+use App\Observers\UserObserver;
 use App\Services\AiCenter\AiGateway;
 use App\Services\AiCenter\FakeAiGateway;
 use App\Services\AiCenter\NakamaAiGateway;
@@ -72,6 +73,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Employee::observe(EmployeeObserver::class);
+        User::observe(UserObserver::class);
 
         // Public OPD lookup API (no token): generous per-IP limit so normal dropdown use never hits it, while scraping
         // or a runaway client does.
@@ -97,7 +99,7 @@ class AppServiceProvider extends ServiceProvider
         Passport::useClientModel(OAuthClient::class);
         Passport::tokensCan(OAuthClient::SCOPES);
         Passport::defaultScopes(['profile']);
-        Passport::tokensExpireIn(now()->addHours(8));
+        Passport::tokensExpireIn(now()->addHour());
         Passport::refreshTokensExpireIn(now()->addDays(30));
         Passport::authorizationView('pages::auth.oauth-authorize');
     }

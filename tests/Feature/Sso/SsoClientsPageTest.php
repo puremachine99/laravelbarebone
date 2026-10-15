@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Tech\SsoClients;
+use App\Models\Department;
 use App\Models\OAuthClient;
 use App\Models\OAuthClientAudit;
 use App\Models\User;
@@ -113,7 +114,7 @@ test('an admin registers a confidential app: Passport keeps a hash, the stored c
 
     expect($client->redirect_uris)->toBe(['https://procurement.test/auth/smartid/callback', 'http://localhost:8001/auth/smartid/callback'])
         ->and($client->scopes)->toBe(['profile', 'email', 'department'])
-        ->and($client->grant_types)->toBe(['authorization_code', 'refresh_token'])
+        ->and($client->grant_types)->toBe(['authorization_code', 'refresh_token', 'client_credentials'])
         ->and($hash)->not->toBe($plain)
         ->and(Hash::check($plain, $hash))->toBeTrue()
         ->and(DB::table('oauth_client_secrets')->value('secret'))->not->toContain($plain)
@@ -134,7 +135,8 @@ test('a public (PKCE) app has no secret', function () {
     $client = OAuthClient::query()->sole();
 
     expect($client->confidential())->toBeFalse()
-        ->and($client->storedSecret)->toBeNull();
+        ->and($client->storedSecret)->toBeNull()
+        ->and($client->grant_types)->not->toContain('client_credentials');
 });
 
 test('plain http redirect URIs are rejected outside localhost', function (string $uri) {
@@ -349,4 +351,62 @@ test('deleting an app removes it with its tokens and stored secret', function ()
         ->and(DB::table('oauth_access_tokens')->count())->toBe(0)
         ->and(DB::table('oauth_client_secrets')->count())->toBe(0)
         ->and(OAuthClientAudit::query()->where('action', 'deleted')->exists())->toBeTrue();
+});
+
+test('the simulation shows the /api/me response an app would get for a user', function () {
+    $pmo = Department::query()->create(['name' => 'PMO']);
+    $client = ssoClient(['scopes' => ['profile', 'email', 'department'], 'allowed_department_ids' => [$pmo->id]]);
+    $allowed = User::factory()->create(['name' => 'Ani PMO', 'department_id' => $pmo->id]);
+    $outsider = User::factory()->create(['name' => 'Budi Finance']);
+    $this->actingAs(ssoAdmin())->withSession(['auth.password_confirmed_at' => time()]);
+
+    Livewire::test(SsoClients::class)
+        ->call('openSimulation', $client->getKey())
+        ->set('simulationSearch', 'Ani')
+        ->assertSee('Ani PMO')
+        ->assertDontSee('Budi Finance')
+        ->call('simulateUser', $allowed->id)
+        ->assertSee('✓ Boleh login')
+        ->assertSee('HTTP 200')
+        ->assertSee('"email": "'.$allowed->email.'"')
+        ->assertSee('"name": "PMO"')
+        ->call('simulateUser', $outsider->id)
+        ->assertSee('✗ Ditolak')
+        ->assertSee('HTTP 403')
+        ->assertSee('Bukan role/departemen yang diizinkan')
+        ->assertDontSee($outsider->email);
+});
+
+test('the simulation explains why a suspended user is refused', function () {
+    $client = ssoClient();
+    $suspended = User::factory()->suspended()->create();
+    $this->actingAs(ssoAdmin())->withSession(['auth.password_confirmed_at' => time()]);
+
+    Livewire::test(SsoClients::class)
+        ->call('openSimulation', $client->getKey())
+        ->call('simulateUser', $suspended->id)
+        ->assertSee('✗ Ditolak')
+        ->assertSee('Akun berstatus suspended');
+});
+
+test('the sync simulation counts and previews the members the app would receive', function () {
+    $pmo = Department::query()->create(['name' => 'PMO']);
+    $client = ssoClient(['allowed_department_ids' => [$pmo->id]]);
+    User::factory()->count(2)->create(['department_id' => $pmo->id]);
+    User::factory()->suspended()->create(['department_id' => $pmo->id]);
+    User::factory()->create();
+    $this->actingAs(ssoAdmin())->withSession(['auth.password_confirmed_at' => time()]);
+
+    Livewire::test(SsoClients::class)
+        ->call('openSimulation', $client->getKey())
+        ->assertSee('Jalankan simulasi sync')
+        ->call('runSyncSimulation')
+        ->assertSeeHtml('<strong class="tabular-nums">2</strong> user akan tersinkron');
+});
+
+test('the simulation is refused without the SSO permission', function () {
+    $client = ssoClient();
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(SsoClients::class)->assertForbidden();
 });

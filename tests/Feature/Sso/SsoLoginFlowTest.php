@@ -1,7 +1,12 @@
 <?php
 
+use App\Actions\Users\OffboardUser;
+use App\Enums\EmployeeStatus;
 use App\Models\Department;
+use App\Models\Employee;
 use App\Models\OAuthClient;
+use App\Models\OAuthClientAudit;
+use App\Models\Position;
 use App\Models\User;
 use App\Services\Sso\SsoClientManager;
 use Illuminate\Support\Facades\Artisan;
@@ -102,6 +107,26 @@ function me(string $accessToken): TestResponse
     return test()->withToken($accessToken)->getJson('/api/me');
 }
 
+/**
+ * Sign the user in to a consent-skipping app and return its tokens.
+ *
+ * @return array<string, mixed>
+ */
+function loginTo(User $user, OAuthClient $client): array
+{
+    return exchange($client, codeFrom(test()->actingAs($user)->get(authorizeUrl($client))));
+}
+
+function refreshTokens(OAuthClient $client, string $refreshToken): TestResponse
+{
+    return test()->withoutToken()->postJson('/oauth/token', [
+        'grant_type' => 'refresh_token',
+        'client_id' => $client->getKey(),
+        'client_secret' => $client->storedSecret->secret,
+        'refresh_token' => $refreshToken,
+    ]);
+}
+
 test('guests are sent to the SmartID login page first', function () {
     $this->get(authorizeUrl(flowClient()))->assertRedirect(route('login'));
 });
@@ -150,6 +175,11 @@ test('the roles and department scopes return roles, permissions and department',
     $department = Department::query()->create(['name' => 'Finance']);
     $user = User::factory()->create(['department_id' => $department->id]);
     $user->assignRole('Finance');
+    Employee::create([
+        'user_id' => $user->id,
+        'department_id' => $department->id,
+        'position_fungsional_id' => Position::create(['name' => 'Funding Officer', 'type' => 'Fungsional'])->id,
+    ]);
     $client = flowClient(['scopes' => ['profile', 'department', 'roles']]);
 
     $this->actingAs($user)->get(authorizeUrl($client, 'profile department roles'))->assertOk();
@@ -158,6 +188,8 @@ test('the roles and department scopes return roles, permissions and department',
     me($tokens['access_token'])
         ->assertOk()
         ->assertJsonPath('department.name', 'Finance')
+        ->assertJsonPath('positions.fungsional.name', 'Funding Officer')
+        ->assertJsonPath('positions.struktural', null)
         ->assertJsonPath('roles', ['Finance']);
 });
 
@@ -208,14 +240,105 @@ test('restricted apps reject users outside the allowed roles and departments', f
     $this->actingAs($byDepartment)->get(authorizeUrl($client))->assertOk();
 });
 
-test('a user suspended after login can no longer read /api/me', function () {
+test('a user suspended after login can no longer read /api/me: their token is revoked', function () {
     $user = User::factory()->create();
     $client = flowClient(['skip_authorization' => true]);
     $tokens = exchange($client, codeFrom($this->actingAs($user)->get(authorizeUrl($client))));
 
     $user->forceFill(['status' => 'suspended'])->save();
 
+    me($tokens['access_token'])->assertUnauthorized();
+});
+
+test('/api/me still refuses a live token whose user is no longer allowed', function () {
+    $user = User::factory()->create();
+    $client = flowClient(['skip_authorization' => true]);
+    $tokens = loginTo($user, $client);
+
+    // A change that bypasses model events (raw query) leaves the token alive; /api/me must still refuse it.
+    User::query()->whereKey($user->id)->update(['status' => 'suspended']);
+
     me($tokens['access_token'])->assertForbidden();
+});
+
+test('access tokens expire after one hour', function () {
+    $tokens = loginTo(User::factory()->create(), flowClient(['skip_authorization' => true]));
+
+    expect($tokens['expires_in'])->toBeGreaterThan(3500)->toBeLessThanOrEqual(3600);
+});
+
+test('offboarding a user revokes their access and refresh tokens', function () {
+    $user = User::factory()->create();
+    $client = flowClient(['skip_authorization' => true]);
+    $tokens = loginTo($user, $client);
+
+    app(OffboardUser::class)->handle($user);
+
+    me($tokens['access_token'])->assertUnauthorized();
+    refreshTokens($client, $tokens['refresh_token'])->assertStatus(400);
+    expect(OAuthClientAudit::query()->where('action', 'access_lost')->count())->toBe(1);
+});
+
+test('moving out of an allowed department signs the user out of that app only', function () {
+    $pmo = Department::query()->create(['name' => 'PMO']);
+    $finance = Department::query()->create(['name' => 'Finance']);
+    $user = User::factory()->create(['department_id' => $pmo->id]);
+    $pmoApp = flowClient(['skip_authorization' => true, 'allowed_department_ids' => [$pmo->id]]);
+    $openApp = flowClient(['name' => 'Portal', 'skip_authorization' => true]);
+    $pmoTokens = loginTo($user, $pmoApp);
+    $openTokens = loginTo($user, $openApp);
+
+    $user->update(['department_id' => $finance->id]);
+
+    me($pmoTokens['access_token'])->assertUnauthorized();
+    refreshTokens($pmoApp, $pmoTokens['refresh_token'])->assertStatus(400);
+    me($openTokens['access_token'])->assertOk();
+});
+
+test('moving to another allowed department keeps the user signed in', function () {
+    $pmo = Department::query()->create(['name' => 'PMO']);
+    $finance = Department::query()->create(['name' => 'Finance']);
+    $user = User::factory()->create(['department_id' => $pmo->id]);
+    $client = flowClient(['skip_authorization' => true, 'allowed_department_ids' => [$pmo->id, $finance->id]]);
+    $tokens = loginTo($user, $client);
+
+    $user->update(['department_id' => $finance->id]);
+
+    me($tokens['access_token'])->assertOk();
+    expect(OAuthClientAudit::query()->where('action', 'access_lost')->exists())->toBeFalse();
+});
+
+test('an employee resigning through the HR data signs them out of connected apps', function () {
+    $user = User::factory()->create();
+    $employee = Employee::create(['user_id' => $user->id, 'status' => EmployeeStatus::Active]);
+    $client = flowClient(['skip_authorization' => true]);
+    $tokens = loginTo($user, $client);
+
+    $employee->update(['status' => EmployeeStatus::Resign]);
+
+    me($tokens['access_token'])->assertUnauthorized();
+});
+
+test('deleting a user revokes their tokens', function () {
+    $user = User::factory()->create();
+    $client = flowClient(['skip_authorization' => true]);
+    $tokens = loginTo($user, $client);
+
+    $user->delete();
+
+    refreshTokens($client, $tokens['refresh_token'])->assertStatus(400);
+    expect(Passport::token()->newQuery()->where('user_id', $user->id)->where('revoked', false)->exists())->toBeFalse();
+});
+
+test('the token endpoint is rate limited', function () {
+    $client = flowClient();
+
+    foreach (range(1, 60) as $attempt) {
+        $this->postJson('/oauth/token', ['grant_type' => 'authorization_code', 'client_id' => $client->getKey(), 'client_secret' => 'guess-'.$attempt]);
+    }
+
+    $this->postJson('/oauth/token', ['grant_type' => 'authorization_code', 'client_id' => $client->getKey(), 'client_secret' => 'one-more'])
+        ->assertTooManyRequests();
 });
 
 test('tokens revoked from /tech/sso stop working', function () {

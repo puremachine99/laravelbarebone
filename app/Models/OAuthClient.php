@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\UserStatus;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Laravel\Passport\Client;
 use Laravel\Passport\Scope;
@@ -21,7 +23,7 @@ class OAuthClient extends Client
     public const SCOPES = [
         'profile' => 'Nama, username & foto profil',
         'email' => 'Alamat email',
-        'department' => 'Departemen',
+        'department' => 'Departemen & jabatan',
         'roles' => 'Role & permission',
     ];
 
@@ -77,5 +79,24 @@ class OAuthClient extends Client
 
         return ($roles !== [] && $user->hasAnyRole($roles))
             || ($departmentIds !== [] && in_array((int) $user->department_id, $departmentIds, true));
+    }
+
+    /**
+     * Everyone who may currently sign in to this app: the query counterpart of allowsUser().
+     *
+     * @return Builder<User>
+     */
+    public function allowedUsers(): Builder
+    {
+        $roles = $this->allowed_roles ?? [];
+        $departmentIds = array_map('intval', $this->allowed_department_ids ?? []);
+
+        return User::query()
+            ->where('status', UserStatus::Active)
+            ->when($roles !== [] || $departmentIds !== [], fn (Builder $query) => $query->where(function (Builder $query) use ($roles, $departmentIds) {
+                $query
+                    ->when($roles !== [], fn (Builder $query) => $query->orWhereHas('roles', fn (Builder $query) => $query->whereIn('name', $roles)))
+                    ->when($departmentIds !== [], fn (Builder $query) => $query->orWhereIn('department_id', $departmentIds));
+            }));
     }
 }

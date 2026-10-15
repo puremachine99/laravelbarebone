@@ -28,6 +28,7 @@ class OAuthClientAudit extends Model
         'secret_regenerated' => 'Secret di-generate ulang',
         'tokens_revoked' => 'Semua sesi dicabut',
         'user_tokens_revoked' => 'Sesi user dicabut',
+        'access_lost' => 'Sesi user dicabut otomatis (akses hilang)',
         'disabled' => 'Aplikasi dinonaktifkan',
         'enabled' => 'Aplikasi diaktifkan',
         'deleted' => 'Aplikasi dihapus',

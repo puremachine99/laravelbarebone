@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\OAuthClient;
 use App\Models\User;
+use App\Services\Sso\SsoUserProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ use Illuminate\Http\Request;
  */
 class SsoUserController extends Controller
 {
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request, SsoUserProfile $profile): JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
@@ -28,27 +29,8 @@ class SsoUserController extends Controller
             $client->forceFill(['last_used_at' => now()])->saveQuietly();
         }
 
-        $data = [
-            'id' => $user->id,
-            'name' => $user->name,
-            'username' => $user->username,
-            'avatar' => $user->avatarUrl(),
-        ];
+        $grantedScopes = array_values(array_filter(array_keys(OAuthClient::SCOPES), fn (string $scope) => $user->tokenCan($scope)));
 
-        if ($user->tokenCan('email')) {
-            $data['email'] = $user->email;
-            $data['email_verified'] = $user->email_verified_at !== null;
-        }
-
-        if ($user->tokenCan('department')) {
-            $data['department'] = $user->department ? ['id' => $user->department->id, 'name' => $user->department->name] : null;
-        }
-
-        if ($user->tokenCan('roles')) {
-            $data['roles'] = $user->getRoleNames()->values();
-            $data['permissions'] = $user->getAllPermissions()->pluck('name')->values();
-        }
-
-        return response()->json($data);
+        return response()->json($profile->toArray($user, $grantedScopes));
     }
 }

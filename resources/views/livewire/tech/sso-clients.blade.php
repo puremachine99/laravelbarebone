@@ -91,6 +91,7 @@
                             </td>
                             <td class="text-right whitespace-nowrap">
                                 <x-button label="Kredensial" wire:click="openGuide('{{ $client->getKey() }}')" class="btn-xs btn-primary btn-outline" />
+                                <x-button label="Simulasi" icon="o-beaker" wire:click="openSimulation('{{ $client->getKey() }}')" class="btn-xs btn-ghost" />
                                 <x-dropdown right>
                                     <x-slot:trigger>
                                         <x-button icon="o-ellipsis-vertical" class="btn-xs btn-ghost" />
@@ -357,20 +358,16 @@
 
                 @if ($client->confidential())
                     <p class="text-base-content/70">
-                        Ikuti langkah di bawah di <strong>aplikasi client</strong> (Laravel 11+, dengan atau tanpa Filament).
-                        Semua nilai sudah terisi untuk aplikasi ini, tinggal salin.
-                        @unless ($secretShown)
-                            <span class="text-warning">Klik "Tampilkan secret" dulu supaya secret ikut terisi di langkah 1.</span>
-                        @endunless
+                        Salin ke <strong>aplikasi client</strong> (Laravel 11+) sesuai urutan. Semua nilai sudah terisi untuk aplikasi ini.
                     </p>
 
                     @include('partials.sso-laravel-guide', [
                         'host' => $baseUrl,
                         'clientId' => $client->getKey(),
-                        'clientSecret' => $secretShown ? $revealedSecret : '(klik Tampilkan secret di atas)',
+                        'clientSecret' => $secretShown ? $revealedSecret : null,
+                        'revealClientId' => $client->getKey(),
                         'redirect' => $client->redirect_uris[0] ?? '',
                         'scopes' => implode(' ', $client->scopes ?? ['profile', 'email']),
-                        'confidential' => true,
                     ])
                 @else
                     <p class="text-base-content/70">
@@ -384,6 +381,70 @@
                     Ada kendala? Lihat <a href="{{ route('tech.documentation') }}#sso-troubleshooting" class="link" target="_blank">Troubleshooting SSO</a>
                     di API Documentation.
                 </p>
+            </div>
+        @endif
+    </x-modal>
+
+    {{-- Simulation: what the app would receive, without the app running --}}
+    <x-modal wire:model="showSimulation" :title="'Simulasi — '.($this->simulationClient?->name ?? '')" box-class="w-11/12 max-w-3xl">
+        @if ($client = $this->simulationClient)
+            <div class="space-y-6 text-sm">
+                <section class="space-y-3">
+                    <h3 class="font-semibold">Login satu user <span class="font-mono text-xs text-base-content/60">GET /api/me</span></h3>
+
+                    <div class="relative">
+                        <input type="search" wire:model.live.debounce.300ms="simulationSearch" placeholder="Cari nama atau email karyawan..."
+                            class="input input-bordered input-sm w-full" aria-label="Cari karyawan" />
+                        @if ($this->simulationUserOptions->isNotEmpty())
+                            <ul class="menu menu-sm absolute z-10 mt-1 w-full rounded-box border border-base-300 bg-base-100 shadow">
+                                @foreach ($this->simulationUserOptions as $option)
+                                    <li wire:key="sim-user-{{ $option->id }}">
+                                        <button type="button" wire:click="simulateUser({{ $option->id }})">
+                                            <span class="grow text-left">{{ $option->name }} <span class="text-base-content/50">{{ $option->email }}</span></span>
+                                            @unless ($option->isActive())
+                                                <span class="badge badge-ghost badge-xs">{{ $option->status->value }}</span>
+                                            @endunless
+                                        </button>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+
+                    @if ($simulation = $this->simulation)
+                        <div class="space-y-2" data-test="simulation-result">
+                            <div @class(['alert py-2', 'alert-success' => $simulation['allowed'], 'alert-error' => ! $simulation['allowed']])>
+                                <span class="text-white">
+                                    <strong>{{ $simulation['allowed'] ? '✓ Boleh login' : '✗ Ditolak' }}</strong> — {{ $simulation['user']->name }}.
+                                    {{ $simulation['reason'] }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-base-content/60">Response yang diterima aplikasi: <span class="font-mono">HTTP {{ $simulation['status'] }}</span></p>
+                            <pre class="max-h-80 overflow-auto rounded-box bg-[#0d1117] p-3 text-xs text-[#c9d1d9]"><code>{{ $simulation['json'] }}</code></pre>
+                            @if ($simulation['allowed'])
+                                <p class="text-xs text-base-content/60">Aturan jabatan milik aplikasi sendiri (<span class="font-mono">smartIdAllows()</span>) dinilai dari data ini.</p>
+                            @endif
+                        </div>
+                    @endif
+                </section>
+
+                <section class="space-y-3">
+                    <h3 class="font-semibold">Sync <span class="font-mono text-xs text-base-content/60">php artisan smartid:sync</span></h3>
+
+                    @if (! $client->confidential())
+                        <p class="text-base-content/60">Aplikasi public (PKCE) tidak bisa memakai sync.</p>
+                    @elseif ($preview = $this->syncPreview)
+                        <div class="space-y-2" data-test="sync-preview">
+                            <p><strong class="tabular-nums">{{ $preview['total'] }}</strong> user akan tersinkron. User lokal lain yang pernah login akan dikunci.</p>
+                            @if ($preview['total'] > 0)
+                                <p class="text-xs text-base-content/60">Contoh {{ min(5, $preview['total']) }} data pertama:</p>
+                                <pre class="max-h-80 overflow-auto rounded-box bg-[#0d1117] p-3 text-xs text-[#c9d1d9]"><code>{{ $preview['json'] }}</code></pre>
+                            @endif
+                        </div>
+                    @else
+                        <x-button label="Jalankan simulasi sync" icon="o-arrow-path" wire:click="runSyncSimulation" class="btn-sm" spinner="runSyncSimulation" />
+                    @endif
+                </section>
             </div>
         @endif
     </x-modal>

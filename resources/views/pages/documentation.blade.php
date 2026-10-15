@@ -43,6 +43,8 @@
                 'sso-overview' => 'Overview & Alur',
                 'sso-laravel' => 'Pasang di Laravel / Filament',
                 'sso-api' => 'GET /api/me',
+                'sso-members' => 'GET /api/sso/members',
+                'sso-playground' => 'Playground SSO',
                 'sso-troubleshooting' => 'Troubleshooting',
             ],
         ],
@@ -2315,9 +2317,9 @@ JS;
                             'host' => rtrim(config('app.url'), '/'),
                             'clientId' => 'CLIENT_ID_DARI_SMARTID',
                             'clientSecret' => 'SECRET_DARI_SMARTID',
+                            'revealClientId' => null,
                             'redirect' => 'https://aplikasi-anda.co.id/auth/smartid/callback',
-                            'scopes' => 'profile email',
-                            'confidential' => true,
+                            'scopes' => 'profile email department',
                         ])
                     </div>
                 </div>
@@ -2345,7 +2347,7 @@ JS;
                                 <tbody>
                                     <tr><td class="font-mono">profile</td><td><code class="text-xs">id, name, username, avatar</code> (selalu ada)</td></tr>
                                     <tr><td class="font-mono">email</td><td><code class="text-xs">email, email_verified</code></td></tr>
-                                    <tr><td class="font-mono">department</td><td><code class="text-xs">department { id, name }</code></td></tr>
+                                    <tr><td class="font-mono">department</td><td><code class="text-xs">department { id, name }, positions { struktural, fungsional, teknis }</code> (tiap jabatan <code class="text-xs">{ id, name }</code> atau <code class="text-xs">null</code>)</td></tr>
                                     <tr><td class="font-mono">roles</td><td><code class="text-xs">roles[], permissions[]</code></td></tr>
                                 </tbody>
                             </table>
@@ -2367,7 +2369,12 @@ JS;
   "avatar": null,
   "email": "budi@smartid.co.id",
   "email_verified": true,
-  "department": { "id": 3, "name": "Departemen Finance" }
+  "department": { "id": 3, "name": "Departemen Finance" },
+  "positions": {
+    "struktural": null,
+    "fungsional": { "id": 12, "name": "Funding Officer" },
+    "teknis": null
+  }
 }</code></pre>
                         </div>
 
@@ -2378,10 +2385,136 @@ JS;
 
                         <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Masa berlaku token</p>
                         <p class="text-sm text-base-content/70">
-                            Access token berlaku <strong>8 jam</strong>, refresh token <strong>30 hari</strong>. Panduan
+                            Access token berlaku <strong>1 jam</strong>, refresh token <strong>30 hari</strong>. Panduan
                             pemasangan hanya memakai token sekali saat login (aplikasi client lalu memakai session-nya
-                            sendiri), jadi refresh token tidak wajib dipakai.
+                            sendiri), jadi refresh token tidak wajib dipakai. User yang disuspend, dihapus, atau pindah
+                            keluar dari role/departemen yang diizinkan otomatis kehilangan semua token-nya di aplikasi
+                            tersebut, termasuk refresh token.
                         </p>
+                    </div>
+                </div>
+
+                {{-- SSO: /api/sso/members --}}
+                <div id="sso-members" role="tabpanel" x-show="active === 'sso-members'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                    <div class="card-body p-5 gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-success font-mono font-bold">GET</span>
+                            <h2 class="text-lg font-bold font-mono">/api/sso/members</h2>
+                        </div>
+                        <p class="text-sm text-base-content/70">
+                            Semua user <strong>aktif</strong> yang saat ini boleh login ke aplikasi Anda (sesuai
+                            pembatasan role/departemen di SmartID). Dipakai untuk import awal dan sync harian: user lokal
+                            yang <strong>tidak ada</strong> di daftar ini harus dikunci. Aturan berdasarkan jabatan
+                            ditentukan oleh aplikasi Anda sendiri dari field <code class="text-xs">positions</code>.
+                        </p>
+                        <p class="text-sm text-base-content/70">
+                            Dipanggil dengan token <strong>milik aplikasi</strong> (grant
+                            <code class="text-xs">client_credentials</code>, hanya aplikasi confidential), bukan token user.
+                            Field mengikuti scope yang diizinkan admin untuk aplikasi tersebut, sama seperti
+                            <code class="text-xs">/api/me</code>.
+                        </p>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">1. Ambil token aplikasi</p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix="$"><code>curl -X POST {{ config('app.url') }}/oauth/token -H "Accept: application/json" \
+  -d grant_type=client_credentials -d client_id=CLIENT_ID -d client_secret=CLIENT_SECRET</code></pre>
+                        </div>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">2. Ambil daftar anggota</p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix="$"><code>curl -H "Authorization: Bearer APP_TOKEN" -H "Accept: application/json" "{{ config('app.url') }}/api/sso/members?per_page=100&page=1"</code></pre>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Parameter</th>
+                                        <th>Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td class="font-mono">per_page</td><td>1&ndash;200, default 100</td></tr>
+                                    <tr><td class="font-mono">page</td><td>Halaman, mulai dari 1. Ulangi sampai <code class="text-xs">next_page_url</code> bernilai <code class="text-xs">null</code>.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-2">Response
+                            <span class="badge badge-success badge-sm">200 OK</span>
+                        </p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix=""><code>{
+  "current_page": 1,
+  "data": [
+    { "id": 42, "name": "Budi Santoso", "username": "budi", "avatar": null, "email": "budi@smartid.co.id", ... }
+  ],
+  "per_page": 100,
+  "total": 12,
+  "next_page_url": null,
+  ...
+}</code></pre>
+                        </div>
+
+                        <p class="text-sm text-base-content/70">
+                            <span class="badge badge-error badge-sm text-white">401</span> token tidak ada, kedaluwarsa,
+                            aplikasi dinonaktifkan, atau memakai token user (bukan token aplikasi) &middot;
+                            <span class="badge badge-warning badge-sm">429</span> lebih dari 30 request per menit.
+                        </p>
+                    </div>
+                </div>
+
+                {{-- SSO: playground (made-up user, real response shapes) --}}
+                <div id="sso-playground" role="tabpanel" x-show="active === 'sso-playground'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20"
+                    x-data="{
+                        samples: @js(\App\Support\SsoPlaygroundSamples::all()),
+                        order: @js(\App\Support\SsoPlaygroundSamples::OPTIONAL_SCOPES),
+                        scopes: ['email'],
+                        endpoint: 'me',
+                        allowed: true,
+                        get key() { return this.order.filter(scope => this.scopes.includes(scope)).join(','); },
+                        get status() { return this.endpoint === 'me' && ! this.allowed ? 403 : 200; },
+                        get body() {
+                            if (this.endpoint === 'me') { return this.allowed ? this.samples.me[this.key] : this.samples.denied; }
+                            return this.samples.members[this.key];
+                        },
+                    }">
+                    <div class="card-body p-5 gap-4">
+                        <h2 class="text-lg font-bold">Playground SSO</h2>
+                        <p class="text-sm text-base-content/70">
+                            Pilih scope dan kondisi user untuk melihat response persis yang diterima aplikasi Anda. Data
+                            user di sini contoh; simulasi dengan data karyawan asli ada di tombol <span class="font-semibold">Simulasi</span>
+                            pada halaman <span class="font-mono">/tech/sso</span>.
+                        </p>
+
+                        <div class="grid gap-4 sm:grid-cols-3">
+                            <fieldset class="space-y-1.5">
+                                <legend class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-1">Endpoint</legend>
+                                <label class="flex items-center gap-2 text-sm"><input type="radio" class="radio radio-sm" value="me" x-model="endpoint"> <span class="font-mono">GET /api/me</span></label>
+                                <label class="flex items-center gap-2 text-sm"><input type="radio" class="radio radio-sm" value="members" x-model="endpoint"> <span class="font-mono">GET /api/sso/members</span></label>
+                            </fieldset>
+
+                            <fieldset class="space-y-1.5">
+                                <legend class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-1">Scope aplikasi</legend>
+                                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox checkbox-sm" checked disabled> <span class="font-mono">profile</span></label>
+                                @foreach (\App\Support\SsoPlaygroundSamples::scopeLabels() as $scope => $label)
+                                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox checkbox-sm" value="{{ $scope }}" x-model="scopes"> <span class="font-mono">{{ $scope }}</span> <span class="text-xs text-base-content/50">{{ $label }}</span></label>
+                                @endforeach
+                            </fieldset>
+
+                            <fieldset class="space-y-1.5" x-show="endpoint === 'me'">
+                                <legend class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-1">User</legend>
+                                <label class="flex items-center gap-2 text-sm"><input type="radio" class="radio radio-sm" :value="true" x-model.boolean="allowed"> Aktif &amp; diizinkan</label>
+                                <label class="flex items-center gap-2 text-sm"><input type="radio" class="radio radio-sm" :value="false" x-model.boolean="allowed"> Resign / disuspend / tidak diizinkan</label>
+                            </fieldset>
+                        </div>
+
+                        <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wider">Response
+                            <span class="badge badge-sm text-white" :class="status === 200 ? 'badge-success' : 'badge-error'" x-text="status === 200 ? '200 OK' : '403 Forbidden'"></span>
+                        </p>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix=""><code x-text="body"></code></pre>
+                        </div>
                     </div>
                 </div>
 

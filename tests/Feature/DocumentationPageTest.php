@@ -1,8 +1,12 @@
 <?php
 
+use App\Models\Department;
 use App\Models\User;
+use App\Services\Sso\SsoUserProfile;
 use App\Support\ApiPlaygroundPresets;
+use App\Support\SsoPlaygroundSamples;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 test('renders the API documentation page publicly without authentication', function () {
     $response = $this->get('/tech/documentation');
@@ -66,7 +70,7 @@ test('the page is split into vertical tabs with only the first section shown bef
     preg_match_all('/href="#([a-z-]+)" role="tab"/', $html, $tabs);
     preg_match_all('/id="([a-z-]+)" role="tabpanel"/', $html, $panels);
 
-    expect($tabs[1])->toBe($panels[1])->toHaveCount(22);
+    expect($tabs[1])->toBe($panels[1])->toHaveCount(24);
 });
 
 test('the playground tab ships the ready-made commands to the page', function () {
@@ -113,5 +117,33 @@ test('every playground command returns the status it promises', function () {
     foreach ($presets as $preset) {
         expect($this->getJson($preset['path'])->status())
             ->toBe($preset['expect'], "{$preset['group']} › {$preset['label']} ({$preset['path']})");
+    }
+});
+
+test('the SSO playground shows made-up data only, never a real employee', function () {
+    $employee = User::factory()->create(['email' => 'real.employee@smartid.co.id']);
+
+    $this->get('/tech/documentation')
+        ->assertOk()
+        ->assertSee('href="#sso-playground" role="tab"', false)
+        ->assertSee('budi@contoh.co.id')
+        ->assertDontSee($employee->email);
+});
+
+test('the SSO playground samples have exactly the shape of the real API', function () {
+    $samples = SsoPlaygroundSamples::all();
+    $department = Department::query()->create(['name' => 'PMO']);
+    $user = User::factory()->create(['department_id' => $department->id]);
+    $user->assignRole(Role::findOrCreate('Viewer'));
+
+    expect($samples['me'])->toHaveCount(8)
+        ->and(json_decode($samples['denied'], true))->toBe(['message' => 'Akun ini tidak memiliki akses ke aplikasi ini.']);
+
+    foreach ($samples['me'] as $key => $json) {
+        $scopes = ['profile', ...array_filter(explode(',', $key))];
+        $real = app(SsoUserProfile::class)->toArray($user->fresh(SsoUserProfile::RELATIONS), $scopes);
+
+        expect(array_keys(json_decode($json, true)))->toBe(array_keys($real), "scopes: {$key}")
+            ->and(array_keys(json_decode($samples['members'][$key], true)['data'][0]))->toBe(array_keys($real));
     }
 });

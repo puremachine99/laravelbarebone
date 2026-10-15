@@ -7,7 +7,9 @@ use App\Http\Controllers\Api\OpdTypeController;
 use App\Http\Controllers\Api\ProvinceController;
 use App\Http\Controllers\Api\RegencyController;
 use App\Http\Controllers\Api\RegionController;
+use App\Http\Controllers\Api\SsoMemberController;
 use App\Http\Controllers\Api\SsoUserController;
+use App\Http\Middleware\AuthenticateOAuthClient;
 use Illuminate\Support\Facades\Route;
 
 // Public, read-only
@@ -34,3 +36,6 @@ Route::prefix('employees')->name('api.employees.')->middleware(['api.token', 'th
 
 // SSO: profile of the user behind a Passport token issued to a connected app (/tech/sso)
 Route::get('/me', SsoUserController::class)->middleware(['auth:api', 'throttle:120,1'])->name('api.sso.me');
+
+// SSO: everyone who may sign in to the calling app, with the app's own client-credentials token
+Route::get('/sso/members', SsoMemberController::class)->middleware([AuthenticateOAuthClient::class, 'throttle:30,1'])->name('api.sso.members');
