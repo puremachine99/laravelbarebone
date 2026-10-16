@@ -7,6 +7,7 @@ use App\Notifications\UserInvitedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Volt\Volt;
+use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
@@ -52,4 +53,48 @@ test('editing an existing employee does not require a password and can update on
         ->assertHasNoErrors();
 
     expect($employee->user->fresh()->name)->toBe('New Name');
+});
+
+test('super admin can force activate an invited user with their own password', function () {
+    $superAdmin = User::factory()->create(['password' => 'secret-pass-123']);
+    $superAdmin->assignRole(Role::findOrCreate('Super Admin'));
+
+    $invited = User::factory()->create(['status' => UserStatus::Invited]);
+    $employee = Employee::create(['user_id' => $invited->id]);
+
+    $this->actingAs($superAdmin);
+
+    Volt::test('master.employees.index')
+        ->call('showDetail', $employee->id)
+        ->call('openForceActivate')
+        ->set('superAdminPassword', 'wrong-password')
+        ->call('forceActivate')
+        ->assertHasErrors('superAdminPassword');
+
+    expect($invited->fresh()->status)->toBe(UserStatus::Invited);
+
+    Volt::test('master.employees.index')
+        ->call('showDetail', $employee->id)
+        ->set('superAdminPassword', 'secret-pass-123')
+        ->call('forceActivate')
+        ->assertHasNoErrors();
+
+    expect($invited->fresh()->status)->toBe(UserStatus::Active);
+});
+
+test('non super admin cannot force activate an invited user', function () {
+    $admin = User::factory()->create();
+    $admin->givePermissionTo(moduleAccess('access-internal-org'));
+
+    $invited = User::factory()->create(['status' => UserStatus::Invited]);
+    $employee = Employee::create(['user_id' => $invited->id]);
+
+    $this->actingAs($admin);
+
+    Volt::test('master.employees.index')
+        ->call('showDetail', $employee->id)
+        ->call('openForceActivate')
+        ->assertForbidden();
+
+    expect($invited->fresh()->status)->toBe(UserStatus::Invited);
 });

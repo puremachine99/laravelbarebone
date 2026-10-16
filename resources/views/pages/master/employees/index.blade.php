@@ -10,6 +10,7 @@ use App\Models\Position;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Spatie\Permission\Models\Role;
@@ -53,6 +54,8 @@ state([
 'selectedEmployee' => null,
 'showEmployeeModal' => false,
 'showDeleteModal' => false,
+'showForceActivateModal' => false,
+'superAdminPassword' =>'',
 'showTrashed' => false,
 ]);
 
@@ -334,6 +337,47 @@ $activate = function (int $userId) {
  User::whereKey($userId)->update(['status' => UserStatus::Active]);
 
  session()->flash('success','Pengguna berhasil diaktifkan kembali.');
+};
+
+$openForceActivate = function () {
+ abort_unless(auth()->user()->hasRole('Super Admin'), 403);
+
+ $this->reset('superAdminPassword');
+ $this->resetValidation('superAdminPassword');
+ $this->showForceActivateModal = true;
+};
+
+$forceActivate = function () {
+ abort_unless(auth()->user()->hasRole('Super Admin'), 403);
+
+ $this->validate(['superAdminPassword' => ['required','string']]);
+
+ if (! Hash::check($this->superAdminPassword, auth()->user()->password)) {
+ $this->addError('superAdminPassword','Password Super Admin salah.');
+
+ return;
+ }
+
+ $user = $this->selectedEmployee?->user;
+
+ if (! $user || ! $user->isInvited()) {
+ $this->showForceActivateModal = false;
+
+ return;
+ }
+
+ $user->forceFill([
+'status' => UserStatus::Active,
+'email_verified_at' => $user->email_verified_at ?? now(),
+ ])->save();
+
+ Password::broker('invites')->deleteToken($user);
+
+ $this->reset('superAdminPassword');
+ $this->showForceActivateModal = false;
+ $this->selectedEmployee = Employee::with(['user.invitedBy','department','positionFungsional','positionStruktural','positionTeknis'])->find($this->selectedEmployee->id);
+
+ session()->flash('success', "Akun {$user->email} berhasil diaktifkan tanpa email. Pengguna belum memiliki password yang diketahui; gunakan reset password atau edit karyawan untuk mengaturnya.");
 };
 
 $confirmDelete = function (int $userId) {
@@ -703,6 +747,9 @@ $restore = function (int $userId) {
  <div class="text-xs text-base-content/50 bg-base-200/50 rounded-lg p-3">
  Diundang oleh <span class="font-medium text-base-content">{{ $selectedEmployee->user->invitedBy?->name ??'-' }}</span>
  pada {{ $selectedEmployee->user->invited_at->format('d M Y, H:i') }}
+ @if ($selectedEmployee->user->isInvited() && auth()->user()->hasRole('Super Admin'))
+ <x-button icon="o-key" label="Aktifkan Tanpa Email" class="btn-warning btn-sm text-white" wire:click="openForceActivate" />
+ @endif
  </div>
  @endif
 
@@ -922,6 +969,17 @@ $restore = function (int $userId) {
  <div class="flex justify-end gap-2 pt-4 border-t border-base-300">
  <x-button label="Batal" wire:click="$set('showEmployeeModal', false)" class="btn-ghost" />
  <x-button label="Simpan Data" type="submit" class="btn-primary" />
+ </div>
+ </form>
+ </x-modal>
+
+ <!-- Force Activate Modal (Super Admin) -->
+ <x-modal wire:model="showForceActivateModal" title="Aktifkan Akun Tanpa Email" subtitle="Masukkan password Super Admin Anda untuk mengaktifkan akun ini tanpa melalui link undangan.">
+ <form wire:submit.prevent="forceActivate" class="space-y-4">
+ <x-input label="Password Super Admin" type="password" wire:model="superAdminPassword" placeholder="Password Anda" required />
+ <div class="flex justify-end gap-2 pt-4">
+ <x-button label="Batal" wire:click="$set('showForceActivateModal', false)" class="btn-ghost" />
+ <x-button icon="o-key" label="Aktifkan" type="submit" class="btn-warning text-white" />
  </div>
  </form>
  </x-modal>
