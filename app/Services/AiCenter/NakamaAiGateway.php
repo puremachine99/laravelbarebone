@@ -8,6 +8,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Psr\Http\Message\StreamInterface;
 use Throwable;
 
@@ -84,8 +85,14 @@ class NakamaAiGateway implements AiGateway
             $finished = true;
 
             yield AiStreamEvent::error(AiErrorCode::UpstreamError);
-        } catch (ConnectionException) {
+        } catch (ConnectionException $e) {
             $finished = true;
+
+            Log::warning('Nakama AI connection failed', [
+                'url' => config('ai_center.nakama.url'),
+                'conversation_id' => $request->conversationId,
+                'error' => $e->getMessage(),
+            ]);
 
             yield AiStreamEvent::error(AiErrorCode::UpstreamTimeout);
         } finally {
