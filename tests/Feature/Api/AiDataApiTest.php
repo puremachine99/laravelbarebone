@@ -158,3 +158,72 @@ test('the API is closed while the token or the assertion secret is not configure
 
     $this->withHeaders($headers)->getJson('/api/ai/datasets')->assertUnauthorized();
 })->with(['ai_center.data_api.token', 'ai_center.data_api.assertion_secret']);
+
+test('without a service account configured a request without assertion is rejected', function () {
+    apiDataUser($this->fullAccess, ['email' => 'ai-service@example.com']);
+
+    $this->withHeaders(['Authorization' => 'Bearer nkm_service-token'])->getJson('/api/ai/datasets')->assertUnauthorized();
+});
+
+test('a request without assertion runs as the service account with its own permissions', function () {
+    config(['ai_center.data_api.service_user' => 'ai-service@example.com']);
+    $service = apiDataUser(['ai-data-fo-achievement.view'], ['email' => 'ai-service@example.com']);
+
+    $this->withHeaders(['Authorization' => 'Bearer nkm_service-token'])->getJson('/api/ai/datasets')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.dataset', 'fo_achievement');
+
+    $this->withHeaders(['Authorization' => 'Bearer nkm_service-token'])->postJson('/api/ai/query', ['dataset' => 'ai_usage'])
+        ->assertForbidden();
+
+    expect(AiDataQueryLog::where('user_id', $service->id)->sole()->outcome)->toBe('denied');
+});
+
+test('the service account still needs the bearer token', function () {
+    config(['ai_center.data_api.service_user' => 'ai-service@example.com']);
+    apiDataUser($this->fullAccess, ['email' => 'ai-service@example.com']);
+
+    $this->getJson('/api/ai/datasets')->assertUnauthorized();
+    $this->withHeaders(['Authorization' => 'Bearer nkm_wrong'])->getJson('/api/ai/datasets')->assertUnauthorized();
+});
+
+test('an invalid assertion does not fall back to the service account', function () {
+    config(['ai_center.data_api.service_user' => 'ai-service@example.com']);
+    apiDataUser($this->fullAccess, ['email' => 'ai-service@example.com']);
+
+    $this->withHeaders(['Authorization' => 'Bearer nkm_service-token', 'X-AI-User-Assertion' => 'eyJ1aWQiOjF9.forged'])
+        ->getJson('/api/ai/datasets')
+        ->assertUnauthorized();
+});
+
+test('a missing or inactive service account is forbidden', function (Closure $setup) {
+    config(['ai_center.data_api.service_user' => 'ai-service@example.com']);
+    $setup();
+
+    $this->withHeaders(['Authorization' => 'Bearer nkm_service-token'])->getJson('/api/ai/datasets')->assertForbidden();
+})->with([
+    'missing' => [fn () => null],
+    'suspended' => [fn () => apiDataUser([], ['email' => 'ai-service@example.com', 'status' => UserStatus::Suspended])],
+]);
+
+test('the service account has its own hourly query limit', function () {
+    config(['ai_center.data_api.service_user' => 'ai-service@example.com', 'ai_center.data.queries_per_hour' => 1, 'ai_center.data_api.service_queries_per_hour' => 3]);
+    apiDataUser($this->fullAccess, ['email' => 'ai-service@example.com']);
+    $headers = ['Authorization' => 'Bearer nkm_service-token'];
+
+    foreach (range(1, 3) as $attempt) {
+        $this->withHeaders($headers)->postJson('/api/ai/query', ['dataset' => 'fo_achievement'])->assertOk();
+    }
+
+    $this->withHeaders($headers)->postJson('/api/ai/query', ['dataset' => 'fo_achievement'])->assertTooManyRequests();
+});
+
+test('rejected requests do not use up the query limit of real users', function () {
+    config(['ai_center.data.queries_per_hour' => 1]);
+
+    $this->postJson('/api/ai/query', ['dataset' => 'fo_achievement'])->assertUnauthorized();
+    $this->postJson('/api/ai/query', ['dataset' => 'fo_achievement'])->assertUnauthorized();
+
+    $this->withHeaders(aiDataHeaders(apiDataUser($this->fullAccess)))->postJson('/api/ai/query', ['dataset' => 'fo_achievement'])->assertOk();
+});

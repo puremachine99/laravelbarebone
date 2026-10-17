@@ -11,6 +11,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Middleware\RoleMiddleware;
@@ -35,6 +36,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(AddSecurityHeaders::class);
         // Passport puts its group middleware before the route's own "web" group; it needs the session user.
         $middleware->appendToPriorityList(StartSession::class, EnsureUserCanUseOAuthClient::class);
+        // The data API is rate limited per user, so the token and the user must be resolved before throttling.
+        $middleware->prependToPriorityList(ThrottleRequests::class, AuthenticateApiToken::class);
+        $middleware->prependToPriorityList(ThrottleRequests::class, AuthenticateAiUserAssertion::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -53,6 +53,13 @@ return [
         'token' => env('AI_DATA_API_TOKEN'),
         'assertion_secret' => env('AI_DATA_ASSERTION_SECRET'),
         'assertion_ttl_seconds' => (int) env('AI_DATA_ASSERTION_TTL', 300),
+
+        /*
+         * Email of the service account a request without X-AI-User-Assertion runs as. Its role/permissions decide
+         * which datasets and departments the AI service may read outside a chat. Empty = assertion always required.
+         */
+        'service_user' => env('AI_DATA_SERVICE_USER'),
+        'service_queries_per_hour' => (int) env('AI_DATA_SERVICE_QUERIES_PER_HOUR', 600),
     ],
 
     /*

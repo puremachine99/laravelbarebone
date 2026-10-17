@@ -20,15 +20,13 @@
                     "catalog_method": "GET",
                     "headers": {
                         "Authorization": "Bearer <AI_DATA_API_TOKEN>",
-                        "X-AI-User-Assertion": "<user_context.assertion>",
                         "Accept": "application/json",
                         "Content-Type": "application/json"
                     },
                     "_comment": [
                         "Authorization: API key dikirim terpisah, simpan di .env servis AI.",
-                        "X-AI-User-Assertion: ambil dari user_context.assertion yang dikirim Nakama di setiap chat, teruskan apa adanya. Berlaku 5 menit, tidak bisa dibuat sendiri.",
-                        "Tanpa salah satu header di atas: 401. User tidak punya akses ke dataset: 403.",
-                        "Contoh body di atas. Wajib: dataset. Opsional: group_by, metrics (kosongkan key-nya = semua metrik), filters, from/to (format YYYY-MM, khusus dataset time_based), sort, direction (asc/desc), limit."
+                        "Tanpa API key atau API key salah: 401. Dataset di luar akses akun service: 403.",
+                        "Contoh body di bawah. Wajib: dataset. Opsional: group_by, metrics (kosongkan key-nya = semua metrik), filters, from/to (format YYYY-MM, khusus dataset time_based), sort, direction (asc/desc), limit."
                     ],
                     "body": {
                         "dataset": "fo_achievement",
@@ -100,15 +98,13 @@
                     "catalog_method": "GET",
                     "headers": {
                         "Authorization": "Bearer <AI_DATA_API_TOKEN>",
-                        "X-AI-User-Assertion": "<user_context.assertion>",
                         "Accept": "application/json",
                         "Content-Type": "application/json"
                     },
                     "_comment": [
                         "Authorization: API key dikirim terpisah, simpan di .env servis AI.",
-                        "X-AI-User-Assertion: ambil dari user_context.assertion yang dikirim Nakama di setiap chat, teruskan apa adanya. Berlaku 5 menit, tidak bisa dibuat sendiri.",
-                        "Tanpa salah satu header di atas: 401. User tidak punya akses ke dataset: 403.",
-                        "Contoh body di atas. Wajib: dataset. Opsional: group_by, metrics (kosongkan key-nya = semua metrik), filters, from/to (format YYYY-MM, khusus dataset time_based), sort, direction (asc/desc), limit."
+                        "Tanpa API key atau API key salah: 401. Dataset di luar akses akun service: 403.",
+                        "Contoh body di bawah. Wajib: dataset. Opsional: group_by, metrics (kosongkan key-nya = semua metrik), filters, from/to (format YYYY-MM, khusus dataset time_based), sort, direction (asc/desc), limit."
                     ],
                     "body": {
                         "dataset": "ai_usage",
@@ -154,15 +150,13 @@
                     "catalog_method": "GET",
                     "headers": {
                         "Authorization": "Bearer <AI_DATA_API_TOKEN>",
-                        "X-AI-User-Assertion": "<user_context.assertion>",
                         "Accept": "application/json",
                         "Content-Type": "application/json"
                     },
                     "_comment": [
                         "Authorization: API key dikirim terpisah, simpan di .env servis AI.",
-                        "X-AI-User-Assertion: ambil dari user_context.assertion yang dikirim Nakama di setiap chat, teruskan apa adanya. Berlaku 5 menit, tidak bisa dibuat sendiri.",
-                        "Tanpa salah satu header di atas: 401. User tidak punya akses ke dataset: 403.",
-                        "Contoh body di atas. Wajib: dataset. Opsional: group_by, metrics (kosongkan key-nya = semua metrik), filters, from/to (format YYYY-MM, khusus dataset time_based), sort, direction (asc/desc), limit."
+                        "Tanpa API key atau API key salah: 401. Dataset di luar akses akun service: 403.",
+                        "Contoh body di bawah. Wajib: dataset. Opsional: group_by, metrics (kosongkan key-nya = semua metrik), filters, from/to (format YYYY-MM, khusus dataset time_based), sort, direction (asc/desc), limit."
                     ],
                     "body": {
                         "dataset": "employees",

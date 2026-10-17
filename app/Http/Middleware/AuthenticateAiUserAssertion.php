@@ -20,6 +20,12 @@ class AuthenticateAiUserAssertion
 
     public function handle(Request $request, Closure $next): Response
     {
+        $serviceUserEmail = (string) config('ai_center.data_api.service_user');
+
+        if (! $request->headers->has('X-AI-User-Assertion') && $serviceUserEmail !== '') {
+            return $this->asServiceUser($request, $next, $serviceUserEmail);
+        }
+
         $claims = $this->assertions->verify((string) $request->header('X-AI-User-Assertion'));
 
         if ($claims === null) {
@@ -33,6 +39,23 @@ class AuthenticateAiUserAssertion
             && $user->aiConversations()->whereKey($claims['conversation_id'])->exists();
 
         if (! $allowed) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
+        $request->setUserResolver(fn () => $user);
+
+        return $next($request);
+    }
+
+    /**
+     * Without an assertion the request runs as the configured service account (`AI_DATA_SERVICE_USER`), so the AI
+     * service can query outside a chat. That account's own permissions decide its datasets and department scope.
+     */
+    private function asServiceUser(Request $request, Closure $next, string $email): Response
+    {
+        $user = User::query()->where('email', $email)->first();
+
+        if ($user === null || ! $user->isActive()) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
