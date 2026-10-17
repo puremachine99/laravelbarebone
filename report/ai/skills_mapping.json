@@ -1,0 +1,324 @@
+[
+    {
+        "nama_departemen": "corporate_secretariat",
+        "skills": []
+    },
+    {
+        "nama_departemen": "people_and_culture",
+        "skills": []
+    },
+    {
+        "nama_departemen": "finance",
+        "skills": [
+            {
+                "nama_skill": "funding",
+                "url_api": "/api/ai/query",
+                "metadata": {
+                    "base_url": "https://nakama.smartid.co.id",
+                    "method": "POST",
+                    "catalog_url": "/api/ai/datasets",
+                    "catalog_method": "GET",
+                    "headers": {
+                        "Authorization": "Bearer <AI_DATA_API_TOKEN>",
+                        "X-AI-User-Assertion": "<user_context.assertion>",
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    "_comment": [
+                        "Authorization: API key dikirim terpisah, simpan di .env servis AI.",
+                        "X-AI-User-Assertion: ambil dari user_context.assertion yang dikirim Nakama di setiap chat, teruskan apa adanya. Berlaku 5 menit, tidak bisa dibuat sendiri.",
+                        "Tanpa salah satu header di atas: 401. User tidak punya akses ke dataset: 403.",
+                        "Contoh body di atas. Wajib: dataset. Opsional: group_by, metrics (kosongkan key-nya = semua metrik), filters, from/to (format YYYY-MM, khusus dataset time_based), sort, direction (asc/desc), limit."
+                    ],
+                    "body": {
+                        "dataset": "fo_achievement",
+                        "group_by": [
+                            "employee"
+                        ],
+                        "metrics": [
+                            "leads",
+                            "ql",
+                            "pitching",
+                            "won",
+                            "closing",
+                            "nilai_closing",
+                            "target_nilai_closing",
+                            "achievement_pct"
+                        ],
+                        "from": "2026-01",
+                        "to": "2026-10",
+                        "limit": 50
+                    },
+                    "datasets": [
+                        {
+                            "dataset": "fo_achievement",
+                            "label": "Capaian Funding Officer (modul Funding)",
+                            "description": "Capaian Funding Officer: leads sampe closing, plus nilai closing vs tagret tahunan.",
+                            "time_based": true,
+                            "dimensions": {
+                                "employee": "Nama Funding Officer",
+                                "department": "Nama departemen",
+                                "month": "Bulan (YYYY-MM)"
+                            },
+                            "metrics": {
+                                "leads": "Jumlah leads baru",
+                                "ql": "Jumlah qualified lead",
+                                "pitching": "Jumlah funnel yang di-pitching",
+                                "won": "Jumlah funnel won",
+                                "closing": "Jumlah closing (deal)",
+                                "nilai_closing": "Total nominal investasi closing (Rp)",
+                                "target_nilai_closing": "Target nilai closing untuk periode (Rp)",
+                                "achievement_pct": "Capaian nilai closing terhadap target (%)"
+                            },
+                            "filters": [
+                                "department"
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "nama_departemen": "revenue_and_growth",
+        "skills": []
+    },
+    {
+        "nama_departemen": "product_and_rdi",
+        "skills": []
+    },
+    {
+        "nama_departemen": "digital_transformation",
+        "skills": [
+            {
+                "nama_skill": "ai_center",
+                "url_api": "/api/ai/query",
+                "metadata": {
+                    "base_url": "https://nakama.smartid.co.id",
+                    "method": "POST",
+                    "catalog_url": "/api/ai/datasets",
+                    "catalog_method": "GET",
+                    "headers": {
+                        "Authorization": "Bearer <AI_DATA_API_TOKEN>",
+                        "X-AI-User-Assertion": "<user_context.assertion>",
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    "_comment": [
+                        "Authorization: API key dikirim terpisah, simpan di .env servis AI.",
+                        "X-AI-User-Assertion: ambil dari user_context.assertion yang dikirim Nakama di setiap chat, teruskan apa adanya. Berlaku 5 menit, tidak bisa dibuat sendiri.",
+                        "Tanpa salah satu header di atas: 401. User tidak punya akses ke dataset: 403.",
+                        "Contoh body di atas. Wajib: dataset. Opsional: group_by, metrics (kosongkan key-nya = semua metrik), filters, from/to (format YYYY-MM, khusus dataset time_based), sort, direction (asc/desc), limit."
+                    ],
+                    "body": {
+                        "dataset": "ai_usage",
+                        "group_by": [
+                            "month"
+                        ],
+                        "metrics": [
+                            "questions",
+                            "active_users"
+                        ],
+                        "from": "2026-01",
+                        "to": "2026-10",
+                        "limit": 50
+                    },
+                    "datasets": [
+                        {
+                            "dataset": "ai_usage",
+                            "label": "Pemakaian AI Center",
+                            "description": "Jumlah pertanyaan ke AI Center dan jumlah penanyanya.",
+                            "time_based": true,
+                            "dimensions": {
+                                "month": "Bulan (YYYY-MM)",
+                                "department": "Nama departemen"
+                            },
+                            "metrics": {
+                                "questions": "Jumlah pertanyaan ke AI Center",
+                                "active_users": "Jumlah pengguna yang bertanya"
+                            },
+                            "filters": [
+                                "department"
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "nama_skill": "master_data",
+                "url_api": "/api/ai/query",
+                "metadata": {
+                    "base_url": "https://nakama.smartid.co.id",
+                    "method": "POST",
+                    "catalog_url": "/api/ai/datasets",
+                    "catalog_method": "GET",
+                    "headers": {
+                        "Authorization": "Bearer <AI_DATA_API_TOKEN>",
+                        "X-AI-User-Assertion": "<user_context.assertion>",
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    "_comment": [
+                        "Authorization: API key dikirim terpisah, simpan di .env servis AI.",
+                        "X-AI-User-Assertion: ambil dari user_context.assertion yang dikirim Nakama di setiap chat, teruskan apa adanya. Berlaku 5 menit, tidak bisa dibuat sendiri.",
+                        "Tanpa salah satu header di atas: 401. User tidak punya akses ke dataset: 403.",
+                        "Contoh body di atas. Wajib: dataset. Opsional: group_by, metrics (kosongkan key-nya = semua metrik), filters, from/to (format YYYY-MM, khusus dataset time_based), sort, direction (asc/desc), limit."
+                    ],
+                    "body": {
+                        "dataset": "employees",
+                        "group_by": [
+                            "employee"
+                        ],
+                        "metrics": [
+                            "employees"
+                        ],
+                        "limit": 50
+                    },
+                    "datasets": [
+                        {
+                            "dataset": "employees",
+                            "label": "Data karyawan aktif",
+                            "description": "Karyawan aktif: nama, NIS, departemen, posisi, region.",
+                            "time_based": false,
+                            "dimensions": {
+                                "employee": "Nama karyawan",
+                                "nis": "NIS (ID karyawan)",
+                                "department": "Nama departemen",
+                                "position_struktural": "Posisi struktural",
+                                "position_fungsional": "Posisi fungsional",
+                                "position_teknis": "Posisi teknis",
+                                "region": "Region"
+                            },
+                            "metrics": {
+                                "employees": "Jumlah karyawan aktif"
+                            },
+                            "filters": [
+                                "department",
+                                "name",
+                                "position",
+                                "region"
+                            ]
+                        },
+                        {
+                            "dataset": "departments",
+                            "label": "Data departemen",
+                            "description": "Daftar departemen, kode, dan jumlah karyaawn aktif.",
+                            "time_based": false,
+                            "dimensions": {
+                                "department": "Nama departemen",
+                                "code": "Kode departemen"
+                            },
+                            "metrics": {
+                                "employees": "Jumlah karyawan aktif"
+                            },
+                            "filters": [
+                                "name"
+                            ]
+                        },
+                        {
+                            "dataset": "roles",
+                            "label": "Data role aplikasi",
+                            "description": "Role di Nakama dan jumlah user-nya, tanpa nama user.",
+                            "time_based": false,
+                            "dimensions": {
+                                "role": "Nama role",
+                                "department": "Departemen pengguna"
+                            },
+                            "metrics": {
+                                "users": "Jumlah pengguna dengan role ini"
+                            },
+                            "filters": [
+                                "role",
+                                "department"
+                            ]
+                        },
+                        {
+                            "dataset": "regions",
+                            "label": "Data region",
+                            "description": "Region kerja plus jumlah provinsi, kab/kota, dan OPD-nya.",
+                            "time_based": false,
+                            "dimensions": {
+                                "region": "Nama region",
+                                "code": "Kode region"
+                            },
+                            "metrics": {
+                                "provinces": "Jumlah provinsi",
+                                "regencies": "Jumlah kabupaten/kota",
+                                "opds": "Jumlah OPD"
+                            },
+                            "filters": [
+                                "name"
+                            ]
+                        },
+                        {
+                            "dataset": "opds",
+                            "label": "Data OPD / instansi",
+                            "description": "OPD/instansi beserta lokasi, region, dan bidang urusan. Pakai filetr ya.",
+                            "time_based": false,
+                            "dimensions": {
+                                "opd": "Nama OPD/instansi",
+                                "jenis": "Jenis instansi",
+                                "regency": "Kabupaten/kota",
+                                "province": "Provinsi",
+                                "region": "Region",
+                                "urusan": "Bidang urusan"
+                            },
+                            "metrics": {
+                                "opds": "Jumlah OPD/instansi"
+                            },
+                            "filters": [
+                                "name",
+                                "jenis",
+                                "province",
+                                "regency",
+                                "region",
+                                "urusan"
+                            ]
+                        },
+                        {
+                            "dataset": "urusans",
+                            "label": "Data bidang urusan",
+                            "description": "Bidang urusan, kode, dan jumlah OPD yang megang.",
+                            "time_based": false,
+                            "dimensions": {
+                                "urusan": "Nama bidang urusan",
+                                "code": "Kode urusan"
+                            },
+                            "metrics": {
+                                "opds": "Jumlah OPD dengan urusan ini"
+                            },
+                            "filters": [
+                                "name"
+                            ]
+                        },
+                        {
+                            "dataset": "products",
+                            "label": "Data produk",
+                            "description": "Master produk: nama, kode, kategori, divisi, pelaksana, status.",
+                            "time_based": false,
+                            "dimensions": {
+                                "product": "Nama produk",
+                                "code": "Kode produk",
+                                "category": "Kategori produk",
+                                "service_center": "Service center",
+                                "division": "Divisi",
+                                "pelaksana": "Pelaksana",
+                                "status": "Status (Aktif/Nonaktif)"
+                            },
+                            "metrics": {
+                                "products": "Jumlah produk"
+                            },
+                            "filters": [
+                                "name",
+                                "category",
+                                "service_center",
+                                "division",
+                                "pelaksana"
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+]
