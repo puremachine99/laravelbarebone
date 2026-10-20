@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AiCenter\FileController;
 use App\Http\Controllers\AiCenter\StreamMessageController;
 use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\CsvExportController;
@@ -91,6 +92,11 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
     Route::middleware('can:manage-ai-center')->group(function () {
         Route::get('/ai-center', AiCenter::class)->name('ai-center');
         Route::post('/ai-center/messages', StreamMessageController::class)->name('ai-center.messages.stream');
+        Route::post('/ai-center/files', [FileController::class, 'store'])->middleware('throttle:20,1')->name('ai-center.files.store');
+        Route::post('/ai-center/files/generate', [FileController::class, 'generate'])->middleware('throttle:20,1')->name('ai-center.files.generate');
+        Route::delete('/ai-center/files/{remoteFileId}', [FileController::class, 'destroy'])->name('ai-center.files.destroy');
+        Route::get('/ai-center/files/{aiFile}', [FileController::class, 'download'])->name('ai-center.files.download');
+        Route::get('/ai-center/files/{aiFile}/preview', [FileController::class, 'preview'])->name('ai-center.files.preview');
     });
 
     Volt::route('/partnership/test/pitching', 'partnership.test-pitching-compare')->name('partnership.test.pitching');

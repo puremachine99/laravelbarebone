@@ -16,7 +16,7 @@ final readonly class AiChatRequest
 
     /**
      * @param  array<int, array{role: string, content: string}>  $history  Oldest first, without the new message.
-     * @param  array{url: string, mime: string, name: string, size_bytes: int}|null  $attachment
+     * @param  array<int, string>  $fileIds  Ids returned by the AI service when the user's files were uploaded.
      * @param  string|null  $systemPrompt  Overrides config('ai_center.nakama.system_prompt') for this call.
      * @param  array{department: string|null, roles: array<int, string>, available_tools: array<int, string>, assertion: string|null}|null  $userContext  What the AI service needs to call the data API as tools for this user (gateway mode).
      */
@@ -27,7 +27,7 @@ final readonly class AiChatRequest
         public int $conversationId,
         public string $message,
         public array $history = [],
-        public ?array $attachment = null,
+        public array $fileIds = [],
         public ?string $quickAction = null,
         public ?string $remoteConversationId = null,
         public ?string $systemPrompt = null,
@@ -62,7 +62,7 @@ final readonly class AiChatRequest
     }
 
     /**
-     * @return array{request_id: string, user: array{id: int, name: string}, conversation_id: int, message: string, history: array<int, array{role: string, content: string}>, attachment: array<string, mixed>|null, options: array{quick_action: string|null}}
+     * @return array{request_id: string, user: array{id: int, name: string}, conversation_id: int, message: string, history: array<int, array{role: string, content: string}>, file_ids: array<int, string>, options: array{quick_action: string|null}}
      */
     public function toArray(): array
     {
@@ -72,7 +72,7 @@ final readonly class AiChatRequest
             'conversation_id' => $this->conversationId,
             'message' => $this->message,
             'history' => $this->history,
-            'attachment' => $this->attachment,
+            'file_ids' => $this->fileIds,
             'options' => ['quick_action' => $this->quickAction],
         ];
     }

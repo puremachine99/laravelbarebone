@@ -6,7 +6,14 @@
 
 <div
     class="flex h-[calc(100vh-5.5rem)] lg:h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-base-300 bg-base-100"
-    x-data="aiCenterChat({ streamUrl: @js(route('ai-center.messages.stream')), maxChars: @js($maxInputChars) })">
+    x-data="aiCenterChat({
+        streamUrl: @js(route('ai-center.messages.stream')),
+        maxChars: @js($maxInputChars),
+        uploadUrl: @js(route('ai-center.files.store')),
+        deleteUrl: @js(route('ai-center.files.destroy', '__ID__')),
+        maxFiles: @js(config('ai_center.files.max_per_message')),
+        maxFileMb: @js(config('ai_center.files.max_mb')),
+    })">
 
     {{-- Conversation list --}}
     <div
@@ -163,7 +170,17 @@
                     @foreach ($conversation->messages as $message)
                         @if (! $message->isFromAssistant())
                             @php $lastUserContent = $message->content; @endphp
-                            <div class="flex justify-end" wire:key="ai-message-{{ $message->id }}">
+                            <div class="flex flex-col items-end gap-1" wire:key="ai-message-{{ $message->id }}">
+                                @foreach ($message->files as $file)
+                                    <button type="button" x-on:click="openPreview(@js($file->previewPayload()))" title="{{ __('Lihat file') }}"
+                                        class="inline-flex items-center gap-1.5 max-w-[85%] sm:max-w-lg rounded-lg border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-950/30 px-2 py-1 text-xs text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-950/60 cursor-pointer">
+                                        <x-icon name="o-paper-clip" class="w-3.5 h-3.5 shrink-0" />
+                                        <span class="truncate">{{ $file->name }}</span>
+                                        @if ($file->size_bytes !== null)
+                                            <span class="shrink-0 opacity-60">{{ \Illuminate\Support\Number::fileSize($file->size_bytes, precision: 1) }}</span>
+                                        @endif
+                                    </button>
+                                @endforeach
                                 <div
                                     class="max-w-[85%] sm:max-w-lg rounded-2xl rounded-br-sm px-3 py-2 text-sm leading-relaxed shadow-sm bg-indigo-600 text-white whitespace-pre-wrap wrap-break-word">{{ $message->content }}</div>
                             </div>
@@ -179,6 +196,23 @@
                                         @if ($message->content !== '')
                                             <div class="ai-markdown">{!! $message->renderedContent() !!}</div>
                                         @endif
+
+                                        @foreach ($message->files as $file)
+                                            <div @class(['flex items-center gap-1 rounded-lg border border-base-300 bg-base-200/50 text-sm', 'mt-2' => $message->content !== '' || ! $loop->first])>
+                                                <button type="button" x-on:click="openPreview(@js($file->previewPayload()))" title="{{ __('Lihat file') }}"
+                                                    class="flex flex-1 min-w-0 items-center gap-2 px-3 py-2 text-start hover:bg-base-200 rounded-s-lg cursor-pointer">
+                                                    <x-icon name="o-document-text" class="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
+                                                    <span class="truncate">{{ $file->name }}</span>
+                                                    @if ($file->size_bytes !== null)
+                                                        <span class="shrink-0 text-xs text-base-content/50">{{ \Illuminate\Support\Number::fileSize($file->size_bytes, precision: 1) }}</span>
+                                                    @endif
+                                                </button>
+                                                <a href="{{ route('ai-center.files.download', $file) }}" download title="{{ __('Unduh') }}"
+                                                    class="btn btn-ghost btn-sm btn-square">
+                                                    <x-icon name="o-arrow-down-tray" class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                                                </a>
+                                            </div>
+                                        @endforeach
 
                                         @if ($message->status === \App\Enums\AiMessageStatus::Error)
                                             <div @class(['flex items-center gap-2 text-sm text-error', 'mt-2' => $message->content !== ''])>
@@ -234,7 +268,15 @@
                 <div wire:ignore wire:key="ai-pending-turn">
                     <template x-if="pending">
                         <div class="space-y-4">
-                            <div class="flex justify-end">
+                            <div class="flex flex-col items-end gap-1">
+                                <template x-for="file in pending.sent" x-bind:key="file.id">
+                                    <button type="button" x-on:click="openPreview(file)" title="{{ __('Lihat file') }}"
+                                        class="inline-flex items-center gap-1.5 max-w-[85%] sm:max-w-lg rounded-lg border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-950/30 px-2 py-1 text-xs text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-950/60 cursor-pointer">
+                                        <x-icon name="o-paper-clip" class="w-3.5 h-3.5 shrink-0" />
+                                        <span class="truncate" x-text="file.name"></span>
+                                        <span x-show="file.size_label" class="shrink-0 opacity-60" x-text="file.size_label"></span>
+                                    </button>
+                                </template>
                                 <div class="max-w-[85%] sm:max-w-lg rounded-2xl rounded-br-sm px-3 py-2 text-sm leading-relaxed shadow-sm bg-indigo-600 text-white whitespace-pre-wrap wrap-break-word"
                                     x-text="pending.prompt"></div>
                             </div>
@@ -252,6 +294,19 @@
                                     </div>
                                     <div x-show="pending.text !== ''" class="text-sm leading-relaxed whitespace-pre-wrap wrap-break-word"
                                         x-text="pending.text"></div>
+                                    <template x-for="file in pending.generated" x-bind:key="file.url">
+                                        <div class="flex items-center gap-1 rounded-lg border border-base-300 bg-base-200/50 text-sm mt-2">
+                                            <button type="button" x-on:click="openPreview(file)" title="{{ __('Lihat file') }}"
+                                                class="flex flex-1 min-w-0 items-center gap-2 px-3 py-2 text-start hover:bg-base-200 rounded-s-lg cursor-pointer">
+                                                <x-icon name="o-document-text" class="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
+                                                <span class="truncate" x-text="file.name"></span>
+                                                <span x-show="file.size_label" class="shrink-0 text-xs text-base-content/50" x-text="file.size_label"></span>
+                                            </button>
+                                            <a x-bind:href="file.url" download title="{{ __('Unduh') }}" class="btn btn-ghost btn-sm btn-square">
+                                                <x-icon name="o-arrow-down-tray" class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                                            </a>
+                                        </div>
+                                    </template>
                                     <div x-show="pending.error" class="flex items-center gap-2 text-sm text-error">
                                         <x-icon name="o-exclamation-circle" class="w-4 h-4 shrink-0" />
                                         <span x-text="pending.error"></span>
@@ -284,6 +339,24 @@
                     @endforeach
                 </div>
 
+                <div x-show="attachments.length > 0 || uploading" x-cloak class="flex flex-wrap items-center gap-1.5">
+                    <template x-for="file in attachments" x-bind:key="file.id">
+                        <span class="inline-flex items-center gap-1.5 max-w-full rounded-lg border border-base-300 bg-base-200/60 ps-2 pe-1 py-0.5 text-xs">
+                            <x-icon name="o-paper-clip" class="w-3.5 h-3.5 shrink-0" />
+                            <button type="button" x-on:click="openPreview(file)" title="{{ __('Lihat file') }}" x-bind:disabled="file.kind === 'file' && !file.download_url" class="flex items-center gap-1.5 min-w-0 enabled:hover:underline enabled:cursor-pointer">
+                                <span class="truncate max-w-48" x-text="file.name"></span>
+                                <span x-show="file.size_label" class="shrink-0 opacity-60" x-text="file.size_label"></span>
+                            </button>
+                            <button type="button" x-on:click="removeFile(file)" title="{{ __('Hapus file') }}" class="btn btn-ghost btn-xs btn-square size-5 min-h-0">
+                                <x-icon name="o-x-mark" class="w-3 h-3" />
+                            </button>
+                        </span>
+                    </template>
+                    <span x-show="uploading" class="flex items-center gap-1.5 text-xs text-base-content/50">
+                        <span class="loading loading-spinner loading-xs"></span> {{ __('Mengunggah…') }}
+                    </span>
+                </div>
+
                 <p x-show="errorMessage" x-cloak class="text-xs text-error flex items-center gap-1.5">
                     <x-icon name="o-exclamation-circle" class="w-4 h-4 shrink-0" />
                     <span x-text="errorMessage"></span>
@@ -291,6 +364,14 @@
             </div>
 
             <form x-on:submit.prevent="send()" class="max-w-3xl mx-auto flex items-end gap-2 px-4 pt-2 pb-3">
+                <input type="file" multiple x-ref="fileInput" class="hidden"
+                    accept="{{ collect(config('ai_center.files.extensions'))->map(fn ($extension) => '.'.$extension)->implode(',') }}"
+                    x-on:change="attachFiles($event.target.files); $event.target.value = ''">
+                <button type="button" x-on:click="$refs.fileInput.click()" x-bind:disabled="isStreaming || uploading"
+                    title="{{ __('Lampirkan file (maks :mb MB)', ['mb' => config('ai_center.files.max_mb')]) }}"
+                    class="btn btn-ghost btn-circle btn-sm shrink-0 mb-5">
+                    <x-icon name="o-paper-clip" class="w-4 h-4" />
+                </button>
                 <div class="flex-1 min-w-0">
                     <textarea
                         x-ref="input"
@@ -307,7 +388,7 @@
                         x-bind:class="overLimit ? 'text-error font-semibold' : 'text-base-content/40'"
                         x-text="input.length.toLocaleString('id-ID') + ' / ' + maxChars.toLocaleString('id-ID')"></div>
                 </div>
-                <button type="submit" x-show="!isStreaming" x-bind:disabled="input.trim() === '' || overLimit"
+                <button type="submit" x-show="!isStreaming" x-bind:disabled="input.trim() === '' || overLimit || uploading"
                     title="{{ __('Kirim') }}" class="btn btn-primary btn-circle btn-sm shrink-0 mb-5">
                     <x-icon name="o-paper-airplane" class="w-4 h-4" />
                 </button>
@@ -316,6 +397,39 @@
                     <x-icon name="s-stop" class="w-4 h-4" />
                 </button>
             </form>
+        </div>
+    </div>
+
+    {{-- File preview: images and PDFs only; other files are downloaded --}}
+    <div x-show="preview" x-cloak x-transition.opacity x-on:keydown.escape.window="closePreview()"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" x-on:click.self="closePreview()">
+        <div class="flex flex-col w-full max-w-4xl h-[85vh] rounded-2xl bg-base-100 border border-base-300 shadow-xl overflow-hidden">
+            <div class="flex items-center gap-2 border-b border-base-300 px-4 py-3 shrink-0">
+                <x-icon name="o-document-text" class="w-5 h-5 shrink-0 text-indigo-600 dark:text-indigo-400" />
+                <div class="min-w-0 flex-1">
+                    <div class="truncate font-medium text-sm" x-text="preview?.name"></div>
+                    <div class="text-xs text-base-content/50" x-show="preview?.size_label" x-text="preview?.size_label"></div>
+                </div>
+                <a x-show="preview?.download_url" x-bind:href="preview?.download_url" download class="btn btn-ghost btn-sm gap-1">
+                    <x-icon name="o-arrow-down-tray" class="w-4 h-4" /> {{ __('Unduh') }}
+                </a>
+                <button type="button" x-on:click="closePreview()" title="{{ __('Tutup') }}" class="btn btn-ghost btn-sm btn-square">
+                    <x-icon name="o-x-mark" class="w-4 h-4" />
+                </button>
+            </div>
+
+            <div class="flex-1 min-h-0 overflow-auto bg-base-200/40">
+                <template x-if="preview?.kind === 'image'">
+                    <div class="flex h-full items-center justify-center p-4">
+                        <img x-bind:src="preview.preview_url" x-bind:alt="preview.name" class="max-h-full max-w-full object-contain rounded-lg">
+                    </div>
+                </template>
+
+                <template x-if="preview?.kind === 'pdf'">
+                    <iframe x-bind:src="preview.preview_url" x-bind:title="preview.name" class="h-full w-full border-0"></iframe>
+                </template>
+
+            </div>
         </div>
     </div>
 

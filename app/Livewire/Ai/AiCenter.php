@@ -50,7 +50,7 @@ class AiCenter extends Component
     {
         return $this->selectedConversationId
             ? auth()->user()->aiConversations()
-                ->with(['messages' => fn ($query) => $query->oldest('id')])
+                ->with(['messages' => fn ($query) => $query->oldest('id')->with('files')])
                 ->find($this->selectedConversationId)
             : null;
     }

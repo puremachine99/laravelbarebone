@@ -9,6 +9,7 @@ use Database\Factories\AiMessageFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class AiMessage extends Model
@@ -34,6 +35,11 @@ class AiMessage extends Model
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(AiConversation::class, 'ai_conversation_id');
+    }
+
+    public function files(): HasMany
+    {
+        return $this->hasMany(AiFile::class);
     }
 
     public function isFromAssistant(): bool

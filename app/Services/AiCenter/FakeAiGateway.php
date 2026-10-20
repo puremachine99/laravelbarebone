@@ -3,6 +3,10 @@
 namespace App\Services\AiCenter;
 
 use App\Enums\AiErrorCode;
+use GuzzleHttp\Psr7\Utils;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Stand-in "AI" for local development and tests: streams a canned Markdown reply word by word, without calling
@@ -23,6 +27,27 @@ class FakeAiGateway implements AiGateway
      * @var array<int, string>
      */
     public array $forgotten = [];
+
+    /**
+     * Original names of the files this gateway accepted.
+     *
+     * @var array<int, string>
+     */
+    public array $uploaded = [];
+
+    /**
+     * The documents this gateway was asked to generate.
+     *
+     * @var array<int, array<string, mixed>>
+     */
+    public array $generated = [];
+
+    /**
+     * Remote file ids this gateway was asked to delete.
+     *
+     * @var array<int, string>
+     */
+    public array $deletedFiles = [];
 
     /**
      * What a data-planning call answers (a JSON plan). Defaults to "no data needed".
@@ -73,6 +98,50 @@ class FakeAiGateway implements AiGateway
     public function forget(string $remoteConversationId): void
     {
         $this->forgotten[] = $remoteConversationId;
+    }
+
+    public function uploadFiles(array $files): array
+    {
+        if ($this->failWith) {
+            throw new AiFileUploadException($this->failWith);
+        }
+
+        return array_map(function (UploadedFile $file) {
+            $this->uploaded[] = $file->getClientOriginalName();
+
+            return [
+                'id' => 'file_fake'.Str::random(24),
+                'name' => $file->getClientOriginalName(),
+                'mime_type' => (string) $file->getMimeType(),
+                'size_bytes' => $file->getSize(),
+            ];
+        }, $files);
+    }
+
+    public function generateDocument(array $document): array
+    {
+        if ($this->failWith) {
+            throw new AiFileUploadException($this->failWith);
+        }
+
+        $this->generated[] = $document;
+
+        return [
+            'id' => 'file_fake'.Str::random(24),
+            'name' => $document['filename'].'.'.$document['format'],
+            'mime_type' => 'application/octet-stream',
+            'size_bytes' => 1024,
+        ];
+    }
+
+    public function downloadFile(string $remoteFileId): ?StreamInterface
+    {
+        return Utils::streamFor("fake content of {$remoteFileId}");
+    }
+
+    public function deleteFile(string $remoteFileId): void
+    {
+        $this->deletedFiles[] = $remoteFileId;
     }
 
     private function reply(AiChatRequest $request): string

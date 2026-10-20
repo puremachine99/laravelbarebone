@@ -120,9 +120,12 @@ window.csvDownloadManager = function () {
 // Backs the AI Center chat box (resources/views/livewire/ai/ai-center.blade.php). Sending a message is a plain
 // fetch() to the SSE endpoint rather than a Livewire action, so the answer can be shown as it streams in and the
 // Stop button can cut the request off. Once the stream ends, Livewire re-renders the thread from the database.
-window.aiCenterChat = function ({ streamUrl, maxChars }) {
+window.aiCenterChat = function ({ streamUrl, maxChars, uploadUrl, deleteUrl, maxFiles, maxFileMb }) {
     return {
         maxChars,
+        attachments: [],
+        uploading: false,
+        preview: null,
         input: '',
         quickAction: null,
         pending: null,
@@ -167,9 +170,77 @@ window.aiCenterChat = function ({ streamUrl, maxChars }) {
             this.controller?.abort();
         },
 
+        csrfHeaders() {
+            return {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            };
+        },
+
+        async attachFiles(fileList) {
+            const files = Array.from(fileList ?? []);
+            if (files.length === 0) return;
+
+            this.errorMessage = null;
+
+            if (this.attachments.length + files.length > maxFiles) {
+                this.errorMessage = `Maksimal ${maxFiles} file per pesan.`;
+                return;
+            }
+
+            if (files.some((file) => file.size > maxFileMb * 1024 * 1024)) {
+                this.errorMessage = `File terlalu besar (maks ${maxFileMb} MB).`;
+                return;
+            }
+
+            const body = new FormData();
+            files.forEach((file) => body.append('files[]', file));
+            this.uploading = true;
+
+            try {
+                const response = await fetch(uploadUrl, { method: 'POST', headers: this.csrfHeaders(), body });
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    this.errorMessage = data.message ?? 'File gagal diunggah.';
+                    return;
+                }
+
+                this.attachments.push(...data.files);
+            } catch (e) {
+                this.errorMessage = 'File gagal diunggah.';
+            } finally {
+                this.uploading = false;
+            }
+        },
+
+        // Images and PDFs open in the preview modal; any other file is simply downloaded.
+        openPreview(file) {
+            if (file.kind === 'file') {
+                if (file.download_url) window.location.href = file.download_url;
+                return;
+            }
+
+            this.preview = file;
+        },
+
+        closePreview() {
+            this.preview = null;
+        },
+
+        async removeFile(file) {
+            this.attachments = this.attachments.filter((item) => item.id !== file.id);
+
+            await fetch(deleteUrl.replace('__ID__', encodeURIComponent(file.id)), {
+                method: 'DELETE',
+                headers: this.csrfHeaders(),
+            }).catch(() => {});
+        },
+
         async send(text = null) {
             const message = (text ?? this.input).trim();
-            if (message === '' || this.isStreaming) return;
+            if (message === '' || this.isStreaming || this.uploading) return;
 
             if (message.length > this.maxChars) {
                 this.errorMessage = `Pesan terlalu panjang (maks ${this.maxChars.toLocaleString('id-ID')} karakter).`;
@@ -177,17 +248,20 @@ window.aiCenterChat = function ({ streamUrl, maxChars }) {
             }
 
             const quickAction = text === null ? this.quickAction : null;
+            const sentFiles = text === null ? this.attachments : [];
             let conversationId = this.$wire.selectedConversationId;
             let refused = false;
+            let fileGone = false;
             let aborted = false;
 
             this.errorMessage = null;
             if (text === null) {
                 this.input = '';
                 this.quickAction = null;
+                this.attachments = [];
                 this.$nextTick(() => this.resize());
             }
-            this.pending = { prompt: message, text: '', error: null };
+            this.pending = { prompt: message, text: '', error: null, sent: sentFiles, generated: [] };
             this.controller = new AbortController();
             this.scrollToBottom();
 
@@ -200,7 +274,12 @@ window.aiCenterChat = function ({ streamUrl, maxChars }) {
                         'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
                     },
-                    body: JSON.stringify({ conversation_id: conversationId, message, quick_action: quickAction }),
+                    body: JSON.stringify({
+                        conversation_id: conversationId,
+                        message,
+                        quick_action: quickAction,
+                        file_ids: sentFiles.map((file) => file.id),
+                    }),
                     signal: this.controller.signal,
                 });
 
@@ -230,9 +309,13 @@ window.aiCenterChat = function ({ streamUrl, maxChars }) {
                         } else if (name === 'delta') {
                             this.pending.text += data.text;
                             this.scrollToBottom();
+                        } else if (name === 'file') {
+                            this.pending.generated.push(data);
+                            this.scrollToBottom();
                         } else if (name === 'error') {
-                            if (['rate_limited', 'input_too_long'].includes(data.code)) {
+                            if (['rate_limited', 'input_too_long', 'file_invalid'].includes(data.code)) {
                                 refused = true;
+                                fileGone = data.code === 'file_invalid';
                                 this.errorMessage = data.message;
                             } else {
                                 this.pending.error = data.message;
@@ -252,6 +335,7 @@ window.aiCenterChat = function ({ streamUrl, maxChars }) {
                     if (text === null) {
                         this.input = message;
                         this.quickAction = quickAction;
+                        this.attachments = fileGone ? [] : sentFiles;
                         this.$nextTick(() => this.resize());
                     }
                     this.pending = null;

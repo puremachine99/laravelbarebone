@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\AiCenter\AiChatRequest;
 use App\Services\AiCenter\AiGateway;
 use App\Services\AiCenter\FakeAiGateway;
+use Psr\Http\Message\StreamInterface;
 use Spatie\Permission\Models\Permission;
 
 function aiStreamUser(): User
@@ -184,6 +185,23 @@ test('a crashing gateway is reported as a generic error without leaking details'
         }
 
         public function forget(string $remoteConversationId): void {}
+
+        public function uploadFiles(array $files): array
+        {
+            return [];
+        }
+
+        public function generateDocument(array $document): array
+        {
+            return [];
+        }
+
+        public function downloadFile(string $remoteFileId): ?StreamInterface
+        {
+            return null;
+        }
+
+        public function deleteFile(string $remoteFileId): void {}
     });
 
     $content = $this->actingAs(aiStreamUser())

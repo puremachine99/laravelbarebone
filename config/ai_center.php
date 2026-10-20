@@ -35,9 +35,9 @@ return [
         'tools' => [
             'web_search' => (bool) env('NAKAMA_AI_WEB_SEARCH', false),
             'web_fetch' => false,
-            'image_generation' => false,
+            'image_generation' => (bool) env('NAKAMA_AI_IMAGE_GENERATION', false),
             'memory' => false,
-            'document_generation' => false,
+            'document_generation' => (bool) env('NAKAMA_AI_DOCUMENT_GENERATION', false),
         ],
     ],
 
@@ -138,13 +138,13 @@ return [
     'timezone' => 'Asia/Jakarta',
 
     /*
-     * Phase 2 — PDF uploads go to the existing Nakama bucket, one folder per user:
-     * {folder}/{user_id}-{first-two-name-words}/{Y-m-d_His}_{original-name}.pdf
+     * Files the user attaches to a message are uploaded to the Nakama service (`POST /v1/files`, stored on its own
+     * MinIO) and only the returned ids are sent with the chat. The service rejects files with sensitive data.
      */
-    'pdf' => [
-        'disk' => env('AI_PDF_DISK', 's3'),
-        'folder' => env('AI_PDF_FOLDER', 'ai-center'),
-        'max_mb' => (int) env('AI_PDF_MAX_MB', 10),
+    'files' => [
+        'max_mb' => (int) env('AI_FILE_MAX_MB', 30),
+        'max_per_message' => (int) env('AI_FILE_MAX_PER_MESSAGE', 5),
+        'extensions' => ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'csv', 'txt', 'md', 'png', 'jpg', 'jpeg', 'gif', 'webp'],
     ],
 
     /*

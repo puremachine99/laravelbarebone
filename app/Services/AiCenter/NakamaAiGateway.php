@@ -54,6 +54,19 @@ class NakamaAiGateway implements AiGateway
                         }
                         break;
 
+                    case 'document':
+                    case 'image':
+                        if (($data['file_id'] ?? '') !== '') {
+                            $mime = $data['mime_type'] ?? 'application/octet-stream';
+
+                            yield AiStreamEvent::file(
+                                $data['file_id'],
+                                $data['filename'] ?? 'gambar.'.(explode('/', $mime)[1] ?? 'png'),
+                                $mime,
+                            );
+                        }
+                        break;
+
                     case 'error':
                         $finished = true;
 
@@ -112,6 +125,90 @@ class NakamaAiGateway implements AiGateway
         }
     }
 
+    public function uploadFiles(array $files): array
+    {
+        $upload = $this->client()->timeout(config('ai_center.timeouts.total'))->asMultipart();
+
+        foreach ($files as $file) {
+            $upload = $upload->attach('files', (string) file_get_contents($file->getRealPath()), $file->getClientOriginalName());
+        }
+
+        try {
+            $response = $upload->post('/v1/files');
+        } catch (ConnectionException $e) {
+            Log::warning('Nakama AI file upload failed to connect', ['error' => $e->getMessage()]);
+
+            throw new AiFileUploadException(AiErrorCode::UpstreamTimeout);
+        }
+
+        if ($response->failed()) {
+            throw new AiFileUploadException($this->uploadErrorCodeFor($response->status(), $this->errorCodeFromBody($response)));
+        }
+
+        return array_map(fn (array $file) => [
+            'id' => (string) $file['id'],
+            'name' => (string) ($file['filename'] ?? 'file'),
+            'mime_type' => (string) ($file['mime_type'] ?? 'application/octet-stream'),
+            'size_bytes' => isset($file['size_bytes']) ? (int) $file['size_bytes'] : null,
+        ], $response->json('files', []));
+    }
+
+    public function generateDocument(array $document): array
+    {
+        try {
+            $response = $this->client()->post('/v1/files/generate', $document);
+        } catch (ConnectionException $e) {
+            Log::warning('Nakama AI document generation failed to connect', ['error' => $e->getMessage()]);
+
+            throw new AiFileUploadException(AiErrorCode::UpstreamTimeout);
+        }
+
+        if ($response->failed()) {
+            throw new AiFileUploadException($this->uploadErrorCodeFor($response->status(), $this->errorCodeFromBody($response)));
+        }
+
+        return [
+            'id' => (string) $response->json('id'),
+            'name' => (string) $response->json('filename', $document['filename']),
+            'mime_type' => (string) $response->json('mime_type', 'application/octet-stream'),
+            'size_bytes' => $response->json('size_bytes') !== null ? (int) $response->json('size_bytes') : null,
+        ];
+    }
+
+    /**
+     * The service answers with a 307 to a presigned storage URL; that second hop must not carry our API key.
+     */
+    public function downloadFile(string $remoteFileId): ?StreamInterface
+    {
+        try {
+            $response = $this->client()
+                ->withoutRedirecting()
+                ->withOptions(['stream' => true])
+                ->get('/v1/files/'.rawurlencode($remoteFileId).'/content');
+
+            if ($response->redirect() && $response->header('Location') !== '') {
+                $response = Http::withOptions(['stream' => true])
+                    ->timeout(config('ai_center.timeouts.total'))
+                    ->get($response->header('Location'));
+            }
+
+            return $response->successful() ? $response->toPsrResponse()->getBody() : null;
+        } catch (Throwable $e) {
+            report($e);
+
+            return null;
+        }
+    }
+
+    public function deleteFile(string $remoteFileId): void
+    {
+        try {
+            $this->client()->delete('/v1/files/'.rawurlencode($remoteFileId));
+        } catch (Throwable $e) {
+            report($e);
+        }
+    }
+
     private function cancel(string $remoteConversationId): void
     {
         try {
@@ -147,6 +244,7 @@ class NakamaAiGateway implements AiGateway
             // Gateway data mode only: department/roles for routing, the tools this user may call, and the signed
             // assertion the service must forward in the X-AI-User-Assertion header (never to the model).
             'user_context' => $request->userContext,
+            'file_ids' => $request->fileIds ?: null,
         ], fn ($value) => $value !== null && $value !== '') + [
             'stream' => true,
             'include_thinking' => false,
@@ -193,6 +291,18 @@ class NakamaAiGateway implements AiGateway
     private function errorCodeFromBody(Response $response): ?string
     {
         return json_decode((string) $response->toPsrResponse()->getBody(), true)['error']['code'] ?? null;
+    }
+
+    private function uploadErrorCodeFor(int $status, ?string $serviceCode): AiErrorCode
+    {
+        return match (true) {
+            $status === 413 => AiErrorCode::FileTooLarge,
+            $status === 415 => AiErrorCode::FileUnsupported,
+            $status === 422 && in_array($serviceCode, ['sensitive_data_detected', 'forbidden_file', 'face_detected'], true) => AiErrorCode::FileSensitive,
+            $status === 422 => AiErrorCode::FileInvalid,
+            $status === 429 => AiErrorCode::UpstreamQuota,
+            default => AiErrorCode::UpstreamError,
+        };
     }
 
     /**

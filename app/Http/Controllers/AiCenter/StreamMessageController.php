@@ -9,6 +9,7 @@ use App\Enums\AiUsageKind;
 use App\Enums\AiUsageOutcome;
 use App\Http\Controllers\Controller;
 use App\Models\AiConversation;
+use App\Models\AiFile;
 use App\Models\AiMessage;
 use App\Models\User;
 use App\Services\AiCenter\AiChatRequest;
@@ -41,6 +42,8 @@ class StreamMessageController extends Controller
             'conversation_id' => ['nullable', 'integer'],
             'message' => ['required', 'string'],
             'quick_action' => ['nullable', 'string', Rule::in(array_keys(config('ai_center.quick_actions')))],
+            'file_ids' => ['nullable', 'array', 'max:'.config('ai_center.files.max_per_message')],
+            'file_ids.*' => ['string'],
         ]);
 
         $user = $request->user();
@@ -51,8 +54,12 @@ class StreamMessageController extends Controller
 
         $text = trim($validated['message']);
 
+        $fileIds = array_values(array_unique($validated['file_ids'] ?? []));
+        $files = $user->aiFiles()->pendingUpload()->whereIn('remote_file_id', $fileIds)->get();
+
         $refusal = match (true) {
             mb_strlen($text) > config('ai_center.limits.max_input_chars') => AiErrorCode::InputTooLong,
+            $files->count() !== count($fileIds) => AiErrorCode::FileInvalid,
             $quota->exceeded($user) => AiErrorCode::RateLimited,
             default => null,
         };
@@ -75,11 +82,13 @@ class StreamMessageController extends Controller
             ->values()
             ->all();
 
-        $conversation->messages()->create([
+        $userMessage = $conversation->messages()->create([
             'role' => AiMessageRole::User,
             'content' => $text,
             'status' => AiMessageStatus::Complete,
         ]);
+
+        $files->each(fn (AiFile $file) => $file->update(['ai_message_id' => $userMessage->id]));
 
         $reply = $conversation->messages()->create([
             'role' => AiMessageRole::Assistant,
@@ -100,6 +109,7 @@ class StreamMessageController extends Controller
             message: $text,
             history: $history,
             quickAction: $validated['quick_action'] ?? null,
+            fileIds: $fileIds,
             remoteConversationId: $conversation->remote_conversation_id,
         );
 
@@ -142,6 +152,19 @@ class StreamMessageController extends Controller
             foreach (app(AiGateway::class)->stream($aiRequest) as $event) {
                 if ($event->isStarted()) {
                     $conversation->update(['remote_conversation_id' => $event->remoteConversationId]);
+
+                    continue;
+                }
+
+                if ($event->isFile()) {
+                    $file = $user->aiFiles()->updateOrCreate(['remote_file_id' => $event->remoteFileId], [
+                        'ai_message_id' => $reply->id,
+                        'origin' => AiFile::ORIGIN_GENERATED,
+                        'name' => $event->fileName,
+                        'mime_type' => $event->fileMimeType,
+                    ]);
+
+                    yield new StreamedEvent('file', $file->previewPayload() + ['url' => route('ai-center.files.download', $file)]);
 
                     continue;
                 }

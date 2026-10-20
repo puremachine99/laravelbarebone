@@ -21,6 +21,9 @@ final readonly class AiStreamEvent
         public ?string $model = null,
         public ?string $finishReason = null,
         public ?string $remoteConversationId = null,
+        public ?string $remoteFileId = null,
+        public ?string $fileName = null,
+        public ?string $fileMimeType = null,
     ) {}
 
     /**
@@ -34,6 +37,19 @@ final readonly class AiStreamEvent
     public function isStarted(): bool
     {
         return $this->type === 'started';
+    }
+
+    /**
+     * A file the AI generated (document or image) and stored on the AI service.
+     */
+    public static function file(string $remoteFileId, string $name, string $mimeType): self
+    {
+        return new self('file', remoteFileId: $remoteFileId, fileName: $name, fileMimeType: $mimeType);
+    }
+
+    public function isFile(): bool
+    {
+        return $this->type === 'file';
     }
 
     public static function delta(string $text): self
