@@ -28,7 +28,7 @@ use Throwable;
 
 /**
  * Sends one chat message to the AI and streams the answer back as Server-Sent Events:
- * `conversation` (the thread id, sent first), then `delta`… and finally one `done` or `error`.
+ * `conversation` (the thread id, sent first), then `status` (what the AI is doing) and `delta`… and finally one `done` or `error`.
  *
  * Refusals (quota reached, message too long) are sent as an `error` event before anything is saved or the AI is called.
  *
@@ -152,6 +152,12 @@ class StreamMessageController extends Controller
             foreach (app(AiGateway::class)->stream($aiRequest) as $event) {
                 if ($event->isStarted()) {
                     $conversation->update(['remote_conversation_id' => $event->remoteConversationId]);
+
+                    continue;
+                }
+
+                if ($event->isStatus()) {
+                    yield $event->toStreamedEvent();
 
                     continue;
                 }

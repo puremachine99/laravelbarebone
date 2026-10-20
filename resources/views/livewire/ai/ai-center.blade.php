@@ -177,7 +177,7 @@
                                         <x-icon name="o-paper-clip" class="w-3.5 h-3.5 shrink-0" />
                                         <span class="truncate">{{ $file->name }}</span>
                                         @if ($file->size_bytes !== null)
-                                            <span class="shrink-0 opacity-60">{{ \Illuminate\Support\Number::fileSize($file->size_bytes, precision: 1) }}</span>
+                                            <span class="shrink-0 opacity-60">{{ $file->sizeLabel() }}</span>
                                         @endif
                                     </button>
                                 @endforeach
@@ -204,7 +204,7 @@
                                                     <x-icon name="o-document-text" class="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
                                                     <span class="truncate">{{ $file->name }}</span>
                                                     @if ($file->size_bytes !== null)
-                                                        <span class="shrink-0 text-xs text-base-content/50">{{ \Illuminate\Support\Number::fileSize($file->size_bytes, precision: 1) }}</span>
+                                                        <span class="shrink-0 text-xs text-base-content/50">{{ $file->sizeLabel() }}</span>
                                                     @endif
                                                 </button>
                                                 <a href="{{ route('ai-center.files.download', $file) }}" download title="{{ __('Unduh') }}"
@@ -290,7 +290,7 @@
                                     <div x-show="pending.text === '' && !pending.error"
                                         class="flex items-center gap-2 text-sm text-base-content/50">
                                         <span class="loading loading-dots loading-sm"></span>
-                                        {{ __('AI sedang mengetik…') }}
+                                        <span x-text="pending.status?.label ?? @js(__('AI sedang mengetik…'))"></span>
                                     </div>
                                     <div x-show="pending.text !== ''" class="text-sm leading-relaxed whitespace-pre-wrap wrap-break-word"
                                         x-text="pending.text"></div>

@@ -113,14 +113,18 @@ class FileController extends Controller
     }
 
     /**
-     * Shows an image or PDF inside the page. Sandboxed so that nothing in the file can run as part of our site.
+     * Shows an image or PDF inside the page's own preview iframe. Only raster images and PDFs get here, and the
+     * browser's PDF viewer does not run in a sandboxed response, so no CSP sandbox is added.
      */
     public function preview(Request $request, AiGateway $gateway, AiFile $aiFile): StreamedResponse
     {
         abort_unless($aiFile->user_id === $request->user()->id, 404);
         abort_unless(in_array($aiFile->previewKind(), ['image', 'pdf'], true), 415);
 
-        return $this->streamFile($gateway, $aiFile, 'inline');
+        $response = $this->streamFile($gateway, $aiFile, 'inline');
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+
+        return $response;
     }
 
     private function streamFile(AiGateway $gateway, AiFile $aiFile, string $disposition): StreamedResponse
@@ -137,7 +141,6 @@ class FileController extends Controller
             'Content-Type' => $aiFile->mime_type,
             'Content-Disposition' => HeaderUtils::makeDisposition($disposition, $aiFile->name, Str::ascii($aiFile->name)),
             'X-Content-Type-Options' => 'nosniff',
-            'Content-Security-Policy' => 'sandbox',
         ]);
     }
 }

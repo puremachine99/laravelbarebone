@@ -248,13 +248,17 @@ test('an image or PDF is previewed inline and only by its owner', function () {
     $response = $this->actingAs($me)->get(route('ai-center.files.preview', $pdf))->assertOk();
 
     expect($response->headers->get('Content-Disposition'))->toStartWith('inline')
-        ->and($response->headers->get('Content-Security-Policy'))->toBe('sandbox')
+        ->and($response->headers->get('X-Frame-Options'))->toBe('SAMEORIGIN')
         ->and($response->headers->get('X-Content-Type-Options'))->toBe('nosniff');
 
     $this->actingAs($me)->get(route('ai-center.files.preview', $svg))->assertStatus(415);
     $this->actingAs($me)->get(route('ai-center.files.preview', $xlsx))->assertStatus(415);
     $this->actingAs($me)->get(route('ai-center.files.preview', $theirs))->assertNotFound();
 });
+
+test('file sizes are labelled in readable units', function (int $bytes, string $label) {
+    expect(AiFile::factory()->make(['size_bytes' => $bytes])->sizeLabel())->toBe($label);
+})->with([[512, '512 B'], [279_000, '272,5 KB'], [5 * 1024 * 1024, '5,0 MB']]);
 
 test('an upload answers with what the page needs to list and preview it', function () {
     fakeFilesAi();

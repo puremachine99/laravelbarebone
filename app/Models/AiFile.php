@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Number;
 
 /**
  * A file the Nakama AI service holds for a user: one they uploaded (`origin` "upload", waiting to be sent with a
@@ -64,6 +63,25 @@ class AiFile extends Model
     }
 
     /**
+     * "272,3 KB" — formatted by hand because Laravel's Number helper needs the PHP intl extension.
+     */
+    public function sizeLabel(): ?string
+    {
+        if ($this->size_bytes === null) {
+            return null;
+        }
+
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $size = (float) $this->size_bytes;
+
+        for ($unit = 0; $size >= 1024 && $unit < count($units) - 1; $unit++) {
+            $size /= 1024;
+        }
+
+        return ($unit === 0 ? (string) (int) $size : number_format($size, 1, ',', '.')).' '.$units[$unit];
+    }
+
+    /**
      * Pending uploads are not offered for download until they were sent with a message.
      */
     public function isDownloadable(): bool
@@ -82,7 +100,7 @@ class AiFile extends Model
             'id' => $this->remote_file_id,
             'name' => $this->name,
             'size_bytes' => $this->size_bytes,
-            'size_label' => $this->size_bytes !== null ? Number::fileSize($this->size_bytes, precision: 1) : null,
+            'size_label' => $this->sizeLabel(),
             'is_image' => $this->isImage(),
             'kind' => $this->previewKind(),
             'preview_url' => route('ai-center.files.preview', $this),

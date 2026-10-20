@@ -194,3 +194,24 @@ test('the user context is sent only when present', function () {
         ->and($bodies[1]['user_context'])->toBe($context)
         ->and($bodies[1]['system_prompt'])->toBe('prompt mode data');
 });
+
+test('thinking and tool calls become progress statuses, repeated ones collapsed', function () {
+    Http::fake(['*/v1/chat' => Http::response(sse([
+        ['start', ['conversation_id' => 'conv_9b17']],
+        ['thinking_delta', ['text' => 'a']],
+        ['thinking_delta', ['text' => 'b']],
+        ['tool_call', ['name' => 'nakama_data', 'input' => ['dataset' => 'employees']]],
+        ['thinking_delta', ['text' => 'c']],
+        ['tool_call', ['name' => 'create_document', 'input' => ['sheets' => [[]]]]],
+        ['progress', ['elapsed_seconds' => 5]],
+        ['text_delta', ['text' => 'Selesai.']],
+        ['done', ['message' => ['tokens' => []]]],
+    ]))]);
+
+    $events = collect(collectNakama(nakamaRequest()));
+
+    expect($events->where('type', 'status')->map(fn ($e) => $e['event']->phase)->values()->all())
+        ->toBe(['thinking', 'data', 'thinking', 'document'])
+        ->and($events->where('type', 'status')->last()['text'])->toBe('Menyusun file Excel…')
+        ->and($events->last()['type'])->toBe('done');
+});

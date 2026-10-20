@@ -261,7 +261,7 @@ window.aiCenterChat = function ({ streamUrl, maxChars, uploadUrl, deleteUrl, max
                 this.attachments = [];
                 this.$nextTick(() => this.resize());
             }
-            this.pending = { prompt: message, text: '', error: null, sent: sentFiles, generated: [] };
+            this.pending = { prompt: message, text: '', status: null, error: null, sent: sentFiles, generated: [] };
             this.controller = new AbortController();
             this.scrollToBottom();
 
@@ -306,6 +306,8 @@ window.aiCenterChat = function ({ streamUrl, maxChars, uploadUrl, deleteUrl, max
 
                         if (name === 'conversation') {
                             conversationId = data.id;
+                        } else if (name === 'status') {
+                            this.pending.status = data;
                         } else if (name === 'delta') {
                             this.pending.text += data.text;
                             this.scrollToBottom();

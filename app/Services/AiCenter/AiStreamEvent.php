@@ -24,6 +24,7 @@ final readonly class AiStreamEvent
         public ?string $remoteFileId = null,
         public ?string $fileName = null,
         public ?string $fileMimeType = null,
+        public ?string $phase = null,
     ) {}
 
     /**
@@ -50,6 +51,20 @@ final readonly class AiStreamEvent
     public function isFile(): bool
     {
         return $this->type === 'file';
+    }
+
+    /**
+     * What the AI is busy with before (or between) pieces of the answer: thinking, fetching data, building a file…
+     * The browser shows `$label` in place of a generic "typing" indicator. `$phase` lets the UI pick an icon.
+     */
+    public static function status(string $phase, string $label): self
+    {
+        return new self('status', text: $label, phase: $phase);
+    }
+
+    public function isStatus(): bool
+    {
+        return $this->type === 'status';
     }
 
     public static function delta(string $text): self
@@ -92,6 +107,7 @@ final readonly class AiStreamEvent
     {
         return new StreamedEvent($this->type, match ($this->type) {
             'delta' => ['text' => $this->text],
+            'status' => ['phase' => $this->phase, 'label' => $this->text],
             'error' => ['code' => $this->errorCode->value, 'message' => $this->errorCode->message()],
             default => ['finish_reason' => $this->finishReason],
         });

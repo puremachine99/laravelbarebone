@@ -25,6 +25,7 @@ class NakamaAiGateway implements AiGateway
     {
         $finished = false;
         $remoteId = $request->remoteConversationId;
+        $lastStatus = null;
 
         try {
             $response = $this->client()
@@ -45,6 +46,17 @@ class NakamaAiGateway implements AiGateway
 
                         if ($remoteId && $remoteId !== $request->remoteConversationId) {
                             yield AiStreamEvent::started($remoteId);
+                        }
+                        break;
+
+                    case 'thinking_delta':
+                    case 'tool_call':
+                        $status = $this->statusFor($name, $data);
+
+                        if ($status->text !== $lastStatus) {
+                            $lastStatus = $status->text;
+
+                            yield $status;
                         }
                         break;
 
@@ -207,6 +219,33 @@ class NakamaAiGateway implements AiGateway
         } catch (Throwable $e) {
             report($e);
         }
+    }
+
+    /**
+     * The progress line for an upstream `thinking_delta` or `tool_call` event.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function statusFor(string $event, array $data): AiStreamEvent
+    {
+        if ($event === 'thinking_delta') {
+            return AiStreamEvent::status('thinking', __('Sedang berpikir…'));
+        }
+
+        $tool = (string) ($data['name'] ?? '');
+
+        return match (true) {
+            $tool === 'nakama_data' => AiStreamEvent::status('data', __('Mengambil data dari sistem…')),
+            $tool === 'create_document' => AiStreamEvent::status('document', match ($data['input']['format'] ?? null) {
+                'docx' => __('Menyusun dokumen Word…'),
+                'pdf' => __('Menyusun dokumen PDF…'),
+                'pptx' => __('Menyusun presentasi…'),
+                default => isset($data['input']['sheets']) ? __('Menyusun file Excel…') : __('Menyusun dokumen…'),
+            }),
+            str_contains($tool, 'image') => AiStreamEvent::status('image', __('Membuat gambar…')),
+            str_contains($tool, 'search'), str_contains($tool, 'fetch') => AiStreamEvent::status('web', __('Mencari informasi di web…')),
+            default => AiStreamEvent::status('tool', __('Memproses permintaan…')),
+        };
     }
 
     private function cancel(string $remoteConversationId): void
