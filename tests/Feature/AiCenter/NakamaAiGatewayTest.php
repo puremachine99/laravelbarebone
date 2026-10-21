@@ -1,14 +1,21 @@
 <?php
 
 use App\Enums\AiErrorCode;
+use App\Enums\AiMessageRole;
 use App\Models\AiConversation;
+use App\Models\AiMessage;
 use App\Models\User;
 use App\Services\AiCenter\AiChatRequest;
 use App\Services\AiCenter\NakamaAiGateway;
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Psr7\Response as Psr7Response;
+use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use GuzzleHttp\Psr7\Utils;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Psr\Http\Message\StreamInterface;
 use Spatie\Permission\Models\Permission;
 
 beforeEach(function () {
@@ -43,11 +50,15 @@ function sse(array $events): string
 /**
  * @return array<int, array{type: string, text: string, code: ?string}>
  */
-function collectNakama(AiChatRequest $request): array
+function collectNakama(AiChatRequest $request, bool $withPings = false): array
 {
     $events = [];
 
     foreach ((new NakamaAiGateway)->stream($request) as $event) {
+        if ($event->isPing() && ! $withPings) {
+            continue;
+        }
+
         $events[] = ['type' => $event->type, 'text' => $event->text, 'code' => $event->errorCode?->value, 'event' => $event];
     }
 
@@ -229,6 +240,93 @@ test('thinking and tool calls become progress statuses, repeated ones collapsed'
         ->and($events->where('type', 'status')->last()['text'])->toBe('Menyusun file Excel…')
         ->and($events->last()['type'])->toBe('done');
 });
+
+/**
+ * An SSE body whose first `$stalls` reads time out the way a real socket with a read_timeout does.
+ */
+function stallingBody(string $content, int $stalls): StreamInterface
+{
+    $body = new class(Utils::streamFor($content)) implements StreamInterface
+    {
+        use StreamDecoratorTrait;
+
+        public int $stalls = 0;
+
+        private bool $timedOut = false;
+
+        public function read($length): string
+        {
+            $this->timedOut = $this->stalls-- > 0;
+
+            if ($this->timedOut) {
+                throw new RuntimeException('Unable to read from stream');
+            }
+
+            return $this->stream->read($length);
+        }
+
+        public function getMetadata($key = null): mixed
+        {
+            return $key === 'timed_out' ? $this->timedOut : $this->stream->getMetadata($key);
+        }
+    };
+
+    $body->stalls = $stalls;
+
+    return $body;
+}
+
+test('keep-alives, repeated statuses and unknown events become pings', function () {
+    Http::fake(['*/v1/chat' => Http::response(sse([
+        ['thinking_delta', ['text' => 'a']],
+        ['thinking_delta', ['text' => 'b']],
+        ['progress', ['elapsed_seconds' => 5]],
+        ['done', ['message' => ['tokens' => []]]],
+    ]))]);
+
+    expect(collect(collectNakama(nakamaRequest(), withPings: true))->pluck('type')->all())
+        ->toBe(['ping', 'status', 'ping', 'ping', 'done']);
+});
+
+test('a silent read becomes a ping and the answer still comes through', function () {
+    Http::fake(fn () => Create::promiseFor(new Psr7Response(200, ['Content-Type' => 'text/event-stream'], stallingBody(
+        "event: text_delta\ndata: {\"text\":\"Halo\"}\n\nevent: done\ndata: {\"message\":{\"tokens\":{}}}\n\n",
+        stalls: 3,
+    ))));
+
+    $events = collect(collectNakama(nakamaRequest(), withPings: true));
+
+    expect($events->pluck('type')->all())->toBe(['ping', 'ping', 'ping', 'delta', 'done'])
+        ->and($events->firstWhere('type', 'delta')['text'])->toBe('Halo');
+});
+
+test('silence longer than the total timeout is a timeout error', function () {
+    config(['ai_center.timeouts.total' => 0]);
+    Http::fake(fn () => Create::promiseFor(new Psr7Response(200, [], stallingBody("event: done\ndata: {}\n\n", stalls: 1))));
+
+    expect(collectNakama(nakamaRequest())[0]['code'])->toBe('upstream_timeout');
+});
+
+test('the chat endpoint forwards pings to the browser so a proxy does not cut a silent answer', function (int $heartbeat, bool $forwarded) {
+    config(['ai_center.timeouts.heartbeat' => $heartbeat]);
+    Http::fake(['*/v1/chat' => Http::response(sse([
+        ['progress', ['elapsed_seconds' => 5]],
+        ['text_delta', ['text' => 'Halo!']],
+        ['done', ['message' => ['tokens' => []]]],
+    ]))]);
+
+    $me = User::factory()->create();
+    $me->givePermissionTo(Permission::findOrCreate('manage-ai-center'));
+
+    $content = $this->actingAs($me)->postJson(route('ai-center.messages.stream'), ['message' => 'Halo'])->streamedContent();
+
+    expect(str_contains($content, 'event: ping'))->toBe($forwarded)
+        ->and($content)->toContain('event: delta')->toContain('event: done')
+        ->and(AiMessage::where('role', AiMessageRole::Assistant)->sole()->content)->toBe('Halo!');
+})->with([
+    'due' => [0, true],
+    'throttled' => [60, false],
+]);
 
 test('sensitive data shows the service message and is logged as a warning without the values', function () {
     Log::spy();

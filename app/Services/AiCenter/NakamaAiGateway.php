@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Psr\Http\Message\StreamInterface;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -29,8 +30,9 @@ class NakamaAiGateway implements AiGateway
         $lastStatus = null;
 
         try {
+            // read_timeout makes a silent body read give up every few seconds so a `ping` can go out (see events()).
             $response = $this->client()
-                ->withOptions(['stream' => true])
+                ->withOptions(['stream' => true, 'read_timeout' => max(1, (int) config('ai_center.timeouts.heartbeat'))])
                 ->post('/v1/chat', $this->payload($request));
 
             if ($response->failed()) {
@@ -58,6 +60,8 @@ class NakamaAiGateway implements AiGateway
                             $lastStatus = $status->text;
 
                             yield $status;
+                        } else {
+                            yield AiStreamEvent::ping();
                         }
                         break;
 
@@ -104,6 +108,10 @@ class NakamaAiGateway implements AiGateway
                         );
 
                         return;
+
+                    default:
+                        // Keep-alive, `progress` or anything else we don't show: the service is still working.
+                        yield AiStreamEvent::ping();
                 }
             }
 
@@ -293,16 +301,35 @@ class NakamaAiGateway implements AiGateway
     }
 
     /**
-     * Parses an SSE body into [event name, decoded JSON data] pairs. Comment lines (`: keep-alive`) are skipped.
+     * Parses an SSE body into [event name, decoded JSON data] pairs. A comment block (`: keep-alive`) and a read that
+     * hit the read_timeout both come out as a `ping`; silence longer than the total timeout is a connection failure.
      *
      * @return Generator<int, array{0: string, 1: array<string, mixed>}>
      */
     private function events(StreamInterface $body): Generator
     {
         $buffer = '';
+        $lastDataAt = microtime(true);
 
         while (! $body->eof()) {
-            $buffer .= str_replace("\r\n", "\n", $body->read(1024));
+            try {
+                $chunk = $body->read(1024);
+            } catch (RuntimeException $e) {
+                if ($body->getMetadata('timed_out') !== true) {
+                    throw $e;
+                }
+
+                if (microtime(true) - $lastDataAt >= config('ai_center.timeouts.total')) {
+                    throw new ConnectionException('Nakama AI sent nothing for '.config('ai_center.timeouts.total').' seconds');
+                }
+
+                yield ['ping', []];
+
+                continue;
+            }
+
+            $lastDataAt = microtime(true);
+            $buffer .= str_replace("\r\n", "\n", $chunk);
 
             while (($end = strpos($buffer, "\n\n")) !== false) {
                 $block = substr($buffer, 0, $end);
@@ -321,9 +348,7 @@ class NakamaAiGateway implements AiGateway
 
                 $decoded = json_decode($data, true);
 
-                if (is_array($decoded)) {
-                    yield [$name, $decoded];
-                }
+                yield is_array($decoded) ? [$name, $decoded] : ['ping', []];
             }
         }
     }

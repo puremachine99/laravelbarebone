@@ -139,6 +139,7 @@ class StreamMessageController extends Controller
         $startedAt = hrtime(true);
         $firstTokenMs = null;
         $generatedFileTypes = [];
+        $lastPingAt = microtime(true);
 
         yield new StreamedEvent('conversation', ['id' => $conversation->id]);
 
@@ -153,6 +154,17 @@ class StreamMessageController extends Controller
             foreach (app(AiGateway::class)->stream($aiRequest) as $event) {
                 if ($event->isStarted()) {
                     $conversation->update(['remote_conversation_id' => $event->remoteConversationId]);
+
+                    continue;
+                }
+
+                if ($event->isPing()) {
+                    // Keeps the connection busy while the AI is silent, so Apache's mod_fcgid doesn't cut it with a 500.
+                    if (microtime(true) - $lastPingAt >= config('ai_center.timeouts.heartbeat')) {
+                        $lastPingAt = microtime(true);
+
+                        yield $event->toStreamedEvent();
+                    }
 
                     continue;
                 }

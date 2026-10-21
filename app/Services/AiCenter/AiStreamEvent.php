@@ -67,6 +67,20 @@ final readonly class AiStreamEvent
         return $this->type === 'status';
     }
 
+    /**
+     * The AI service is still busy but sent nothing worth showing (keep-alive, a repeated status, or nothing at all
+     * for a while). Lets the caller keep its own connection alive.
+     */
+    public static function ping(): self
+    {
+        return new self('ping');
+    }
+
+    public function isPing(): bool
+    {
+        return $this->type === 'ping';
+    }
+
     public static function delta(string $text): self
     {
         return new self('delta', text: $text);
@@ -112,6 +126,7 @@ final readonly class AiStreamEvent
             'delta' => ['text' => $this->text],
             'status' => ['phase' => $this->phase, 'label' => $this->text],
             'error' => ['code' => $this->errorCode->value, 'message' => $this->errorCode->message($this->text ?: null)],
+            'ping' => [],
             default => ['finish_reason' => $this->finishReason],
         });
     }

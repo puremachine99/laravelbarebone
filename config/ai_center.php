@@ -120,6 +120,9 @@ return [
         'connect' => (int) env('AI_TIMEOUT_CONNECT', 5),
         'first_token' => (int) env('AI_TIMEOUT_FIRST_TOKEN', 15),
         'total' => (int) env('AI_TIMEOUT_TOTAL', 120),
+        // While the AI service is silent (e.g. reading an attached document), the browser gets a `ping` at most
+        // this often, so a proxy in between (Apache mod_fcgid IOTimeout: 40 s) doesn't cut the reply with a 500.
+        'heartbeat' => (int) env('AI_HEARTBEAT_SECONDS', 10),
     ],
 
     /*

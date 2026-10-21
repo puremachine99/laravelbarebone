@@ -118,6 +118,8 @@ class DataAssistant
                     $remoteId = $event->remoteConversationId;
                 } elseif ($event->isDelta()) {
                     $reply .= $event->text;
+                } elseif ($event->isPing() || $event->isStatus()) {
+                    continue;
                 } elseif ($event->isError()) {
                     $errorCode = $event->errorCode;
 
