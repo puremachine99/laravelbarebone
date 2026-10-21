@@ -148,6 +148,23 @@ return [
     ],
 
     /*
+     * "Pendampingan" tab (guided work-mapping chat, Nakama `/v1/mapping/*`). A user's unit comes from their
+     * department (by `departments.code`); Super Admins and departments without a unit pick one themselves.
+     *
+     * @var array<string, string>
+     */
+    'mentoring' => [
+        'units_by_department_code' => [
+            'CS' => 'corporate_secretariat',
+            'FF' => 'finance',
+            'RDI' => 'product_and_rdi',
+            'DRO' => 'revenue_and_growth',
+            'PCS' => 'people_and_culture',
+            'TEC' => 'digital_transformation',
+        ],
+    ],
+
+    /*
      * Shortcut chips under the chat box: picking one pre-fills the input with the template.
      *
      * @var array<string, array{label: string, description: string, icon: string, template: string}>

@@ -4,8 +4,38 @@
     $quotaPercent = $this->quotaLimit > 0 ? min(100, round($this->quotaUsed / $this->quotaLimit * 100)) : 100;
 @endphp
 
-<div
-    class="flex h-[calc(100vh-5.5rem)] lg:h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-base-300 bg-base-100"
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-end">
+    <div role="tablist" class="flex items-center gap-2.5">
+        <button type="button" role="tab" wire:click="switchTab('chat')"
+            aria-selected="{{ $tab === 'chat' ? 'true' : 'false' }}"
+            @class([
+                'btn btn-sm rounded-full gap-1.5',
+                'btn-primary' => $tab === 'chat',
+                'btn-ghost border border-base-300' => $tab !== 'chat',
+            ])>
+            <x-icon name="o-sparkles" class="w-4 h-4" /> {{ __('AI Center') }}
+        </button>
+        {{-- Styled like the Pendampingan desk itself (report/ai/desk-nakama.html) --}}
+        <button type="button" role="tab" wire:click="switchTab('pendampingan')"
+            aria-selected="{{ $tab === 'pendampingan' ? 'true' : 'false' }}"
+            style="font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif"
+            @class([
+                'inline-flex items-center gap-1.5 h-8 px-4 rounded-full border-2 border-cocoa text-sm text-cocoa cursor-pointer transition',
+                'active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_#4A2E18]',
+                'bg-honey font-extrabold shadow-[3px_3px_0_#4A2E18] -translate-y-px' => $tab === 'pendampingan',
+                'bg-cream font-bold shadow-[2px_2px_0_#4A2E18] hover:bg-butter hover:-translate-y-px' => $tab !== 'pendampingan',
+            ])>
+            <span aria-hidden="true">☕</span> {{ __('Pendampingan') }}
+        </button>
+    </div>
+</div>
+
+@if ($tab === 'pendampingan')
+    @include('livewire.ai.partials.mentoring-desk')
+@else
+<div wire:key="ai-center-chat"
+    class="flex h-[calc(100vh-8.5rem)] lg:h-[calc(100vh-10rem)] overflow-hidden rounded-2xl border border-base-300 bg-base-100"
     x-data="aiCenterChat({
         streamUrl: @js(route('ai-center.messages.stream')),
         maxChars: @js($maxInputChars),
@@ -453,4 +483,6 @@
                 spinner="deleteConversation" />
         </div>
     </x-modal>
+</div>
+@endif
 </div>

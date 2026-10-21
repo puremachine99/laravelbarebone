@@ -93,6 +93,11 @@ class User extends Authenticatable implements OAuthenticatable, PasskeyUser
         return $this->hasMany(AiFile::class);
     }
 
+    public function aiMentoringCancellations(): HasMany
+    {
+        return $this->hasMany(AiMentoringCancellation::class);
+    }
+
     /**
      * Organizational tier derived from the employee's position, used to color-code
      * avatar rings and position badges consistently across the app.

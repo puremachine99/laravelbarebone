@@ -360,3 +360,4 @@ window.aiCenterChat = function ({ streamUrl, maxChars, uploadUrl, deleteUrl, max
  */
 
 import './echo';
+import './ai-mentoring';

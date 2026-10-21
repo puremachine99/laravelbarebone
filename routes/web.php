@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AiCenter\FileController;
+use App\Http\Controllers\AiCenter\MentoringController;
 use App\Http\Controllers\AiCenter\StreamMessageController;
 use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\CsvExportController;
@@ -97,6 +98,17 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::delete('/ai-center/files/{remoteFileId}', [FileController::class, 'destroy'])->name('ai-center.files.destroy');
         Route::get('/ai-center/files/{aiFile}', [FileController::class, 'download'])->name('ai-center.files.download');
         Route::get('/ai-center/files/{aiFile}/preview', [FileController::class, 'preview'])->name('ai-center.files.preview');
+
+        Route::prefix('/ai-center/pendampingan')->name('ai-center.mentoring.')->controller(MentoringController::class)->group(function () {
+            Route::get('/units', 'units')->name('units');
+            Route::get('/sessions', 'index')->name('sessions.index');
+            Route::post('/sessions', 'store')->middleware('throttle:10,1')->name('sessions.store');
+            Route::get('/sessions/{sessionId}', 'show')->name('sessions.show');
+            Route::post('/sessions/{sessionId}/messages', 'answer')->middleware('throttle:30,1')->name('sessions.answer');
+            Route::post('/sessions/{sessionId}/pause', 'pause')->name('sessions.pause');
+            Route::post('/sessions/{sessionId}/cancel', 'cancel')->name('sessions.cancel');
+            Route::get('/sessions/{sessionId}/export', 'export')->name('sessions.export');
+        })->where(['sessionId' => 'map_[A-Za-z0-9]+']);
     });
 
     Volt::route('/partnership/test/pitching', 'partnership.test-pitching-compare')->name('partnership.test.pitching');

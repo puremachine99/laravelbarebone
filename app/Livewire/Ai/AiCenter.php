@@ -8,6 +8,7 @@ use App\Services\AiCenter\DailyQuota;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
@@ -16,6 +17,16 @@ use Livewire\Component;
  */
 class AiCenter extends Component
 {
+    public const TAB_CHAT = 'chat';
+
+    public const TAB_MENTORING = 'pendampingan';
+
+    /**
+     * Top-right tabs: the free chat (default) or the guided "Pendampingan" desk.
+     */
+    #[Url(except: self::TAB_CHAT)]
+    public string $tab = self::TAB_CHAT;
+
     public ?int $selectedConversationId = null;
 
     /**
@@ -65,6 +76,11 @@ class AiCenter extends Component
     public function quotaLimit(): int
     {
         return app(DailyQuota::class)->limit();
+    }
+
+    public function switchTab(string $tab): void
+    {
+        $this->tab = $tab === self::TAB_MENTORING ? self::TAB_MENTORING : self::TAB_CHAT;
     }
 
     public function newConversation(): void

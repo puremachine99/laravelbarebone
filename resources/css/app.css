@@ -43,6 +43,25 @@
     --color-accent: var(--color-blue-600);
     --color-accent-content: var(--color-blue-600);
     --color-accent-foreground: var(--color-white);
+
+    /* AI Center "Pendampingan" desk (report/ai/desk-nakama.html) */
+    --color-cocoa: #4A2E18;
+    --color-espresso: #311906;
+    --color-ink: #3D2314;
+    --color-bark: #6D4C3D;
+    --color-latte: #825B3E;
+    --color-cream: #FFF8F0;
+    --color-paper: #FFFDF9;
+    --color-sand: #F5E6D3;
+    --color-biscuit: #E8D5C4;
+    --color-butter: #FFE4A0;
+    --color-honey: #FFD166;
+    --color-peach: #FFE3B3;
+    --color-tangerine: #FF8C42;
+    --color-rust: #D35400;
+    --color-mint: #D2F5DC;
+    --color-leaf: #1B5E20;
+    --color-ghost: #A78871;
 }
 
 @layer theme {
@@ -219,5 +238,114 @@
 
     .sidebar-menu.sidebar-collapsed .collapse > input {
         @apply pointer-events-none;
+    }
+}
+
+/* ─── AI Center · Pendampingan desk ───────────────────────── */
+
+.mentoring-desk {
+    --unit: #A0522D;
+    --unit-soft: #FFE4A0;
+    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+    color: #3D2314;
+    background: #FFF8F0;
+    overscroll-behavior: contain;
+}
+
+.mentoring-desk .material-symbols-outlined {
+    font-family: "Material Symbols Outlined";
+    font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24;
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    white-space: nowrap;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+}
+
+.mentoring-desk .toon {
+    border: 2.5px solid #4A2E18;
+    box-shadow: 4px 4px 0 #4A2E18;
+}
+
+.mentoring-desk .toon-sm {
+    border: 2px solid #4A2E18;
+    box-shadow: 2px 2px 0 #4A2E18;
+}
+
+.mentoring-desk .toon-press {
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.mentoring-desk .toon-press:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #4A2E18;
+}
+
+.mentoring-desk .unit-bg {
+    background: var(--unit);
+}
+
+.mentoring-desk .unit-soft {
+    background: var(--unit-soft);
+}
+
+.mentoring-desk .unit-text {
+    color: var(--unit);
+}
+
+.mentoring-desk textarea {
+    field-sizing: content;
+}
+
+.mentoring-desk .no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+@keyframes desk-floaty {
+    0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+    50% { transform: translateY(-14px) rotate(calc(var(--r, 0deg) + 3deg)); }
+}
+
+@keyframes desk-pop-in {
+    0% { opacity: 0; transform: translateY(10px) scale(.97); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes desk-blink {
+    0%, 80%, 100% { opacity: .25; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-3px); }
+}
+
+.mentoring-desk .floaty {
+    animation: desk-floaty var(--d, 6s) ease-in-out infinite;
+}
+
+.mentoring-desk .pop-in {
+    animation: desk-pop-in .32s cubic-bezier(.2, .9, .3, 1.2) both;
+}
+
+.mentoring-desk .dot {
+    animation: desk-blink 1.2s infinite;
+}
+
+.mentoring-desk .dot:nth-child(2) {
+    animation-delay: .15s;
+}
+
+.mentoring-desk .dot:nth-child(3) {
+    animation-delay: .3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mentoring-desk .floaty,
+    .mentoring-desk .pop-in,
+    .mentoring-desk .dot,
+    .mentoring-desk .animate-bounce,
+    .mentoring-desk .animate-ping,
+    .mentoring-desk .animate-pulse {
+        animation: none !important;
     }
 }
