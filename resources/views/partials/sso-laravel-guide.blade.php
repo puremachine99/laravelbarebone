@@ -392,7 +392,7 @@ BLADE;
                                             </button>
                                         @endif
                                     </div>
-                                    <pre class="max-h-96 overflow-auto rounded-box bg-[#0d1117] p-3 text-xs text-[#c9d1d9]"><code x-ref="code">{{ $code }}</code></pre>
+                                    <pre class="max-h-96 overflow-auto rounded-box bg-code-bg p-3 text-xs text-code-fg"><code x-ref="code">{{ $code }}</code></pre>
                                     <p class="text-xs text-base-content/60">{{ $note }}</p>
                                 </div>
                             </li>

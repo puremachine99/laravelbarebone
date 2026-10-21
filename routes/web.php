@@ -6,6 +6,7 @@ use App\Http\Controllers\AiCenter\StreamMessageController;
 use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\CsvExportController;
 use App\Http\Controllers\Debug\ErrorLogController;
+use App\Http\Controllers\Profile\AppearanceController;
 use App\Livewire\Admin\RoleManagement;
 use App\Livewire\Ai\AiCenter;
 use App\Livewire\Chat\ChatIndex;
@@ -35,6 +36,7 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
     Volt::route('/profile', 'profile.index')->name('profile.show');
+    Route::put('/profile/appearance', AppearanceController::class)->name('profile.appearance.update');
 
     Route::livewire('/profile/security', 'profile.security-settings')
         ->middleware('password.confirm')

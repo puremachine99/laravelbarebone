@@ -420,7 +420,7 @@
                                 </span>
                             </div>
                             <p class="text-xs text-base-content/60">Response yang diterima aplikasi: <span class="font-mono">HTTP {{ $simulation['status'] }}</span></p>
-                            <pre class="max-h-80 overflow-auto rounded-box bg-[#0d1117] p-3 text-xs text-[#c9d1d9]"><code>{{ $simulation['json'] }}</code></pre>
+                            <pre class="max-h-80 overflow-auto rounded-box bg-code-bg p-3 text-xs text-code-fg"><code>{{ $simulation['json'] }}</code></pre>
                             @if ($simulation['allowed'])
                                 <p class="text-xs text-base-content/60">Aturan jabatan milik aplikasi sendiri (<span class="font-mono">smartIdAllows()</span>) dinilai dari data ini.</p>
                             @endif
@@ -438,7 +438,7 @@
                             <p><strong class="tabular-nums">{{ $preview['total'] }}</strong> user akan tersinkron. User lokal lain yang pernah login akan dikunci.</p>
                             @if ($preview['total'] > 0)
                                 <p class="text-xs text-base-content/60">Contoh {{ min(5, $preview['total']) }} data pertama:</p>
-                                <pre class="max-h-80 overflow-auto rounded-box bg-[#0d1117] p-3 text-xs text-[#c9d1d9]"><code>{{ $preview['json'] }}</code></pre>
+                                <pre class="max-h-80 overflow-auto rounded-box bg-code-bg p-3 text-xs text-code-fg"><code>{{ $preview['json'] }}</code></pre>
                             @endif
                         </div>
                     @else

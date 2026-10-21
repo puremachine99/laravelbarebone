@@ -776,21 +776,21 @@ JS;
                             {{-- API calls made by the simulation --}}
                             <div class="space-y-1">
                                 <p class="text-xs font-semibold">Request API yang dipanggil <span class="font-normal text-base-content/60">(terbaru di atas, klik untuk lihat response)</span></p>
-                                <div class="rounded-box bg-[#0d1117] p-2 font-mono text-xs text-[#c9d1d9] space-y-0.5">
+                                <div class="rounded-box bg-code-bg p-2 font-mono text-xs text-code-fg space-y-0.5">
                                     <template x-for="entry in calls" :key="entry.id">
                                         <div>
                                             <button type="button" x-on:click="openCall = openCall === entry.id ? null : entry.id" class="flex w-full flex-wrap items-center gap-x-2 text-left hover:bg-white/5 rounded px-1">
-                                                <span class="text-[#d2a8ff] w-16 shrink-0" x-text="entry.step"></span>
-                                                <span class="text-[#3fb950]">GET</span>
+                                                <span class="text-code-keyword w-16 shrink-0" x-text="entry.step"></span>
+                                                <span class="text-code-ok">GET</span>
                                                 <span class="grow break-all" x-text="entry.path"></span>
-                                                <span x-bind:class="entry.status === 200 ? 'text-[#3fb950]' : 'text-[#f85149]'" x-text="entry.status"></span>
-                                                <span class="text-[#8b949e]" x-text="entry.ms + 'ms'"></span>
-                                                <span class="text-[#79c0ff]" x-show="entry.count !== null" x-text="entry.count + ' item'"></span>
+                                                <span x-bind:class="entry.status === 200 ? 'text-code-ok' : 'text-code-error'" x-text="entry.status"></span>
+                                                <span class="text-code-muted" x-text="entry.ms + 'ms'"></span>
+                                                <span class="text-code-number" x-show="entry.count !== null" x-text="entry.count + ' item'"></span>
                                             </button>
                                             <pre x-show="openCall === entry.id" class="mt-1 max-h-64 overflow-auto rounded bg-black/30 p-2" x-text="entry.body"></pre>
                                         </div>
                                     </template>
-                                    <p x-show="calls.length === 0" class="text-[#8b949e] px-1">$ belum ada request</p>
+                                    <p x-show="calls.length === 0" class="text-code-muted px-1">$ belum ada request</p>
                                 </div>
                             </div>
 
@@ -858,7 +858,7 @@ JS;
                                             <span x-show="! copied">Salin</span><span x-show="copied" x-cloak>✓ Tersalin</span>
                                         </button>
                                     </div>
-                                    <pre class="max-h-96 overflow-auto rounded-box bg-[#0d1117] p-3 text-xs text-[#c9d1d9]"><code x-ref="cascadeCode">{{ $cascadeExample }}</code></pre>
+                                    <pre class="max-h-96 overflow-auto rounded-box bg-code-bg p-3 text-xs text-code-fg"><code x-ref="cascadeCode">{{ $cascadeExample }}</code></pre>
                                 </div>
                             </div>
                         </div>
@@ -943,7 +943,7 @@ JS;
                                                     <code class="text-xs bg-base-200 rounded px-2 py-1 grow break-all" x-text="curlFor(row)"></code>
                                                     <button type="button" class="btn btn-ghost btn-xs shrink-0" x-on:click="copy(curlFor(row))">Salin</button>
                                                 </div>
-                                                <pre class="bg-[#0d1117] text-[#c9d1d9] rounded-box p-3 text-xs overflow-auto max-h-96"><code x-text="row.result?.body"></code></pre>
+                                                <pre class="bg-code-bg text-code-fg rounded-box p-3 text-xs overflow-auto max-h-96"><code x-text="row.result?.body"></code></pre>
                                             </div>
                                         </div>
                                     </div>

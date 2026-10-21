@@ -290,15 +290,15 @@ $monthlyTrend = computed(function () {
 (function () {
     const initialTrend = @json($this->monthlyTrend);
 
-    const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
+    const isDark = () => document.documentElement.classList.contains('dark')
         || document.documentElement.classList.contains('dark');
 
-    const textColor = () => isDark() ? '#d1d5db' : '#374151';
+    const textColor = () => chartTheme().text;
 
     const baseOpts = () => ({
         chart: { fontFamily: 'inherit', toolbar: { show: false }, background: 'transparent' },
         theme: { mode: isDark() ? 'dark' : 'light' },
-        grid: { borderColor: isDark() ? '#374151' : '#e5e7eb', strokeDashArray: 4 },
+        grid: { borderColor: chartTheme().grid, strokeDashArray: 4 },
         tooltip: { theme: isDark() ? 'dark' : 'light' },
     });
 
@@ -321,7 +321,7 @@ $monthlyTrend = computed(function () {
                 labels: { style: { fontSize: '12px', colors: tc } },
             },
             yaxis: { labels: { formatter: (v) => Math.round(v), style: { colors: tc } } },
-            colors: ['#f97316', '#6366f1', '#10b981'],
+            colors: [chartTheme().color(9), chartTheme().color(1), chartTheme().color(2)],
             plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
             legend: { show: true, position: 'top', horizontalAlign: 'right', fontSize: '12px', labels: { colors: tc } },
             dataLabels: { enabled: false },

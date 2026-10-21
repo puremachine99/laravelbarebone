@@ -368,15 +368,15 @@ $funnelKumulatif = computed(function () {
 (function () {
     const initialFunnel = @json($this->funnelKumulatif);
 
-    const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
+    const isDark = () => document.documentElement.classList.contains('dark')
         || document.documentElement.classList.contains('dark');
 
-    const textColor = () => isDark() ? '#d1d5db' : '#374151';
+    const textColor = () => chartTheme().text;
 
     const baseOpts = () => ({
         chart: { fontFamily: 'inherit', toolbar: { show: false }, background: 'transparent' },
         theme: { mode: isDark() ? 'dark' : 'light' },
-        grid: { borderColor: isDark() ? '#374151' : '#e5e7eb', strokeDashArray: 4 },
+        grid: { borderColor: chartTheme().grid, strokeDashArray: 4 },
         tooltip: { theme: isDark() ? 'dark' : 'light' },
     });
 
@@ -395,7 +395,7 @@ $funnelKumulatif = computed(function () {
                 labels: { style: { fontSize: '12px', colors: tc } },
             },
             yaxis: { labels: { style: { fontSize: '13px', fontWeight: 600, colors: tc } } },
-            colors: ['#c2410c', '#ea580c', '#eab308', '#6366f1', '#16a34a'],
+            colors: [chartTheme().color(10), chartTheme().color(11), chartTheme().color(12), chartTheme().color(1), chartTheme().color(13)],
             plotOptions: {
                 bar: {
                     horizontal: true,
@@ -408,7 +408,7 @@ $funnelKumulatif = computed(function () {
             dataLabels: {
                 enabled: true,
                 formatter: (v) => v,
-                style: { fontSize: '12px', fontWeight: 600, colors: ['#fff'] },
+                style: { fontSize: '12px', fontWeight: 600, colors: [chartTheme().onBar] },
                 dropShadow: { enabled: false },
             },
         };

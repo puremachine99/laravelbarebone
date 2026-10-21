@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@import "./themes/toon.css";
+@import "./themes/desk.css";
+@import "./themes/cinnamoroll.css";
 @plugin "daisyui";
 
 @plugin "daisyui/theme" {
@@ -9,6 +12,142 @@
   --color-base-content: #f4f4f5; /* zinc-100 */
   --color-neutral: #18181b; /* zinc-900 */
   --color-neutral-content: #f4f4f5; /* zinc-100 */
+}
+
+/* "Nakama Desk" theme (profile → Appearance), after report/ai/desk-nakama.html. See the desk section below. */
+@plugin "daisyui/theme" {
+  name: "desk";
+  color-scheme: light;
+  /* "Warm Neo-Brutalist Cozy" tokens; see resources/css/themes/desk.css for the full token list */
+  --color-base-100: #FFF8F2; /* --bg-canvas */
+  --color-base-200: #FFFFFF; /* --surface */
+  --color-base-300: #F5E8D8; /* --surface-muted */
+  --color-base-content: #2B1810; /* --text-primary */
+  --color-primary: #3B2A22; /* --cta-dark */
+  --color-primary-content: #FFFFFF;
+  --color-secondary: #E8A87C; /* --cta-peach, dark text for contrast */
+  --color-secondary-content: #2B1810;
+  --color-accent: #C2570C; /* --accent-orange */
+  --color-accent-content: #FFFFFF;
+  --color-neutral: #3A2418; /* --border-strong */
+  --color-neutral-content: #FFF8F2;
+  --color-info: #2F6F8F;
+  --color-info-content: #FFFFFF;
+  --color-success: #1F6B3A;
+  --color-success-content: #FFFFFF;
+  --color-warning: #D98A00;
+  --color-warning-content: #2B1810;
+  --color-error: #C0392B;
+  --color-error-content: #FFFFFF;
+  --radius-selector: 1rem;
+  --radius-field: 1rem;
+  --radius-box: 1.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* Dark desk: same frame + canvas structure, dark surfaces, orange solid shadow (see themes/desk.css) */
+@plugin "daisyui/theme" {
+  name: "desk-dark";
+  color-scheme: dark;
+  --color-base-100: #1C1210;
+  --color-base-200: #2B1C15;
+  --color-base-300: #3A2418;
+  --color-base-content: #FFF8F2;
+  --color-primary: #FFE3A1;
+  --color-primary-content: #2B1810;
+  --color-secondary: #E8A87C;
+  --color-secondary-content: #2B1810;
+  --color-accent: #E07B3E;
+  --color-accent-content: #2B1810;
+  --color-neutral: #FFF8F2;
+  --color-neutral-content: #2B1810;
+  --color-info: #6CB6D6;
+  --color-info-content: #20140B;
+  --color-success: #7BC67E;
+  --color-success-content: #20140B;
+  --color-warning: #FFC94D;
+  --color-warning-content: #20140B;
+  --color-error: #FF7B6B;
+  --color-error-content: #20140B;
+  --radius-selector: 1rem;
+  --radius-field: 1rem;
+  --radius-box: 1.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* "Cinnamoroll" theme: sky blue, pink, light cyan and yellow with deep navy text (see themes/cinnamoroll.css) */
+@plugin "daisyui/theme" {
+  name: "cinnamoroll";
+  color-scheme: light;
+  --color-base-100: #FBFDFF;
+  --color-base-200: #FFFFFF;
+  --color-base-300: #E6F0F7;
+  --color-base-content: #1E3A5F;
+  --color-primary: #75C2E6;
+  --color-primary-content: #1E3A5F;
+  --color-secondary: #FBD4E4;
+  --color-secondary-content: #5A2440;
+  --color-accent: #F0F6C0;
+  --color-accent-content: #1E3A5F;
+  --color-neutral: #1E3A5F;
+  --color-neutral-content: #FBFDFF;
+  --color-info: #2A7FB0;
+  --color-info-content: #FFFFFF;
+  --color-success: #1E6B48;
+  --color-success-content: #FFFFFF;
+  --color-warning: #D9A400;
+  --color-warning-content: #1E3A5F;
+  --color-error: #C93C6E;
+  --color-error-content: #FFFFFF;
+  --radius-selector: 1rem;
+  --radius-field: 1rem;
+  --radius-box: 1.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "cinnamoroll-dark";
+  color-scheme: dark;
+  --color-base-100: #1A3150;
+  --color-base-200: #22406A;
+  --color-base-300: #2B4D7A;
+  --color-base-content: #F3F8FC;
+  --color-primary: #75C2E6;
+  --color-primary-content: #12263F;
+  --color-secondary: #FBD4E4;
+  --color-secondary-content: #5A2440;
+  --color-accent: #F0F6C0;
+  --color-accent-content: #12263F;
+  --color-neutral: #F3F8FC;
+  --color-neutral-content: #12263F;
+  --color-info: #8FD0EE;
+  --color-info-content: #12263F;
+  --color-success: #9FE3BE;
+  --color-success-content: #12263F;
+  --color-warning: #F0E27A;
+  --color-warning-content: #12263F;
+  --color-error: #FFA9C6;
+  --color-error-content: #12263F;
+  --radius-selector: 1rem;
+  --radius-field: 1rem;
+  --radius-box: 1.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 0;
+  --noise: 0;
 }
 
 @source '../views';
@@ -44,6 +183,32 @@
     --color-accent-content: var(--color-blue-600);
     --color-accent-foreground: var(--color-white);
 
+    /*
+     * App-wide semantic colours that sit outside daisyUI's palette. Views use these (`text-sidebar-fg`,
+     * `bg-code-bg`, …) instead of hex values, so a theme only has to override the variables. See THEMES below.
+     */
+
+    /* Sidebar (layouts/app/sidebar.blade.php); its background is --sidebar-background below */
+    --color-sidebar-fg: #ffffff;
+    --color-sidebar-accent: #fbbf24;
+    --color-sidebar-accent-soft: #fcd34d;
+
+    /* Terminal / code blocks (AI Monitor, API docs, SSO) */
+    --color-code-bg: #0d1117;
+    --color-code-bar: #161b22;
+    --color-code-fg: #c9d1d9;
+    --color-code-muted: #8b949e;
+    --color-code-ok: #3fb950;
+    --color-code-error: #f85149;
+    --color-code-warn: #d29922;
+    --color-code-keyword: #d2a8ff;
+    --color-code-number: #79c0ff;
+    --color-code-highlight: #e3b341;
+    --color-code-strong: #ffffff;
+    --color-code-dot-red: #ff5f56;
+    --color-code-dot-yellow: #ffbd2e;
+    --color-code-dot-green: #27c93f;
+
     /* AI Center "Pendampingan" desk (report/ai/desk-nakama.html) */
     --color-cocoa: #4A2E18;
     --color-espresso: #311906;
@@ -74,6 +239,68 @@
         --color-accent: var(--color-blue-500);
         --color-accent-content: var(--color-blue-500);
         --color-accent-foreground: var(--color-white);
+    }
+}
+
+/*
+ * ─── THEMES ──────────────────────────────────────────────────────────────────────────────────────────────────────
+ * A theme is chosen per user in profile → Appearance and applied as <html data-theme="…"> (+ class "dark" for a
+ * dark variant) by partials/head.blade.php. To add one, e.g. "ocean":
+ *
+ *   1. App\Enums\UserTheme: add `case Ocean = 'ocean';` with its label, description and preview colours.
+ *      Its data-theme values are then "ocean" (light) and "ocean-dark" (dark), automatically.
+ *   2. Colours: add two `@plugin "daisyui/theme"` blocks above, named "ocean" and "ocean-dark".
+ *   3. Look: either
+ *      - a "toon" theme (thick outlines, solid shadows, frame + canvas): set its UserTheme::style() to "toon" and
+ *        copy resources/css/themes/cinnamoroll.css (or desk.css) to themes/ocean.css with your colours. Tokens only —
+ *        the structure is shared in themes/toon.css. Import the file at the top of this file; or
+ *      - a plain theme: style() "default" and, if needed, a themes/ocean.css scoped to [data-theme^="ocean"] that
+ *        overrides the tokens below (sidebar, code blocks, charts).
+ *
+ * Views never need to change: they use daisyUI tokens (bg-base-100, btn-primary, …) or the semantic tokens below.
+ * Defaults live in @layer theme so an (unlayered) theme file always wins without !important.
+ */
+@layer theme {
+    :root {
+        /* Sidebar background (the colour tokens are --color-sidebar-* in @theme) */
+        --sidebar-background-color: #0d2a4f;
+        --sidebar-background-image:
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='111' viewBox='0 0 64 111'%3E%3Cpath fill='none' stroke='%23FFC226' stroke-opacity='0.18' stroke-width='1' d='M32 0 L64 18.5 L64 55.5 L32 74 L0 55.5 L0 18.5 Z M32 37 L64 55.5 L64 92.5 L32 111 L0 92.5 L0 55.5 Z'/%3E%3C/svg%3E"),
+            linear-gradient(to top, #071730 0%, #0d2a4f 45%, #1c4d85 100%);
+        --sidebar-border: rgb(255 255 255 / 0.1);
+
+        /* Charts (ApexCharts) read these through window.chartTheme() in partials/head.blade.php */
+        --chart-text: #374151;
+        --chart-grid: #e5e7eb;
+        --chart-on-bar: #ffffff;
+        --chart-1: #6366f1;
+        --chart-2: #10b981;
+        --chart-3: #f59e0b;
+        --chart-4: #ef4444;
+        --chart-5: #0ea5e9;
+        --chart-6: #8b5cf6;
+        --chart-7: #ec4899;
+        --chart-8: #14b8a6;
+        --chart-9: #f97316;
+        --chart-10: #c2410c;
+        --chart-11: #ea580c;
+        --chart-12: #eab308;
+        --chart-13: #16a34a;
+    }
+
+    .dark {
+        --chart-text: #d1d5db;
+        --chart-grid: #374151;
+    }
+}
+
+@layer components {
+    .app-sidebar {
+        background-color: var(--sidebar-background-color);
+        background-image: var(--sidebar-background-image);
+        background-repeat: repeat, no-repeat;
+        background-size: auto, 100% 100%;
+        border-color: var(--sidebar-border);
     }
 }
 
@@ -133,21 +360,21 @@
 /* ─── Navy Branded Sidebar Overrides ──────────────────────── */
 
 .sidebar-menu.sidebar-dark .menu-label {
-    @apply text-white/40;
+    @apply text-sidebar-fg/40;
 }
 
 .sidebar-menu.sidebar-dark .menu-item,
 .sidebar-menu.sidebar-dark .collapse-title {
-    @apply text-white/70 hover:bg-white/5 hover:text-white;
+    @apply text-sidebar-fg/70 hover:bg-sidebar-fg/5 hover:text-sidebar-fg;
 }
 
 .sidebar-menu.sidebar-dark .menu-item.active {
-    @apply border-s-2 border-amber-400 font-semibold text-white ps-[9px];
-    background-image: linear-gradient(to right, rgb(251 191 36 / 0.18), transparent);
+    @apply border-s-2 border-sidebar-accent font-semibold text-sidebar-fg ps-[9px];
+    background-image: linear-gradient(to right, color-mix(in oklab, var(--color-sidebar-accent) 18%, transparent), transparent);
 }
 
 .sidebar-menu.sidebar-dark .collapse-title .arrow-icon {
-    @apply text-white/40;
+    @apply text-sidebar-fg/40;
 }
 
 /* ─── AI Center: Markdown answers ──────────── */
@@ -349,3 +576,4 @@
         animation: none !important;
     }
 }
+

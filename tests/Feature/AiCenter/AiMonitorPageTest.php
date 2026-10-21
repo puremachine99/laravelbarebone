@@ -83,3 +83,14 @@ test('the summary tab lists weekly and monthly summaries', function () {
         ->set('period', 'monthly')
         ->assertSee('987.654');
 });
+
+test('the log shows the types of the files the AI generated', function () {
+    AiUsageLog::factory()->create(['user_name' => 'Budi Santoso', 'generated_file_types' => ['xlsx', 'pptx']]);
+    AiUsageLog::factory()->create(['user_name' => 'Sari Wulandari']);
+
+    $this->actingAs(aiMonitorUser());
+
+    Livewire::test(AiMonitor::class)
+        ->assertSeeHtml('files=<span class="text-code-ok">xlsx,pptx</span>')
+        ->assertSee('Sari Wulandari');
+});

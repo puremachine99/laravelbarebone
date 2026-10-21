@@ -150,7 +150,7 @@ class NakamaMentoring
         // often still empty, so it is the fallback.
         $code = ($user->employee?->department ?? $user->department)?->code;
 
-        return $code ? (config('ai_center.mentoring.units_by_department_code')[$code] ?? null) : null;
+        return $code ? (config('ai_center.mentoring.units_by_department_code', [])[$code] ?? null) : null;
     }
 
     public function remoteUserId(User $user): string

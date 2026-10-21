@@ -355,52 +355,73 @@ new #[Layout('layouts.app')] class extends Component {
     </div>
     </div>
 
+    {{-- Saved on the account via saveThemePreferences() (partials/head.blade.php) → profile.appearance.update --}}
     <div x-show="tab === 'appearance'" x-cloak
         x-data="{
-            appearance: localStorage.getItem('theme') || 'system',
-            setTheme(theme) {
-                this.appearance = theme;
-                localStorage.setItem('theme', theme);
-                this.applyTheme();
+            theme: @js(auth()->user()->theme->value),
+            appearance: @js(auth()->user()->appearance->value),
+            choose(changes) {
+                Object.assign(this, changes);
+                saveThemePreferences(changes);
             },
-            applyTheme() {
-                let isDark = this.appearance === 'dark' || (this.appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                if (isDark) {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                    document.documentElement.setAttribute('data-theme', 'light');
-                }
-            }
         }"
-        x-init="applyTheme()"
-        class="card bg-base-200 border border-base-300 shadow-sm rounded-2xl max-w-lg">
-        <div class="card-body p-6 space-y-4">
+        class="card bg-base-200 border border-base-300 shadow-sm rounded-2xl max-w-2xl">
+        <div class="card-body p-6 space-y-6">
             <div>
                 <h3 class="text-lg font-medium text-base-content">{{ __('Appearance') }}</h3>
-                <p class="mt-1 text-sm text-base-content/50">{{ __('Update the appearance settings for your account') }}</p>
+                <p class="mt-1 text-sm text-base-content/50">{{ __('Pilihan tema dan mode tersimpan di akunmu, jadi ikut di semua perangkat.') }}</p>
             </div>
 
-            <div class="grid grid-cols-3 gap-4">
-                <button type="button" @click="setTheme('light')"
-                    :class="appearance === 'light' ? 'border-primary ring-2 ring-primary/20 bg-primary/5 text-primary' : 'border-base-300 text-base-content/80 bg-base-200'"
-                    class="flex flex-col items-center gap-2 p-4 border rounded-xl hover:bg-base-300 transition-all font-semibold shadow-sm">
-                    <x-icon name="o-sun" class="w-6 h-6" />
-                    <span>{{ __('Light') }}</span>
-                </button>
-                <button type="button" @click="setTheme('dark')"
-                    :class="appearance === 'dark' ? 'border-primary ring-2 ring-primary/20 bg-primary/5 text-primary' : 'border-base-300 text-base-content/80 bg-base-200'"
-                    class="flex flex-col items-center gap-2 p-4 border rounded-xl hover:bg-base-300 transition-all font-semibold shadow-sm">
-                    <x-icon name="o-moon" class="w-6 h-6" />
-                    <span>{{ __('Dark') }}</span>
-                </button>
-                <button type="button" @click="setTheme('system')"
-                    :class="appearance === 'system' ? 'border-primary ring-2 ring-primary/20 bg-primary/5 text-primary' : 'border-base-300 text-base-content/80 bg-base-200'"
-                    class="flex flex-col items-center gap-2 p-4 border rounded-xl hover:bg-base-300 transition-all font-semibold shadow-sm">
-                    <x-icon name="o-computer-desktop" class="w-6 h-6" />
-                    <span>{{ __('System') }}</span>
-                </button>
+            <div class="space-y-3">
+                <h4 class="text-sm font-semibold text-base-content/70">{{ __('Tema') }}</h4>
+                {{-- One card per App\Enums\UserTheme case: a new theme shows up here automatically --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    @foreach (\App\Enums\UserTheme::cases() as $themeOption)
+                        @php($preview = $themeOption->preview())
+                        <button type="button" wire:key="theme-{{ $themeOption->value }}"
+                            x-on:click="choose({ theme: @js($themeOption->value) })"
+                            aria-label="{{ __('Tema :name', ['name' => $themeOption->label()]) }}"
+                            x-bind:aria-pressed="theme === @js($themeOption->value)"
+                            x-bind:class="theme === @js($themeOption->value) ? 'border-primary ring-2 ring-primary/30' : 'border-base-300 hover:border-base-content/30'"
+                            class="text-left rounded-xl border-2 p-3 transition-all bg-base-100">
+                            {{-- Fixed colours: the mock-up shows this theme, not the one currently applied --}}
+                            <div class="flex h-24 overflow-hidden rounded-lg" style="background:{{ $preview['frame'] }}">
+                                <div class="w-10 shrink-0 space-y-1.5 p-2">
+                                    <div class="h-1.5" style="background:{{ $preview['accent_alt'] }};border-radius:{{ $preview['radius'] }}"></div>
+                                    <div class="h-1.5 rounded opacity-40" style="background:{{ $preview['canvas'] }}"></div>
+                                    <div class="h-1.5 rounded opacity-40" style="background:{{ $preview['canvas'] }}"></div>
+                                </div>
+                                <div class="flex-1 m-1 ml-0 rounded-md p-2 space-y-2" style="background:{{ $preview['canvas'] }}">
+                                    <div class="h-8 rounded-lg" style="background:{{ $preview['panel'] }};border:{{ $preview['outline'] }};box-shadow:{{ $preview['shadow'] }}"></div>
+                                    <div class="flex gap-2">
+                                        <div class="h-4 w-12" style="background:{{ $preview['accent'] }};border-radius:{{ $preview['radius'] }};box-shadow:{{ $preview['shadow'] }}"></div>
+                                        <div class="h-4 w-8" style="background:{{ $preview['accent_alt'] }};border-radius:{{ $preview['radius'] }};border:{{ $preview['outline'] }}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2 flex items-center justify-between">
+                                <span class="font-semibold text-base-content">{{ $themeOption->label() }}</span>
+                                <x-icon name="s-check-circle" class="w-5 h-5 text-primary" x-show="theme === '{{ $themeOption->value }}'" />
+                            </div>
+                            <p class="text-xs text-base-content/50">{{ $themeOption->description() }}</p>
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <h4 class="text-sm font-semibold text-base-content/70">{{ __('Mode') }}</h4>
+                <div class="grid grid-cols-3 gap-4">
+                    @foreach ([['light', 'o-sun', __('Light')], ['dark', 'o-moon', __('Dark')], ['system', 'o-computer-desktop', __('System')]] as [$mode, $icon, $label])
+                        <button type="button" x-on:click="choose({ appearance: '{{ $mode }}' })"
+                            x-bind:aria-pressed="appearance === '{{ $mode }}'"
+                            x-bind:class="appearance === '{{ $mode }}' ? 'border-primary ring-2 ring-primary/20 bg-primary/5 text-primary' : 'border-base-300 text-base-content/80 bg-base-200'"
+                            class="flex flex-col items-center gap-2 p-4 border rounded-xl hover:bg-base-300 transition-all font-semibold shadow-sm">
+                            <x-icon :name="$icon" class="w-6 h-6" />
+                            <span>{{ $label }}</span>
+                        </button>
+                    @endforeach
+                </div>
             </div>
         </div>
     </div>

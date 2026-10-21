@@ -7,7 +7,9 @@ use App\Models\AiUsageLog;
 use App\Models\AiUsageSummary;
 use App\Models\Department;
 use App\Models\User;
+use App\Services\AiCenter\AiChatRequest;
 use App\Services\AiCenter\AiGateway;
+use App\Services\AiCenter\AiStreamEvent;
 use App\Services\AiCenter\FakeAiGateway;
 use App\Support\ResourcePermissions;
 use Illuminate\Support\Facades\Schema;
@@ -190,4 +192,36 @@ test('raw logs are pruned after 3 months and summaries after 1 year', function (
         ->and(AiUsageSummary::pluck('id')->all())->toBe([$recentSummary->id])
         ->and(AiUsageLog::find($oldLog->id))->toBeNull()
         ->and(AiUsageSummary::find($oldSummary->id))->toBeNull();
+});
+
+test('the types of the files the AI generated are logged, without their names', function () {
+    $user = usageLogUser();
+
+    app()->instance(AiGateway::class, new class extends FakeAiGateway
+    {
+        public function stream(AiChatRequest $request): iterable
+        {
+            yield AiStreamEvent::delta('Ini filenya.');
+            yield AiStreamEvent::file('file_1', 'Daftar-Karyawan.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            yield AiStreamEvent::file('file_2', 'Rekap.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            yield AiStreamEvent::file('file_3', 'gambar', 'image/jpeg');
+            yield AiStreamEvent::done(model: 'fake', finishReason: 'STOP');
+        }
+    });
+
+    sendUsageMessage($user, 'Buatkan excel dan gambar');
+
+    $log = AiUsageLog::sole();
+
+    expect($log->generated_file_types)->toBe(['xlsx', 'jpeg'])
+        ->and(json_encode($log->getAttributes()))->not->toContain('Daftar-Karyawan');
+});
+
+test('an answer without files logs no file types', function () {
+    $user = usageLogUser();
+    usageLogAi();
+
+    sendUsageMessage($user);
+
+    expect(AiUsageLog::sole()->generated_file_types)->toBeNull();
 });

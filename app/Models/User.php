@@ -4,7 +4,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\ChatPresenceStatus;
+use App\Enums\UserAppearance;
 use App\Enums\UserStatus;
+use App\Enums\UserTheme;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -22,7 +24,7 @@ use Laravel\Passport\Contracts\OAuthenticatable;
 use Laravel\Passport\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'secondary_email', 'username', 'password', 'department_id', 'avatar_path', 'status', 'invited_by', 'invited_at', 'presence_status'])]
+#[Fillable(['name', 'email', 'secondary_email', 'username', 'password', 'department_id', 'avatar_path', 'status', 'invited_by', 'invited_at', 'presence_status', 'theme', 'appearance'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements OAuthenticatable, PasskeyUser
 {
@@ -32,6 +34,14 @@ class User extends Authenticatable implements OAuthenticatable, PasskeyUser
     use HasRoles {
         hasPermissionTo as protected hasPermissionToIgnoringStatus;
     }
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'theme' => 'default',
+        'appearance' => 'system',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -46,6 +56,8 @@ class User extends Authenticatable implements OAuthenticatable, PasskeyUser
             'status' => UserStatus::class,
             'invited_at' => 'datetime',
             'presence_status' => ChatPresenceStatus::class,
+            'theme' => UserTheme::class,
+            'appearance' => UserAppearance::class,
         ];
     }
 

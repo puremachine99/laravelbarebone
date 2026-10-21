@@ -1,0 +1,486 @@
+/*
+ * ─── "Toon" theme style — neo-brutalist structure shared by the toon themes ─────────────────────────────────────
+ * Thick outlines, solid shadows without blur, pill buttons, a frame (sidebar + top bar) around a rounded dotted
+ * canvas with floating chips, and pastel stat tiles. Applies to every theme whose App\Enums\UserTheme::style() is
+ * "toon": partials/head.blade.php then sets <html data-toon>.
+ *
+ * This file has NO colours of its own: it only reads the tokens below, which each toon theme defines in its own
+ * file (themes/desk.css, themes/cinnamoroll.css). To make a new toon theme, copy one of those token files.
+ *
+ * Tokens a toon theme defines (scoped to its [data-theme^="name"]):
+ *   Surfaces   --bg-frame --bg-canvas --canvas-dots --surface --surface-muted
+ *   Lines      --border-strong --border-dashed --toon-ink (solid shadow colour)
+ *   Text       --text-primary --text-secondary --text-muted
+ *   Accent     --accent-soft --accent-soft-deep --text-on-accent --secondary-shadow
+ *   Frame      --frame-text --frame-text-muted --frame-hover-bg --frame-hover-text --frame-shadow
+ *              --sidebar-active-bg --sidebar-active-text
+ *   Tiles      --tile-1 … --tile-4 --tile-text
+ *   Semantic   --success-bg --success-text --success-border --error --error-bg --warning --warning-text --warning-bg
+ *              --info --info-bg
+ *   Palettes   --theme-accent-50 … -950 (replaces indigo/blue) and --theme-neutral-50 … -950 (gray/zinc/slate/neutral)
+ *   App        --sidebar-*, --color-sidebar-*, --color-code-*, --chart-* (see the THEMES notes in app.css)
+ *
+ * Unlayered on purpose: these rules must win over Tailwind utilities and daisyUI components.
+ */
+
+/* ── Shared defaults and palette remapping ─────────────────────────────────────────────────────────────────────── */
+
+[data-toon] {
+    --toon-border: 2.5px;
+    --shadow-solid: 4px 4px 0 var(--toon-ink);
+    --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    --color-black: var(--text-primary);
+
+    /* The sidebar is the frame */
+    --sidebar-background-color: var(--bg-frame);
+    --sidebar-background-image: none;
+    --sidebar-border: transparent;
+
+    /* Hard-coded Tailwind palettes in the views follow the theme */
+    --color-indigo-50: var(--theme-accent-50);
+    --color-indigo-100: var(--theme-accent-100);
+    --color-indigo-200: var(--theme-accent-200);
+    --color-indigo-300: var(--theme-accent-300);
+    --color-indigo-400: var(--theme-accent-400);
+    --color-indigo-500: var(--theme-accent-500);
+    --color-indigo-600: var(--theme-accent-600);
+    --color-indigo-700: var(--theme-accent-700);
+    --color-indigo-800: var(--theme-accent-800);
+    --color-indigo-900: var(--theme-accent-900);
+    --color-indigo-950: var(--theme-accent-950);
+    --color-blue-50: var(--theme-accent-50);
+    --color-blue-100: var(--theme-accent-100);
+    --color-blue-200: var(--theme-accent-200);
+    --color-blue-300: var(--theme-accent-300);
+    --color-blue-400: var(--theme-accent-400);
+    --color-blue-500: var(--theme-accent-500);
+    --color-blue-600: var(--theme-accent-600);
+    --color-blue-700: var(--theme-accent-700);
+    --color-blue-800: var(--theme-accent-800);
+    --color-blue-900: var(--theme-accent-900);
+    --color-blue-950: var(--theme-accent-950);
+
+    --color-gray-50: var(--theme-neutral-50);
+    --color-gray-100: var(--theme-neutral-100);
+    --color-gray-200: var(--theme-neutral-200);
+    --color-gray-300: var(--theme-neutral-300);
+    --color-gray-400: var(--theme-neutral-400);
+    --color-gray-500: var(--theme-neutral-500);
+    --color-gray-600: var(--theme-neutral-600);
+    --color-gray-700: var(--theme-neutral-700);
+    --color-gray-800: var(--theme-neutral-800);
+    --color-gray-900: var(--theme-neutral-900);
+    --color-gray-950: var(--theme-neutral-950);
+    --color-zinc-50: var(--theme-neutral-50);
+    --color-zinc-100: var(--theme-neutral-100);
+    --color-zinc-200: var(--theme-neutral-200);
+    --color-zinc-300: var(--theme-neutral-300);
+    --color-zinc-400: var(--theme-neutral-400);
+    --color-zinc-500: var(--theme-neutral-500);
+    --color-zinc-600: var(--theme-neutral-600);
+    --color-zinc-700: var(--theme-neutral-700);
+    --color-zinc-800: var(--theme-neutral-800);
+    --color-zinc-900: var(--theme-neutral-900);
+    --color-zinc-950: var(--theme-neutral-950);
+    --color-slate-50: var(--theme-neutral-50);
+    --color-slate-100: var(--theme-neutral-100);
+    --color-slate-200: var(--theme-neutral-200);
+    --color-slate-300: var(--theme-neutral-300);
+    --color-slate-400: var(--theme-neutral-400);
+    --color-slate-500: var(--theme-neutral-500);
+    --color-slate-600: var(--theme-neutral-600);
+    --color-slate-700: var(--theme-neutral-700);
+    --color-slate-800: var(--theme-neutral-800);
+    --color-slate-900: var(--theme-neutral-900);
+    --color-slate-950: var(--theme-neutral-950);
+    --color-neutral-50: var(--theme-neutral-50);
+    --color-neutral-100: var(--theme-neutral-100);
+    --color-neutral-200: var(--theme-neutral-200);
+    --color-neutral-300: var(--theme-neutral-300);
+    --color-neutral-400: var(--theme-neutral-400);
+    --color-neutral-500: var(--theme-neutral-500);
+    --color-neutral-600: var(--theme-neutral-600);
+    --color-neutral-700: var(--theme-neutral-700);
+    --color-neutral-800: var(--theme-neutral-800);
+    --color-neutral-900: var(--theme-neutral-900);
+    --color-neutral-950: var(--theme-neutral-950);
+}
+
+/* ── Frame and canvas ──────────────────────────────────────────────────────────────────────────────────────────── */
+
+[data-toon] body {
+    font-family: var(--font-sans);
+    background: var(--bg-frame);
+}
+
+[data-toon] ::selection {
+    background: var(--accent-soft);
+    color: var(--text-on-accent);
+}
+
+[data-toon] :is(h1, h2, h3) {
+    font-weight: 800;
+    letter-spacing: -0.015em;
+}
+
+/* The page content sits on a rounded canvas inside the frame */
+[data-toon] .drawer-content > main {
+    position: relative;
+    background-color: var(--bg-canvas);
+    background-image: radial-gradient(var(--canvas-dots) 1.3px, transparent 1.3px);
+    background-size: 22px 22px;
+    border-radius: 1.75rem;
+    margin: 0 0.75rem 0.75rem 0;
+}
+
+@media (max-width: 1023px) {
+    [data-toon] .drawer-content > main {
+        margin: 0 0.5rem 0.5rem;
+        border-radius: 1.25rem;
+    }
+}
+
+/* Floating, slightly tilted chips (.desk-decor in layouts/app/sidebar.blade.php); hidden outside toon themes */
+.desk-decor {
+    display: none;
+}
+
+[data-toon] .desk-decor {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+[data-toon] .drawer-content > main > :not(.desk-decor, .fixed, .absolute) {
+    position: relative;
+    z-index: 1;
+}
+
+[data-toon] .desk-decor-chip {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 9999px;
+    border: 2px solid var(--border-strong);
+    box-shadow: 2px 2px 0 var(--toon-ink);
+    background: var(--bg-canvas);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 800;
+    animation: desk-floaty var(--d, 7s) ease-in-out infinite;
+}
+
+[data-toon] .desk-decor-chip:nth-child(even) {
+    background: var(--accent-soft);
+    color: var(--text-on-accent);
+}
+
+@media (max-width: 1023px) {
+    [data-toon] .desk-decor {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-toon] .desk-decor-chip {
+        animation: none;
+    }
+}
+
+/* ── Components ────────────────────────────────────────────────────────────────────────────────────────────────── */
+
+/* Cards, panels and popovers: thick outline, solid shadow, 24px corners */
+[data-toon] :is(.card, .modal-box, .dropdown-content, .stats),
+[data-toon] :is(.rounded-2xl, .rounded-3xl, .rounded-box).border:not(.mentoring-desk) {
+    border: var(--toon-border) solid var(--border-strong);
+    box-shadow: var(--shadow-solid);
+}
+
+[data-toon] .card {
+    border-radius: 1.5rem;
+    background-color: var(--surface);
+}
+
+[data-toon] .shadow-sm:not(.btn, .card) {
+    box-shadow: 3px 3px 0 var(--toon-ink);
+}
+
+[data-toon] .modal-box {
+    border-radius: 1.75rem;
+}
+
+[data-toon] .modal-backdrop,
+[data-toon] .modal::backdrop {
+    background: color-mix(in oklab, var(--bg-frame) 55%, transparent);
+    backdrop-filter: blur(3px);
+}
+
+[data-toon] .border-dashed {
+    border-color: var(--border-dashed);
+}
+
+/* Stat tiles: small cards in a 3–5 column grid take the pastel tiles in turn */
+[data-toon] :is([class*="grid-cols-3"], [class*="grid-cols-4"], [class*="grid-cols-5"]) > .card {
+    --color-base-content: var(--tile-text);
+    color: var(--tile-text);
+}
+
+[data-toon] :is([class*="grid-cols-3"], [class*="grid-cols-4"], [class*="grid-cols-5"]) > .card:nth-child(4n+1) { background: var(--tile-1); }
+[data-toon] :is([class*="grid-cols-3"], [class*="grid-cols-4"], [class*="grid-cols-5"]) > .card:nth-child(4n+2) { background: var(--tile-2); }
+[data-toon] :is([class*="grid-cols-3"], [class*="grid-cols-4"], [class*="grid-cols-5"]) > .card:nth-child(4n+3) { background: var(--tile-3); }
+[data-toon] :is([class*="grid-cols-3"], [class*="grid-cols-4"], [class*="grid-cols-5"]) > .card:nth-child(4n+4) { background: var(--tile-4); }
+
+[data-toon] :is([class*="grid-cols-3"], [class*="grid-cols-4"], [class*="grid-cols-5"]) > .card .text-warning { color: var(--warning-text); }
+[data-toon] :is([class*="grid-cols-3"], [class*="grid-cols-4"], [class*="grid-cols-5"]) > .card .text-error { color: var(--error); }
+[data-toon] :is([class*="grid-cols-3"], [class*="grid-cols-4"], [class*="grid-cols-5"]) > .card .text-success { color: var(--success-text); }
+
+[data-toon] :is([class*="grid-cols-3"], [class*="grid-cols-4"], [class*="grid-cols-5"]) > .card :is(.text-2xl, .text-3xl, .text-4xl) {
+    font-weight: 800;
+}
+
+/* Buttons: pills, outlined, solid shadow; lift on hover, pressed on click */
+[data-toon] .btn {
+    font-weight: 800;
+    border-radius: 9999px;
+}
+
+[data-toon] .btn:not(.btn-ghost, .btn-link) {
+    border: 2px solid var(--border-strong);
+    box-shadow: 3px 3px 0 var(--toon-ink);
+    transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+}
+
+[data-toon] .btn:not(.btn-ghost, .btn-link, :disabled, .btn-disabled):hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--toon-ink);
+}
+
+[data-toon] .btn:not(.btn-ghost, .btn-link, :disabled, .btn-disabled):active {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 var(--toon-ink);
+}
+
+[data-toon] .btn-secondary {
+    box-shadow: 3px 3px 0 var(--secondary-shadow);
+}
+
+/* A plain button (no colour modifier) uses the soft accent */
+[data-toon] .btn:not(.btn-primary, .btn-secondary, .btn-accent, .btn-neutral, .btn-info, .btn-success, .btn-warning, .btn-error, .btn-ghost, .btn-link, .btn-outline, .btn-soft, .btn-dash) {
+    --btn-color: var(--accent-soft);
+    --btn-fg: var(--text-on-accent);
+}
+
+[data-toon] .btn:not(.btn-primary, .btn-secondary, .btn-accent, .btn-neutral, .btn-info, .btn-success, .btn-warning, .btn-error, .btn-ghost, .btn-link, .btn-outline, .btn-soft, .btn-dash):hover {
+    --btn-color: var(--accent-soft-deep);
+}
+
+[data-toon] .btn-outline {
+    border-color: var(--border-strong);
+}
+
+[data-toon] .btn-ghost:not(:disabled):hover {
+    background: color-mix(in oklab, var(--accent-soft) 70%, transparent);
+    color: var(--text-on-accent);
+    border-color: transparent;
+}
+
+/* Form fields */
+[data-toon] :is(.input, .select, .textarea, .file-input) {
+    background-color: var(--bg-canvas);
+    border: 2px solid var(--border-strong);
+    border-radius: 1rem;
+    box-shadow: 2px 2px 0 var(--toon-ink);
+    font-weight: 600;
+}
+
+[data-toon] :is(.input, .select, .textarea, .file-input):focus-within,
+[data-toon] :is(.input, .select, .textarea):focus {
+    outline: 4px solid color-mix(in oklab, var(--accent-soft-deep) 60%, transparent);
+    outline-offset: 0;
+}
+
+[data-toon] :is(.fieldset-legend, .label) {
+    font-weight: 800;
+}
+
+[data-toon] :is(.checkbox, .radio, .toggle) {
+    border: 2px solid var(--border-strong);
+}
+
+[data-toon] .progress {
+    border: 2px solid var(--border-strong);
+    height: 0.85rem;
+}
+
+/* Badges: pills in the semantic pastel colours */
+[data-toon] .badge {
+    border: 1.5px solid var(--border-strong);
+    border-radius: 9999px;
+    font-weight: 800;
+    background: var(--surface-muted);
+    color: var(--text-primary);
+}
+
+[data-toon] .badge-primary { background: var(--color-primary); color: var(--color-primary-content); }
+[data-toon] .badge-secondary { background: var(--color-secondary); color: var(--color-secondary-content); }
+[data-toon] .badge-accent { background: var(--accent-soft); color: var(--text-on-accent); }
+[data-toon] .badge-neutral { background: var(--border-strong); color: var(--bg-canvas); }
+[data-toon] .badge-success { background: var(--success-bg); color: var(--success-text); border-color: var(--success-border); }
+[data-toon] .badge-warning { background: var(--warning-bg); color: var(--warning-text); border-color: var(--warning); }
+[data-toon] .badge-error { background: var(--error-bg); color: var(--error); border-color: var(--error); }
+[data-toon] .badge-info { background: var(--info-bg); color: var(--info); border-color: var(--info); }
+[data-toon] .badge-ghost { background: var(--surface-muted); color: var(--text-primary); }
+
+/* Alerts */
+[data-toon] .alert {
+    border: 2px solid var(--border-strong);
+    box-shadow: 3px 3px 0 var(--toon-ink);
+    border-radius: 1.25rem;
+    font-weight: 600;
+    color: var(--tile-text);
+}
+
+[data-toon] .alert-success { background: var(--success-bg); color: var(--success-text); }
+[data-toon] .alert-warning { background: var(--warning-bg); color: var(--warning-text); }
+[data-toon] .alert-error { background: var(--error-bg); color: var(--error); }
+[data-toon] .alert-info { background: var(--info-bg); color: var(--info); }
+
+/* Tabs: pill container, soft-accent active tab */
+[data-toon] .tabs-box {
+    background: var(--surface);
+    border: 2px solid var(--border-strong);
+    border-radius: 9999px;
+    box-shadow: 3px 3px 0 var(--toon-ink);
+}
+
+[data-toon] .tab {
+    font-weight: 700;
+    border-radius: 9999px;
+}
+
+[data-toon] .tab.tab-active,
+[data-toon] .tab[aria-selected="true"] {
+    background: var(--accent-soft);
+    color: var(--text-on-accent);
+    font-weight: 800;
+    box-shadow: inset 0 0 0 2px var(--border-strong);
+}
+
+/* Menus (dropdowns) */
+[data-toon] .menu :is(li > a, li > button):hover {
+    background: color-mix(in oklab, var(--accent-soft) 60%, transparent);
+    color: var(--text-primary);
+}
+
+[data-toon] .menu :is(li > a, li > button):is(.menu-active, .active) {
+    background: var(--accent-soft);
+    color: var(--text-on-accent);
+    font-weight: 800;
+}
+
+/* Tables */
+[data-toon] .table thead tr {
+    border-bottom: 2px solid var(--border-strong);
+}
+
+[data-toon] .table thead :is(th, td) {
+    background: var(--surface-muted);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+[data-toon] .table thead :is(th, td):first-child { border-top-left-radius: 0.875rem; }
+[data-toon] .table thead :is(th, td):last-child { border-top-right-radius: 0.875rem; }
+
+[data-toon] .table tbody tr:not(:last-child) {
+    border-bottom: 1.5px dashed var(--border-dashed);
+}
+
+[data-toon] .table tbody tr:hover {
+    background: color-mix(in oklab, var(--accent-soft) 30%, transparent);
+}
+
+/* Laravel paginator */
+[data-toon] nav[role="navigation"] :is(a, span[aria-current] > span, span[aria-disabled] > span) {
+    border-color: var(--border-strong);
+    font-weight: 800;
+}
+
+[data-toon] nav[role="navigation"] span[aria-current] > span {
+    background: var(--accent-soft);
+    color: var(--text-on-accent);
+}
+
+/* ── Chrome: top bar and sidebar sit on the frame ──────────────────────────────────────────────────────────────── */
+
+[data-toon] .app-topbar {
+    --color-base-content: var(--frame-text);
+    background: var(--bg-frame);
+    border: 0;
+    color: var(--frame-text);
+}
+
+/* Only what sits on the frame uses the frame text colour: popovers (account, notifications), menus and avatars
+   inside the top bar sit on their own surfaces (badges colour themselves) */
+[data-toon] .app-topbar :is(.dropdown-content, .menu, .bg-base-100, .bg-base-200, .bg-base-300) {
+    --color-base-content: var(--text-primary);
+    color: var(--text-primary);
+}
+
+[data-toon] .app-topbar h1 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--frame-text);
+}
+
+[data-toon] .app-topbar .btn-ghost:not(:disabled):hover {
+    background: var(--frame-hover-bg);
+    color: var(--frame-hover-text);
+}
+
+/* The date in the top bar becomes an accent pill */
+[data-toon] .app-topbar .rounded-lg.border {
+    --color-base-content: var(--text-on-accent);
+    background: var(--accent-soft);
+    color: var(--text-on-accent);
+    border: 2px solid var(--border-strong);
+    border-radius: 9999px;
+    box-shadow: 2px 2px 0 var(--frame-shadow);
+}
+
+/* Sidebar: colours and background come from the --sidebar-* / --color-sidebar-* tokens */
+[data-toon] .app-sidebar .sidebar-menu .menu-label {
+    color: var(--frame-text-muted);
+    font-weight: 800;
+}
+
+[data-toon] .app-sidebar .sidebar-menu :is(.menu-item, .collapse-title) {
+    color: color-mix(in oklab, var(--color-sidebar-fg) 82%, transparent);
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    font-weight: 700;
+}
+
+[data-toon] .app-sidebar .sidebar-menu :is(.menu-item, .collapse-title):hover {
+    background: var(--frame-hover-bg);
+    color: var(--frame-hover-text);
+}
+
+[data-toon] .app-sidebar .sidebar-menu .menu-item.active {
+    background: var(--sidebar-active-bg);
+    background-image: none;
+    color: var(--sidebar-active-text);
+    font-weight: 800;
+    padding-inline-start: 0.625rem;
+    border: 2px solid var(--border-strong);
+    box-shadow: 3px 3px 0 var(--frame-shadow);
+}

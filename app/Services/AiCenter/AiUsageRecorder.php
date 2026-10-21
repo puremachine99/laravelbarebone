@@ -15,6 +15,9 @@ use Throwable;
  */
 class AiUsageRecorder
 {
+    /**
+     * @param  array<int, string>  $generatedFileTypes  types of the files the AI generated in this answer (see fileType())
+     */
     public function record(
         User $user,
         AiUsageKind $kind,
@@ -23,6 +26,7 @@ class AiUsageRecorder
         ?AiErrorCode $errorCode = null,
         ?int $firstTokenMs = null,
         ?int $durationMs = null,
+        array $generatedFileTypes = [],
     ): ?AiUsageLog {
         $promptTokens = (int) ($done?->usage['prompt_tokens'] ?? 0);
         $outputTokens = (int) ($done?->usage['output_tokens'] ?? 0);
@@ -43,12 +47,27 @@ class AiUsageRecorder
                 'first_token_ms' => $firstTokenMs,
                 'duration_ms' => $durationMs,
                 'cost_usd' => $this->cost($promptTokens, $outputTokens),
+                'generated_file_types' => $generatedFileTypes !== [] ? array_values(array_unique($generatedFileTypes)) : null,
             ]);
         } catch (Throwable $e) {
             report($e);
 
             return null;
         }
+    }
+
+    /**
+     * The type of a generated file for the log: its extension ("xlsx", "jpeg"…), else the MIME subtype. Never the name.
+     */
+    public static function fileType(?string $fileName, ?string $mimeType): string
+    {
+        $extension = strtolower(pathinfo((string) $fileName, PATHINFO_EXTENSION));
+
+        if ($extension !== '') {
+            return $extension;
+        }
+
+        return strtolower(explode('/', (string) $mimeType)[1] ?? 'file') ?: 'file';
     }
 
     /**

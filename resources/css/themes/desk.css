@@ -1,0 +1,153 @@
+/*
+ * ─── "Nakama Desk" theme — Warm Neo-Brutalist Cozy ──────────────────────────────────────────────────────────────
+ * Warm cream, thick brown outlines and solid shadows without blur: relaxed and friendly, not a corporate audit.
+ * Mix to aim for: 60% cream/white, 30% brown (text and outlines), 10% honey/orange (accents).
+ *
+ * Tokens only: the structure is the shared toon style (themes/toon.css), the daisyUI colours are the "desk" and
+ * "desk-dark" themes in app.css. Registered as App\Enums\UserTheme::Desk.
+ */
+
+[data-theme^="desk"] {
+    /* Neutral */
+    --bg-frame: #1C1210;
+    --bg-canvas: #FFF8F2;
+    --canvas-dots: #EFE2D3;
+    --surface: #FFFFFF;
+    --surface-muted: #F5E8D8;
+    --border-strong: #3A2418;
+    --border-dashed: #D8CCBF;
+    --toon-ink: var(--border-strong);
+
+    /* Text */
+    --text-primary: #2B1810;
+    --text-secondary: #5A463B;
+    --text-muted: #7E6B5E;
+
+    /* Brand (from the agreed palette) */
+    --brand-honey: #FFE3A1;
+    --brand-honey-deep: #F5C96B;
+    --cta-peach: #E8A87C;
+    --cta-peach-shadow: #B98462;
+    --cta-dark: #3B2A22;
+    --accent-orange: #C2570C;
+
+    /* Accent */
+    --accent-soft: var(--brand-honey);
+    --accent-soft-deep: var(--brand-honey-deep);
+    --text-on-accent: #2B1810;
+    --secondary-shadow: var(--cta-peach-shadow);
+
+    /* Frame (sidebar + top bar) */
+    --frame-text: #FFF8F2;
+    --frame-text-muted: #A8978A;
+    --frame-hover-bg: rgb(255 227 161 / 0.12);
+    --frame-hover-text: var(--brand-honey);
+    --frame-shadow: #000000;
+    --sidebar-active-bg: var(--brand-honey);
+    --sidebar-active-text: #2B1810;
+
+    /* Stat tiles */
+    --tile-1: var(--brand-honey);
+    --tile-2: var(--success-bg);
+    --tile-3: #FBE2CF;
+    --tile-4: var(--info-bg);
+    --tile-text: #2B1810;
+
+    /* Semantic */
+    --success-bg: #C9F2D6;
+    --success-text: #1F6B3A;
+    --success-border: #2E7D4F;
+    --error: #C0392B;
+    --error-bg: #FDE4E0;
+    --warning: #D98A00;
+    --warning-text: #8A5600; /* #D98A00 is too light for text on #FFF0C7 */
+    --warning-bg: #FFF0C7;
+    --info: #2F6F8F;
+    --info-bg: #DDEFF7;
+
+    /* App tokens (app.css THEMES): sidebar, code blocks, charts */
+    --color-sidebar-fg: #FFF8F2;
+    --color-sidebar-accent: var(--brand-honey-deep);
+    --color-sidebar-accent-soft: var(--brand-honey);
+
+    --color-code-bg: #2B1810;
+    --color-code-bar: #3A2418;
+    --color-code-fg: #FFF8F2;
+    --color-code-muted: #A8978A;
+    --color-code-ok: #8FD19E;
+    --color-code-error: #F4877A;
+    --color-code-warn: #F5C96B;
+    --color-code-keyword: #E8A87C;
+    --color-code-number: #FFE3A1;
+    --color-code-highlight: #F5C96B;
+    --color-code-strong: #FFFFFF;
+
+    /* Charts use the unit colours of the palette */
+    --chart-text: #5A463B;
+    --chart-grid: #D8CCBF;
+    --chart-on-bar: #FFFFFF;
+    --chart-1: #C2570C;
+    --chart-2: #2E7D4F;
+    --chart-3: #D98A00;
+    --chart-4: #C0392B;
+    --chart-5: #2F6F8F;
+    --chart-6: #8B5A2B;
+    --chart-7: #C8651B;
+    --chart-8: #4E382C;
+    --chart-9: #E8A87C;
+    --chart-10: #9C4A2E;
+    --chart-11: #C2621B;
+    --chart-12: #F5C96B;
+    --chart-13: #1F6B3A;
+
+    /* Hard-coded indigo/blue → the orange family, gray/zinc/slate/neutral → the warm neutrals */
+    --theme-accent-50: #FFF3EA;
+    --theme-accent-100: #FCE1CC;
+    --theme-accent-200: #F7C4A0;
+    --theme-accent-300: #EFA06E;
+    --theme-accent-400: #E07B3E;
+    --theme-accent-500: #D0651F;
+    --theme-accent-600: #C2570C;
+    --theme-accent-700: #9E460A;
+    --theme-accent-800: #7C3709;
+    --theme-accent-900: #5E2A08;
+    --theme-accent-950: #351604;
+
+    --theme-neutral-50: #FFF8F2;
+    --theme-neutral-100: #F9EFE4;
+    --theme-neutral-200: #F5E8D8;
+    --theme-neutral-300: #D8CCBF;
+    --theme-neutral-400: #A8978A;
+    --theme-neutral-500: #7E6B5E;
+    --theme-neutral-600: #5A463B;
+    --theme-neutral-700: #3A2418;
+    --theme-neutral-800: #2B1810;
+    --theme-neutral-900: #1C1210;
+    --theme-neutral-950: #120B09;
+}
+
+/* Dark variant: same structure, the canvas and surfaces go dark and the solid shadow turns orange */
+[data-theme="desk-dark"] {
+    --bg-frame: #0E0907;
+    --bg-canvas: #1C1210;
+    --canvas-dots: #2A1C16;
+    --surface: #2B1C15;
+    --surface-muted: #3A2418;
+    --border-strong: #0B0605;
+    --border-dashed: #4A3428;
+    --toon-ink: var(--accent-orange);
+
+    --text-primary: #FFF8F2;
+    --text-secondary: #E5D5C7;
+    --text-muted: #BFA999;
+
+    --chart-text: #E5D5C7;
+    --chart-grid: #4A3428;
+
+    --theme-neutral-400: #BFA999;
+    --theme-neutral-500: #A8978A;
+    --theme-neutral-600: #8C786B;
+    --theme-accent-500: #EFA06E;
+    --theme-accent-600: #E07B3E;
+    --theme-accent-700: #D0651F;
+}

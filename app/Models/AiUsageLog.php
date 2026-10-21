@@ -33,6 +33,7 @@ class AiUsageLog extends Model
             'kind' => AiUsageKind::class,
             'outcome' => AiUsageOutcome::class,
             'cost_usd' => 'decimal:6',
+            'generated_file_types' => 'array',
         ];
     }
 

@@ -73,10 +73,10 @@
         </div>
 
         <div class="rounded-box overflow-hidden border border-base-300 shadow-sm">
-            <div class="flex items-center gap-2 px-3 py-2 bg-[#161b22] text-[#8b949e] text-xs font-mono">
-                <span class="size-2.5 rounded-full bg-[#ff5f56]"></span>
-                <span class="size-2.5 rounded-full bg-[#ffbd2e]"></span>
-                <span class="size-2.5 rounded-full bg-[#27c93f]"></span>
+            <div class="flex items-center gap-2 px-3 py-2 bg-code-bar text-code-muted text-xs font-mono">
+                <span class="size-2.5 rounded-full bg-code-dot-red"></span>
+                <span class="size-2.5 rounded-full bg-code-dot-yellow"></span>
+                <span class="size-2.5 rounded-full bg-code-dot-green"></span>
                 <span class="ml-2">nakama-ai — usage.log</span>
                 <span class="ml-auto">{{ $this->lines->count() }} baris (maks {{ \App\Livewire\Tech\AiMonitor::LINE_LIMIT }})@if ($live) · live @endif</span>
             </div>
@@ -86,21 +86,21 @@
                 x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight);
                     Livewire.hook('commit', ({ succeed }) => succeed(() => queueMicrotask(() => { if (follow) $el.scrollTop = $el.scrollHeight })))"
                 x-on:scroll.debounce.100ms="follow = $el.scrollTop + $el.clientHeight >= $el.scrollHeight - 20"
-                class="h-[60vh] overflow-auto bg-[#0d1117] text-[#c9d1d9] font-mono text-xs leading-relaxed p-3">
+                class="h-[60vh] overflow-auto bg-code-bg text-code-fg font-mono text-xs leading-relaxed p-3">
                 @forelse ($this->lines as $line)
                     @php
                         $outcomeClass = match ($line->outcome) {
-                            \App\Enums\AiUsageOutcome::Ok => 'text-[#3fb950]',
-                            \App\Enums\AiUsageOutcome::Error => 'text-[#f85149]',
-                            \App\Enums\AiUsageOutcome::Denied => 'text-[#d29922]',
-                            \App\Enums\AiUsageOutcome::Cancelled => 'text-[#8b949e]',
+                            \App\Enums\AiUsageOutcome::Ok => 'text-code-ok',
+                            \App\Enums\AiUsageOutcome::Error => 'text-code-error',
+                            \App\Enums\AiUsageOutcome::Denied => 'text-code-warn',
+                            \App\Enums\AiUsageOutcome::Cancelled => 'text-code-muted',
                         };
                     @endphp
-                    <div class="whitespace-pre hover:bg-white/5" wire:key="line-{{ $line->id }}"><span class="text-[#8b949e]">[{{ $line->created_at->format('Y-m-d H:i:s') }}]</span> <span class="{{ $outcomeClass }}">{{ str_pad(strtoupper($line->outcome->value), 9) }}</span> <span class="text-[#79c0ff]">{{ str_pad($line->kind === \App\Enums\AiUsageKind::DataPlan ? 'plan' : 'chat', 4) }}</span> user=<span class="text-[#d2a8ff]">{{ $line->user_name ?? '-' }}</span> ({{ $line->department ?? '-' }})@if ($line->model) model={{ $line->model }}@endif @if ($line->outcome === \App\Enums\AiUsageOutcome::Ok) in={{ $fmt($line->prompt_tokens) }} out={{ $fmt($line->output_tokens) }} total=<span class="text-white">{{ $fmt($line->total_tokens) }}</span>@endif @if ($line->error_code) code=<span class="{{ $outcomeClass }}">{{ $line->error_code }}</span>@endif @if ($line->first_token_ms !== null) ttft={{ $fmt($line->first_token_ms) }}ms @endif @if ($line->duration_ms !== null) dur={{ number_format($line->duration_ms / 1000, 1) }}s @endif @if ($line->cost_usd !== null) <span class="text-[#e3b341]">{{ $usd($line->cost_usd) }}</span>@endif</div>
+                    <div class="whitespace-pre hover:bg-code-fg/5" wire:key="line-{{ $line->id }}"><span class="text-code-muted">[{{ $line->created_at->format('Y-m-d H:i:s') }}]</span> <span class="{{ $outcomeClass }}">{{ str_pad(strtoupper($line->outcome->value), 9) }}</span> <span class="text-code-number">{{ str_pad($line->kind === \App\Enums\AiUsageKind::DataPlan ? 'plan' : 'chat', 4) }}</span> user=<span class="text-code-keyword">{{ $line->user_name ?? '-' }}</span> ({{ $line->department ?? '-' }})@if ($line->model) model={{ $line->model }}@endif @if ($line->outcome === \App\Enums\AiUsageOutcome::Ok) in={{ $fmt($line->prompt_tokens) }} out={{ $fmt($line->output_tokens) }} total=<span class="text-code-strong">{{ $fmt($line->total_tokens) }}</span>@endif @if ($line->generated_file_types) files=<span class="text-code-ok">{{ implode(',', $line->generated_file_types) }}</span> @endif@if ($line->error_code) code=<span class="{{ $outcomeClass }}">{{ $line->error_code }}</span>@endif @if ($line->first_token_ms !== null) ttft={{ $fmt($line->first_token_ms) }}ms @endif @if ($line->duration_ms !== null) dur={{ number_format($line->duration_ms / 1000, 1) }}s @endif @if ($line->cost_usd !== null) <span class="text-code-highlight">{{ $usd($line->cost_usd) }}</span>@endif</div>
                 @empty
-                    <div class="text-[#8b949e]">$ belum ada log yang cocok dengan filter.</div>
+                    <div class="text-code-muted">$ belum ada log yang cocok dengan filter.</div>
                 @endforelse
-                <div class="text-[#3fb950]">$ <span class="animate-pulse">▌</span></div>
+                <div class="text-code-ok">$ <span class="animate-pulse">▌</span></div>
             </div>
         </div>
     @else

@@ -12,9 +12,10 @@
         {{-- ─── Main Content Area ───────────────────────────────── --}}
         <div class="drawer-content flex min-w-0 flex-col">
 
+
             {{-- Mobile Top Bar --}}
             <div
-                class="border-base-300/80 bg-base-100 sticky -top-10 z-20 flex h-14 items-center gap-3 border-b border-dashed px-4 lg:hidden">
+                class="app-topbar border-base-300/80 bg-base-100 sticky -top-10 z-20 flex h-14 items-center gap-3 border-b border-dashed px-4 lg:hidden">
                 <label for="main-drawer" aria-label="Open sidebar" class="btn btn-sm btn-square btn-ghost drawer-button">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         class="size-5 stroke-current">
@@ -74,7 +75,7 @@
 
             {{-- Desktop Top Navbar --}}
             <div
-                class="border-base-300/80 bg-base-200 sticky top-0 z-20 hidden h-16 items-center justify-between border-b border-dashed px-6 lg:flex lg:rounded-tl-2xl">
+                class="app-topbar border-base-300/80 bg-base-200 sticky top-0 z-20 hidden h-16 items-center justify-between border-b border-dashed px-6 lg:flex lg:rounded-tl-2xl">
                 <div class="flex items-center gap-3">
                     <button type="button" @click="sidebarCollapsed = !sidebarCollapsed"
                         aria-label="Toggle sidebar"
@@ -150,6 +151,19 @@
 
             {{-- Page Content --}}
             <main class="min-w-0 flex-1 p-4 lg:p-6">
+                {{-- Floating chips at the bottom of the canvas (behind the content, so they only show on short pages); only with the Nakama Desk theme (resources/css/themes/desk.css) --}}
+                <div class="desk-decor" aria-hidden="true">
+                    @foreach ([
+                        ['o-user-group', 'Kolaborasi', 'bottom:8%;right:5%;--d:6.5s;rotate:2deg'],
+                        ['o-sparkles', 'Kerja Cerdas', 'bottom:5%;left:3%;--d:9s;rotate:-3deg'],
+                        ['o-light-bulb', 'Ide Perbaikan', 'bottom:3%;left:42%;--d:7.5s;rotate:3deg'],
+                    ] as [$icon, $label, $position])
+                        <span class="desk-decor-chip" style="{{ $position }}">
+                            <x-icon :name="$icon" class="w-4 h-4" /> {{ $label }}
+                        </span>
+                    @endforeach
+                </div>
+
                 {{ $slot }}
             </main>
         </div>
@@ -159,24 +173,23 @@
             <label for="main-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
 
             <aside
-                class="sticky top-0 bottom-0 relative flex h-dvh w-64 min-w-64 flex-col border-e border-white/10 bg-[#0d2a4f] text-white/90 transition-[width,min-width] duration-200"
+                class="app-sidebar sticky top-0 bottom-0 relative flex h-dvh w-64 min-w-64 flex-col border-e text-sidebar-fg/90 transition-[width,min-width] duration-200"
                 :class="sidebarCollapsed && !sidebarHovered ? 'lg:w-[76px] lg:min-w-[76px]' : 'lg:w-64 lg:min-w-64'"
-                @mouseenter="sidebarCollapsed && (sidebarHovered = true)" @mouseleave="sidebarHovered = false"
-                style='background-image:url("data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; width=&apos;64&apos; height=&apos;111&apos; viewBox=&apos;0 0 64 111&apos;%3E%3Cpath fill=&apos;none&apos; stroke=&apos;%23FFC226&apos; stroke-opacity=&apos;0.18&apos; stroke-width=&apos;1&apos; d=&apos;M32 0 L64 18.5 L64 55.5 L32 74 L0 55.5 L0 18.5 Z M32 37 L64 55.5 L64 92.5 L32 111 L0 92.5 L0 55.5 Z&apos;/%3E%3C/svg%3E"), linear-gradient(to top, #071730 0%, #0d2a4f 45%, #1c4d85 100%); background-repeat: repeat, no-repeat; background-size: auto, 100% 100%;'>
+                @mouseenter="sidebarCollapsed && (sidebarHovered = true)" @mouseleave="sidebarHovered = false">
 
                 {{-- Header / Brand --}}
-                <div class="flex flex-col shrink-0 gap-2 overflow-hidden border-b border-white/10 px-5 py-4"
+                <div class="flex flex-col shrink-0 gap-2 overflow-hidden border-b border-sidebar-fg/10 px-5 py-4"
                     :class="sidebarCollapsed && !sidebarHovered && 'lg:items-center lg:px-2'">
                     <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-3 overflow-hidden">
                         <img src="{{ asset('smartid.png') }}" alt="SmartID"
                             class="size-11 shrink-0 rounded-lg object-contain">
                         <span class="flex flex-col justify-center gap-1 leading-tight"
                             :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
-                            <span class="text-base font-bold whitespace-nowrap text-white">SmartID</span>
+                            <span class="text-base font-bold whitespace-nowrap text-sidebar-fg">SmartID</span>
                             @auth
                                 @if ($sidebarRole = auth()->user()->getRoleNames()->first())
                                     <span
-                                        class="inline-flex w-fit items-center gap-1 rounded-full border border-amber-400/40 bg-linear-to-r from-amber-400/20 via-amber-300/10 to-transparent px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider whitespace-nowrap text-amber-300 shadow-[0_0_8px_-2px_rgba(251,191,36,0.5)]">
+                                        class="inline-flex w-fit items-center gap-1 rounded-full border border-sidebar-accent/40 bg-linear-to-r from-sidebar-accent/20 via-sidebar-accent-soft/10 to-transparent px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider whitespace-nowrap text-sidebar-accent-soft shadow-[0_0_8px_-2px_var(--color-sidebar-accent)]">
                                         {{ $sidebarRole }}
                                     </span>
                                 @endif
@@ -184,7 +197,7 @@
                         </span>
                     </a>
                     <span
-                        class="block w-full text-center text-[9px] font-semibold uppercase tracking-widest whitespace-nowrap text-amber-400/70"
+                        class="block w-full text-center text-[9px] font-semibold uppercase tracking-widest whitespace-nowrap text-sidebar-accent/70"
                         :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
                         Enterprise Resource Planner
                     </span>
@@ -690,7 +703,7 @@
 
                 {{-- Guest Login --}}
                 @guest
-                    <div class="shrink-0 border-t border-white/10 px-4 py-3">
+                    <div class="shrink-0 border-t border-sidebar-fg/10 px-4 py-3">
                         <a href="{{ route('login') }}" title="Login ke Dashboard" class="btn btn-sm btn-primary w-full">
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
@@ -703,12 +716,12 @@
                 @endguest
 
                 {{-- Version & Copyright --}}
-                <div class="shrink-0 border-t border-white/10 px-4 py-3 text-center">
-                    <p class="text-[11px] font-medium text-white/40"
+                <div class="shrink-0 border-t border-sidebar-fg/10 px-4 py-3 text-center">
+                    <p class="text-[11px] font-medium text-sidebar-fg/40"
                         :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
                         SmartID ERP v{{ config('app.version', '1.0.0') }}
                     </p>
-                    <p class="text-[10px] text-white/25"
+                    <p class="text-[10px] text-sidebar-fg/25"
                         :class="sidebarCollapsed && !sidebarHovered && 'lg:hidden'">
                         &copy; {{ now()->year }} SmartID
                     </p>

@@ -31,7 +31,7 @@ class AiMonitor extends Component
      */
     private const LOG_COLUMNS = [
         'id', 'created_at', 'user_name', 'department', 'kind', 'outcome', 'error_code', 'model', 'finish_reason',
-        'prompt_tokens', 'output_tokens', 'total_tokens', 'first_token_ms', 'duration_ms', 'cost_usd',
+        'prompt_tokens', 'output_tokens', 'total_tokens', 'first_token_ms', 'duration_ms', 'cost_usd', 'generated_file_types',
     ];
 
     #[Url]

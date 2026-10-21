@@ -138,6 +138,7 @@ class StreamMessageController extends Controller
         $doneEvent = null;
         $startedAt = hrtime(true);
         $firstTokenMs = null;
+        $generatedFileTypes = [];
 
         yield new StreamedEvent('conversation', ['id' => $conversation->id]);
 
@@ -169,6 +170,7 @@ class StreamMessageController extends Controller
                         'name' => $event->fileName,
                         'mime_type' => $event->fileMimeType,
                     ]);
+                    $generatedFileTypes[] = AiUsageRecorder::fileType($event->fileName, $event->fileMimeType);
 
                     yield new StreamedEvent('file', $file->previewPayload() + ['url' => route('ai-center.files.download', $file)]);
 
@@ -224,6 +226,7 @@ class StreamMessageController extends Controller
                 errorCode: $errorCode,
                 firstTokenMs: $firstTokenMs,
                 durationMs: AiUsageRecorder::elapsedMs($startedAt),
+                generatedFileTypes: $generatedFileTypes,
             );
         }
     }

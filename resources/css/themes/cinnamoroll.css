@@ -1,0 +1,172 @@
+/*
+ * ─── "Cinnamoroll" theme — sky-blue toon ────────────────────────────────────────────────────────────────────────
+ * After Sanrio's Cinnamoroll: a white cloud puppy with a sky-blue outline, pink cheeks and a striped umbrella.
+ * Palette #FBD4E4 (pink) · #D4EDFB (light cyan) · #75C2E6 (sky blue) · #AFDCEE (pale turquoise) · #F0F6C0 (yellow):
+ * cloud-white canvas, pale-turquoise frame, sky-blue outlines with a pink solid shadow, yellow active menu.
+ * The pastels are for surfaces only; text uses a deep navy (#1E3A5F, ~11:1 on white) so it stays easy to read.
+ *
+ * Tokens only: the structure is the shared toon style (themes/toon.css), the daisyUI colours are the "cinnamoroll"
+ * and "cinnamoroll-dark" themes in app.css. Registered as App\Enums\UserTheme::Cinnamoroll.
+ */
+
+[data-theme^="cinnamoroll"] {
+    /* Neutral */
+    --bg-frame: #AFDCEE;
+    --bg-canvas: #FBFDFF;
+    --canvas-dots: #D4EDFB;
+    --surface: #FFFFFF;
+    --surface-muted: #EEF7FD;
+    --border-strong: #5AB0DC;
+    --border-dashed: #CFE6F4;
+    --toon-ink: #F4B6CF;
+
+    /* Text: deep navy, never the pastels */
+    --text-primary: #1E3A5F;
+    --text-secondary: #3A5878;
+    --text-muted: #4F6B85;
+
+    /* Accent: the umbrella's yellow */
+    --accent-soft: #F0F6C0;
+    --accent-soft-deep: #E3EC9A;
+    --text-on-accent: #1E3A5F;
+    --secondary-shadow: #EDA3C2;
+
+    /* Frame (sidebar + top bar) on pale turquoise */
+    --frame-text: #1E3A5F;
+    --frame-text-muted: #3D6585;
+    --frame-hover-bg: rgb(255 255 255 / 0.55);
+    --frame-hover-text: #1E3A5F;
+    --frame-shadow: #5AB0DC;
+    --sidebar-active-bg: #F0F6C0;
+    --sidebar-active-text: #1E3A5F;
+
+    /* Stat tiles: the umbrella stripes */
+    --tile-1: #D4EDFB;
+    --tile-2: #FBD4E4;
+    --tile-3: #F0F6C0;
+    --tile-4: #AFDCEE;
+    --tile-text: #1E3A5F;
+
+    /* Semantic */
+    --success-bg: #D9F5E5;
+    --success-text: #1E6B48;
+    --success-border: #4DAA7A;
+    --error: #C93C6E;
+    --error-bg: #FFE3EE;
+    --warning: #D9A400;
+    --warning-text: #7A5C00;
+    --warning-bg: #FBF8D5;
+    --info: #2A7FB0;
+    --info-bg: #DDF0FB;
+
+    /* App tokens (app.css THEMES): sidebar, code blocks, charts */
+    --color-sidebar-fg: #1E3A5F;
+    --color-sidebar-accent: #2479A6;
+    --color-sidebar-accent-soft: #2F93C6;
+    --sidebar-background-image:
+        radial-gradient(rgb(255 255 255 / 0.6) 1.4px, transparent 1.6px),
+        linear-gradient(to bottom, #BEE3F2, #A6D6EB);
+
+    --color-code-bg: #1E3A5F;
+    --color-code-bar: #24476F;
+    --color-code-fg: #F3F8FC;
+    --color-code-muted: #9BB3C7;
+    --color-code-ok: #9FE3BE;
+    --color-code-error: #FFA9C6;
+    --color-code-warn: #F0F6C0;
+    --color-code-keyword: #FBD4E4;
+    --color-code-number: #AFDCEE;
+    --color-code-highlight: #F5E27A;
+    --color-code-strong: #FFFFFF;
+
+    --chart-text: #435E77;
+    --chart-grid: #E3F2FC;
+    --chart-on-bar: #1E3A5F;
+    --chart-1: #4FADDB;
+    --chart-2: #F4A7C6;
+    --chart-3: #E3D45A;
+    --chart-4: #C93C6E;
+    --chart-5: #4DAA7A;
+    --chart-6: #75C2E6;
+    --chart-7: #FBD4E4;
+    --chart-8: #AFDCEE;
+    --chart-9: #F7B58C;
+    --chart-10: #2479A6;
+    --chart-11: #9A8FD9;
+    --chart-12: #F0F6C0;
+    --chart-13: #2E8B57;
+
+    /* Hard-coded indigo/blue → the sky-blue family, gray/zinc/slate/neutral → soft blue greys */
+    --theme-accent-50: #F2F9FE;
+    --theme-accent-100: #E3F2FC;
+    --theme-accent-200: #C8E6F7;
+    --theme-accent-300: #A3D5F0;
+    --theme-accent-400: #75C2E6;
+    --theme-accent-500: #4FADDB;
+    --theme-accent-600: #2F93C6;
+    --theme-accent-700: #2479A6;
+    --theme-accent-800: #1F6086;
+    --theme-accent-900: #1C4C69;
+    --theme-accent-950: #122F42;
+
+    --theme-neutral-50: #FBFDFF;
+    --theme-neutral-100: #F3F8FC;
+    --theme-neutral-200: #E6F0F7;
+    --theme-neutral-300: #CFDEEA;
+    --theme-neutral-400: #9BB3C7;
+    --theme-neutral-500: #5E7A93;
+    --theme-neutral-600: #435E77;
+    --theme-neutral-700: #31495F;
+    --theme-neutral-800: #1E3A5F;
+    --theme-neutral-900: #152A45;
+    --theme-neutral-950: #0C1A2C;
+}
+
+/* The primary colour is a pastel meant for buttons (with navy text); as a text or link colour on white it would be
+   too light (~2:1), so text and links use a deeper sky blue (~5:1) instead */
+[data-theme="cinnamoroll"] :is(.text-primary, .link-primary, .link-hover.text-primary) {
+    color: #2479A6;
+}
+
+/* The sidebar's dot pattern needs its own tile size */
+[data-theme^="cinnamoroll"] .app-sidebar {
+    background-size: 16px 16px, 100% 100%;
+}
+
+/* Dark variant: a night sky — navy frame and canvas, the same sky-blue outline and pink shadow */
+[data-theme="cinnamoroll-dark"] {
+    --bg-frame: #12263F;
+    --bg-canvas: #1A3150;
+    --canvas-dots: #234065;
+    --surface: #22406A;
+    --surface-muted: #2B4D7A;
+    --border-strong: #75C2E6;
+    --border-dashed: #34587F;
+
+    --text-primary: #F3F8FC;
+    --text-secondary: #D4E6F3;
+    --text-muted: #A9C3D8;
+
+    --frame-text: #F3F8FC;
+    --frame-text-muted: #9FC2DC;
+    --frame-hover-bg: rgb(175 220 238 / 0.15);
+    --frame-hover-text: #AFDCEE;
+    --frame-shadow: #F4B6CF;
+
+    --color-sidebar-fg: #F3F8FC;
+    --color-sidebar-accent: #FBD4E4;
+    --color-sidebar-accent-soft: #F0F6C0;
+    --sidebar-background-image:
+        radial-gradient(rgb(175 220 238 / 0.16) 1.4px, transparent 1.6px),
+        linear-gradient(to bottom, #173058, #0F2038);
+
+    --chart-text: #D4E6F3;
+    --chart-grid: #2B4D7A;
+
+    --theme-neutral-400: #A9C3D8;
+    --theme-neutral-500: #9BB3C7;
+    --theme-neutral-600: #7F9AB2;
+    --theme-accent-500: #A3D5F0;
+    --theme-accent-600: #75C2E6;
+    --theme-accent-700: #4FADDB;
+}

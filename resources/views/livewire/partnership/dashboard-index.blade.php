@@ -414,27 +414,27 @@ new class {};
     <script>
     (function () {
         const COLORS = {
-            indigo:  '#6366f1',
-            emerald: '#10b981',
-            amber:   '#f59e0b',
-            red:     '#ef4444',
-            sky:     '#0ea5e9',
-            violet:  '#8b5cf6',
-            pink:    '#ec4899',
-            teal:    '#14b8a6',
+            indigo:  chartTheme().color(1),
+            emerald: chartTheme().color(2),
+            amber:   chartTheme().color(3),
+            red:     chartTheme().color(4),
+            sky:     chartTheme().color(5),
+            violet:  chartTheme().color(6),
+            pink:    chartTheme().color(7),
+            teal:    chartTheme().color(8),
         };
         const PALETTE = Object.values(COLORS);
 
-        const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
+        const isDark = () => document.documentElement.classList.contains('dark')
             || document.documentElement.classList.contains('dark');
 
         // Text color that's readable on the card background in both themes
-        const textColor = () => isDark() ? '#d1d5db' : '#374151';
+        const textColor = () => chartTheme().text;
 
         const baseOpts = () => ({
             chart: { fontFamily: 'inherit', toolbar: { show: false }, background: 'transparent' },
             theme: { mode: isDark() ? 'dark' : 'light' },
-            grid: { borderColor: isDark() ? '#374151' : '#e5e7eb', strokeDashArray: 4 },
+            grid: { borderColor: chartTheme().grid, strokeDashArray: 4 },
             tooltip: { theme: isDark() ? 'dark' : 'light' },
         });
 
@@ -487,7 +487,7 @@ new class {};
                 dataLabels: {
                     enabled: true,
                     formatter: v => v > 0 ? v : '',
-                    style: { fontSize: '11px', fontWeight: 600, colors: ['#fff'] },
+                    style: { fontSize: '11px', fontWeight: 600, colors: [chartTheme().onBar] },
                     dropShadow: { enabled: false },
                 },
                 legend: { ...legendOpts() },
@@ -508,7 +508,7 @@ new class {};
                 dataLabels: {
                     enabled: true,
                     formatter: rupiahShort,
-                    style: { fontSize: '11px', fontWeight: 600, colors: ['#fff'] },
+                    style: { fontSize: '11px', fontWeight: 600, colors: [chartTheme().onBar] },
                     dropShadow: { enabled: false },
                 },
                 legend: { ...legendOpts() },
@@ -544,7 +544,7 @@ new class {};
                     dataLabels: {
                         enabled: true,
                         formatter: function (v, w) { return d.sumber_percents[w.seriesIndex] + '%'; },
-                        style: { fontSize: '12px', fontWeight: 600, colors: ['#fff'] },
+                        style: { fontSize: '12px', fontWeight: 600, colors: [chartTheme().onBar] },
                         dropShadow: { enabled: false },
                     },
                     tooltip: {
@@ -576,7 +576,7 @@ new class {};
                     dataLabels: {
                         enabled: true,
                         formatter: function (v, w) { return prodShort[w.dataPointIndex] + '  ' + v + 'x'; },
-                        style: { fontSize: '11px', fontWeight: 600, colors: ['#fff'] },
+                        style: { fontSize: '11px', fontWeight: 600, colors: [chartTheme().onBar] },
                         textAnchor: 'start',
                         offsetX: 4,
                         dropShadow: { enabled: false },
