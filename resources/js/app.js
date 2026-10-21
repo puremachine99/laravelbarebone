@@ -283,7 +283,18 @@ window.aiCenterChat = function ({ streamUrl, maxChars, uploadUrl, deleteUrl, max
                     signal: this.controller.signal,
                 });
 
-                if (!response.ok) throw new Error('stream failed: ' + response.status);
+                if (!response.ok) {
+                    throw Object.assign(new Error('stream failed: ' + response.status), {
+                        friendly: {
+                            401: 'Sesi login Anda sudah berakhir. Muat ulang halaman lalu masuk kembali.',
+                            403: 'Anda tidak memiliki akses ke AI Center.',
+                            404: 'Percakapan tidak ditemukan. Muat ulang halaman.',
+                            419: 'Sesi halaman sudah kedaluwarsa. Muat ulang halaman lalu coba lagi.',
+                            422: 'Pesan tidak valid. Periksa kembali isi pesan Anda.',
+                            429: 'Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.',
+                        }[response.status] ?? `Server sedang bermasalah (HTTP ${response.status}). Coba lagi.`,
+                    });
+                }
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
@@ -315,7 +326,7 @@ window.aiCenterChat = function ({ streamUrl, maxChars, uploadUrl, deleteUrl, max
                             this.pending.generated.push(data);
                             this.scrollToBottom();
                         } else if (name === 'error') {
-                            if (['rate_limited', 'input_too_long', 'file_invalid'].includes(data.code)) {
+                            if (['rate_limited', 'input_too_long', 'file_invalid', 'input_sensitive'].includes(data.code)) {
                                 refused = true;
                                 fileGone = data.code === 'file_invalid';
                                 this.errorMessage = data.message;
@@ -327,7 +338,10 @@ window.aiCenterChat = function ({ streamUrl, maxChars, uploadUrl, deleteUrl, max
                 }
             } catch (e) {
                 aborted = e.name === 'AbortError';
-                if (!aborted) this.pending.error = 'Terjadi gangguan pada layanan AI.';
+                if (!aborted) {
+                    this.pending.error = e.friendly
+                        ?? (e instanceof TypeError ? 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.' : 'Terjadi gangguan pada layanan AI.');
+                }
             } finally {
                 this.controller = null;
 

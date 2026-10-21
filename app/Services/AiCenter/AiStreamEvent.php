@@ -80,9 +80,12 @@ final readonly class AiStreamEvent
         return new self('done', usage: $usage, model: $model, finishReason: $finishReason);
     }
 
-    public static function error(AiErrorCode $code): self
+    /**
+     * @param  ?string  $detail  Extra context for the user's message (see AiErrorCode::message()).
+     */
+    public static function error(AiErrorCode $code, ?string $detail = null): self
     {
-        return new self('error', errorCode: $code);
+        return new self('error', text: (string) $detail, errorCode: $code);
     }
 
     public function isDelta(): bool
@@ -108,7 +111,7 @@ final readonly class AiStreamEvent
         return new StreamedEvent($this->type, match ($this->type) {
             'delta' => ['text' => $this->text],
             'status' => ['phase' => $this->phase, 'label' => $this->text],
-            'error' => ['code' => $this->errorCode->value, 'message' => $this->errorCode->message()],
+            'error' => ['code' => $this->errorCode->value, 'message' => $this->errorCode->message($this->text ?: null)],
             default => ['finish_reason' => $this->finishReason],
         });
     }

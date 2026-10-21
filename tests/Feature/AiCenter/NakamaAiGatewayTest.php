@@ -8,6 +8,7 @@ use App\Services\AiCenter\NakamaAiGateway;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
 
 beforeEach(function () {
@@ -93,8 +94,8 @@ test('it sends the key as a header and nothing sensitive in the body, with every
     });
 });
 
-test('http and in-stream errors are mapped to the standard error codes', function (int $status, AiErrorCode $expected) {
-    Http::fake(['*/v1/chat' => Http::response(['error' => ['code' => 'x', 'message' => 'detail']], $status)]);
+test('http and in-stream errors are mapped to the standard error codes', function (int $status, AiErrorCode $expected, string $serviceCode = 'x') {
+    Http::fake(['*/v1/chat' => Http::response(['error' => ['code' => $serviceCode, 'message' => 'detail']], $status)]);
 
     $events = collectNakama(nakamaRequest());
 
@@ -103,10 +104,22 @@ test('http and in-stream errors are mapped to the standard error codes', functio
 })->with([
     [429, AiErrorCode::UpstreamQuota],
     [400, AiErrorCode::UpstreamBlocked],
-    [401, AiErrorCode::UpstreamError],
-    [409, AiErrorCode::UpstreamError],
-    [503, AiErrorCode::UpstreamError],
+    [401, AiErrorCode::UpstreamUnauthorized],
+    [404, AiErrorCode::ConversationNotFound, 'conversation_not_found'],
+    [409, AiErrorCode::ConversationBusy, 'conversation_busy'],
+    [422, AiErrorCode::InputSensitive, 'sensitive_data_detected'],
+    [422, AiErrorCode::FileSensitive, 'face_detected'],
+    [422, AiErrorCode::InputInvalid, 'validation_error'],
+    [500, AiErrorCode::UpstreamError],
+    [502, AiErrorCode::UpstreamUnavailable],
+    [503, AiErrorCode::UpstreamUnavailable],
 ]);
+
+test('sensitive data reported inside the stream is not a generic error', function () {
+    Http::fake(['*/v1/chat' => Http::response(sse([['error', ['code' => 'sensitive_data_detected', 'message' => 'x', 'status' => 422]]]))]);
+
+    expect(collectNakama(nakamaRequest())[0]['code'])->toBe('input_sensitive');
+});
 
 test('an error event inside the stream ends it with the mapped code', function () {
     Http::fake(['*/v1/chat' => Http::response(sse([['error', ['code' => 'rate_limited', 'message' => 'x', 'status' => 429]]]))]);
@@ -119,7 +132,8 @@ test('a stream cut before the done event is an error', function () {
 
     $events = collectNakama(nakamaRequest());
 
-    expect(array_column($events, 'type'))->toBe(['delta', 'error']);
+    expect(array_column($events, 'type'))->toBe(['delta', 'error'])
+        ->and($events[1]['code'])->toBe('upstream_interrupted');
 });
 
 test('a connection failure is a timeout error and never exposes the key', function () {
@@ -214,4 +228,28 @@ test('thinking and tool calls become progress statuses, repeated ones collapsed'
         ->toBe(['thinking', 'data', 'thinking', 'document'])
         ->and($events->where('type', 'status')->last()['text'])->toBe('Menyusun file Excel…')
         ->and($events->last()['type'])->toBe('done');
+});
+
+test('sensitive data shows the service message and is logged as a warning without the values', function () {
+    Log::spy();
+    Http::fake(['*/v1/chat' => Http::response(['error' => [
+        'code' => 'sensitive_data_detected',
+        'message' => 'Input mengandung data sensitif (NIK/KTP). Hapus atau samarkan data tersebut, lalu kirim ulang.',
+        'details' => ['field' => 'message', 'findings' => [['type' => 'nik', 'label' => 'NIK/KTP', 'preview' => '1101******0005']], 'total' => 1],
+    ]], 422)]);
+
+    $data = collectNakama(nakamaRequest())[0]['event']->toStreamedEvent()->data;
+
+    expect($data['code'])->toBe('input_sensitive')
+        ->and($data['message'])->toBe('Input mengandung data sensitif (NIK/KTP). Hapus atau samarkan data tersebut, lalu kirim ulang.');
+
+    Log::shouldHaveReceived('warning')->once()->withArgs(fn (string $message, array $context) => str_contains($message, 'sensitive data')
+        && $context === ['user_id' => 7, 'conversation_id' => 3, 'field' => 'message', 'types' => ['nik'], 'total' => 1]);
+});
+
+test('sensitive data without a service message falls back to the generic text', function () {
+    Http::fake(['*/v1/chat' => Http::response(['error' => ['code' => 'sensitive_data_detected']], 422)]);
+
+    expect(collectNakama(nakamaRequest())[0]['event']->toStreamedEvent()->data['message'])
+        ->toBe(AiErrorCode::InputSensitive->message());
 });

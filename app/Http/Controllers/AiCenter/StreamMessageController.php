@@ -192,6 +192,10 @@ class StreamMessageController extends Controller
                 } else {
                     $status = AiMessageStatus::Error;
                     $errorCode = $event->errorCode;
+
+                    if ($errorCode->isRejectedBeforeSending()) {
+                        $this->discardRefusedTurn($conversation, $reply);
+                    }
                 }
 
                 yield $event->toStreamedEvent();
@@ -217,9 +221,10 @@ class StreamMessageController extends Controller
             app(AiUsageRecorder::class)->record(
                 $user,
                 AiUsageKind::Chat,
-                match ($status) {
-                    AiMessageStatus::Complete => AiUsageOutcome::Ok,
-                    AiMessageStatus::Error => AiUsageOutcome::Error,
+                match (true) {
+                    $errorCode?->isRejectedBeforeSending() === true => AiUsageOutcome::Denied,
+                    $status === AiMessageStatus::Complete => AiUsageOutcome::Ok,
+                    $status === AiMessageStatus::Error => AiUsageOutcome::Error,
                     default => AiUsageOutcome::Cancelled,
                 },
                 done: $doneEvent,
@@ -228,6 +233,27 @@ class StreamMessageController extends Controller
                 durationMs: AiUsageRecorder::elapsedMs($startedAt),
                 generatedFileTypes: $generatedFileTypes,
             );
+        }
+    }
+
+    /**
+     * The AI service refused the message itself (e.g. it contains a NIK): don't keep it — the browser puts the text
+     * back into the input box to be fixed. Attached files go back to "pending" so they can be sent again.
+     */
+    private function discardRefusedTurn(AiConversation $conversation, AiMessage $reply): void
+    {
+        $userMessage = $conversation->messages()
+            ->where('role', AiMessageRole::User)
+            ->where('id', '<', $reply->id)
+            ->latest('id')
+            ->first();
+
+        $userMessage?->files()->update(['ai_message_id' => null]);
+        $userMessage?->delete();
+        $reply->delete();
+
+        if ($conversation->messages()->doesntExist()) {
+            $conversation->delete();
         }
     }
 }

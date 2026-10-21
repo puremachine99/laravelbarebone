@@ -384,3 +384,17 @@ test('the chat page shows the attach button and the files saved on a conversatio
         ->assertSee('laporan.xlsx')
         ->assertSee(route('ai-center.files.download', $generated));
 });
+
+test('files sent with a message refused as sensitive go back to pending so they can be resent', function () {
+    $me = aiFilesUser();
+    fakeFilesAi(AiErrorCode::InputSensitive);
+    $file = AiFile::factory()->create(['user_id' => $me->id]);
+
+    $this->actingAs($me)
+        ->postJson(route('ai-center.messages.stream'), ['message' => 'NIK 1101082303000005', 'file_ids' => [$file->remote_file_id]])
+        ->streamedContent();
+
+    expect($file->fresh())->not->toBeNull()
+        ->and($file->fresh()->ai_message_id)->toBeNull()
+        ->and(AiMessage::count())->toBe(0);
+});

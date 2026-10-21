@@ -9,6 +9,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Psr\Http\Message\StreamInterface;
 use Throwable;
 
@@ -33,7 +34,7 @@ class NakamaAiGateway implements AiGateway
                 ->post('/v1/chat', $this->payload($request));
 
             if ($response->failed()) {
-                yield AiStreamEvent::error($this->errorCodeFor($response->status(), $this->errorCodeFromBody($response)));
+                yield $this->errorEvent($response->status(), $this->errorFromBody($response), $request);
                 $finished = true;
 
                 return;
@@ -82,7 +83,7 @@ class NakamaAiGateway implements AiGateway
                     case 'error':
                         $finished = true;
 
-                        yield AiStreamEvent::error($this->errorCodeFor((int) ($data['status'] ?? 502), $data['code'] ?? null));
+                        yield $this->errorEvent((int) ($data['status'] ?? 502), $data, $request);
 
                         return;
 
@@ -109,7 +110,7 @@ class NakamaAiGateway implements AiGateway
             // The stream ended without a `done` event: the connection was cut mid-answer.
             $finished = true;
 
-            yield AiStreamEvent::error(AiErrorCode::UpstreamError);
+            yield AiStreamEvent::error(AiErrorCode::UpstreamInterrupted);
         } catch (ConnectionException $e) {
             $finished = true;
 
@@ -154,7 +155,7 @@ class NakamaAiGateway implements AiGateway
         }
 
         if ($response->failed()) {
-            throw new AiFileUploadException($this->uploadErrorCodeFor($response->status(), $this->errorCodeFromBody($response)));
+            throw new AiFileUploadException($this->uploadErrorCodeFor($response->status(), $this->errorFromBody($response)['code'] ?? null));
         }
 
         return array_map(fn (array $file) => [
@@ -176,7 +177,7 @@ class NakamaAiGateway implements AiGateway
         }
 
         if ($response->failed()) {
-            throw new AiFileUploadException($this->uploadErrorCodeFor($response->status(), $this->errorCodeFromBody($response)));
+            throw new AiFileUploadException($this->uploadErrorCodeFor($response->status(), $this->errorFromBody($response)['code'] ?? null));
         }
 
         return [
@@ -327,9 +328,41 @@ class NakamaAiGateway implements AiGateway
         }
     }
 
-    private function errorCodeFromBody(Response $response): ?string
+    /**
+     * The `error` object of a failed response: `{code, message, details}`.
+     *
+     * @return array<string, mixed>
+     */
+    private function errorFromBody(Response $response): array
     {
-        return json_decode((string) $response->toPsrResponse()->getBody(), true)['error']['code'] ?? null;
+        $error = json_decode((string) $response->toPsrResponse()->getBody(), true)['error'] ?? [];
+
+        return is_array($error) ? $error : [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $error  The service's error object (HTTP body or in-stream `error` event).
+     */
+    private function errorEvent(int $status, array $error, AiChatRequest $request): AiStreamEvent
+    {
+        $code = $this->errorCodeFor($status, $error['code'] ?? null);
+
+        if ($code !== AiErrorCode::InputSensitive) {
+            return AiStreamEvent::error($code);
+        }
+
+        // Only the kinds of data found are logged — never the values, not even the masked previews.
+        Log::warning('Nakama AI refused a message containing sensitive data', [
+            'user_id' => $request->userId,
+            'conversation_id' => $request->conversationId,
+            'field' => $error['details']['field'] ?? null,
+            'types' => collect($error['details']['findings'] ?? [])->pluck('type')->filter()->unique()->values()->all(),
+            'total' => $error['details']['total'] ?? null,
+        ]);
+
+        $message = is_string($error['message'] ?? null) ? trim($error['message']) : '';
+
+        return AiStreamEvent::error($code, $message !== '' ? Str::limit($message, 300) : null);
     }
 
     private function uploadErrorCodeFor(int $status, ?string $serviceCode): AiErrorCode
@@ -345,7 +378,7 @@ class NakamaAiGateway implements AiGateway
     }
 
     /**
-     * 401/404/409/5xx are our own configuration or availability problems, not something the user can act on.
+     * Maps a `/v1/chat` failure (HTTP status or in-stream `error` event) to the most specific code we know.
      */
     private function errorCodeFor(int $status, ?string $serviceCode): AiErrorCode
     {
@@ -353,6 +386,13 @@ class NakamaAiGateway implements AiGateway
             $status === 429 => AiErrorCode::UpstreamQuota,
             $status === 408, $status === 504 => AiErrorCode::UpstreamTimeout,
             $status === 400, $serviceCode === 'blocked' => AiErrorCode::UpstreamBlocked,
+            $serviceCode === 'sensitive_data_detected' => AiErrorCode::InputSensitive,
+            in_array($serviceCode, ['forbidden_file', 'face_detected'], true) => AiErrorCode::FileSensitive,
+            $status === 422 => AiErrorCode::InputInvalid,
+            $status === 409 => AiErrorCode::ConversationBusy,
+            $status === 404 => AiErrorCode::ConversationNotFound,
+            $status === 401, $status === 403 => AiErrorCode::UpstreamUnauthorized,
+            $status === 502, $status === 503 => AiErrorCode::UpstreamUnavailable,
             default => AiErrorCode::UpstreamError,
         };
     }

@@ -220,3 +220,30 @@ test('an unknown quick action is rejected', function () {
         ->assertUnprocessable()
         ->assertJsonValidationErrors('quick_action');
 });
+
+test('a message the AI service refuses as sensitive is not kept', function () {
+    $me = aiStreamUser();
+    fakeAi(failWith: AiErrorCode::InputSensitive);
+
+    $content = $this->actingAs($me)
+        ->postJson(route('ai-center.messages.stream'), ['message' => '1101082303000005 ini ktp siapa'])
+        ->streamedContent();
+
+    expect($content)->toContain('event: error')->toContain('input_sensitive')
+        ->and(AiConversation::count())->toBe(0)
+        ->and(AiMessage::count())->toBe(0);
+});
+
+test('a sensitive refusal in an existing conversation keeps the earlier messages', function () {
+    $me = aiStreamUser();
+    $conversation = AiConversation::factory()->for($me)->create();
+    AiMessage::factory()->count(2)->for($conversation, 'conversation')->create();
+    fakeAi(failWith: AiErrorCode::InputSensitive);
+
+    $this->actingAs($me)
+        ->postJson(route('ai-center.messages.stream'), ['conversation_id' => $conversation->id, 'message' => 'NIK 1101082303000005'])
+        ->streamedContent();
+
+    expect($conversation->messages()->count())->toBe(2)
+        ->and(AiMessage::where('content', 'like', '%1101082303000005%')->exists())->toBeFalse();
+});
