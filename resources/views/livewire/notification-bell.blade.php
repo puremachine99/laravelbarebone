@@ -53,7 +53,7 @@ $receiveBroadcast = function () {
                     <div class="flex-1 min-w-0">
                         <div class="font-semibold text-xs text-base-content truncate">{{ $notification->data['title'] ?? __('Notifikasi') }}</div>
                         <div class="text-xs text-base-content/70 line-clamp-2">{{ $notification->data['message'] ?? '' }}</div>
-                        <div class="text-[10px] text-base-content/40 mt-0.5">{{ $notification->created_at->diffForHumans() }}</div>
+                        <div class="text-[11px] text-base-content/40 mt-0.5">{{ $notification->created_at->diffForHumans() }}</div>
                     </div>
                 </button>
             @empty

@@ -7,15 +7,16 @@
  {{ filled($title ?? null) ? $title.' -'.config('app.name','Laravel') : config('app.name','Laravel') }}
 </title>
 
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="{{ asset('smartid.png') }}" type="image/png">
+<link rel="apple-touch-icon" href="{{ asset('smartid.png') }}">
 
 {{--
     Theme (Default / Espresso) and appearance (light / dark / system). Logged-in users' choice is stored on their
     account (users.theme, users.appearance) and saved through profile.appearance.update; guests keep it in localStorage.
     The `.dark` class (Tailwind `dark:`) is set for both dark variants, so check that class — not data-theme — for
     "is dark".
+    Pass ['lockTheme' => true] when including this partial (the auth pages do) to always show the default light look,
+    whatever the user or the system prefers.
 --}}
 <script>
     window.themePreferences = @js(auth()->check() ? [
@@ -25,7 +26,13 @@
         'toonThemes' => \App\Enums\UserTheme::toonValues(),
     ] : null);
 
+    window.themeLocked = @js($lockTheme ?? false);
+
     function currentThemePreferences() {
+        if (window.themeLocked) {
+            return { theme: 'default', appearance: 'light', saveUrl: null, toonThemes: [] };
+        }
+
         if (window.themePreferences) {
             return window.themePreferences;
         }

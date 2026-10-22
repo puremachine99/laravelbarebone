@@ -119,7 +119,7 @@ new class extends Component {
                     <tr>
                         <th class="sticky left-0 bg-base-100 text-left text-xs font-semibold text-base-content/50 pr-3 z-10">{{ __('Metric') }}</th>
                         @foreach ($this->heatmap['days'] as $day)
-                            <th class="p-0 text-center text-[10px] text-base-content/40 font-normal w-5">{{ $day }}</th>
+                            <th class="p-0 text-center text-[11px] text-base-content/40 font-normal w-5">{{ $day }}</th>
                         @endforeach
                         <th class="text-xs font-semibold text-base-content/50 pl-3 text-right">{{ __('Realisasi / Target') }}</th>
                     </tr>
@@ -142,7 +142,7 @@ new class extends Component {
                                     @php
                                         $targetDecimals = $row['daily_target'] == floor($row['daily_target']) ? 0 : 1;
                                     @endphp
-                                    <div class="tooltip tooltip-top z-20 w-5 h-5 rounded flex items-center justify-center text-[9px] font-semibold leading-none cursor-pointer {{ $tier }} {{ $textTier }}"
+                                    <div class="tooltip tooltip-top z-20 w-5 h-5 rounded flex items-center justify-center text-[11px] font-semibold leading-none cursor-pointer {{ $tier }} {{ $textTier }}"
                                         data-tip="{{ __(':day: :count/:target (:percent%)', ['day' => $day, 'count' => $data['count'], 'target' => number_format($row['daily_target'], $targetDecimals), 'percent' => $data['percent']]) }}">
                                         {{ $data['count'] > 0 ? $data['count'] : '' }}
                                     </div>

@@ -246,7 +246,7 @@
                                                             <td class="text-sm font-medium text-base-content/90">
                                                                 {{ $resource['label'] }}
                                                                 @if ($resource['actions'] === ['view'])
-                                                                    <span class="text-[10px] font-normal text-base-content/40 ms-1">page access only</span>
+                                                                    <span class="text-[11px] font-normal text-base-content/40 ms-1">page access only</span>
                                                                 @endif
                                                             </td>
                                                             @foreach ($groupActions as $action)

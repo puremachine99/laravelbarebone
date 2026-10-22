@@ -853,7 +853,7 @@ new class {};
                                     <div>
                                         {{ $card->pitching_date ? $card->pitching_date->format('d M Y') : ($card->created_at ? $card->created_at->format('d M Y') : date('d M Y')) }}
                                     </div>
-                                    <div class="text-[10px] text-base-content/50 font-mono">
+                                    <div class="text-[11px] text-base-content/50 font-mono">
                                         {{ $card->communication_method ?: 'Online' }}</div>
                                 </div>
                             </td>

@@ -81,7 +81,7 @@
                             <span class="text-sm font-semibold text-base-content truncate">
                                 {{ $item->title ?? __('Percakapan baru') }}
                             </span>
-                            <span class="text-[10px] shrink-0 text-base-content/40">
+                            <span class="text-[11px] shrink-0 text-base-content/40">
                                 {{ $this->lastMessageLabel($item->last_message_at) }}
                             </span>
                         </div>
@@ -266,7 +266,7 @@
 
                                     @if ($message->status === \App\Enums\AiMessageStatus::Complete)
                                         <div class="flex items-center gap-1 ps-1 text-base-content/50">
-                                            <span class="text-[10px] flex items-center gap-1 me-1">
+                                            <span class="text-[11px] flex items-center gap-1 me-1">
                                                 <x-icon name="o-information-circle" class="w-3 h-3" />
                                                 {{ __('Jawaban AI, perlu dicek') }}
                                             </span>
@@ -414,7 +414,7 @@
                         class="textarea textarea-bordered textarea-sm w-full bg-base-200/60 resize-none leading-snug py-2 max-h-40 overflow-y-auto"
                         autocomplete="off"
                     ></textarea>
-                    <div class="text-[10px] text-right mt-0.5"
+                    <div class="text-[11px] text-right mt-0.5"
                         x-bind:class="overLimit ? 'text-error font-semibold' : 'text-base-content/40'"
                         x-text="input.length.toLocaleString('id-ID') + ' / ' + maxChars.toLocaleString('id-ID')"></div>
                 </div>

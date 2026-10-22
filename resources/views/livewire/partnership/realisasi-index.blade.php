@@ -693,7 +693,7 @@ new class {};
                                     <div>
                                         {{ $card->pitching_date ? $card->pitching_date->format('d M Y') : ($card->created_at ? $card->created_at->format('d M Y') : date('d M Y')) }}
                                     </div>
-                                    <div class="text-[10px] text-base-content/50 font-mono">
+                                    <div class="text-[11px] text-base-content/50 font-mono">
                                         {{ $card->communication_method ?: 'Online' }}</div>
                                 </div>
                             </td>
@@ -709,7 +709,7 @@ new class {};
                             <td>
                                 <div class="space-y-0.5 text-xs text-base-content/80">
                                     <div class="font-medium">{{ $card->projection_month ? Carbon\Carbon::parse(\strlen($card->projection_month) <= 7 ? $card->projection_month . '-01' : $card->projection_month)->translatedFormat('F Y') : '-' }}</div>
-                                    <div class="text-[10px] text-base-content/50 font-mono">{{ $card->projection_week }}</div>
+                                    <div class="text-[11px] text-base-content/50 font-mono">{{ $card->projection_week }}</div>
                                 </div>
                             </td>
 

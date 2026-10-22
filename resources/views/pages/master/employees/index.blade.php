@@ -494,11 +494,11 @@ $restore = function (int $userId) {
 
  <div class="flex items-center justify-between text-xs border-t border-base-300 pt-3">
  <div>
- <span class="text-base-content/40 block uppercase tracking-wider text-[10px]">Paling Baru</span>
+ <span class="text-base-content/40 block uppercase tracking-wider text-[11px]">Paling Baru</span>
  <span class="font-semibold text-sm text-base-content">{{ $this->statsTenure['min'] }} Thn</span>
  </div>
  <div>
- <span class="text-base-content/40 block uppercase tracking-wider text-[10px] text-right">Paling Lama</span>
+ <span class="text-base-content/40 block uppercase tracking-wider text-[11px] text-right">Paling Lama</span>
  <span class="font-semibold text-sm block text-right text-base-content">{{ $this->statsTenure['max'] }} Thn</span>
  </div>
  </div>

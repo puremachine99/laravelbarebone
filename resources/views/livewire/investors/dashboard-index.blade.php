@@ -357,12 +357,12 @@ $leaderboard = computed(function () {
                     Daily activity count per funnel stage for {{ $viewAsEmployeeId ? 'the selected FO' : 'the entire team' }}. Click a day to drill down below.
                 </p>
             </div>
-            <div class="flex items-center gap-1.5 text-[10px] text-base-content/50 shrink-0">
+            <div class="flex items-center gap-1.5 text-[11px] text-base-content/50 shrink-0">
                 <span>Less</span>
                 <span class="w-3 h-3 rounded-sm bg-base-200"></span>
-                <span class="w-3 h-3 rounded-sm bg-success/25"></span>
-                <span class="w-3 h-3 rounded-sm bg-success/60"></span>
-                <span class="w-3 h-3 rounded-sm bg-success"></span>
+                <span class="w-3 h-3 rounded-sm bg-primary/25"></span>
+                <span class="w-3 h-3 rounded-sm bg-primary/60"></span>
+                <span class="w-3 h-3 rounded-sm bg-primary"></span>
                 <span>More</span>
             </div>
         </div>
@@ -391,14 +391,14 @@ $leaderboard = computed(function () {
                                     $ratio = $row['max'] > 0 ? $count / $row['max'] : 0;
                                     $tier = match (true) {
                                         $count === 0 => 'bg-base-200',
-                                        $ratio >= 0.75 => 'bg-success',
-                                        $ratio >= 0.4 => 'bg-success/60',
-                                        default => 'bg-success/25',
+                                        $ratio >= 0.75 => 'bg-primary',
+                                        $ratio >= 0.4 => 'bg-primary/60',
+                                        default => 'bg-primary/25',
                                     };
                                     $textTier = match (true) {
                                         $count === 0 => '',
-                                        $ratio >= 0.4 => 'text-success-content',
-                                        default => 'text-success',
+                                        $ratio >= 0.4 => 'text-primary-content',
+                                        default => 'text-primary',
                                     };
                                 @endphp
                                 <td class="p-0 text-center">

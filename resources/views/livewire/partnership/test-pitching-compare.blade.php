@@ -139,7 +139,7 @@ new class {};
             <div class="overflow-x-auto">
                 <table class="table table-xs table-zebra w-full">
                     <thead>
-                        <tr class="text-[10px] text-base-content/50 border-orange-100 dark:border-orange-900">
+                        <tr class="text-[11px] text-base-content/50 border-orange-100 dark:border-orange-900">
                             <th>PMO / Instansi / Kontak</th>
                             <th>Produk</th>
                             <th class="text-right">Anggaran</th>
@@ -153,12 +153,12 @@ new class {};
                             <tr class="border-orange-100 dark:border-orange-900/30 hover:bg-orange-50/50 dark:hover:bg-orange-950/20">
                                 <td>
                                     <div class="text-[11px] font-semibold text-base-content leading-tight">{{ $row->pmo_name ?? '-' }}</div>
-                                    <div class="text-[10px] text-base-content/60 leading-tight">{{ Str::limit($row->instansi_name ?? '-', 30) }}</div>
-                                    <div class="text-[10px] text-base-content/40 leading-tight italic">{{ $row->kontak_name ?? '-' }}</div>
+                                    <div class="text-[11px] text-base-content/60 leading-tight">{{ Str::limit($row->instansi_name ?? '-', 30) }}</div>
+                                    <div class="text-[11px] text-base-content/40 leading-tight italic">{{ $row->kontak_name ?? '-' }}</div>
                                 </td>
                                 <td>
                                     <span class="text-[11px] text-base-content/80">{{ Str::limit($row->proyeksi_potensi ?? '-', 25) }}</span>
-                                    <div class="text-[10px] text-base-content/40">{{ $row->sumber_proyeksi }}</div>
+                                    <div class="text-[11px] text-base-content/40">{{ $row->sumber_proyeksi }}</div>
                                 </td>
                                 <td class="text-right">
                                     <span class="text-[11px] font-semibold text-orange-600 dark:text-orange-400">
@@ -166,8 +166,8 @@ new class {};
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="text-[10px]">{{ $row->tanggal_pitching ? \Carbon\Carbon::parse($row->tanggal_pitching)->format('d/m/Y') : '-' }}</span>
-                                    <div class="text-[9px] text-base-content/40">{{ $row->metode }}</div>
+                                    <span class="text-[11px]">{{ $row->tanggal_pitching ? \Carbon\Carbon::parse($row->tanggal_pitching)->format('d/m/Y') : '-' }}</span>
+                                    <div class="text-[11px] text-base-content/40">{{ $row->metode }}</div>
                                 </td>
                                 <td>
                                     @php
@@ -190,7 +190,7 @@ new class {};
                                     @if ($row->is_verified)
                                         <x-icon name="o-check-circle" class="w-4 h-4 text-green-500 inline-block" />
                                     @else
-                                        <span class="text-[10px] text-base-content/30">-</span>
+                                        <span class="text-[11px] text-base-content/30">-</span>
                                     @endif
                                 </td>
                             </tr>
@@ -223,7 +223,7 @@ new class {};
             <div class="overflow-x-auto">
                 <table class="table table-xs table-zebra w-full">
                     <thead>
-                        <tr class="text-[10px] text-base-content/50 border-indigo-100 dark:border-indigo-900">
+                        <tr class="text-[11px] text-base-content/50 border-indigo-100 dark:border-indigo-900">
                             <th>PMO / Instansi / Kontak</th>
                             <th>Produk</th>
                             <th class="text-right">Anggaran</th>
@@ -237,12 +237,12 @@ new class {};
                             <tr class="border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20">
                                 <td>
                                     <div class="text-[11px] font-semibold text-base-content leading-tight">{{ $card->employee?->user?->name ?? '-' }}</div>
-                                    <div class="text-[10px] text-base-content/60 leading-tight">{{ Str::limit($card->contact?->opd?->name ?? '-', 30) }}</div>
-                                    <div class="text-[10px] text-base-content/40 leading-tight italic">{{ $card->contact?->name ?? '-' }}</div>
+                                    <div class="text-[11px] text-base-content/60 leading-tight">{{ Str::limit($card->contact?->opd?->name ?? '-', 30) }}</div>
+                                    <div class="text-[11px] text-base-content/40 leading-tight italic">{{ $card->contact?->name ?? '-' }}</div>
                                 </td>
                                 <td>
                                     <span class="text-[11px] text-base-content/80">{{ Str::limit($card->title, 25) }}</span>
-                                    <div class="text-[10px] text-base-content/40">{{ $card->sumber_proyeksi ?? '-' }}</div>
+                                    <div class="text-[11px] text-base-content/40">{{ $card->sumber_proyeksi ?? '-' }}</div>
                                 </td>
                                 <td class="text-right">
                                     <span class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
@@ -250,8 +250,8 @@ new class {};
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="text-[10px]">{{ $card->pitching_date ? $card->pitching_date->format('d/m/Y') : '-' }}</span>
-                                    <div class="text-[9px] text-base-content/40">{{ $card->communication_method ?? '-' }}</div>
+                                    <span class="text-[11px]">{{ $card->pitching_date ? $card->pitching_date->format('d/m/Y') : '-' }}</span>
+                                    <div class="text-[11px] text-base-content/40">{{ $card->communication_method ?? '-' }}</div>
                                 </td>
                                 <td>
                                     <span class="badge badge-xs rounded font-semibold {{ match($card->stage?->stage_name) {
@@ -273,7 +273,7 @@ new class {};
                                     @if ($card->manager_verified)
                                         <x-icon name="o-check-circle" class="w-4 h-4 text-green-500 inline-block" />
                                     @else
-                                        <span class="text-[10px] text-base-content/30">-</span>
+                                        <span class="text-[11px] text-base-content/30">-</span>
                                     @endif
                                 </td>
                             </tr>

@@ -199,3 +199,35 @@ test('a suspended user is logged out of an existing session on their next reques
     $this->get(route('dashboard'))->assertRedirect(route('login'));
     $this->assertGuest();
 });
+
+test('the login screen shows the animated photo collage beside a compact form', function () {
+    expect(file_exists(public_path('images/auth/login-collage.webp')))->toBeTrue();
+
+    $this->get(route('login'))
+        ->assertOk()
+        ->assertSee('images/auth/login-collage.webp', false)
+        ->assertSee('auth-hero-image', false)
+        ->assertSee('lg:grid-cols-2', false)
+        ->assertSee('auth-paper', false)
+        ->assertSeeInOrder(['class="h-[1em] w-auto object-contain drop-shadow-lg">', 'SmartID</span>', 'ERP</span>'], false)
+        ->assertDontSee('Kelola operasional, funding, dan partnership');
+});
+
+test('auth pages always use the default light theme, even for a user on a dark custom theme', function () {
+    $user = User::factory()->create(['theme' => 'espresso', 'appearance' => 'dark']);
+
+    $this->get(route('login'))->assertOk()->assertSee('window.themeLocked = true;', false);
+
+    // confirm-password uses the auth layout while signed in
+    $this->actingAs($user)->get(route('password.confirm'))->assertOk()->assertSee('window.themeLocked = true;', false);
+
+    // regular pages keep following the account
+    $this->actingAs($user)->get(route('profile.show'))->assertOk()->assertSee('window.themeLocked = false;', false);
+});
+
+test('every page uses the SmartID icon as favicon', function () {
+    $this->get(route('login'))
+        ->assertOk()
+        ->assertSee('<link rel="icon" href="'.asset('smartid.png').'" type="image/png">', false)
+        ->assertDontSee('favicon.svg');
+});

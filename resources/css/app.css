@@ -8,14 +8,44 @@
 @import "./nakama-notify.css";
 @plugin "daisyui";
 
+/* Default theme, light: one brand voice — SmartID blue for actions, navy for secondary, the sidebar's amber as accent.
+   The brand-* scale is defined in @theme below. */
+@plugin "daisyui/theme" {
+  name: "light";
+  --color-primary: #2559A6; /* brand-600, ~6.6:1 with white */
+  --color-primary-content: #FFFFFF;
+  --color-secondary: #0D2A4F; /* brand-950, the sidebar navy */
+  --color-secondary-content: #FFFFFF;
+  --color-accent: #F59E0B; /* the sidebar amber */
+  --color-accent-content: #0D2A4F;
+  --color-info: #2559A6;
+  --color-info-content: #FFFFFF;
+  /* One shape system: panels 16px, fields 10px, small selectors 8px */
+  --radius-box: 1rem;
+  --radius-field: 0.625rem;
+  --radius-selector: 0.5rem;
+}
+
+/* Default theme, dark: navy-tinted surfaces (the ink-* scale in @theme) so the content matches the navy sidebar */
 @plugin "daisyui/theme" {
   name: "dark";
-  --color-base-100: #09090b; /* zinc-950 */
-  --color-base-200: #18181b; /* zinc-900 */
-  --color-base-300: #27272a; /* zinc-800 */
-  --color-base-content: #f4f4f5; /* zinc-100 */
-  --color-neutral: #18181b; /* zinc-900 */
-  --color-neutral-content: #f4f4f5; /* zinc-100 */
+  --color-base-100: #0B1626; /* ink-950 */
+  --color-base-200: #101E33;
+  --color-base-300: #1F2D42; /* ink-800 */
+  --color-base-content: #E8EDF4; /* ink-100 */
+  --color-neutral: #142236; /* ink-900 */
+  --color-neutral-content: #E8EDF4;
+  --radius-box: 1rem;
+  --radius-field: 0.625rem;
+  --radius-selector: 0.5rem;
+  --color-primary: #5C90D4; /* brand-400 */
+  --color-primary-content: #0B1B33;
+  --color-secondary: #BCD3F0; /* brand-200 */
+  --color-secondary-content: #0B1B33;
+  --color-accent: #FBBF24;
+  --color-accent-content: #0B1B33;
+  --color-info: #8FB5E4;
+  --color-info-content: #0B1B33;
 }
 
 /* "Espresso" theme (profile → Appearance), after report/ai/desk-nakama.html. See themes/espresso.css. */
@@ -379,6 +409,32 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
+    /* SmartID brand blue, built around the sidebar navy (#0D2A4F = 950). Utilities: bg-brand-600, text-brand-700, … */
+    --color-brand-50: #EFF5FC;
+    --color-brand-100: #DCE8F7;
+    --color-brand-200: #BCD3F0;
+    --color-brand-300: #8FB5E4;
+    --color-brand-400: #5C90D4;
+    --color-brand-500: #3770C0;
+    --color-brand-600: #2559A6;
+    --color-brand-700: #1E4785;
+    --color-brand-800: #1A3B6C;
+    --color-brand-900: #163259;
+    --color-brand-950: #0D2A4F;
+
+    /* Navy-tinted greys for the default dark mode (the neutral palettes are remapped to these there) */
+    --color-ink-50: #F4F7FB;
+    --color-ink-100: #E8EDF4;
+    --color-ink-200: #D3DCE8;
+    --color-ink-300: #B3C0D1;
+    --color-ink-400: #8797AD;
+    --color-ink-500: #64748B;
+    --color-ink-600: #4A5A70;
+    --color-ink-700: #34435A;
+    --color-ink-800: #1F2D42;
+    --color-ink-900: #142236;
+    --color-ink-950: #0B1626;
+
     /* Original colors (Light Mode)
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
@@ -470,8 +526,8 @@
         /* Sidebar background (the colour tokens are --color-sidebar-* in @theme) */
         --sidebar-background-color: #0d2a4f;
         --sidebar-background-image:
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='111' viewBox='0 0 64 111'%3E%3Cpath fill='none' stroke='%23FFC226' stroke-opacity='0.18' stroke-width='1' d='M32 0 L64 18.5 L64 55.5 L32 74 L0 55.5 L0 18.5 Z M32 37 L64 55.5 L64 92.5 L32 111 L0 92.5 L0 55.5 Z'/%3E%3C/svg%3E"),
-            linear-gradient(to top, #071730 0%, #0d2a4f 45%, #1c4d85 100%);
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='111' viewBox='0 0 64 111'%3E%3Cpath fill='none' stroke='%23FFC226' stroke-opacity='0.07' stroke-width='1' d='M32 0 L64 18.5 L64 55.5 L32 74 L0 55.5 L0 18.5 Z M32 37 L64 55.5 L64 92.5 L32 111 L0 92.5 L0 55.5 Z'/%3E%3C/svg%3E"),
+            linear-gradient(to top, #0a2242 0%, #0d2a4f 55%, #133663 100%);
         --sidebar-border: rgb(255 255 255 / 0.1);
 
         /* Charts (ApexCharts) read these through window.chartTheme() in partials/head.blade.php */
@@ -494,9 +550,110 @@
     }
 
     .dark {
-        --chart-text: #d1d5db;
-        --chart-grid: #374151;
+        --chart-text: #B3C0D1;
+        --chart-grid: #1F2D42;
     }
+}
+
+/*
+ * Default theme only: the views hard-code indigo-* (≈280 uses) and blue-* (≈45) — remap both to the brand scale so
+ * the whole app speaks one blue without touching the views. Other themes remap these themselves (themes/toon.css)
+ * or keep their own. Unlayered so it wins over Tailwind's @theme defaults.
+ */
+:root:is([data-theme="light"], [data-theme="dark"]) {
+    --color-indigo-50: var(--color-brand-50);
+    --color-indigo-100: var(--color-brand-100);
+    --color-indigo-200: var(--color-brand-200);
+    --color-indigo-300: var(--color-brand-300);
+    --color-indigo-400: var(--color-brand-400);
+    --color-indigo-500: var(--color-brand-500);
+    --color-indigo-600: var(--color-brand-600);
+    --color-indigo-700: var(--color-brand-700);
+    --color-indigo-800: var(--color-brand-800);
+    --color-indigo-900: var(--color-brand-900);
+    --color-indigo-950: var(--color-brand-950);
+    --color-blue-50: var(--color-brand-50);
+    --color-blue-100: var(--color-brand-100);
+    --color-blue-200: var(--color-brand-200);
+    --color-blue-300: var(--color-brand-300);
+    --color-blue-400: var(--color-brand-400);
+    --color-blue-500: var(--color-brand-500);
+    --color-blue-600: var(--color-brand-600);
+    --color-blue-700: var(--color-brand-700);
+    --color-blue-800: var(--color-brand-800);
+    --color-blue-900: var(--color-brand-900);
+    --color-blue-950: var(--color-brand-950);
+}
+
+/* Default theme type polish: tighter headings, and figures that line up in columns (finance tables, KPI values) */
+:root:is([data-theme="light"], [data-theme="dark"]) :is(h1, h2) {
+    letter-spacing: -0.015em;
+}
+
+:root:is([data-theme="light"], [data-theme="dark"]) :is(.table, .stat-value, .tabular-nums),
+:root:is([data-theme="light"], [data-theme="dark"]) .card :is(.text-xl, .text-2xl, .text-3xl, .text-4xl) {
+    font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Default theme shape and elevation: every panel is a 16px card defined by its border, not by a shadow — the views
+ * often set both (border + shadow-sm), which doubles the edge. Popovers and modals keep their shadow (they float).
+ */
+:root:is([data-theme="light"], [data-theme="dark"]) :is(.card, .stats),
+:root:is([data-theme="light"], [data-theme="dark"]) :is(.rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-box).border.bg-base-100 {
+    border-radius: 1rem;
+}
+
+:root:is([data-theme="light"], [data-theme="dark"]) :is(.card, .stats, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-box).border:is(.shadow-xs, .shadow-sm, .shadow) {
+    box-shadow: none;
+}
+
+/* Default dark mode: the views' hard-coded greys (gray/zinc/slate/neutral, with their dark: variants) turn navy-tinted */
+:root[data-theme="dark"] {
+    --color-gray-50: var(--color-ink-50);
+    --color-gray-100: var(--color-ink-100);
+    --color-gray-200: var(--color-ink-200);
+    --color-gray-300: var(--color-ink-300);
+    --color-gray-400: var(--color-ink-400);
+    --color-gray-500: var(--color-ink-500);
+    --color-gray-600: var(--color-ink-600);
+    --color-gray-700: var(--color-ink-700);
+    --color-gray-800: var(--color-ink-800);
+    --color-gray-900: var(--color-ink-900);
+    --color-gray-950: var(--color-ink-950);
+    --color-zinc-50: var(--color-ink-50);
+    --color-zinc-100: var(--color-ink-100);
+    --color-zinc-200: var(--color-ink-200);
+    --color-zinc-300: var(--color-ink-300);
+    --color-zinc-400: var(--color-ink-400);
+    --color-zinc-500: var(--color-ink-500);
+    --color-zinc-600: var(--color-ink-600);
+    --color-zinc-700: var(--color-ink-700);
+    --color-zinc-800: var(--color-ink-800);
+    --color-zinc-900: var(--color-ink-900);
+    --color-zinc-950: var(--color-ink-950);
+    --color-slate-50: var(--color-ink-50);
+    --color-slate-100: var(--color-ink-100);
+    --color-slate-200: var(--color-ink-200);
+    --color-slate-300: var(--color-ink-300);
+    --color-slate-400: var(--color-ink-400);
+    --color-slate-500: var(--color-ink-500);
+    --color-slate-600: var(--color-ink-600);
+    --color-slate-700: var(--color-ink-700);
+    --color-slate-800: var(--color-ink-800);
+    --color-slate-900: var(--color-ink-900);
+    --color-slate-950: var(--color-ink-950);
+    --color-neutral-50: var(--color-ink-50);
+    --color-neutral-100: var(--color-ink-100);
+    --color-neutral-200: var(--color-ink-200);
+    --color-neutral-300: var(--color-ink-300);
+    --color-neutral-400: var(--color-ink-400);
+    --color-neutral-500: var(--color-ink-500);
+    --color-neutral-600: var(--color-ink-600);
+    --color-neutral-700: var(--color-ink-700);
+    --color-neutral-800: var(--color-ink-800);
+    --color-neutral-900: var(--color-ink-900);
+    --color-neutral-950: var(--color-ink-950);
 }
 
 @layer components {
@@ -573,9 +730,74 @@
     @apply text-sidebar-fg/70 hover:bg-sidebar-fg/5 hover:text-sidebar-fg;
 }
 
+/* Active item: the amber edge carries the state; a flat, faint wash instead of a gradient keeps the sidebar calm */
 .sidebar-menu.sidebar-dark .menu-item.active {
     @apply border-s-2 border-sidebar-accent font-semibold text-sidebar-fg ps-[9px];
-    background-image: linear-gradient(to right, color-mix(in oklab, var(--color-sidebar-accent) 18%, transparent), transparent);
+    background-color: color-mix(in oklab, var(--color-sidebar-fg) 8%, transparent);
+}
+
+/*
+ * Default theme: the active item is a binder tab. It takes the content area's colour (base-100: white in light, navy
+ * in dark), runs through the menu's right padding to touch the content, and two small concave corners above and
+ * below its right end blend it into the page. The sidebar's right border is dropped so nothing cuts the join.
+ */
+:root:is([data-theme="light"], [data-theme="dark"]) {
+    --sidebar-border: transparent;
+}
+
+/* Nothing may sit between the tab and the page: no 1px border, no scrollbar gutter (the menu still scrolls) */
+:root:is([data-theme="light"], [data-theme="dark"]) .app-sidebar {
+    border-inline-end-width: 0;
+}
+
+:root:is([data-theme="light"], [data-theme="dark"]) .app-sidebar .sidebar-menu {
+    scrollbar-width: none;
+}
+
+:root:is([data-theme="light"], [data-theme="dark"]) .app-sidebar .sidebar-menu::-webkit-scrollbar {
+    display: none;
+}
+
+:root:is([data-theme="light"], [data-theme="dark"]) .sidebar-menu.sidebar-dark .menu-item.active {
+    --tab-curve: 0.75rem;
+    position: relative;
+    margin-inline-end: calc(-0.625rem - 2px); /* the menu's px-2.5, plus 2px against sub-pixel gaps (clipped at the edge) */
+    padding-inline-start: 0.625rem;
+    border: 0;
+    border-radius: 0.75rem 0 0 0.75rem;
+    background-color: var(--color-base-100);
+    background-image: none;
+    color: var(--color-base-content);
+}
+
+/* daisyUI clips .collapse (overflow: hidden); an open group lets its active tab reach the content */
+:root:is([data-theme="light"], [data-theme="dark"]) .sidebar-menu .collapse:has(> input:checked) {
+    overflow: visible;
+}
+
+:root:is([data-theme="light"], [data-theme="dark"]) .sidebar-menu.sidebar-dark .menu-item.active:hover {
+    background-color: var(--color-base-100);
+    color: var(--color-base-content);
+}
+
+:root:is([data-theme="light"], [data-theme="dark"]) .sidebar-menu.sidebar-dark .menu-item.active::before,
+:root:is([data-theme="light"], [data-theme="dark"]) .sidebar-menu.sidebar-dark .menu-item.active::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    width: var(--tab-curve);
+    height: var(--tab-curve);
+    pointer-events: none;
+}
+
+:root:is([data-theme="light"], [data-theme="dark"]) .sidebar-menu.sidebar-dark .menu-item.active::before {
+    bottom: 100%;
+    background: radial-gradient(circle at 0 0, transparent calc(var(--tab-curve) - 0.5px), var(--color-base-100) var(--tab-curve));
+}
+
+:root:is([data-theme="light"], [data-theme="dark"]) .sidebar-menu.sidebar-dark .menu-item.active::after {
+    top: 100%;
+    background: radial-gradient(circle at 0 100%, transparent calc(var(--tab-curve) - 0.5px), var(--color-base-100) var(--tab-curve));
 }
 
 .sidebar-menu.sidebar-dark .collapse-title .arrow-icon {
@@ -782,3 +1004,62 @@
     }
 }
 
+
+/* ─── Auth pages: animated photo panel (layouts/auth/simple.blade.php) ──────── */
+
+/* White paper with a faint grain and a very light dot grid behind the form */
+.auth-paper {
+    background-color: #ffffff;
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.05 0 0 0 0 0.16 0 0 0 0 0.31 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+        radial-gradient(rgb(13 42 79 / 0.07) 1px, transparent 1px);
+    background-size: 140px 140px, 18px 18px;
+}
+
+/* The collage drifts and zooms very slowly, back and forth (a Ken Burns pan) */
+.auth-hero-image {
+    transform-origin: 30% 40%;
+    animation: auth-hero-drift 40s ease-in-out infinite alternate, auth-hero-fade-in 1.2s ease-out both;
+}
+
+@keyframes auth-hero-drift {
+    from { transform: scale(1.06) translate3d(0, 0, 0); }
+    to { transform: scale(1.16) translate3d(-3%, -2%, 0); }
+}
+
+@keyframes auth-hero-fade-in {
+    from { opacity: 0; }
+}
+
+/* A soft diagonal light that sweeps across every few seconds */
+.auth-hero-sheen {
+    background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 0.08) 50%, transparent 65%);
+    background-size: 250% 100%;
+    animation: auth-hero-sheen 9s ease-in-out 1.5s infinite;
+}
+
+@keyframes auth-hero-sheen {
+    0% { background-position: 150% 0; }
+    45%, 100% { background-position: -50% 0; }
+}
+
+/* Brand text rises in after the photo; --reveal-delay staggers the lines */
+.auth-hero-reveal {
+    animation: auth-hero-reveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms) both;
+}
+
+@keyframes auth-hero-reveal {
+    from { opacity: 0; transform: translateY(16px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-hero-image,
+    .auth-hero-sheen,
+    .auth-hero-reveal {
+        animation: none;
+    }
+
+    .auth-hero-image {
+        transform: scale(1.06);
+    }
+}

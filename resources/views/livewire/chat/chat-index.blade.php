@@ -90,7 +90,7 @@
                             </span>
                             @if ($lastMessage)
                                 <span
-                                    class="text-[10px] shrink-0 {{ $unread > 0 ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-base-content/40' }}">{{ $this->lastMessageLabel($lastMessage->created_at) }}</span>
+                                    class="text-[11px] shrink-0 {{ $unread > 0 ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-base-content/40' }}">{{ $this->lastMessageLabel($lastMessage->created_at) }}</span>
                             @endif
                         </div>
                         <div class="flex items-center justify-between gap-2">
@@ -197,7 +197,7 @@
                             @endif
 
                             <span
-                                class="block text-[10px] mt-1 text-right {{ $isMine ? 'text-indigo-100/80' : 'text-base-content/40' }}">
+                                class="block text-[11px] mt-1 text-right {{ $isMine ? 'text-indigo-100/80' : 'text-base-content/40' }}">
                                 {{ $message->created_at->format('H:i') }}
                             </span>
                         </div>
@@ -217,7 +217,7 @@
                                     class="h-16 w-16 rounded-lg border border-base-300 bg-base-200 flex flex-col items-center justify-center gap-1 px-1">
                                     <x-icon name="o-document" class="w-5 h-5 text-base-content/50" />
                                     <span
-                                        class="text-[9px] text-base-content/50 truncate max-w-full">{{ $attachment->getClientOriginalName() }}</span>
+                                        class="text-[11px] text-base-content/50 truncate max-w-full">{{ $attachment->getClientOriginalName() }}</span>
                                 </div>
                             @endif
                             <button type="button" wire:click="removeAttachment"

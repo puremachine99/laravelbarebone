@@ -296,11 +296,11 @@ $delete = function () {
 
  <div class="flex items-center justify-between text-xs border-t border-base-300 pt-3">
  <div>
- <span class="text-base-content/40 block uppercase tracking-wider text-[10px]">Sudah Ada</span>
+ <span class="text-base-content/40 block uppercase tracking-wider text-[11px]">Sudah Ada</span>
  <span class="font-semibold text-sm text-base-content">{{ number_format($summary['withUrusan'], 0, ',', '.') }}</span>
  </div>
  <div>
- <span class="text-base-content/40 block uppercase tracking-wider text-[10px] text-right">Belum Ada</span>
+ <span class="text-base-content/40 block uppercase tracking-wider text-[11px] text-right">Belum Ada</span>
  <span class="font-semibold text-sm block text-right text-base-content">{{ number_format($withoutUrusan, 0, ',', '.') }}</span>
  </div>
  </div>

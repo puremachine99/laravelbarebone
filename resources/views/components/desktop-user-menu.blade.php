@@ -8,7 +8,7 @@
  </div>
  <div class="truncate max-w-[140px]">
  <div class="font-bold text-sm truncate text-base-content/90">{{ auth()->user()->name }}</div>
- <div class="text-[10px] text-base-content/50 truncate">{{ auth()->user()->email }}</div>
+ <div class="text-[11px] text-base-content/50 truncate">{{ auth()->user()->email }}</div>
  </div>
  </div>
  <x-icon name="o-chevron-up-down" class="w-4 h-4 text-base-content/50" />
