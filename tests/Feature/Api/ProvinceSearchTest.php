@@ -2,6 +2,10 @@
 
 use App\Models\Province;
 
+beforeEach(function () {
+    $this->withHeader('X-API-Key', publicApiToken());
+});
+
 test('lists all provinces when no keyword is given', function () {
     Province::factory()->create(['name' => 'Jawa Timur']);
     Province::factory()->create(['name' => 'Jawa Barat']);

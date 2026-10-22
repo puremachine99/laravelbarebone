@@ -3,6 +3,10 @@
 use App\Models\Province;
 use App\Models\Regency;
 
+beforeEach(function () {
+    $this->withHeader('X-API-Key', publicApiToken());
+});
+
 test('provinsi keyword is required', function () {
     $response = $this->getJson('/api/regencies');
 

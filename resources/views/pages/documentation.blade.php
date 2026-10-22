@@ -5,6 +5,7 @@
             'badge' => null,
             'tabs' => [
                 'overview' => 'Overview',
+                'api-key' => 'Autentikasi (API Key)',
                 'alur' => 'Alur Cascading Dropdown',
                 'cara-pakai' => 'Cara Pakai (Contoh Kode)',
                 'playground' => 'Coba API (Playground)',
@@ -58,6 +59,20 @@
 @endphp
 
 <x-layouts::app.sidebar title="Dokumentasi Teknis">
+    <script>
+        // API key for the OPD Lookup playground (header X-API-Key), kept only in this browser tab.
+        window.nakamaApiKey = (value) => {
+            try {
+                if (value !== undefined) {
+                    sessionStorage.setItem('nakama-api-key', value.trim());
+                }
+
+                return sessionStorage.getItem('nakama-api-key') ?? '';
+            } catch (error) {
+                return '';
+            }
+        };
+    </script>
     {{-- Vertical tabs: one section at a time. The URL hash (#ai-auth, ...) opens a tab directly and stays shareable. --}}
     <div x-data="{
         tabs: @js($tabIds),
@@ -226,7 +241,9 @@
                     <div class="card-body p-5 gap-3">
                         <h2 class="text-lg font-bold">Overview</h2>
                         <p class="text-sm text-base-content/70">
-                            Empat endpoint publik, read-only. Tiga pertama untuk mengisi dropdown cascading
+                            Endpoint read-only untuk website/aplikasi partner. Setiap request wajib membawa
+                            <a href="#api-key" class="link link-primary" x-on:click.prevent="open('api-key')">API key</a>
+                            (header <code class="text-xs">X-API-Key</code>). Endpoint lookup untuk mengisi dropdown cascading
                             <span class="font-semibold">Provinsi &rarr; Kabupaten/Kota &rarr; OPD</span>
                             (response tidak dipaginasi), dan
                             <code class="text-xs">/api/opds/search</code> untuk pencarian OPD berdasarkan apa saja
@@ -234,6 +251,59 @@
                         </p>
                         <div class="mockup-code text-xs">
                             <pre data-prefix="$"><code>Base URL: {{ config('app.url') }}/api</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- API key --}}
+                <div id="api-key" role="tabpanel" x-show="active === 'api-key'" style="display: none" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-20">
+                    <div class="card-body p-5 gap-3">
+                        <h2 class="text-lg font-bold">Autentikasi (API Key)</h2>
+                        <p class="text-sm text-base-content/70">
+                            Semua endpoint OPD Lookup API (<code class="text-xs">/api/opd-types</code>, <code class="text-xs">/api/regions</code>,
+                            <code class="text-xs">/api/provinces</code>, <code class="text-xs">/api/regencies</code>, <code class="text-xs">/api/opds</code>,
+                            <code class="text-xs">/api/opds/search</code>) butuh API key per consumer.
+                        </p>
+
+                        <h3 class="font-semibold text-sm mt-1">1. Minta API key</h3>
+                        <p class="text-sm text-base-content/70">
+                            Hubungi tim Technology SmartID dengan data berikut. Token diterbitkan lewat menu <em>Technology &rarr; API Keys</em> dan hanya ditampilkan sekali.
+                        </p>
+                        <ul class="list-disc list-inside text-sm text-base-content/70 space-y-1">
+                            <li><strong>Nama aplikasi / instansi</strong> dan PIC (nama + email).</li>
+                            <li><strong>Website yang akan memanggil API</strong>, mis. <code class="text-xs">portal.contoh.go.id</code>,
+                                <code class="text-xs">*.contoh.go.id</code> (semua subdomain), atau <code class="text-xs">localhost:3000</code> untuk development.</li>
+                            <li>Apakah API juga dipanggil dari <strong>server/backend</strong> (tanpa browser).</li>
+                        </ul>
+
+                        <h3 class="font-semibold text-sm mt-1">2. Kirim di setiap request</h3>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix=""><code>GET {{ config('app.url') }}/api/provinces
+X-API-Key: smid_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Accept: application/json</code></pre>
+                        </div>
+                        <div class="mockup-code text-xs">
+                            <pre data-prefix="$"><code>curl -H "X-API-Key: smid_xxx" -H "Accept: application/json" "{{ config('app.url') }}/api/provinces"</code></pre>
+                        </div>
+
+                        <h3 class="font-semibold text-sm mt-1">3. Aturan pengecekan</h3>
+                        <ul class="list-disc list-inside text-sm text-base-content/70 space-y-1">
+                            <li>Dari browser: header <code class="text-xs">Origin</code> (atau <code class="text-xs">Referer</code>) harus salah satu website yang didaftarkan. Website lain ditolak walau token-nya benar.</li>
+                            <li>Dari server (tanpa Origin/Referer): hanya diterima kalau API key diizinkan untuk request server.</li>
+                            <li>Rate limit dihitung per API key (default 120 request/menit). Sisa kuota ada di header <code class="text-xs">X-RateLimit-Remaining</code>.</li>
+                            <li>Jangan taruh token di repository publik. Kalau bocor, minta token baru; token lama langsung tidak berlaku.</li>
+                        </ul>
+
+                        <h3 class="font-semibold text-sm mt-1">Error</h3>
+                        <div class="overflow-x-auto">
+                            <table class="table table-xs">
+                                <thead><tr><th>Status</th><th>Arti</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="font-mono">401</td><td>Header X-API-Key tidak dikirim, salah, atau token sudah dicabut.</td></tr>
+                                    <tr><td class="font-mono">403</td><td>Website pemanggil tidak terdaftar, atau request server tanpa izin server.</td></tr>
+                                    <tr><td class="font-mono">429</td><td>Melebihi limit per menit. Tunggu sesuai header <code>Retry-After</code>.</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -275,7 +345,10 @@
                         <p class="text-sm text-base-content/70">1. Populate dropdown <strong>provinsi</strong> saat
                             halaman dibuka.</p>
                         <div class="mockup-code text-xs">
-                            <pre data-prefix=""><code>const res = await fetch('{{ config('app.url') }}/api/provinces');
+                            <pre data-prefix=""><code>// API key dari tim SmartID (lihat tab Autentikasi). Website ini harus terdaftar di API key tersebut.
+const headers = { 'X-API-Key': 'smid_xxx', Accept: 'application/json' };
+
+const res = await fetch('{{ config('app.url') }}/api/provinces', { headers });
 const { data: provinces } = await res.json();
 
 // data: [{ id: 1, name: "Jawa Barat" }, { id: 2, name: "Jawa Timur" }, ...]
@@ -289,7 +362,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                             <pre data-prefix=""><code>provinsiSelect.addEventListener('change', async (e) => {
     const provinsi = e.target.value; // nama provinsi dari option yang dipilih
 
-    const res = await fetch(`{{ config('app.url') }}/api/regencies?provinsi=${encodeURIComponent(provinsi)}`);
+    const res = await fetch(`{{ config('app.url') }}/api/regencies?provinsi=${encodeURIComponent(provinsi)}`, { headers });
     const { data: regencies } = await res.json();
 
     kabupatenSelect.innerHTML = '';
@@ -305,7 +378,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
     const kabupaten = e.target.value;
 
     const params = new URLSearchParams({ provinsi, kabupaten });
-    const res = await fetch(`{{ config('app.url') }}/api/opds?${params}`);
+    const res = await fetch(`{{ config('app.url') }}/api/opds?${params}`, { headers });
     const { data: opds } = await res.json();
 
     opdSelect.innerHTML = '';
@@ -319,9 +392,8 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span>Jika endpoint dipanggil dari domain berbeda (aplikasi lain), pastikan CORS
-                                mengizinkan origin tersebut, atau panggil dari server-side (backend-to-backend) untuk
-                                menghindari isu CORS di browser.</span>
+                            <span>CORS sudah terbuka untuk semua origin; yang menentukan boleh/tidaknya adalah API key dan
+                                daftar website-nya. Untuk dipanggil dari backend, minta API key yang mengizinkan request server.</span>
                         </div>
                     </div>
                 </div>
@@ -364,7 +436,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                             const url = this.urlFor(row);
                             const dq = String.fromCharCode(34);
 
-                            return url ? (this.shell === 'powershell' ? 'curl.exe' : 'curl') + ' -s -H ' + dq + 'Accept: application/json' + dq + ' ' + dq + url + dq : '';
+                            return url ? (this.shell === 'powershell' ? 'curl.exe' : 'curl') + ' -s -H ' + dq + 'Accept: application/json' + dq + ' -H ' + dq + 'X-API-Key: ' + (window.nakamaApiKey() || 'smid_xxx') + dq + ' ' + dq + url + dq : '';
                         },
                         expected(row) {
                             return row.path === row.original ? row.expect : null;
@@ -394,7 +466,7 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                             const started = performance.now();
 
                             try {
-                                const response = await fetch(url, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+                                const response = await fetch(url, { headers: { Accept: 'application/json', 'X-API-Key': window.nakamaApiKey() }, credentials: 'same-origin' });
                                 const text = await response.text();
                                 let body = text;
                                 let count = null;
@@ -451,14 +523,22 @@ provinces.forEach(p => provinsiSelect.add(new Option(p.name, p.name)));</code></
                         },
                     }">
                         <h2 class="text-lg font-bold">Coba API (Playground)</h2>
+                        <div class="rounded-box border border-base-300 p-3 space-y-1" x-data="{ key: window.nakamaApiKey() }">
+                            <label class="text-sm font-semibold" for="playground-api-key">API key</label>
+                            <input id="playground-api-key" type="password" autocomplete="off" class="input input-sm input-bordered w-full font-mono"
+                                placeholder="smid_..." x-model="key"
+                                x-on:change="window.nakamaApiKey(key); window.dispatchEvent(new CustomEvent('api-key-changed'))" />
+                            <p class="text-xs text-base-content/60">Dipakai semua request di Playground (header X-API-Key). Hanya disimpan di tab browser ini (sessionStorage).</p>
+                        </div>
                         {{-- Cascading dropdown simulation: Jenis → (Region → Provinsi → Kabupaten/Kota) → OPD, every step calls the real API --}}
                         @php
                             $cascadeExample = <<<'JS'
-// Ganti dengan URL SmartID.
+// Ganti dengan URL SmartID dan API key Anda (lihat tab Autentikasi).
 const API = 'https://smartdashboard.example.com/api';
+const API_KEY = 'smid_xxx';
 
 const get = async (path) => {
-    const response = await fetch(API + path, { headers: { Accept: 'application/json' } });
+    const response = await fetch(API + path, { headers: { Accept: 'application/json', 'X-API-Key': API_KEY } });
 
     return (await response.json()).data;
 };
@@ -511,10 +591,15 @@ provinceSelect.addEventListener('change', async () => {
 });
 
 // 5. Kabupaten/kota dipilih (opsional): OPD yang lebih spesifik. Dikosongkan lagi: kembali ke tingkat provinsi.
+//    Tambahkan <option value="all">Semua kabupaten/kota</option> untuk semua OPD se-provinsi.
 regencySelect.addEventListener('change', async () => {
-    fill(opdSelect, await get(regencySelect.value
-        ? `/opds?regency_id=${regencySelect.value}${jenis()}`
-        : `/opds?province_id=${provinceSelect.value}${jenis()}`));
+    const value = regencySelect.value;
+
+    fill(opdSelect, await get(value === 'all'
+        ? `/opds?province_id=${provinceSelect.value}&regency_id=all${jenis()}`
+        : value
+            ? `/opds?regency_id=${value}${jenis()}`
+            : `/opds?province_id=${provinceSelect.value}${jenis()}`));
 });
 JS;
                         @endphp
@@ -532,17 +617,20 @@ JS;
                             loading: { jenis: false, region: false, provinsi: false, kabupaten: false, opd: false },
                             calls: [],
                             openCall: null,
+                            error: '',
                             async call(step, path) {
                                 const started = performance.now();
                                 const entry = { id: Math.random().toString(36).slice(2), step, path, status: null, ms: 0, count: null, body: '' };
                                 this.loading[step] = true;
 
                                 try {
-                                    const response = await fetch(new URL(path, window.location.origin), { headers: { Accept: 'application/json' } });
+                                    const response = await fetch(new URL(path, window.location.origin), { headers: { Accept: 'application/json', 'X-API-Key': window.nakamaApiKey() } });
                                     const json = await response.json().catch(() => null);
                                     entry.status = response.status;
                                     entry.count = Array.isArray(json?.data) ? json.data.length : null;
                                     entry.body = JSON.stringify(json, null, 2);
+
+                                    this.error = response.ok ? '' : response.status + ': ' + (json?.message ?? 'Request gagal.');
 
                                     return response.ok ? (json?.data ?? []) : [];
                                 } catch (error) {
@@ -557,7 +645,11 @@ JS;
                                 }
                             },
                             async init() {
-                                this.types = await this.call('jenis', '/api/opd-types');
+                                window.addEventListener('api-key-changed', () => this.loadTypes());
+                                await this.loadTypes();
+                            },
+                            async loadTypes() {
+                                this.types = window.nakamaApiKey() ? await this.call('jenis', '/api/opd-types') : [];
                             },
                             get selectedType() {
                                 return this.types.find((type) => type.name === this.jenis) ?? null;
@@ -657,9 +749,11 @@ JS;
                                     return;
                                 }
 
-                                const opds = await this.call('opd', this.regencyId
-                                    ? '/api/opds?regency_id=' + this.regencyId + this.jenisParam
-                                    : '/api/opds?province_id=' + this.provinceId + this.jenisParam);
+                                const opds = await this.call('opd', this.regencyId === 'all'
+                                    ? '/api/opds?province_id=' + this.provinceId + '&regency_id=all' + this.jenisParam
+                                    : (this.regencyId
+                                        ? '/api/opds?regency_id=' + this.regencyId + this.jenisParam
+                                        : '/api/opds?province_id=' + this.provinceId + this.jenisParam));
 
                                 if (key === this.provinceId + ':' + this.regencyId) {
                                     this.opds = opds;
@@ -668,6 +762,10 @@ JS;
                             get opdLevelLabel() {
                                 if (this.withoutLocation) {
                                     return '2. Daftar ' + this.jenis;
+                                }
+
+                                if (this.regencyId === 'all') {
+                                    return '5. Semua ' + this.jenis + ' se-provinsi (tingkat provinsi + semua kabupaten/kota)';
                                 }
 
                                 return this.regencyId
@@ -697,6 +795,8 @@ JS;
                                         <option :value="type.name" x-text="type.name + ' (' + type.opds_count + ')' + (type.has_location ? '' : ' — tanpa lokasi')"></option>
                                     </template>
                                 </select>
+                                <span x-show="error" x-text="error" class="block text-xs text-error"></span>
+                                <span x-show="! error && ! types.length" class="text-xs text-warning">Isi API key di atas dulu.</span>
                             </label>
 
                             <div x-show="withoutLocation" style="display: none" class="alert alert-info py-2 text-xs">
@@ -727,6 +827,7 @@ JS;
                                     <span class="text-xs font-semibold">4. Kabupaten / Kota <span class="font-normal text-base-content/60" x-show="provinceId">(opsional, lebih spesifik)</span></span>
                                     <select x-model="regencyId" x-on:change="pickRegency()" x-bind:disabled="! regionId" class="select select-sm select-bordered w-full" aria-label="Kabupaten / Kota">
                                         <option value="" x-text="! regionId ? '-- pilih region dulu --' : (provinceId ? '-- tingkat provinsi (' + regencies.length + ' kab/kota) --' : '-- pilih dari ' + regencies.length + ' kab/kota --')"></option>
+                                        <option value="all" x-show="provinceId" x-bind:disabled="! provinceId">Semua kabupaten/kota se-provinsi</option>
                                         <template x-for="regency in regencies" :key="regency.id">
                                             <option :value="regency.id" x-text="provinceId ? regency.name : regency.name + ' — ' + regency.provinsi"></option>
                                         </template>
@@ -754,6 +855,7 @@ JS;
                                             <tr>
                                                 <th>ID</th>
                                                 <th>Nama OPD</th>
+                                                <th x-show="regencyId === 'all'">Kabupaten / Kota</th>
                                                 <th>Jenis</th>
                                             </tr>
                                         </thead>
@@ -762,6 +864,7 @@ JS;
                                                 <tr>
                                                     <td class="font-mono" x-text="opd.id"></td>
                                                     <td x-text="opd.name"></td>
+                                                    <td x-show="regencyId === 'all'" x-text="opd.regency ?? '-'"></td>
                                                     <td x-text="opd.jenis ?? '-'"></td>
                                                 </tr>
                                             </template>
@@ -840,6 +943,11 @@ JS;
                                                     <td>Kabupaten/Kota dipilih <span class="text-base-content/60">(opsional)</span></td>
                                                     <td class="font-mono text-xs">GET /api/opds?regency_id={id}&amp;jenis={jenis}</td>
                                                     <td>OPD / Unit Kesehatan di kabupaten/kota itu</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>&ldquo;Semua kabupaten/kota&rdquo; dipilih</td>
+                                                    <td class="font-mono text-xs">GET /api/opds?province_id={id}&amp;regency_id=all&amp;jenis={jenis}</td>
+                                                    <td>Semua OPD se-provinsi: tingkat provinsi + semua kabupaten/kota</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -1237,8 +1345,10 @@ JS;
                                     <tr>
                                         <td class="font-mono">regency_id</td>
                                         <td><span class="badge badge-warning badge-sm">Salah satu</span></td>
-                                        <td>integer</td>
-                                        <td>Id kabupaten/kota, cocok persis. Disarankan untuk dropdown (lihat Playground).</td>
+                                        <td>integer | <span class="font-mono">all</span></td>
+                                        <td>Id kabupaten/kota, cocok persis. Disarankan untuk dropdown (lihat Playground).
+                                            <span class="font-mono">all</span> + <span class="font-mono">province_id</span>: semua OPD se-provinsi
+                                            (tingkat provinsi + semua kabupaten/kota).</td>
                                     </tr>
                                     <tr>
                                         <td class="font-mono">province_id</td>

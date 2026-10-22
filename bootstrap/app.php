@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\AuthenticateAiUserAssertion;
+use App\Http\Middleware\AuthenticateApiConsumer;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureUserAccountIsActive;
 use App\Http\Middleware\EnsureUserCanUseOAuthClient;
@@ -28,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->alias([
             'api.token' => AuthenticateApiToken::class,
+            'api.consumer' => AuthenticateApiConsumer::class,
             'ai.assertion' => AuthenticateAiUserAssertion::class,
             'active' => EnsureUserAccountIsActive::class,
             'role' => RoleMiddleware::class,
@@ -38,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToPriorityList(StartSession::class, EnsureUserCanUseOAuthClient::class);
         // The data API is rate limited per user, so the token and the user must be resolved before throttling.
         $middleware->prependToPriorityList(ThrottleRequests::class, AuthenticateApiToken::class);
+        $middleware->prependToPriorityList(ThrottleRequests::class, AuthenticateApiConsumer::class);
         $middleware->prependToPriorityList(ThrottleRequests::class, AuthenticateAiUserAssertion::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -17,6 +17,7 @@ use App\Livewire\Finance\FinanceIntakeIndex;
 use App\Livewire\Finance\Reconciliation;
 use App\Livewire\Talent\Leaderboard;
 use App\Livewire\Tech\AiMonitor;
+use App\Livewire\Tech\ApiConsumers;
 use App\Livewire\Tech\SsoClients;
 use App\Services\ErrorTracker;
 use Illuminate\Http\Request;
@@ -132,6 +133,7 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::view('/timeline-calc', 'pages.tech')->name('timeline-calc')->middleware('can:tech-timeline-calc.view');
         Route::get('/ai-monitor', AiMonitor::class)->name('ai-monitor')->middleware('can:tech-ai-monitor.view');
         Route::get('/sso', SsoClients::class)->name('sso')->middleware(['can:tech-sso.view', 'password.confirm']);
+        Route::get('/api-keys', ApiConsumers::class)->name('api-keys')->middleware(['can:tech-api-keys.view', 'password.confirm']);
     });
 });
 

@@ -1,8 +1,10 @@
 <?php
 
+use App\Enums\OpdJenis;
 use App\Models\Contact;
 use App\Models\ContactPosition;
 use App\Models\Employee;
+use App\Models\Opd;
 use App\Models\Province;
 use App\Models\Regency;
 use App\Models\Region;
@@ -138,4 +140,37 @@ test('can delete contact', function () {
     $this->assertDatabaseMissing('pmo_contacts', [
         'id' => $contact->id,
     ]);
+});
+
+test('can create a Kementerian contact without provinsi or kabupaten/kota', function () {
+    $user = User::factory()->create();
+    Employee::create(['user_id' => $user->id]);
+    $region = Region::create(['name' => 'Region Tiga', 'code' => 'REG-3']);
+    $kementerian = Opd::factory()->kementerian()->create(['name' => 'Kementerian Keuangan', 'region_id' => $region->id]);
+    $user->givePermissionTo(moduleAccess('access-partnership'));
+    $this->actingAs($user);
+
+    $component = Volt::test('partnership.contact-index')
+        ->set('name', 'Jane Doe')
+        ->set('sumber', 'SDS Umum')
+        ->set('region_id', $region->id)
+        ->set('category', 'Kementerian / Lembaga')
+        ->set('contact_position_id', ContactPosition::create(['name' => 'Staff', 'kelompok_jabatan' => 'JA', 'eselon' => 'IV.a', 'tingkat' => 'Pusat'])->id)
+        ->set('province_id', OpdJenis::Kementerian->value);
+
+    expect($component->get('opdOptions')->pluck('id')->all())->toBe([$kementerian->id])
+        ->and($component->get('regencyOptions'))->toBeEmpty();
+
+    $component->call('saveContact')->assertHasErrors(['opd_id' => 'required']);
+
+    $component->set('opd_id', $kementerian->id)->call('saveContact')->assertHasNoErrors();
+
+    $contact = Contact::where('name', 'Jane Doe')->sole();
+
+    expect($contact->opd_id)->toBe($kementerian->id)
+        ->and($contact->regency_id)->toBeNull();
+
+    $component->call('editContact', $contact->id);
+
+    expect($component->get('province_id'))->toBe(OpdJenis::Kementerian->value);
 });

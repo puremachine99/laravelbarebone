@@ -75,9 +75,15 @@ class AppServiceProvider extends ServiceProvider
         Employee::observe(EmployeeObserver::class);
         User::observe(UserObserver::class);
 
-        // Public OPD lookup API (no token): generous per-IP limit so normal dropdown use never hits it, while scraping
-        // or a runaway client does.
-        RateLimiter::for('public-api', fn (Request $request) => Limit::perMinute(60)->by('public-api:'.$request->ip()));
+        // Public OPD lookup API: each consumer (X-API-Key, resolved by the api.consumer middleware) has its own
+        // per-minute limit, so one website's burst never slows another down.
+        RateLimiter::for('public-api', function (Request $request) {
+            $consumer = $request->attributes->get('api_consumer');
+
+            return $consumer
+                ? Limit::perMinute($consumer['limit'])->by('public-api:consumer:'.$consumer['id'])
+                : Limit::perMinute(60)->by('public-api:'.$request->ip());
+        });
 
         // Data API queries the AI service runs for a user (path B), counted per asserted user.
         RateLimiter::for('ai-data', function (Request $request) {

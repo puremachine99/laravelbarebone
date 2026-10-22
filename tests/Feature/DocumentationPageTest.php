@@ -70,7 +70,7 @@ test('the page is split into vertical tabs with only the first section shown bef
     preg_match_all('/href="#([a-z-]+)" role="tab"/', $html, $tabs);
     preg_match_all('/id="([a-z-]+)" role="tabpanel"/', $html, $panels);
 
-    expect($tabs[1])->toBe($panels[1])->toHaveCount(24);
+    expect($tabs[1])->toBe($panels[1])->toHaveCount(25);
 });
 
 test('the playground tab ships the ready-made commands to the page', function () {
@@ -114,6 +114,8 @@ test('every playground command returns the status it promises', function () {
 
     expect($presets)->not->toBeEmpty();
 
+    $this->withHeader('X-API-Key', publicApiToken());
+
     foreach ($presets as $preset) {
         expect($this->getJson($preset['path'])->status())
             ->toBe($preset['expect'], "{$preset['group']} › {$preset['label']} ({$preset['path']})");
@@ -146,4 +148,13 @@ test('the SSO playground samples have exactly the shape of the real API', functi
         expect(array_keys(json_decode($json, true)))->toBe(array_keys($real), "scopes: {$key}")
             ->and(array_keys(json_decode($samples['members'][$key], true)['data'][0]))->toBe(array_keys($real));
     }
+});
+
+test('the OPD Lookup API documents the per-consumer API key', function () {
+    $this->get('/tech/documentation')
+        ->assertOk()
+        ->assertSee('href="#api-key" role="tab"', false)
+        ->assertSee('Autentikasi (API Key)')
+        ->assertSee("'X-API-Key': 'smid_xxx'", false)
+        ->assertSee('playground-api-key', false);
 });

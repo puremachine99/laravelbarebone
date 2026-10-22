@@ -10,6 +10,7 @@ use App\Models\Region;
  * every other jenis narrows the location dropdowns to places that have an OPD of that jenis.
  */
 beforeEach(function () {
+    $this->withHeader('X-API-Key', publicApiToken());
     $this->regionOne = Region::factory()->create(['name' => 'Region 1']);
     $this->regionTwo = Region::factory()->create(['name' => 'Region 2']);
 

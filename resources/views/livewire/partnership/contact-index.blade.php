@@ -1,6 +1,7 @@
 <?php
 
 use function Livewire\Volt\{state, layout, computed, usesPagination};
+use App\Enums\OpdJenis;
 use App\Models\Contact;
 use App\Models\Region;
 use App\Models\Regency;
@@ -48,16 +49,23 @@ $contactPositionOptions = computed(fn() => App\Models\ContactPosition::orderBy('
 
 $kelompokJabatanOptions = computed(fn() => App\Models\ContactPosition::whereNotNull('kelompok_jabatan')->where('kelompok_jabatan', '<>', '')->distinct()->orderBy('kelompok_jabatan')->pluck('kelompok_jabatan'));
 
-$provinceOptions = computed(fn() => Province::orderBy('name')->get());
+// Kementerian / Lembaga have no provinsi or kabupaten/kota, so they are offered as one extra "provinsi" option.
+$provinceOptions = computed(fn() => collect([['id' => OpdJenis::Kementerian->value, 'name' => OpdJenis::Kementerian->label() . ' (Nasional)']])
+    ->merge(Province::orderBy('name')->get(['id', 'name'])->map(fn($province) => ['id' => $province->id, 'name' => $province->name])));
+
+$isKementerianSelected = computed(fn() => $this->province_id === OpdJenis::Kementerian->value);
 
 $regencyOptions = computed(function () {
-    if (!$this->province_id) {
+    if (!$this->province_id || $this->isKementerianSelected) {
         return collect();
     }
     return Regency::where('province_id', $this->province_id)->orderBy('name')->get();
 });
 
 $opdOptions = computed(function () {
+    if ($this->isKementerianSelected) {
+        return Opd::kementerian()->orderBy('name')->get();
+    }
     if (!$this->regency_id) {
         return collect();
     }
@@ -168,7 +176,7 @@ $showCreate = function () {
 
 $editContact = function ($id) {
     $this->resetForm();
-    $contact = Contact::with('regency')->findOrFail($id);
+    $contact = Contact::with(['regency', 'opd'])->findOrFail($id);
     $this->contact_id = $contact->id;
     $this->name = $contact->name;
     $this->sumber = $contact->sumber;
@@ -184,7 +192,9 @@ $editContact = function ($id) {
 
     $this->pic_employee_id = $contact->pic_employee_id;
     $this->category = $contact->category;
-    if ($contact->regency) {
+    if ($contact->opd && ! $contact->opd->hasLocation()) {
+        $this->province_id = OpdJenis::Kementerian->value;
+    } elseif ($contact->regency) {
         $this->province_id = $contact->regency->province_id;
     }
     $this->regency_id = $contact->regency_id;
@@ -202,9 +212,9 @@ $saveContact = function () {
         'sumber' => ['required', 'in:' . implode(',', $this->sumberOptions)],
         'region_id' => ['required', 'exists:regions,id'],
         'category' => ['required', 'in:' . implode(',', $this->categoryOptions)],
-        'province_id' => ['required', 'exists:provinces,id'],
-        'regency_id' => ['required', 'exists:regencies,id'],
-        'opd_id' => ['nullable', 'exists:pmo_opds,id'],
+        'province_id' => ['required', ...($this->isKementerianSelected ? [] : ['exists:provinces,id'])],
+        'regency_id' => [Rule::requiredIf(! $this->isKementerianSelected), 'nullable', 'exists:regencies,id'],
+        'opd_id' => [Rule::requiredIf($this->isKementerianSelected), 'nullable', 'exists:pmo_opds,id'],
         'contact_position_id' => ['nullable', 'exists:pmo_contact_positions,id'],
         'phone' => ['nullable', 'string', 'max:30'],
         'email' => ['nullable', 'email', 'max:150'],
@@ -230,7 +240,7 @@ $saveContact = function () {
             'region_id' => $this->region_id,
             'pic_employee_id' => $picId,
             'category' => $this->category,
-            'regency_id' => $this->regency_id,
+            'regency_id' => $this->isKementerianSelected ? null : $this->regency_id,
             'opd_id' => $this->opd_id ?: null,
             'contact_position_id' => $this->contact_position_id,
             'phone' => $this->phone,
@@ -662,11 +672,11 @@ $contactsCount = computed(function () {
                     placeholder="Pilih Provinsi..." />
 
                 <x-select label="Kabupaten / Kota" wire:model.live="regency_id" :options="$this->regencyOptions"
-                    placeholder="Pilih Kabupaten / Kota..." :disabled="!$province_id" />
+                    placeholder="Pilih Kabupaten / Kota..." :disabled="!$province_id || $this->isKementerianSelected" />
 
                 <div class="col-span-2">
                     <x-select label="Instansi (OPD)" wire:model="opd_id" :options="$this->opdOptions"
-                        placeholder="Pilih Instansi..." :disabled="!$regency_id" />
+                        placeholder="Pilih Instansi..." :disabled="!$regency_id && !$this->isKementerianSelected" />
                 </div>
 
                 @php

@@ -14,11 +14,16 @@ use Illuminate\Validation\Rule;
 class OpdController extends Controller
 {
     /**
+     * regency_id value (with province_id) for every OPD of the province: province level and all its kabupaten/kota.
+     */
+    public const ALL_REGENCIES = 'all';
+
+    /**
      * Search OPDs by province name keyword, or — for cascading dropdowns — by the exact regency id; optionally
      * narrowed by regency (kabupaten/kota) and OPD name keywords. Optionally narrowed by jenis; a jenis without a
      * location (Kementrian) needs no provinsi / regency_id and lists every entry of that jenis. "province_id" without
-     * "regency_id" gives the province-level OPDs (those of the province's "Provinsi" regency). Used to populate
-     * dropdowns.
+     * "regency_id" gives the province-level OPDs (those of the province's "Provinsi" regency); with "regency_id=all" it
+     * gives every OPD of the province (province level and all its kabupaten/kota). Used to populate dropdowns.
      */
     public function index(Request $request): AnonymousResourceCollection
     {
@@ -28,13 +33,14 @@ class OpdController extends Controller
                 Rule::requiredIf(fn () => ! $request->filled('regency_id') && ! $request->filled('province_id') && Opd::jenisHasLocation($request->string('jenis')->value())),
                 'nullable', 'string', 'min:1',
             ],
-            'province_id' => ['nullable', 'integer'],
-            'regency_id' => ['nullable', 'integer'],
+            'province_id' => [Rule::requiredIf(fn () => $request->input('regency_id') === self::ALL_REGENCIES), 'nullable', 'integer'],
+            'regency_id' => ['nullable', 'regex:/^(\d+|'.self::ALL_REGENCIES.')$/'],
             'kabupaten' => ['nullable', 'string', 'min:1'],
             'keyword' => ['nullable', 'string', 'min:1'],
         ]);
 
         $filtersByLocation = collect(['provinsi', 'province_id', 'regency_id', 'kabupaten'])->contains(fn (string $key) => filled($validated[$key] ?? null));
+        $allRegencies = ($validated['regency_id'] ?? null) === self::ALL_REGENCIES;
         $provinceLevelOnly = filled($validated['province_id'] ?? null) && blank($validated['regency_id'] ?? null);
 
         $opds = Opd::query()
@@ -49,7 +55,7 @@ class OpdController extends Controller
                     $query->where('name', 'like', '%'.$provinsi.'%');
                 });
             })
-            ->when($validated['regency_id'] ?? null, fn ($query, $regencyId) => $query->where('regency_id', $regencyId))
+            ->when(! $allRegencies && filled($validated['regency_id'] ?? null), fn ($query) => $query->where('regency_id', $validated['regency_id']))
             ->when($validated['kabupaten'] ?? null, function ($query, $kabupaten) {
                 $query->whereHas('regency', function ($query) use ($kabupaten) {
                     $query->where('name', 'like', '%'.$kabupaten.'%');
@@ -85,16 +91,18 @@ class OpdController extends Controller
         $contains = fn (Builder $query, string $column, string $value) => $query
             ->whereRaw("LOWER({$column}) LIKE ?", ['%'.addcslashes(mb_strtolower($value), '%_\\').'%']);
 
-        $filtersByLocation = filled($validated['provinsi'] ?? null) || filled($validated['kabupaten'] ?? null) || filled($validated['region'] ?? null);
+        $filtersByLocation = filled($validated['provinsi'] ?? null) || filled($validated['kabupaten'] ?? null);
 
         $opds = Opd::query()
-            ->with(['regency.province', 'regency.region', 'urusans'])
+            ->with(['regency.province', 'regency.region', 'region', 'urusans'])
             ->search($validated['q'] ?? null)
             ->ofJenis($validated['jenis'] ?? null)
             ->when($filtersByLocation, fn ($query) => $query->withLocation())
             ->when($validated['provinsi'] ?? null, fn ($query, $provinsi) => $query->whereHas('regency.province', fn ($province) => $contains($province, 'provinces.name', $provinsi)))
             ->when($validated['kabupaten'] ?? null, fn ($query, $kabupaten) => $query->whereHas('regency', fn ($regency) => $contains($regency, 'regencies.name', $kabupaten)))
-            ->when($validated['region'] ?? null, fn ($query, $region) => $query->whereHas('regency.region', fn ($regionQuery) => $contains($regionQuery, 'regions.name', $region)))
+            ->when($validated['region'] ?? null, fn ($query, $region) => $query->where(fn ($inRegion) => $inRegion
+                ->whereHas('region', fn ($regionQuery) => $contains($regionQuery, 'regions.name', $region))
+                ->orWhereHas('regency.region', fn ($regionQuery) => $contains($regionQuery, 'regions.name', $region))))
             ->when($validated['urusan'] ?? null, fn ($query, $urusan) => $query->whereHas('urusans', fn ($urusanQuery) => $urusanQuery
                 ->where(fn ($match) => $contains($match, 'pmo_urusans.urusan', $urusan))
                 ->orWhereRaw('LOWER(pmo_urusans.code) = ?', [mb_strtolower($urusan)])))

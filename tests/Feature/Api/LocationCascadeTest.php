@@ -10,6 +10,7 @@ use App\Models\Region;
  * Regions are assigned per regency, so a province can appear under more than one region.
  */
 beforeEach(function () {
+    $this->withHeader('X-API-Key', publicApiToken());
     $this->regionOne = Region::factory()->create(['name' => 'Region 1', 'code' => 'REG-1']);
     $this->regionTwo = Region::factory()->create(['name' => 'Region 2', 'code' => 'REG-2']);
 
@@ -61,4 +62,31 @@ test('opds of exactly one regency, not of similarly named ones', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $mine->id)
         ->assertJsonPath('data.0.regency', 'Kab. Bandung');
+});
+
+test('regency_id=all lists every OPD of the province: province level and all its kabupaten/kota', function () {
+    $jabarLevel = Regency::factory()->create(['province_id' => $this->jabar->id, 'region_id' => $this->regionOne->id, 'name' => 'Prov. Jawa Barat', 'type' => Regency::TYPE_PROVINCE]);
+    $provinceOpd = Opd::factory()->opd()->create(['regency_id' => $jabarLevel->id, 'name' => 'Dinas Provinsi']);
+    $bandungOpd = Opd::factory()->opd()->create(['regency_id' => $this->bandung->id, 'name' => 'Dinas Bandung']);
+    $bandungBaratRs = Opd::factory()->unitKesehatan()->create(['regency_id' => $this->bandungBarat->id, 'name' => 'RSUD Cililin']);
+    Opd::factory()->opd()->create(['regency_id' => $this->malang->id, 'name' => 'Dinas Malang']);
+
+    $this->getJson('/api/opds?province_id='.$this->jabar->id.'&regency_id=all')
+        ->assertOk()
+        ->assertJsonCount(3, 'data')
+        ->assertJsonPath('data.0.id', $bandungOpd->id)
+        ->assertJsonPath('data.0.regency', 'Kab. Bandung');
+
+    $this->getJson('/api/opds?province_id='.$this->jabar->id.'&regency_id=all&jenis=Unit Kesehatan')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $bandungBaratRs->id);
+
+    $this->getJson('/api/opds?province_id='.$this->jabar->id)
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $provinceOpd->id);
+
+    $this->getJson('/api/opds?regency_id=all')->assertUnprocessable()->assertJsonValidationErrors('province_id');
+    $this->getJson('/api/opds?province_id='.$this->jabar->id.'&regency_id=semua')->assertUnprocessable()->assertJsonValidationErrors('regency_id');
 });

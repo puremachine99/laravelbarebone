@@ -1,8 +1,10 @@
 <?php
 
+use App\Enums\OpdJenis;
 use App\Models\Card;
 use App\Models\Contact;
 use App\Models\Division;
+use App\Models\Employee;
 use App\Models\Opd;
 use App\Models\Output;
 use App\Models\PipelineProfile;
@@ -352,4 +354,23 @@ test('pitching page filter and search functionality works', function () {
         ->assertSet('filterStageId', '')
         ->assertSet('filterStatus', '')
         ->assertSet('filterManagerVerified', '');
+});
+
+test('pitching modal offers Kementerian of the user region without provinsi or kabupaten/kota', function () {
+    $user = User::factory()->create();
+    $regionThree = Region::factory()->create(['code' => 'REG-3']);
+    $otherRegion = Region::factory()->create();
+    Employee::create(['user_id' => $user->id, 'region_id' => $regionThree->id]);
+    $kemenkeu = Opd::factory()->kementerian()->create(['name' => 'Kementerian Keuangan', 'region_id' => $regionThree->id]);
+    Opd::factory()->kementerian()->create(['name' => 'Kementerian Lain', 'region_id' => $otherRegion->id]);
+    $this->actingAs($user);
+
+    $component = Livewire::test('partnership.pitching-create-modal');
+
+    expect($component->get('provinceOptions')->first()['id'])->toBe(OpdJenis::Kementerian->value);
+
+    $component->set('selectedProvinceId', OpdJenis::Kementerian->value);
+
+    expect($component->get('opdOptions')->pluck('id')->all())->toBe([$kemenkeu->id])
+        ->and($component->get('regencyOptions'))->toBeEmpty();
 });

@@ -1,10 +1,12 @@
 <?php
 
 use function Livewire\Volt\{state, layout, computed, usesPagination};
+use App\Enums\OpdJenis;
 use App\Models\Opd;
 use App\Models\Region;
 use App\Models\Regency;
 use App\Models\Urusan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 usesPagination();
@@ -30,6 +32,7 @@ state([
 'name' =>'',
 'jenis' =>'',
 'regency_id' =>'',
+'region_id' =>'',
 'selectedUrusans' => [],
 'isEdit' => false,
 'deleteTargetId' => null,
@@ -76,15 +79,15 @@ $filteredQuery = function () {
  ->search($search)
  ->when($filterRegency, fn($q) => $q->where('pmo_opds.regency_id', $filterRegency))
  ->when($this->filterJenis, fn($q) => $q->where('pmo_opds.jenis', $this->filterJenis))
- ->when($this->filterRegion, fn($q) => $q->whereHas('regency', fn($r) => $r->where('region_id', $this->filterRegion)))
+ ->when($this->filterRegion, fn($q) => $q->inRegion($this->filterRegion))
  ;
 };
 
 $opds = computed(function () {
  return $this->filteredQuery()
- ->with(['regency.province','regency.region','urusans'])
+ ->with(['regency.province','regency.region','region','urusans'])
  ->when($this->sortBy ==='regency', function ($q) {
- $q->join('regencies','regencies.id','=','pmo_opds.regency_id')
+ $q->leftJoin('regencies','regencies.id','=','pmo_opds.regency_id')
  ->select('pmo_opds.*')
  ->orderBy('regencies.name', $this->sortDirection);
  }, function ($q) {
@@ -105,8 +108,8 @@ $summary = computed(function () {
 
  $perRegion = $this->filteredQuery()
  ->reorder()
- ->join('regencies', 'regencies.id', '=', 'pmo_opds.regency_id')
- ->join('regions', 'regions.id', '=', 'regencies.region_id')
+ ->leftJoin('regencies', 'regencies.id', '=', 'pmo_opds.regency_id')
+ ->join('regions', 'regions.id', '=', DB::raw('COALESCE(pmo_opds.region_id, regencies.region_id)'))
  ->selectRaw('regions.name as region_name, COUNT(*) as total')
  ->groupBy('regions.name')
  ->orderBy('regions.name')
@@ -114,13 +117,13 @@ $summary = computed(function () {
 
  $coverage = $this->filteredQuery()
  ->reorder()
- ->join('regencies', 'regencies.id', '=', 'pmo_opds.regency_id')
+ ->leftJoin('regencies', 'regencies.id', '=', 'pmo_opds.regency_id')
  ->selectRaw('COUNT(DISTINCT pmo_opds.regency_id) as regencies, COUNT(DISTINCT regencies.province_id) as provinces')
  ->first();
 
  return [
 'total' => $total,
-'jenis' => collect(['OPD', 'Kementrian', 'Unit Kesehatan'])->mapWithKeys(fn ($jenis) => [$jenis => (int) ($perJenis[$jenis] ?? 0)]),
+'jenis' => collect(OpdJenis::cases())->map(fn (OpdJenis $jenis) => $jenis->value)->mapWithKeys(fn ($jenis) => [$jenis => (int) ($perJenis[$jenis] ?? 0)]),
 'withUrusan' => $withUrusan,
 'perRegion' => $perRegion,
 'regencies' => (int) $coverage->regencies,
@@ -154,15 +157,18 @@ $updatedFilterRegion = function () {
 };
 
 $resetForm = function () {
- $this->reset(['opd_id','name','jenis','regency_id','selectedUrusans','isEdit']);
+ $this->reset(['opd_id','name','jenis','regency_id','region_id','selectedUrusans','isEdit']);
  $this->resetValidation();
 };
 
 $save = function () {
+ $isKementerian = OpdJenis::fromName($this->jenis) === OpdJenis::Kementerian;
+
  $this->validate([
 'name' => ['required','string','max:255'],
-'jenis' => ['nullable','string','max:50'],
-'regency_id' => ['required','exists:regencies,id'],
+'jenis' => ['nullable', Rule::enum(OpdJenis::class)],
+'regency_id' => [Rule::requiredIf(! $isKementerian), 'nullable', 'exists:regencies,id'],
+'region_id' => [Rule::requiredIf($isKementerian), 'nullable', 'exists:regions,id'],
 'selectedUrusans' => ['nullable','array'],
 'selectedUrusans.*' => ['exists:pmo_urusans,id'],
  ]);
@@ -174,7 +180,8 @@ $save = function () {
  [
 'name' => $this->name,
 'jenis' => $this->jenis ?: null,
-'regency_id' => $this->regency_id,
+'regency_id' => $isKementerian ? null : $this->regency_id,
+'region_id' => $isKementerian ? $this->region_id : null,
  ]
  );
 
@@ -190,7 +197,8 @@ $edit = function (Opd $opd) {
  $this->opd_id = $opd->id;
  $this->name = $opd->name;
  $this->jenis = $opd->jenis ??'';
- $this->regency_id = $opd->regency_id;
+ $this->regency_id = $opd->regency_id ??'';
+ $this->region_id = $opd->region_id ??'';
  $this->selectedUrusans = $opd->urusans->pluck('id')->map(fn($id) => (string) $id)->toArray();
  $this->isEdit = true;
  $this->showOpdModal = true;
@@ -228,7 +236,7 @@ $delete = function () {
 
  @php
  $summary = $this->summary;
- $jenisColors = ['OPD' => 'bg-primary', 'Kementrian' => 'bg-success', 'Unit Kesehatan' => 'bg-warning'];
+ $jenisColors = ['OPD' => 'bg-primary', 'Kementrian' => 'bg-success', 'Unit Kesehatan' => 'bg-warning', 'Pendidikan' => 'bg-info'];
  $percentOf = fn ($count) => $summary['total'] > 0 ? round($count / $summary['total'] * 100, 1) : 0;
  $topRegions = $summary['perRegion']->sortDesc()->take(3);
  $withoutUrusan = $summary['total'] - $summary['withUrusan'];
@@ -372,8 +380,13 @@ $delete = function () {
  <td class="text-base-content/50">{{ $item->id }}</td>
  <td class="font-semibold text-base-content py-3">{{ $item->name }}</td>
  <td>
+ @if ($item->hasLocation())
  <div>{{ $item->regency?->name ??'-' }}</div>
  <span class="text-xs text-base-content/40 block mt-0.5">{{ $item->regency?->province?->name }}@if ($item->regency?->region) · {{ $item->regency->region->name }}@endif</span>
+ @else
+ <div>Nasional</div>
+ <span class="text-xs text-base-content/40 block mt-0.5">{{ $item->region?->name }}</span>
+ @endif
  </td>
  <td>
  @if ($item->jenis)
@@ -419,12 +432,13 @@ $delete = function () {
  <form wire:submit.prevent="save" class="space-y-4">
  <x-input label="Nama Instansi / OPD" wire:model="name" placeholder="Cth: Dinas Kesehatan" required />
  
- @php
- $jenisFormOptions = [['id' =>'OPD','name' =>'OPD'],['id' =>'Kementrian','name' =>'Kementrian'],['id' =>'Unit Kesehatan','name' =>'Unit Kesehatan']];
- @endphp
- <x-select label="Jenis" wire:model="jenis" :options="$jenisFormOptions" placeholder="Pilih Jenis..." placeholder-value="" />
+ <x-select label="Jenis" wire:model.live="jenis" :options="\App\Enums\OpdJenis::options()" placeholder="Pilih Jenis..." placeholder-value="" />
 
+ @if (\App\Enums\OpdJenis::fromName($jenis) === \App\Enums\OpdJenis::Kementerian)
+ <x-select label="Region" wire:model="region_id" :options="$this->regionOptions" placeholder="Pilih Region..." placeholder-value="" required />
+ @else
  <x-select label="Kabupaten / Kota" wire:model="regency_id" :options="$this->regencyOptions" placeholder="Pilih Kabupaten / Kota..." placeholder-value="" required />
+ @endif
 
  <div>
  <span class="label-text font-semibold mb-1 block">Bidang Urusan</span>

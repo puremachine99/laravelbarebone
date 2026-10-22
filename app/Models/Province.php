@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Province extends Model
 {
@@ -11,13 +13,21 @@ class Province extends Model
 
     protected $guarded = ['id'];
 
-    public function regencies()
+    /**
+     * @return HasMany<Regency, $this>
+     */
+    public function regencies(): HasMany
     {
         return $this->hasMany(Regency::class);
     }
 
-    public function region()
+    /**
+     * Instansi in any kabupaten/kota of this province, including the province-level ("Provinsi") regency.
+     *
+     * @return HasManyThrough<Opd, Regency, $this>
+     */
+    public function opds(): HasManyThrough
     {
-        return $this->belongsTo(Region::class);
+        return $this->hasManyThrough(Opd::class, Regency::class);
     }
 }

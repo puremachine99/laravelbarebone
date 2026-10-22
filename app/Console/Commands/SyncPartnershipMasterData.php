@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Database\Seeders\PartnershipMasterDataSeeder;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -108,6 +109,11 @@ class SyncPartnershipMasterData extends Command
         $upserted = 0;
 
         foreach ($rows as $row) {
+            // Kementerian are pmo_opds of jenis Kementrian with a region, not regencies of a pseudo-province.
+            if (trim($row->provinsi) === PartnershipMasterDataSeeder::KEMENTERIAN_PSEUDO_PROVINCE) {
+                continue;
+            }
+
             DB::table('provinces')->updateOrInsert(
                 ['code' => $row->kode],
                 ['name' => $row->provinsi, 'updated_at' => now()]

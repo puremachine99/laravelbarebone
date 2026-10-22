@@ -39,6 +39,7 @@ class ApiPlaygroundPresets
         ],
         'OPD (dropdown)' => [
             ['OPD tingkat provinsi (tanpa kabupaten)', '/api/opds?province_id=21&jenis=OPD', 200],
+            ['Semua OPD se-provinsi (semua kabupaten/kota)', '/api/opds?province_id=21&regency_id=all&jenis=OPD', 200],
             ['Unit Kesehatan di satu kabupaten/kota (id)', '/api/opds?regency_id=315&jenis=Unit Kesehatan', 200],
             ['OPD di satu kabupaten/kota (id)', '/api/opds?regency_id=315', 200],
             ['Provinsi saja (nama)', '/api/opds?provinsi=Jawa Timur', 200],

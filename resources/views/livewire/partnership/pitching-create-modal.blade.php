@@ -27,22 +27,48 @@ state([
     'negativeReason' => 'No Budget',
 ]);
 
-$provinceOptions = computed(function () {
+// Region the user is limited to, or null when they may see every region.
+$restrictedRegionId = computed(function () {
     $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
     if ($employee && $employee->region_id && auth()->user()->email !== 'supernakama@smartid.co.id') {
-        return \App\Models\Province::whereHas('regencies', fn($q) => $q->where('region_id', $employee->region_id))->orderBy('name')->get();
+        return $employee->region_id;
     }
-    return \App\Models\Province::orderBy('name')->get();
+    return null;
+});
+
+$kementerianOptions = computed(fn() => \App\Models\Opd::kementerian()
+    ->when($this->restrictedRegionId, fn($q, $regionId) => $q->where('region_id', $regionId))
+    ->orderBy('name')
+    ->get());
+
+$isKementerianSelected = computed(fn() => $this->selectedProvinceId === \App\Enums\OpdJenis::Kementerian->value);
+
+// Kementerian / Lembaga have no provinsi or kabupaten/kota, so they are offered as one extra "provinsi" option.
+$provinceOptions = computed(function () {
+    $provinces = \App\Models\Province::query()
+        ->when($this->restrictedRegionId, fn($q, $regionId) => $q->whereHas('regencies', fn($r) => $r->where('region_id', $regionId)))
+        ->orderBy('name')
+        ->get(['id', 'name'])
+        ->map(fn($province) => ['id' => $province->id, 'name' => $province->name]);
+
+    if ($this->kementerianOptions->isEmpty()) {
+        return $provinces;
+    }
+
+    return collect([['id' => \App\Enums\OpdJenis::Kementerian->value, 'name' => \App\Enums\OpdJenis::Kementerian->label() . ' (Nasional)']])->merge($provinces);
 });
 
 $regencyOptions = computed(function () {
-    if (!$this->selectedProvinceId) {
+    if (!$this->selectedProvinceId || $this->isKementerianSelected) {
         return collect();
     }
     return \App\Models\Regency::where('province_id', $this->selectedProvinceId)->orderBy('name')->get();
 });
 
 $opdOptions = computed(function () {
+    if ($this->isKementerianSelected) {
+        return $this->kementerianOptions;
+    }
     if (!$this->selectedRegencyId) {
         return collect();
     }
@@ -187,11 +213,11 @@ new class {};
                     :options="$this->provinceOptions" />
 
                 <x-select label="Kabupaten / Kota" placeholder="Pilih Kabupaten / Kota..."
-                    wire:model.live="selectedRegencyId" :options="$this->regencyOptions" :disabled="!$selectedProvinceId" />
+                    wire:model.live="selectedRegencyId" :options="$this->regencyOptions" :disabled="!$selectedProvinceId || $this->isKementerianSelected" />
 
                 <div class="col-span-2">
                     <x-select label="Instansi (OPD)" placeholder="Pilih Instansi..." wire:model.live="selectedOpdId"
-                        :options="$this->opdOptions" :disabled="!$selectedRegencyId" />
+                        :options="$this->opdOptions" :disabled="!$selectedRegencyId && !$this->isKementerianSelected" />
                 </div>
 
                 <div class="col-span-2">

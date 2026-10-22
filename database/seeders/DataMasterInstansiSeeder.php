@@ -2,22 +2,19 @@
 
 namespace Database\Seeders;
 
+use App\Enums\OpdJenis;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class DataMasterInstansiSeeder extends Seeder
 {
     /**
-     * Instansi without a province/regency in the CSV (e.g. Kementerian) are attached to this regency.
-     */
-    private const NATIONAL_PROVINCE = 'Prov. DKI Jakarta';
-
-    private const NATIONAL_REGENCY = 'Prov. DKI Jakarta';
-
-    /**
      * Treats DataMasterInstansi.csv as the source of truth: [jenis, province name, regency name, instansi].
      * Empties pmo_opds and refills it from the CSV, after syncing regencies with their regions.
-     * Contact and urusan links are restored by matching on regency + name.
+     * Kementerian get no regency but the default Kementerian region. Contact and urusan links are restored by
+     * matching on location (regency, or region for Kementerian) + name.
+     *
+     * Superseded by PartnershipMasterDataSeeder, which reads the Master*.csv files and keeps existing ids.
      */
     public function run(): void
     {
@@ -59,11 +56,12 @@ class DataMasterInstansiSeeder extends Seeder
     }
 
     /**
-     * @return array{0: array<string, array{regency_id: int, name: string, jenis: string}>, 1: array<string, int>}
+     * @return array{0: array<string, array{regency_id: int|null, region_id: int|null, name: string, jenis: string}>, 1: array<string, int>}
      */
     private function readCsv(string $csvPath): array
     {
         $regencyIds = $this->regencyIdsByProvinceAndName();
+        $kementerianRegionId = DB::table('regions')->where('code', OpdJenis::KEMENTERIAN_DEFAULT_REGION_CODE)->value('id');
 
         $handle = fopen($csvPath, 'r');
         fgetcsv($handle);
@@ -78,8 +76,12 @@ class DataMasterInstansiSeeder extends Seeder
 
             [$jenis, $provinceName, $regencyName, $instansi] = array_map('trim', $row);
 
-            if ($provinceName === '' && $regencyName === '') {
-                [$provinceName, $regencyName] = [self::NATIONAL_PROVINCE, self::NATIONAL_REGENCY];
+            if (OpdJenis::fromName($jenis) === OpdJenis::Kementerian) {
+                if ($instansi !== '') {
+                    $toCreate[$this->key(null, $kementerianRegionId, $instansi)] ??= ['regency_id' => null, 'region_id' => $kementerianRegionId, 'name' => $instansi, 'jenis' => OpdJenis::Kementerian->value];
+                }
+
+                continue;
             }
 
             $regencyId = $this->findRegencyId($regencyIds, $provinceName, $regencyName);
@@ -90,7 +92,7 @@ class DataMasterInstansiSeeder extends Seeder
                 continue;
             }
 
-            $toCreate[$this->key($regencyId, $instansi)] ??= ['regency_id' => $regencyId, 'name' => $instansi, 'jenis' => $jenis];
+            $toCreate[$this->key($regencyId, null, $instansi)] ??= ['regency_id' => $regencyId, 'region_id' => null, 'name' => $instansi, 'jenis' => $jenis];
         }
 
         fclose($handle);
@@ -98,9 +100,9 @@ class DataMasterInstansiSeeder extends Seeder
         return [$toCreate, $unmatched];
     }
 
-    private function key(int $regencyId, string $name): string
+    private function key(?int $regencyId, ?int $regionId, string $name): string
     {
-        return $regencyId.'|'.mb_strtolower(trim($name));
+        return ($regencyId ? "regency:{$regencyId}" : "region:{$regionId}").'|'.mb_strtolower(trim($name));
     }
 
     /**
@@ -132,8 +134,8 @@ class DataMasterInstansiSeeder extends Seeder
     {
         return DB::table('pmo_contacts')
             ->join('pmo_opds', 'pmo_opds.id', '=', 'pmo_contacts.opd_id')
-            ->get(['pmo_contacts.id as contact_id', 'pmo_opds.regency_id', 'pmo_opds.name'])
-            ->mapWithKeys(fn ($row) => [$row->contact_id => $this->key($row->regency_id, $row->name)])
+            ->get(['pmo_contacts.id as contact_id', 'pmo_opds.regency_id', 'pmo_opds.region_id', 'pmo_opds.name'])
+            ->mapWithKeys(fn ($row) => [$row->contact_id => $this->key($row->regency_id, $row->region_id, $row->name)])
             ->all();
     }
 
@@ -144,8 +146,8 @@ class DataMasterInstansiSeeder extends Seeder
     {
         return DB::table('pmo_opd_urusan')
             ->join('pmo_opds', 'pmo_opds.id', '=', 'pmo_opd_urusan.opd_id')
-            ->get(['pmo_opds.regency_id', 'pmo_opds.name', 'pmo_opd_urusan.urusan_id'])
-            ->map(fn ($row) => ['key' => $this->key($row->regency_id, $row->name), 'urusan_id' => $row->urusan_id])
+            ->get(['pmo_opds.regency_id', 'pmo_opds.region_id', 'pmo_opds.name', 'pmo_opd_urusan.urusan_id'])
+            ->map(fn ($row) => ['key' => $this->key($row->regency_id, $row->region_id, $row->name), 'urusan_id' => $row->urusan_id])
             ->all();
     }
 
@@ -158,8 +160,8 @@ class DataMasterInstansiSeeder extends Seeder
     {
         $newIds = [];
 
-        foreach (DB::table('pmo_opds')->get(['id', 'regency_id', 'name']) as $opd) {
-            $newIds[$this->key($opd->regency_id, $opd->name)] = $opd->id;
+        foreach (DB::table('pmo_opds')->get(['id', 'regency_id', 'region_id', 'name']) as $opd) {
+            $newIds[$this->key($opd->regency_id, $opd->region_id, $opd->name)] = $opd->id;
         }
 
         $contacts = 0;

@@ -1,0 +1,547 @@
+PROVINSI,KAB/KOTA,REGION
+Prov. Aceh,Prov. Aceh,2
+Prov. Aceh,Kab. Aceh Barat,2
+Prov. Aceh,Kab. Aceh Barat Daya,2
+Prov. Aceh,Kab. Aceh Besar,2
+Prov. Aceh,Kab. Aceh Jaya,2
+Prov. Aceh,Kab. Aceh Selatan,2
+Prov. Aceh,Kab. Aceh Singkil,2
+Prov. Aceh,Kab. Aceh Tamiang,2
+Prov. Aceh,Kab. Aceh Tengah,2
+Prov. Aceh,Kab. Aceh Tenggara,2
+Prov. Aceh,Kab. Aceh Timur,2
+Prov. Aceh,Kab. Aceh Utara,2
+Prov. Aceh,Kab. Bener Meriah,2
+Prov. Aceh,Kab. Bireuen,2
+Prov. Aceh,Kab. Gayo Lues,2
+Prov. Aceh,Kab. Nagan Raya,2
+Prov. Aceh,Kab. Pidie,2
+Prov. Aceh,Kab. Pidie Jaya,2
+Prov. Aceh,Kab. Simeulue,2
+Prov. Aceh,Kota Banda Aceh,2
+Prov. Aceh,Kota Langsa,2
+Prov. Aceh,Kota Lhokseumawe,2
+Prov. Aceh,Kota Sabang,2
+Prov. Aceh,Kota Subulussalam,2
+Prov. Bali,Prov. Bali,4
+Prov. Bali,Kab. Badung,4
+Prov. Bali,Kab. Bangli,4
+Prov. Bali,Kab. Buleleng,4
+Prov. Bali,Kab. Gianyar,4
+Prov. Bali,Kab. Jembrana,4
+Prov. Bali,Kab. Karangasem,4
+Prov. Bali,Kab. Klungkung,4
+Prov. Bali,Kab. Tabanan,4
+Prov. Bali,Kota Denpasar,4
+Prov. Bangka Belitung,Prov. Kepulauan Bangka Belitung,1
+Prov. Bangka Belitung,Kab. Bangka,1
+Prov. Bangka Belitung,Kab. Bangka Barat,1
+Prov. Bangka Belitung,Kab. Bangka Selatan,1
+Prov. Bangka Belitung,Kab. Bangka Tengah,1
+Prov. Bangka Belitung,Kab. Belitung,1
+Prov. Bangka Belitung,Kab. Belitung Timur,1
+Prov. Bangka Belitung,Kota Pangkal Pinang,1
+Prov. Banten,Prov. Banten,3
+Prov. Banten,Kab. Lebak,3
+Prov. Banten,Kab. Pandeglang,3
+Prov. Banten,Kab. Serang,3
+Prov. Banten,Kab. Tangerang,3
+Prov. Banten,Kota Cilegon,3
+Prov. Banten,Kota Serang,3
+Prov. Banten,Kota Tangerang,3
+Prov. Banten,Kota Tangerang Selatan,3
+Prov. Bengkulu,Prov. Bengkulu,1
+Prov. Bengkulu,Kab. Bengkulu Selatan,1
+Prov. Bengkulu,Kab. Bengkulu Tengah,1
+Prov. Bengkulu,Kab. Bengkulu Utara,1
+Prov. Bengkulu,Kab. Kaur,1
+Prov. Bengkulu,Kab. Kepahiang,1
+Prov. Bengkulu,Kab. Lebong,1
+Prov. Bengkulu,Kab. Mukomuko,1
+Prov. Bengkulu,Kab. Rejang Lebong,1
+Prov. Bengkulu,Kab. Seluma,1
+Prov. Bengkulu,Kota Bengkulu,1
+Prov. DI Yogyakarta,Prov. DI Yogyakarta,3
+Prov. DI Yogyakarta,Kab. Bantul,3
+Prov. DI Yogyakarta,Kab. Gunungkidul,3
+Prov. DI Yogyakarta,Kab. Kulon Progo,3
+Prov. DI Yogyakarta,Kab. Sleman,3
+Prov. DI Yogyakarta,Kota Yogyakarta,3
+Prov. DKI Jakarta,Prov. DKI Jakarta,3
+Prov. Gorontalo,Prov. Gorontalo,5
+Prov. Gorontalo,Kab. Boalemo,5
+Prov. Gorontalo,Kab. Bone Bolango,5
+Prov. Gorontalo,Kab. Gorontalo,5
+Prov. Gorontalo,Kab. Gorontalo Utara,5
+Prov. Gorontalo,Kab. Pohuwato,5
+Prov. Gorontalo,Kota Gorontalo,5
+Prov. Jambi,Prov. Jambi,1
+Prov. Jambi,Kab. Batanghari,1
+Prov. Jambi,Kab. Bungo,1
+Prov. Jambi,Kab. Kerinci,1
+Prov. Jambi,Kab. Merangin,1
+Prov. Jambi,Kab. Muaro Jambi,1
+Prov. Jambi,Kab. Sarolangun,1
+Prov. Jambi,Kab. Tanjung Jabung Barat,1
+Prov. Jambi,Kab. Tanjung Jabung Timur,1
+Prov. Jambi,Kab. Tebo,1
+Prov. Jambi,Kota Jambi,1
+Prov. Jambi,Kota Sungai Penuh,1
+Prov. Jawa Barat,Prov. Jawa Barat,3
+Prov. Jawa Barat,Kab. Bogor,3
+Prov. Jawa Barat,Kab. Cianjur,3
+Prov. Jawa Barat,Kab. Garut,3
+Prov. Jawa Barat,Kab. Ciamis,3
+Prov. Jawa Barat,Kota Tasikmalaya,3
+Prov. Jawa Barat,Kota Cimahi,3
+Prov. Jawa Barat,Kota Bekasi,3
+Prov. Jawa Barat,Kab. Karawang,3
+Prov. Jawa Barat,Kab. Sumedang,3
+Prov. Jawa Barat,Kab. Tasikmalaya,3
+Prov. Jawa Barat,Kota Banjar,3
+Prov. Jawa Barat,Kota Bogor,3
+Prov. Jawa Barat,Kota Cirebon,3
+Prov. Jawa Barat,Kota Depok,3
+Prov. Jawa Barat,Kota Sukabumi,3
+Prov. Jawa Barat,Kota Bandung,3
+Prov. Jawa Barat,Kab. Bandung,3
+Prov. Jawa Barat,Kab. Bandung Barat,3
+Prov. Jawa Barat,Kab. Bekasi,3
+Prov. Jawa Barat,Kab. Cirebon,3
+Prov. Jawa Barat,Kab. Indramayu,3
+Prov. Jawa Barat,Kab. Kuningan,3
+Prov. Jawa Barat,Kab. Majalengka,3
+Prov. Jawa Barat,Kab. Purwakarta,3
+Prov. Jawa Barat,Kab. Subang,3
+Prov. Jawa Barat,Kab. Sukabumi,3
+Prov. Jawa Barat,Kab. Pangandaran,3
+Prov. Jawa Tengah,Prov. Jawa Tengah,3
+Prov. Jawa Tengah,Kota Magelang,3
+Prov. Jawa Tengah,Kab. Karanganyar,3
+Prov. Jawa Tengah,Kab. Boyolali,3
+Prov. Jawa Tengah,Kab. Klaten,3
+Prov. Jawa Tengah,Kab. Sragen,3
+Prov. Jawa Tengah,Kab. Sukoharjo,3
+Prov. Jawa Tengah,Kab. Wonogiri,3
+Prov. Jawa Tengah,Kota Surakarta,3
+Prov. Jawa Tengah,Kab. Magelang,3
+Prov. Jawa Tengah,Kab. Pati,3
+Prov. Jawa Tengah,Kota Pekalongan,3
+Prov. Jawa Tengah,Kab. Kebumen,3
+Prov. Jawa Tengah,Kab. Kendal,3
+Prov. Jawa Tengah,Kab. Kudus,3
+Prov. Jawa Tengah,Kab. Purbalingga,3
+Prov. Jawa Tengah,Kab. Purworejo,3
+Prov. Jawa Tengah,Kab. Rembang,3
+Prov. Jawa Tengah,Kab. Semarang,3
+Prov. Jawa Tengah,Kota Salatiga,3
+Prov. Jawa Tengah,Kota Semarang,3
+Prov. Jawa Tengah,Kab. Wonosobo,3
+Prov. Jawa Tengah,Kab. Temanggung,3
+Prov. Jawa Tengah,Kab. Banjarnegara,3
+Prov. Jawa Tengah,Kab. Banyumas,3
+Prov. Jawa Tengah,Kab. Batang,3
+Prov. Jawa Tengah,Kab. Blora,3
+Prov. Jawa Tengah,Kab. Pemalang,3
+Prov. Jawa Tengah,Kab. Brebes,3
+Prov. Jawa Tengah,Kota Tegal,3
+Prov. Jawa Tengah,Kab. Tegal,3
+Prov. Jawa Tengah,Kab. Pekalongan,3
+Prov. Jawa Tengah,Kab. Cilacap,3
+Prov. Jawa Tengah,Kab. Demak,3
+Prov. Jawa Tengah,Kab. Grobogan,3
+Prov. Jawa Tengah,Kab. Jepara,3
+Prov. Jawa Timur,Prov. Jawa Timur,3
+Prov. Jawa Timur,Kota Blitar,3
+Prov. Jawa Timur,Kab. Blitar,3
+Prov. Jawa Timur,Kab. Malang,3
+Prov. Jawa Timur,Kab. Mojokerto,3
+Prov. Jawa Timur,Kab. Situbondo,3
+Prov. Jawa Timur,Kota Madiun,3
+Prov. Jawa Timur,Kab. Pasuruan,3
+Prov. Jawa Timur,Kota Kediri,3
+Prov. Jawa Timur,Kota Batu,3
+Prov. Jawa Timur,Kab. Trenggalek,3
+Prov. Jawa Timur,Kab. Lamongan,3
+Prov. Jawa Timur,Kab. Nganjuk,3
+Prov. Jawa Timur,Kab. Kediri,3
+Prov. Jawa Timur,Kab. Jember,3
+Prov. Jawa Timur,Kab. Ngawi,3
+Prov. Jawa Timur,Kab. Sumenep,3
+Prov. Jawa Timur,Kab. Madiun,3
+Prov. Jawa Timur,Kab. Tuban,3
+Prov. Jawa Timur,Kota Pasuruan,3
+Prov. Jawa Timur,Kab. Jombang,3
+Prov. Jawa Timur,Kab. Gresik,3
+Prov. Jawa Timur,Kota Malang,3
+Prov. Jawa Timur,Kota Mojokerto,3
+Prov. Jawa Timur,Kab. Probolinggo,3
+Prov. Jawa Timur,Kota Probolinggo,3
+Prov. Jawa Timur,Kab. Tulungagung,3
+Prov. Jawa Timur,Kab. Magetan,3
+Prov. Jawa Timur,Kab. Pacitan,3
+Prov. Jawa Timur,Kab. Banyuwangi,3
+Prov. Jawa Timur,Kab. Bondowoso,3
+Prov. Jawa Timur,Kab. Pamekasan,3
+Prov. Jawa Timur,Kota Surabaya,3
+Prov. Jawa Timur,Kab. Sidoarjo,3
+Prov. Jawa Timur,Kab. Bojonegoro,3
+Prov. Jawa Timur,Kab. Lumajang,3
+Prov. Jawa Timur,Kab. Ponorogo,3
+Prov. Jawa Timur,Kab. Sampang,3
+Prov. Jawa Timur,Kab. Bangkalan,3
+Prov. Kalimantan Barat,Prov. Kalimantan Barat,2
+Prov. Kalimantan Barat,Kab. Bengkayang,2
+Prov. Kalimantan Barat,Kab. Kapuas Hulu,2
+Prov. Kalimantan Barat,Kab. Kayong Utara,2
+Prov. Kalimantan Barat,Kab. Ketapang,2
+Prov. Kalimantan Barat,Kab. Kubu Raya,2
+Prov. Kalimantan Barat,Kab. Landak,2
+Prov. Kalimantan Barat,Kab. Melawi,2
+Prov. Kalimantan Barat,Kab. Mempawah,2
+Prov. Kalimantan Barat,Kab. Sambas,2
+Prov. Kalimantan Barat,Kab. Sanggau,2
+Prov. Kalimantan Barat,Kab. Sekadau,2
+Prov. Kalimantan Barat,Kab. Sintang,2
+Prov. Kalimantan Barat,Kota Pontianak,2
+Prov. Kalimantan Barat,Kota Singkawang,2
+Prov. Kalimantan Selatan,Prov. Kalimantan Selatan,2
+Prov. Kalimantan Selatan,Kab. Balangan,2
+Prov. Kalimantan Selatan,Kab. Banjar,2
+Prov. Kalimantan Selatan,Kab. Barito Kuala,2
+Prov. Kalimantan Selatan,Kab. Hulu Sungai Selatan,2
+Prov. Kalimantan Selatan,Kab. Hulu Sungai Tengah,2
+Prov. Kalimantan Selatan,Kab. Hulu Sungai Utara,2
+Prov. Kalimantan Selatan,Kab. Kotabaru,2
+Prov. Kalimantan Selatan,Kab. Tabalong,2
+Prov. Kalimantan Selatan,Kab. Tanah Bumbu,2
+Prov. Kalimantan Selatan,Kab. Tanah Laut,2
+Prov. Kalimantan Selatan,Kab. Tapin,2
+Prov. Kalimantan Selatan,Kota Banjarbaru,2
+Prov. Kalimantan Selatan,Kota Banjarmasin,2
+Prov. Kalimantan Tengah,Prov. Kalimantan Tengah,2
+Prov. Kalimantan Tengah,Kab. Barito Selatan,2
+Prov. Kalimantan Tengah,Kab. Barito Timur,2
+Prov. Kalimantan Tengah,Kab. Barito Utara,2
+Prov. Kalimantan Tengah,Kab. Gunung Mas,2
+Prov. Kalimantan Tengah,Kab. Kapuas,2
+Prov. Kalimantan Tengah,Kab. Katingan,2
+Prov. Kalimantan Tengah,Kab. Kotawaringin Barat,2
+Prov. Kalimantan Tengah,Kab. Kotawaringin Timur,2
+Prov. Kalimantan Tengah,Kab. Lamandau,2
+Prov. Kalimantan Tengah,Kab. Murung Raya,2
+Prov. Kalimantan Tengah,Kab. Pulang Pisau,2
+Prov. Kalimantan Tengah,Kab. Sukamara,2
+Prov. Kalimantan Tengah,Kab. Seruyan,2
+Prov. Kalimantan Tengah,Kota Palangka Raya,2
+Prov. Kalimantan Timur,Prov. Kalimantan Timur,2
+Prov. Kalimantan Timur,Kab. Berau,2
+Prov. Kalimantan Timur,Kab. Kutai Barat,2
+Prov. Kalimantan Timur,Kab. Kutai Kartanegara,2
+Prov. Kalimantan Timur,Kab. Kutai Timur,2
+Prov. Kalimantan Timur,Kab. Mahakam Ulu,2
+Prov. Kalimantan Timur,Kab. Paser,2
+Prov. Kalimantan Timur,Kab. Penajam Paser Utara,2
+Prov. Kalimantan Timur,Kota Balikpapan,2
+Prov. Kalimantan Timur,Kota Bontang,2
+Prov. Kalimantan Timur,Kota Samarinda,2
+Prov. Kalimantan Utara,Prov. Kalimantan Utara,2
+Prov. Kalimantan Utara,Kab. Bulungan,2
+Prov. Kalimantan Utara,Kab. Malinau,2
+Prov. Kalimantan Utara,Kab. Nunukan,2
+Prov. Kalimantan Utara,Kab. Tana Tidung,2
+Prov. Kalimantan Utara,Kota Tarakan,2
+Prov. Kepulauan Riau,Kab. Kepulauan Anambas,1
+Prov. Kepulauan Riau,Kab. Bintan,1
+Prov. Kepulauan Riau,Kab. Karimun,1
+Prov. Kepulauan Riau,Kab. Lingga,1
+Prov. Kepulauan Riau,Kab. Natuna,1
+Prov. Kepulauan Riau,Kota Batam,1
+Prov. Kepulauan Riau,Kota Tanjungpinang,1
+Prov. Kepulauan Riau,Prov. Kepulauan Riau,1
+Prov. Lampung,Prov. Lampung,1
+Prov. Lampung,Kab. Lampung Tengah,1
+Prov. Lampung,Kab. Lampung Utara,1
+Prov. Lampung,Kab. Lampung Selatan,1
+Prov. Lampung,Kab. Lampung Barat,1
+Prov. Lampung,Kab. Lampung Timur,1
+Prov. Lampung,Kab. Mesuji,1
+Prov. Lampung,Kab. Pesawaran,1
+Prov. Lampung,Kab. Pesisir Barat,1
+Prov. Lampung,Kab. Pringsewu,1
+Prov. Lampung,Kab. Tulang Bawang,1
+Prov. Lampung,Kab. Tulang Bawang Barat,1
+Prov. Lampung,Kab. Tanggamus,1
+Prov. Lampung,Kab. Way Kanan,1
+Prov. Lampung,Kota Bandar Lampung,1
+Prov. Lampung,Kota Metro,1
+Prov. Maluku,Prov. Maluku,5
+Prov. Maluku,Kab. Buru,5
+Prov. Maluku,Kab. Buru Selatan,5
+Prov. Maluku,Kab. Kepulauan Aru,5
+Prov. Maluku,Kab. Maluku Barat Daya,5
+Prov. Maluku,Kab. Maluku Tengah,5
+Prov. Maluku,Kab. Maluku Tenggara,5
+Prov. Maluku,Kab. Seram Bagian Barat,5
+Prov. Maluku,Kab. Seram Bagian Timur,5
+Prov. Maluku,Kota Ambon,5
+Prov. Maluku,Kota Tual,5
+Prov. Maluku,Kab. Kepulauan Tanimbar,5
+Prov. Maluku Utara,Prov. Maluku Utara,5
+Prov. Maluku Utara,Kab. Halmahera Barat,5
+Prov. Maluku Utara,Kab. Halmahera Tengah,5
+Prov. Maluku Utara,Kab. Halmahera Utara,5
+Prov. Maluku Utara,Kab. Halmahera Selatan,5
+Prov. Maluku Utara,Kab. Kepulauan Sula,5
+Prov. Maluku Utara,Kab. Halmahera Timur,5
+Prov. Maluku Utara,Kab. Pulau Morotai,5
+Prov. Maluku Utara,Kab. Pulau Taliabu,5
+Prov. Maluku Utara,Kota Ternate,5
+Prov. Maluku Utara,Kota Tidore Kepulauan,5
+Prov. Nusa Tenggara Barat,Prov. Nusa Tenggara Barat,4
+Prov. Nusa Tenggara Barat,Kab. Bima,4
+Prov. Nusa Tenggara Barat,Kab. Dompu,4
+Prov. Nusa Tenggara Barat,Kab. Lombok Barat,4
+Prov. Nusa Tenggara Barat,Kab. Lombok Tengah,4
+Prov. Nusa Tenggara Barat,Kab. Lombok Timur,4
+Prov. Nusa Tenggara Barat,Kab. Lombok Utara,4
+Prov. Nusa Tenggara Barat,Kab. Sumbawa,4
+Prov. Nusa Tenggara Barat,Kab. Sumbawa Barat,4
+Prov. Nusa Tenggara Barat,Kota Bima,4
+Prov. Nusa Tenggara Barat,Kota Mataram,4
+Prov. Nusa Tenggara Timur,Prov. Nusa Tenggara Timur,4
+Prov. Nusa Tenggara Timur,Kab. Alor,4
+Prov. Nusa Tenggara Timur,Kab. Belu,4
+Prov. Nusa Tenggara Timur,Kab. Ende,4
+Prov. Nusa Tenggara Timur,Kab. Flores Timur,4
+Prov. Nusa Tenggara Timur,Kab. Kupang,4
+Prov. Nusa Tenggara Timur,Kab. Lembata,4
+Prov. Nusa Tenggara Timur,Kab. Malaka,4
+Prov. Nusa Tenggara Timur,Kab. Manggarai,4
+Prov. Nusa Tenggara Timur,Kab. Manggarai Barat,4
+Prov. Nusa Tenggara Timur,Kab. Manggarai Timur,4
+Prov. Nusa Tenggara Timur,Kab. Ngada,4
+Prov. Nusa Tenggara Timur,Kab. Nagekeo,4
+Prov. Nusa Tenggara Timur,Kab. Rote Ndao,4
+Prov. Nusa Tenggara Timur,Kab. Sabu Raijua,4
+Prov. Nusa Tenggara Timur,Kab. Sikka,4
+Prov. Nusa Tenggara Timur,Kab. Sumba Barat,4
+Prov. Nusa Tenggara Timur,Kab. Sumba Barat Daya,4
+Prov. Nusa Tenggara Timur,Kab. Sumba Tengah,4
+Prov. Nusa Tenggara Timur,Kab. Sumba Timur,4
+Prov. Nusa Tenggara Timur,Kab. Timor Tengah Selatan,4
+Prov. Nusa Tenggara Timur,Kab. Timor Tengah Utara,4
+Prov. Nusa Tenggara Timur,Kota Kupang,4
+Prov. Papua,Prov. Papua,4
+Prov. Papua,Kab. Biak Numfor,4
+Prov. Papua,Kab. Jayapura,4
+Prov. Papua,Kab. Keerom,4
+Prov. Papua,Kab. Kepulauan Yapen,4
+Prov. Papua,Kab. Mamberamo Raya,4
+Prov. Papua,Kab. Sarmi,4
+Prov. Papua,Kab. Supiori,4
+Prov. Papua,Kab. Waropen,4
+Prov. Papua,Kota Jayapura,4
+Prov. Papua Barat,Prov. Papua Barat,4
+Prov. Papua Barat,Kab. Fakfak,4
+Prov. Papua Barat,Kab. Kaimana,4
+Prov. Papua Barat,Kab. Manokwari,4
+Prov. Papua Barat,Kab. Manokwari Selatan,4
+Prov. Papua Barat,Kab. Pegunungan Arfak,4
+Prov. Papua Barat,Kab. Teluk Bintuni,4
+Prov. Papua Barat,Kab. Teluk Wondama,4
+Prov. Papua Barat Daya,Prov. Papua Barat Daya,4
+Prov. Papua Barat Daya,Kab. Maybrat,4
+Prov. Papua Barat Daya,Kab. Raja Ampat,4
+Prov. Papua Barat Daya,Kab. Sorong,4
+Prov. Papua Barat Daya,Kab. Sorong Selatan,4
+Prov. Papua Barat Daya,Kota Sorong,4
+Prov. Papua Barat Daya,Kab. Tambrauw,4
+Prov. Papua Pegunungan,Prov. Papua Pegunungan,4
+Prov. Papua Pegunungan,Kab. Jayawijaya,4
+Prov. Papua Pegunungan,Kab. Lanny Jaya,4
+Prov. Papua Pegunungan,Kab. Mamberamo Tengah,4
+Prov. Papua Pegunungan,Kab. Nduga,4
+Prov. Papua Pegunungan,Kab. Pegunungan Bintang,4
+Prov. Papua Pegunungan,Kab. Tolikara,4
+Prov. Papua Pegunungan,Kab. Yalimo,4
+Prov. Papua Pegunungan,Kab. Yahukimo,4
+Prov. Papua Selatan,Prov. Papua Selatan,4
+Prov. Papua Selatan,Kab. Asmat,4
+Prov. Papua Selatan,Kab. Boven Digoel,4
+Prov. Papua Selatan,Kab. Mappi,4
+Prov. Papua Selatan,Kab. Merauke,4
+Prov. Papua Tengah,Prov. Papua Tengah,4
+Prov. Papua Tengah,Kab. Deiyai,4
+Prov. Papua Tengah,Kab. Dogiyai,4
+Prov. Papua Tengah,Kab. Intan Jaya,4
+Prov. Papua Tengah,Kab. Mimika,4
+Prov. Papua Tengah,Kab. Nabire,4
+Prov. Papua Tengah,Kab. Paniai,4
+Prov. Papua Tengah,Kab. Puncak,4
+Prov. Papua Tengah,Kab. Puncak Jaya,4
+Prov. Riau,Prov. Riau,1
+Prov. Riau,Kab. Bengkalis,1
+Prov. Riau,Kab. Indragiri Hilir,1
+Prov. Riau,Kab. Indragiri Hulu,1
+Prov. Riau,Kab. Kampar,1
+Prov. Riau,Kab. Kepulauan Meranti,1
+Prov. Riau,Kab. Kuantan Singingi,1
+Prov. Riau,Kab. Pelalawan,1
+Prov. Riau,Kab. Rokan Hilir,1
+Prov. Riau,Kab. Rokan Hulu,1
+Prov. Riau,Kab. Siak,1
+Prov. Riau,Kota Dumai,1
+Prov. Riau,Kota Pekanbaru,1
+Prov. Sulawesi Barat,Prov. Sulawesi Barat,5
+Prov. Sulawesi Barat,Kab. Majene,5
+Prov. Sulawesi Barat,Kab. Mamasa,5
+Prov. Sulawesi Barat,Kab. Mamuju,5
+Prov. Sulawesi Barat,Kab. Mamuju Tengah,5
+Prov. Sulawesi Barat,Kab. Pasangkayu,5
+Prov. Sulawesi Barat,Kab. Polewali Mandar,5
+Prov. Sulawesi Selatan,Prov. Sulawesi Selatan,5
+Prov. Sulawesi Selatan,Kab. Bantaeng,5
+Prov. Sulawesi Selatan,Kab. Barru,5
+Prov. Sulawesi Selatan,Kab. Bone,5
+Prov. Sulawesi Selatan,Kab. Bulukumba,5
+Prov. Sulawesi Selatan,Kab. Enrekang,5
+Prov. Sulawesi Selatan,Kab. Gowa,5
+Prov. Sulawesi Selatan,Kab. Jeneponto,5
+Prov. Sulawesi Selatan,Kab. Kepulauan Selayar,5
+Prov. Sulawesi Selatan,Kab. Luwu,5
+Prov. Sulawesi Selatan,Kab. Luwu Timur,5
+Prov. Sulawesi Selatan,Kab. Luwu Utara,5
+Prov. Sulawesi Selatan,Kab. Maros,5
+Prov. Sulawesi Selatan,Kab. Pangkajene Dan Kepulauan,5
+Prov. Sulawesi Selatan,Kab. Pinrang,5
+Prov. Sulawesi Selatan,Kab. Sidenreng Rappang,5
+Prov. Sulawesi Selatan,Kab. Sinjai,5
+Prov. Sulawesi Selatan,Kab. Soppeng,5
+Prov. Sulawesi Selatan,Kab. Takalar,5
+Prov. Sulawesi Selatan,Kab. Tana Toraja,5
+Prov. Sulawesi Selatan,Kab. Toraja Utara,5
+Prov. Sulawesi Selatan,Kab. Wajo,5
+Prov. Sulawesi Selatan,Kota Makassar,5
+Prov. Sulawesi Selatan,Kota Palopo,5
+Prov. Sulawesi Selatan,Kota Parepare,5
+Prov. Sulawesi Tengah,Prov. Sulawesi Tengah,5
+Prov. Sulawesi Tengah,Kab. Banggai,5
+Prov. Sulawesi Tengah,Kab. Banggai Kepulauan,5
+Prov. Sulawesi Tengah,Kab. Banggai Laut,5
+Prov. Sulawesi Tengah,Kab. Buol,5
+Prov. Sulawesi Tengah,Kab. Donggala,5
+Prov. Sulawesi Tengah,Kab. Morowali,5
+Prov. Sulawesi Tengah,Kab. Morowali Utara,5
+Prov. Sulawesi Tengah,Kab. Parigi Moutong,5
+Prov. Sulawesi Tengah,Kab. Poso,5
+Prov. Sulawesi Tengah,Kab. Sigi,5
+Prov. Sulawesi Tengah,Kab. Tojo Una-Una,5
+Prov. Sulawesi Tengah,Kab. Toli-Toli,5
+Prov. Sulawesi Tengah,Kota Palu,5
+Prov. Sulawesi Tenggara,Prov. Sulawesi Tenggara,5
+Prov. Sulawesi Tenggara,Kab. Bombana,5
+Prov. Sulawesi Tenggara,Kab. Buton,5
+Prov. Sulawesi Tenggara,Kab. Buton Selatan,5
+Prov. Sulawesi Tenggara,Kab. Buton Tengah,5
+Prov. Sulawesi Tenggara,Kab. Buton Utara,5
+Prov. Sulawesi Tenggara,Kab. Kolaka,5
+Prov. Sulawesi Tenggara,Kab. Kolaka Timur,5
+Prov. Sulawesi Tenggara,Kab. Kolaka Utara,5
+Prov. Sulawesi Tenggara,Kab. Konawe,5
+Prov. Sulawesi Tenggara,Kab. Konawe Kepulauan,5
+Prov. Sulawesi Tenggara,Kab. Konawe Selatan,5
+Prov. Sulawesi Tenggara,Kab. Konawe Utara,5
+Prov. Sulawesi Tenggara,Kab. Muna,5
+Prov. Sulawesi Tenggara,Kab. Muna Barat,5
+Prov. Sulawesi Tenggara,Kab. Wakatobi,5
+Prov. Sulawesi Tenggara,Kota Baubau,5
+Prov. Sulawesi Tenggara,Kota Kendari,5
+Prov. Sulawesi Utara,Prov. Sulawesi Utara,5
+Prov. Sulawesi Utara,Kab. Bolaang Mongondow,5
+Prov. Sulawesi Utara,Kab. Bolaang Mongondow Selatan,5
+Prov. Sulawesi Utara,Kab. Bolaang Mongondow Timur,5
+Prov. Sulawesi Utara,Kab. Bolaang Mongondow Utara,5
+Prov. Sulawesi Utara,Kab. Kepulauan Sangihe,5
+Prov. Sulawesi Utara,Kab. Kepulauan Siau Tagulandang Biaro,5
+Prov. Sulawesi Utara,Kab. Kepulauan Talaud,5
+Prov. Sulawesi Utara,Kab. Minahasa,5
+Prov. Sulawesi Utara,Kab. Minahasa Selatan,5
+Prov. Sulawesi Utara,Kab. Minahasa Tenggara,5
+Prov. Sulawesi Utara,Kab. Minahasa Utara,5
+Prov. Sulawesi Utara,Kota Bitung,5
+Prov. Sulawesi Utara,Kota Kotamobagu,5
+Prov. Sulawesi Utara,Kota Manado,5
+Prov. Sulawesi Utara,Kota Tomohon,5
+Prov. Sumatera Barat,Prov. Sumatera Barat,1
+Prov. Sumatera Barat,Kab. Agam,1
+Prov. Sumatera Barat,Kab. Dharmasraya,1
+Prov. Sumatera Barat,Kab. Kepulauan Mentawai,1
+Prov. Sumatera Barat,Kab. Lima Puluh Kota,1
+Prov. Sumatera Barat,Kab. Padang Pariaman,1
+Prov. Sumatera Barat,Kota Pariaman,1
+Prov. Sumatera Barat,Kab. Pasaman,1
+Prov. Sumatera Barat,Kab. Pasaman Barat,1
+Prov. Sumatera Barat,Kab. Pesisir Selatan,1
+Prov. Sumatera Barat,Kab. Sijunjung,1
+Prov. Sumatera Barat,Kab. Solok,1
+Prov. Sumatera Barat,Kab. Solok Selatan,1
+Prov. Sumatera Barat,Kab. Tanah Datar,1
+Prov. Sumatera Barat,Kota Bukittinggi,1
+Prov. Sumatera Barat,Kota Padang,1
+Prov. Sumatera Barat,Kota Padang Panjang,1
+Prov. Sumatera Barat,Kota Payakumbuh,1
+Prov. Sumatera Barat,Kota Sawahlunto,1
+Prov. Sumatera Barat,Kota Solok,1
+Prov. Sumatera Selatan,Prov. Sumatera Selatan,1
+Prov. Sumatera Selatan,Kab. Banyuasin,1
+Prov. Sumatera Selatan,Kab. Empat Lawang,1
+Prov. Sumatera Selatan,Kab. Lahat,1
+Prov. Sumatera Selatan,Kab. Muara Enim,1
+Prov. Sumatera Selatan,Kab. Musi Banyuasin,1
+Prov. Sumatera Selatan,Kab. Musi Rawas,1
+Prov. Sumatera Selatan,Kab. Musi Rawas Utara,1
+Prov. Sumatera Selatan,Kab. Ogan Ilir,1
+Prov. Sumatera Selatan,Kab. Ogan Komering Ilir,1
+Prov. Sumatera Selatan,Kab. Ogan Komering Ulu,1
+Prov. Sumatera Selatan,Kab. Ogan Komering Ulu Selatan,1
+Prov. Sumatera Selatan,Kab. Ogan Komering Ulu Timur,1
+Prov. Sumatera Selatan,Kab. Penukal Abab Lematang Ilir,1
+Prov. Sumatera Selatan,Kota Lubuklinggau,1
+Prov. Sumatera Selatan,Kota Pagar Alam,1
+Prov. Sumatera Selatan,Kota Palembang,1
+Prov. Sumatera Selatan,Kota Prabumulih,1
+Prov. Sumatera Utara,Prov. Sumatera Utara,1
+Prov. Sumatera Utara,Kab. Asahan,1
+Prov. Sumatera Utara,Kab. Batu Bara,1
+Prov. Sumatera Utara,Kab. Dairi,1
+Prov. Sumatera Utara,Kab. Deli Serdang,1
+Prov. Sumatera Utara,Kab. Humbang Hasundutan,1
+Prov. Sumatera Utara,Kab. Karo,1
+Prov. Sumatera Utara,Kab. Labuhanbatu,1
+Prov. Sumatera Utara,Kab. Labuhanbatu Selatan,1
+Prov. Sumatera Utara,Kab. Labuhanbatu Utara,1
+Prov. Sumatera Utara,Kab. Langkat,1
+Prov. Sumatera Utara,Kab. Mandailing Natal,1
+Prov. Sumatera Utara,Kab. Nias,1
+Prov. Sumatera Utara,Kab. Nias Barat,1
+Prov. Sumatera Utara,Kab. Nias Selatan,1
+Prov. Sumatera Utara,Kab. Nias Utara,1
+Prov. Sumatera Utara,Kab. Padang Lawas,1
+Prov. Sumatera Utara,Kab. Padang Lawas Utara,1
+Prov. Sumatera Utara,Kab. Pakpak Bharat,1
+Prov. Sumatera Utara,Kab. Samosir,1
+Prov. Sumatera Utara,Kab. Serdang Bedagai,1
+Prov. Sumatera Utara,Kab. Simalungun,1
+Prov. Sumatera Utara,Kab. Tapanuli Selatan,1
+Prov. Sumatera Utara,Kab. Tapanuli Tengah,1
+Prov. Sumatera Utara,Kab. Tapanuli Utara,1
+Prov. Sumatera Utara,Kab. Toba,1
+Prov. Sumatera Utara,Kota Binjai,1
+Prov. Sumatera Utara,Kota Gunungsitoli,1
+Prov. Sumatera Utara,Kota Medan,1
+Prov. Sumatera Utara,Kota Padangsidimpuan,1
+Prov. Sumatera Utara,Kota Pematangsiantar,1
+Prov. Sumatera Utara,Kota Sibolga,1
+Prov. Sumatera Utara,Kota Tanjungbalai,1
+Prov. Sumatera Utara,Kota Tebing Tinggi,1

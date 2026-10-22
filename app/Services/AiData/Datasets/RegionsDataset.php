@@ -6,7 +6,8 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Regions with the provinces, regencies/cities and OPD mapped to them.
+ * Regions with the provinces, regencies/cities and OPD mapped to them (OPD through their regency, Kementerian
+ * directly).
  */
 class RegionsDataset extends MasterDataset
 {
@@ -14,7 +15,9 @@ class RegionsDataset extends MasterDataset
     {
         return DB::table('regions')
             ->leftJoin('regencies', 'regencies.region_id', '=', 'regions.id')
-            ->leftJoin('pmo_opds', 'pmo_opds.regency_id', '=', 'regencies.id');
+            ->leftJoin('pmo_opds', fn ($join) => $join
+                ->on('pmo_opds.regency_id', '=', 'regencies.id')
+                ->orOn('pmo_opds.region_id', '=', 'regions.id'));
     }
 
     protected function dimensions(): array

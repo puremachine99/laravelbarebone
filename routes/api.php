@@ -12,8 +12,8 @@ use App\Http\Controllers\Api\SsoUserController;
 use App\Http\Middleware\AuthenticateOAuthClient;
 use Illuminate\Support\Facades\Route;
 
-// Public, read-only
-Route::middleware('throttle:public-api')->group(function () {
+// Read-only OPD & wilayah lookup for external websites: per-consumer token (X-API-Key), see /tech/api-keys
+Route::middleware(['api.consumer', 'throttle:public-api'])->group(function () {
     Route::get('/opd-types', [OpdTypeController::class, 'index'])->name('api.opd-types.index');
     Route::get('/regions', [RegionController::class, 'index'])->name('api.regions.index');
     Route::get('/provinces', [ProvinceController::class, 'index'])->name('api.provinces.index');

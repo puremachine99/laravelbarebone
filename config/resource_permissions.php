@@ -82,6 +82,7 @@ return [
                 'tech-documentation' => ['label' => 'API Documentation', 'actions' => ['view']],
                 'tech-ai-monitor' => ['label' => 'AI Monitor (token usage & request log, no chat content)', 'actions' => ['view']],
                 'tech-sso' => ['label' => 'SSO / Connected Apps (OAuth clients & secrets)', 'actions' => ['view']],
+                'tech-api-keys' => ['label' => 'API Keys (token consumer API publik OPD & wilayah)', 'actions' => ['view']],
             ],
         ],
         'ai-data' => [

@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             DepartmentCodeSeeder::class,
             UrusanSeeder::class,
             OpdSeeder::class,
+            PartnershipMasterDataSeeder::class,
             ProductSeeder::class,
             ContactPositionSeeder::class,
             PipelineSeeder::class,

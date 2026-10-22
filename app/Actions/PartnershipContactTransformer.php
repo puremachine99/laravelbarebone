@@ -296,7 +296,7 @@ class PartnershipContactTransformer
      */
     public function mapOpd(?string $externalInstansiId, ?int $regencyId): ?int
     {
-        if (empty($externalInstansiId) || empty($regencyId)) {
+        if (empty($externalInstansiId)) {
             return null;
         }
 
@@ -310,6 +310,15 @@ class PartnershipContactTransformer
 
                 if ($externalInstansi) {
                     $instansiName = trim($externalInstansi->instansi);
+
+                    // Kementerian have no regency, so they are matched on name alone.
+                    $kementerianId = Opd::kementerian()
+                        ->whereRaw('LOWER(name) = ?', [Str::lower($instansiName)])
+                        ->value('id');
+
+                    if ($kementerianId || empty($regencyId)) {
+                        return $kementerianId;
+                    }
 
                     $opd = Opd::where('regency_id', $regencyId)
                         ->where('name', $instansiName)

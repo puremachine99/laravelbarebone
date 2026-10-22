@@ -37,17 +37,16 @@ it('empties pmo_opds and refills it from the CSV', function () {
         ->and(Opd::whereNull('jenis')->count())->toBe(0);
 });
 
-it('attaches instansi without a region, such as Kementerian, to DKI Jakarta', function () {
-    $jakarta = Regency::factory()->create([
-        'province_id' => Province::factory()->create(['name' => 'Prov. DKI Jakarta'])->id,
-        'name' => 'Prov. DKI Jakarta',
-        'type' => 'Provinsi',
-        'region_id' => $this->region->id,
-    ]);
+it('puts Kementerian on the default Kementerian region instead of a regency', function () {
+    $regionThree = Region::factory()->create(['code' => 'REG-3']);
 
     $this->seed(DataMasterInstansiSeeder::class);
 
-    expect(Opd::where('regency_id', $jakarta->id)->where('name', 'Kementerian Keuangan')->value('jenis'))->toBe('Kementrian');
+    $kemenkeu = Opd::where('name', 'Kementerian Keuangan')->sole();
+
+    expect($kemenkeu->jenis)->toBe('Kementrian')
+        ->and($kemenkeu->regency_id)->toBeNull()
+        ->and($kemenkeu->region_id)->toBe($regionThree->id);
 });
 
 it('restores contact and urusan links by regency and name', function () {
@@ -123,17 +122,19 @@ it('searches across every column of the OPD table', function () {
         'province_id' => Province::factory()->create(['name' => 'Prov. Lain'])->id,
         'name' => 'Kab. Lain', 'type' => 'Kabupaten', 'region_id' => null,
     ]);
-    Opd::factory()->create(['regency_id' => $otherRegency->id, 'name' => 'Kementerian Beta', 'jenis' => 'Kementrian']);
+    Opd::factory()->create(['regency_id' => $otherRegency->id, 'name' => 'Dinas Beta', 'jenis' => 'OPD']);
+    Opd::factory()->kementerian()->create(['name' => 'Kementerian Gamma', 'region_id' => Region::factory()->create(['name' => 'Region Nasional'])->id]);
 
     foreach (['alpha', 'opd', 'prov. aceh', 'wilayah satu', 'pendidikan dasar', 'U9', 'alpha aceh'] as $keyword) {
-        Volt::test('master.opd.index')->set('search', $keyword)->assertSee('Dinas Alpha')->assertDontSee('Kementerian Beta');
+        Volt::test('master.opd.index')->set('search', $keyword)->assertSee('Dinas Alpha')->assertDontSee('Kementerian Gamma');
     }
 
-    Volt::test('master.opd.index')->set('search', 'kab. lain')->assertSee('Kementerian Beta')->assertDontSee('Dinas Alpha');
-    Volt::test('master.opd.index')->set('search', 'alpha lain')->assertDontSee('Dinas Alpha')->assertDontSee('Kementerian Beta');
+    Volt::test('master.opd.index')->set('search', 'kab. lain')->assertSee('Dinas Beta')->assertDontSee('Dinas Alpha');
+    Volt::test('master.opd.index')->set('search', 'region nasional')->assertSee('Kementerian Gamma')->assertDontSee('Dinas Alpha');
+    Volt::test('master.opd.index')->set('search', 'alpha lain')->assertDontSee('Dinas Alpha')->assertDontSee('Dinas Beta');
 });
 
-it('attaches Kementerian to the numbered DKI Jakarta province regency used on dev', function () {
+it('no longer attaches Kementerian to a DKI Jakarta province regency', function () {
     $jakarta = Regency::factory()->create([
         'province_id' => Province::factory()->create(['name' => 'Prov. DKI Jakarta'])->id,
         'name' => 'Prov. Daerah Khusus Jakarta 1',
@@ -143,7 +144,7 @@ it('attaches Kementerian to the numbered DKI Jakarta province regency used on de
 
     $this->seed(DataMasterInstansiSeeder::class);
 
-    expect(Opd::where('regency_id', $jakarta->id)->where('name', 'Kementerian Keuangan')->exists())->toBeTrue();
+    expect(Opd::where('regency_id', $jakarta->id)->where('jenis', 'Kementrian')->exists())->toBeFalse();
 });
 
 it('shows a summary of instansi per jenis, coverage and region that follows the filters', function () {
@@ -153,13 +154,13 @@ it('shows a summary of instansi per jenis, coverage and region that follows the 
     $this->actingAs($user);
 
     Opd::factory()->count(3)->create(['regency_id' => $this->regency->id, 'jenis' => 'OPD']);
-    Opd::factory()->count(2)->create(['regency_id' => $this->regency->id, 'jenis' => 'Kementrian']);
+    Opd::factory()->kementerian()->count(2)->create(['region_id' => $this->region->id]);
     Opd::factory()->create(['regency_id' => $this->regency->id, 'jenis' => 'Unit Kesehatan']);
 
     $component = Volt::test('master.opd.index');
 
     expect($component->get('summary'))->toMatchArray(['total' => 6, 'regencies' => 1, 'provinces' => 1, 'withUrusan' => 0])
-        ->and($component->get('summary')['jenis']->all())->toBe(['OPD' => 3, 'Kementrian' => 2, 'Unit Kesehatan' => 1])
+        ->and($component->get('summary')['jenis']->all())->toBe(['OPD' => 3, 'Kementrian' => 2, 'Unit Kesehatan' => 1, 'Pendidikan' => 0])
         ->and($component->get('summary')['perRegion']->all())->toBe(['Wilayah Satu' => 6]);
 
     $component->set('filterJenis', 'Kementrian')->assertSee('TOTAL INSTANSI & JENIS', false);

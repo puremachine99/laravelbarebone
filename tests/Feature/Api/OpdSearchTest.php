@@ -6,6 +6,10 @@ use App\Models\Regency;
 use App\Models\Region;
 use Illuminate\Support\Facades\DB;
 
+beforeEach(function () {
+    $this->withHeader('X-API-Key', publicApiToken());
+});
+
 test('provinsi keyword is required', function () {
     $response = $this->getJson('/api/opds');
 

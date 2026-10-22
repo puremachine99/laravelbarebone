@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * OPD and other government institutions, with their regency/city, province, region and bidang urusan.
+ * Kementerian have no regency/province; their region is their own pmo_opds.region_id.
  */
 class OpdsDataset extends MasterDataset
 {
@@ -15,7 +16,7 @@ class OpdsDataset extends MasterDataset
         return DB::table('pmo_opds')
             ->leftJoin('regencies', 'regencies.id', '=', 'pmo_opds.regency_id')
             ->leftJoin('provinces', 'provinces.id', '=', 'regencies.province_id')
-            ->leftJoin('regions', 'regions.id', '=', 'regencies.region_id')
+            ->leftJoin('regions', 'regions.id', '=', DB::raw('COALESCE(pmo_opds.region_id, regencies.region_id)'))
             ->leftJoin('pmo_opd_urusan', 'pmo_opd_urusan.opd_id', '=', 'pmo_opds.id')
             ->leftJoin('pmo_urusans', 'pmo_urusans.id', '=', 'pmo_opd_urusan.urusan_id');
     }
