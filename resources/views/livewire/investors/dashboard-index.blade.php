@@ -141,13 +141,23 @@ $scopedEmployeeIds = computed(fn () => collect($this->scopedEmployees)->pluck('i
 
 $foMetrics = computed(fn () => app(FoTargetMetrics::class));
 
+// Semua target tahunan FO yang lagi di-scope, sekali query (bukan 1 query per FO per metrik).
+$yearlyTargets = computed(fn () => $this->foMetrics->yearlyTargetsByEmployee($this->scopedEmployeeIds, (int) substr($this->selectedDate, 0, 4)));
+
+// Realisasi semua metrik untuk hari yang dipilih, per FO — satu query grouped per metrik.
+$dayRealisasi = computed(fn () => $this->foMetrics->realisasiByEmployeeForDate($this->scopedEmployeeIds, $this->selectedDate));
+
 $yearlyTargetFor = function ($employeeId, $metricKey) {
-    return $this->foMetrics->yearlyTarget($employeeId, $metricKey, (int) substr($this->selectedDate, 0, 4));
+    return $this->yearlyTargets[$employeeId][$metricKey] ?? 0.0;
 };
 
 $dailyTargetFor = fn ($employeeId, $metricKey) => $this->yearlyTargetFor($employeeId, $metricKey) / 12 / 25;
 
 $realisasiForFo = function ($employeeId, $metricKey, $date) {
+    if ($date === $this->selectedDate && isset($this->dayRealisasi[$metricKey][$employeeId])) {
+        return $this->dayRealisasi[$metricKey][$employeeId];
+    }
+
     return $this->foMetrics->realisasiFor($employeeId, $metricKey, $date);
 };
 
@@ -226,13 +236,16 @@ $monthlyTrend = computed(function () {
 
 // Activity Tracker — GitHub-style heatmap: hari (horizontal) x stage (vertical) untuk bulan
 // dari $selectedDate. Query di-agregasi per hari langsung di DB (bukan loop per-hari per-FO)
-// biar tetap ringan berapa pun jumlah FO/hari dalam sebulan.
+// biar tetap ringan berapa pun jumlah FO/hari dalam sebulan. Di-cache per bulan + scope FO, jadi klik
+// tanggal lain di bulan yang sama gak hitung ulang (cache-nya ke-reset tiap ada perubahan di Pipeline).
 $activityHeatmap = computed(function () {
     $employeeIds = $this->scopedEmployeeIds;
     $date = Carbon::parse($this->selectedDate);
     $daysInMonth = $date->daysInMonth;
     $year = $date->year;
     $month = $date->month;
+
+    return $this->foMetrics->rememberForMonth('heatmap', $employeeIds, $year, $month, function () use ($employeeIds, $date, $daysInMonth, $year, $month) {
 
     $stageMetrics = [
         ['key' => 'leads', 'label' => 'Leads'],
@@ -260,213 +273,259 @@ $activityHeatmap = computed(function () {
         'month_label' => $date->translatedFormat('F Y'),
         'rows' => $rows,
     ];
+    });
 });
 
 // Leaderboard ikut Activity Tracker: scoped ke bulan yang lagi dipilih, bukan all-time lagi.
 $leaderboard = computed(function () {
     $year = $this->selectedYear;
     $month = $this->selectedMonth;
+    $employees = $this->foEmployees;
+    $employeeIds = collect($employees)->pluck('id')->all();
 
-    return collect($this->foEmployees)->map(function ($fo) use ($year, $month) {
-        return [
-            'name' => $fo['name'],
-            'lead' => FoFunnel::where('employee_id', $fo['id'])->whereYear('tgl_leads', $year)->whereMonth('tgl_leads', $month)->count(),
-            'won' => FoFunnel::where('employee_id', $fo['id'])->stageAtLeast('won')->whereYear('tgl_won', $year)->whereMonth('tgl_won', $month)->count(),
-            'closing' => FoFunnel::where('employee_id', $fo['id'])->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereYear('tgl_closing', $year)->whereMonth('tgl_closing', $month)->count(),
-            'nilai_closing' => (float) FoFunnel::where('employee_id', $fo['id'])->whereIn('stage', FoFunnel::CLOSED_STAGES)->whereYear('tgl_closing', $year)->whereMonth('tgl_closing', $month)->sum('nominal_investasi'),
-        ];
-    })->sortByDesc('nilai_closing')->values()->all();
+    return $this->foMetrics->rememberForMonth('leaderboard', $employeeIds, $year, $month, function () use ($employees, $employeeIds, $year, $month) {
+        $totals = $this->foMetrics->monthlyTotalsByEmployee($employeeIds, $year, $month);
+
+        return collect($employees)
+            ->map(fn ($fo) => ['name' => $fo['name'], ...$totals[$fo['id']]])
+            ->sortByDesc('nilai_closing')
+            ->values()
+            ->all();
+    });
 });
 
 ?>
 
-<div class="space-y-6">
-    <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
-        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+@php
+    // Cards stay in the theme's neutral colours; only bars carry the status colour (literal classes so Tailwind keeps them).
+    $statusBar = fn (string $badgeClass, string $kind = 'progress') => match ($badgeClass) {
+        'badge-success' => $kind === 'bg' ? 'bg-success' : 'progress-success',
+        'badge-warning' => $kind === 'bg' ? 'bg-warning' : 'progress-warning',
+        default => $kind === 'bg' ? 'bg-error' : 'progress-error',
+    };
+@endphp
+
+<div class="space-y-5">
+    <!-- Header: title + filters -->
+    <div class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4">
+        <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+                <h2 class="text-2xl font-bold tracking-tight text-base-content">Daily Dashboard</h2>
+                <span class="badge badge-ghost gap-1 font-medium">
+                    <x-icon name="o-calendar-days" class="w-3.5 h-3.5" />
+                    {{ Carbon::parse($this->selectedDate)->translatedFormat('d M Y') }}
+                </span>
+            </div>
+            <p class="text-sm text-base-content/50 mt-1 max-w-2xl">
+                Pick a Month/Year below, then click a day column in the Activity Tracker to drill into that day's Stat Cards & Realization per FO — read-only, automatically sourced from the Pipeline.
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-end gap-2 rounded-2xl border border-base-300 bg-base-100 p-3 shadow-sm">
+            @if ($this->isAdminFo)
+                <div class="w-full sm:w-56">
+                    <x-select label="View as" aria-label="View as" wire:model.live="viewAsEmployeeId" :options="$this->viewAsOptions" class="select-sm" />
+                </div>
+            @else
+                <div class="text-sm text-base-content/50 px-1 pb-2">
+                    Viewing as <span class="font-semibold text-base-content"><x-short-name :name="$this->currentEmployee?->user?->name" /></span>
+                </div>
+            @endif
+
+            <div class="w-36">
+                <x-select label="Month" wire:model.live="selectedMonth" :options="$bulanOptions" class="select-sm" />
+            </div>
+
+            <div class="w-24">
+                <x-select label="Year" wire:model.live="selectedYear" :options="$this->tahunOptions" class="select-sm" />
+            </div>
+
+            @if ($selectedMonth !== (int) now()->month || $selectedYear !== (int) now()->year || $selectedDay !== (int) now()->day || ($this->isAdminFo && $viewAsEmployeeId))
+                <x-button label="Reset Filter" icon="o-arrow-path" class="btn-ghost btn-sm" wire:click="resetFilters" />
+            @endif
+        </div>
+    </div>
+
+    <!-- Activity Tracker (Stage x Day heatmap), full width: it is the day picker for everything below.
+         The highlight follows $wire.selectedDay on the client, so it moves on click instead of after the round trip. -->
+    <div class="card bg-base-100 border border-base-300 p-5 shadow-sm rounded-2xl"
+        x-data="{ pick(day) { $wire.selectedDay = day; $wire.selectDay(day); } }">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-4">
             <div>
-                <h2 class="text-xl font-bold text-base-content">Daily Dashboard</h2>
-                <p class="text-sm text-base-content/50 mt-1">
-                    Pick a Month/Year below, then click a day column in the Activity Tracker to drill into that day's Stat Cards & Realization per FO — read-only, automatically sourced from the Pipeline.
+                <h3 class="text-base font-bold text-base-content">Activity Tracker — {{ $this->activityHeatmap['month_label'] }}</h3>
+                <p class="text-xs text-base-content/50 mt-1">
+                    Daily activity count per funnel stage for {{ $viewAsEmployeeId ? 'the selected FO' : 'the entire team' }}. Click a day to drill down below.
                 </p>
             </div>
-
-            <div class="flex flex-wrap items-end gap-3">
-                @if ($this->isAdminFo)
-                    <div class="w-56">
-                        <x-select label="View as" aria-label="View as" wire:model.live="viewAsEmployeeId" :options="$this->viewAsOptions" class="select-sm" />
-                    </div>
-                @else
-                    <div class="text-sm text-base-content/50 pb-2.5">
-                        Viewing as <span class="font-semibold text-base-content"><x-short-name :name="$this->currentEmployee?->user?->name" /></span>
-                    </div>
-                @endif
-
-                <div class="w-36">
-                    <x-select label="Month" wire:model.live="selectedMonth" :options="$bulanOptions" class="select-sm" />
-                </div>
-
-                <div class="w-24">
-                    <x-select label="Year" wire:model.live="selectedYear" :options="$this->tahunOptions" class="select-sm" />
-                </div>
-
-                @if ($selectedMonth !== (int) now()->month || $selectedYear !== (int) now()->year || $selectedDay !== (int) now()->day || ($this->isAdminFo && $viewAsEmployeeId))
-                    <x-button label="Reset Filter" icon="o-arrow-path" class="btn-ghost btn-sm" wire:click="resetFilters" />
-                @endif
+            <div class="flex items-center gap-1.5 text-[10px] text-base-content/50 shrink-0">
+                <span>Less</span>
+                <span class="w-3 h-3 rounded-sm bg-base-200"></span>
+                <span class="w-3 h-3 rounded-sm bg-success/25"></span>
+                <span class="w-3 h-3 rounded-sm bg-success/60"></span>
+                <span class="w-3 h-3 rounded-sm bg-success"></span>
+                <span>More</span>
             </div>
         </div>
-    </div>
-
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <!-- Activity Tracker (Stage x Day heatmap) -->
-        <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
-            <h3 class="text-base font-bold text-base-content">Activity Tracker — {{ $this->activityHeatmap['month_label'] }}</h3>
-            <p class="text-xs text-base-content/50 mt-1 mb-4">
-                Daily activity count per funnel stage for {{ $viewAsEmployeeId ? 'the selected FO' : 'the entire team' }}. Click a day to drill down below.
-            </p>
-            <div class="overflow-x-auto">
-                <table class="border-separate" style="border-spacing: 3px;">
-                    <thead>
-                        <tr>
-                            <th class="sticky left-0 bg-base-100 text-left text-xs font-semibold text-base-content/50 pr-3 z-10">Stage</th>
-                            @foreach ($this->activityHeatmap['days'] as $day)
-                                <th class="p-0 text-center">
-                                    <button type="button" wire:click="selectDay({{ $day }})"
-                                        class="w-5 h-5 rounded text-[10px] cursor-pointer {{ $day === $selectedDay ? 'bg-primary text-primary-content font-bold' : 'text-base-content/40 hover:bg-base-200' }}"
-                                        title="Show details for day {{ $day }}">{{ $day }}</button>
-                                </th>
-                            @endforeach
-                            <th class="text-xs font-semibold text-base-content/50 pl-3 text-right">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($this->activityHeatmap['rows'] as $row)
-                            <tr>
-                                <td class="sticky left-0 bg-base-100 text-xs font-medium text-base-content pr-3 whitespace-nowrap z-10">{{ $row['label'] }}</td>
-                                @foreach ($row['counts'] as $day => $count)
-                                    @php
-                                        $ratio = $row['max'] > 0 ? $count / $row['max'] : 0;
-                                        $tier = match (true) {
-                                            $count === 0 => 'bg-base-200',
-                                            $ratio >= 0.75 => 'bg-success',
-                                            $ratio >= 0.4 => 'bg-success/60',
-                                            default => 'bg-success/25',
-                                        };
-                                        $textTier = match (true) {
-                                            $count === 0 => '',
-                                            $ratio >= 0.4 => 'text-success-content',
-                                            default => 'text-success',
-                                        };
-                                    @endphp
-                                    <td class="p-0 text-center">
-                                        <button type="button" wire:click="selectDay({{ $day }})"
-                                            class="w-5 h-5 rounded flex items-center justify-center text-[9px] font-semibold leading-none {{ $tier }} {{ $textTier }} {{ $day === $selectedDay ? 'ring-2 ring-primary ring-offset-1 ring-offset-base-100' : '' }}"
-                                            title="{{ $row['label'] }} — day {{ $day }}: {{ $count }}">{{ $count > 0 ? $count : '' }}</button>
-                                    </td>
-                                @endforeach
-                                <td class="text-xs font-semibold text-base-content text-right pl-3">{{ number_format($row['total']) }}</td>
-                            </tr>
+        <div class="overflow-x-auto">
+            <table class="w-full border-separate" style="border-spacing: 4px;">
+                <thead>
+                    <tr>
+                        <th class="sticky left-0 bg-base-100 text-left text-sm font-semibold text-base-content/50 pr-3 z-10 w-20">Stage</th>
+                        @foreach ($this->activityHeatmap['days'] as $day)
+                            <th class="p-0 text-center">
+                                <button type="button" x-on:click="pick({{ $day }})"
+                                    class="w-full min-w-8 h-8 rounded-lg text-xs cursor-pointer"
+                                    x-bind:class="$wire.selectedDay === {{ $day }} ? 'bg-primary text-primary-content font-bold' : 'text-base-content/40 hover:bg-base-200'"
+                                    title="Show details for day {{ $day }}">{{ $day }}</button>
+                            </th>
                         @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Monthly Trend -->
-        <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
-            <h3 class="text-base font-bold text-base-content">Monthly Trend — {{ $this->activityHeatmap['month_label'] }}</h3>
-            <p class="text-xs text-base-content/50 mt-1 mb-4">
-                Daily total for {{ $viewAsEmployeeId ? 'the selected FO' : 'the entire team' }} per funnel stage, this month.
-            </p>
-            <div wire:ignore id="chart-trend-harian" class="w-full min-h-65 md:min-h-75"></div>
+                        <th class="text-sm font-semibold text-base-content/50 pl-3 text-right w-14">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($this->activityHeatmap['rows'] as $row)
+                        <tr>
+                            <td class="sticky left-0 bg-base-100 text-sm font-semibold text-base-content pr-3 whitespace-nowrap z-10">{{ $row['label'] }}</td>
+                            @foreach ($row['counts'] as $day => $count)
+                                @php
+                                    $ratio = $row['max'] > 0 ? $count / $row['max'] : 0;
+                                    $tier = match (true) {
+                                        $count === 0 => 'bg-base-200',
+                                        $ratio >= 0.75 => 'bg-success',
+                                        $ratio >= 0.4 => 'bg-success/60',
+                                        default => 'bg-success/25',
+                                    };
+                                    $textTier = match (true) {
+                                        $count === 0 => '',
+                                        $ratio >= 0.4 => 'text-success-content',
+                                        default => 'text-success',
+                                    };
+                                @endphp
+                                <td class="p-0 text-center">
+                                    <button type="button" x-on:click="pick({{ $day }})"
+                                        class="w-full min-w-8 aspect-square rounded-lg flex items-center justify-center text-sm font-bold leading-none {{ $tier }} {{ $textTier }}"
+                                        x-bind:class="{ 'ring-2 ring-primary ring-offset-1 ring-offset-base-100': $wire.selectedDay === {{ $day }} }"
+                                        title="{{ $row['label'] }} — day {{ $day }}: {{ $count }}">{{ $count > 0 ? $count : '' }}</button>
+                                </td>
+                            @endforeach
+                            <td class="text-base font-bold text-base-content text-right pl-3">{{ number_format($row['total']) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Stat cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
+    <!-- Stat cards for the selected day -->
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 transition-opacity" wire:loading.class="opacity-60" wire:target="selectDay">
         @foreach ($metrics as $metric)
             @php $s = $this->todaySummary[$metric['key']]; @endphp
-            <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
-                <div class="text-xs font-semibold text-base-content/40 uppercase tracking-wide">{{ $s['label'] }}</div>
-                <div class="text-3xl font-bold text-base-content mt-1">{{ number_format($s['realisasi']) }}</div>
-                <div class="flex items-center gap-2 mt-2 text-xs text-base-content/50">
-                    <span>Target: {{ number_format($s['target'], 1) }} · {{ $s['percent'] }}%</span>
-                    <span class="badge badge-sm {{ $s['status']['class'] }}">{{ $s['status']['label'] }}</span>
+            <div class="card bg-base-100 border border-base-300 p-4 rounded-2xl shadow-sm">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="text-[11px] font-semibold text-base-content/50 uppercase tracking-wide leading-tight">{{ $s['label'] }}</div>
+                    <span class="badge badge-ghost badge-xs shrink-0">{{ $s['status']['label'] }}</span>
+                </div>
+                <div class="text-3xl font-bold text-base-content mt-2">{{ number_format($s['realisasi']) }}</div>
+                <progress class="progress {{ $statusBar($s['status']['class']) }} h-1.5 w-full mt-3" value="{{ min($s['percent'], 100) }}" max="100"></progress>
+                <div class="flex items-center justify-between mt-1.5 text-[11px] text-base-content/50">
+                    <span>Target: {{ number_format($s['target'], 1) }}</span>
+                    <span class="font-semibold text-base-content/70">{{ $s['percent'] }}%</span>
                 </div>
             </div>
         @endforeach
 
         @php $nc = $this->todaySummary['nilai_closing']; @endphp
-        <div class="card bg-base-100 border border-success/40 p-4 rounded-xl">
-            <div class="text-xs font-semibold text-base-content/40 uppercase tracking-wide">Deal Value</div>
-            <div class="text-2xl font-bold text-base-content mt-1"><x-currency-abbr :value="$nc['realisasi']" /></div>
-            <div class="text-xs text-base-content/40 mt-2">{{ Carbon::parse($this->selectedDate)->translatedFormat('d M Y') }}</div>
+        <div class="card bg-base-100 border border-base-300 p-4 rounded-2xl shadow-sm">
+            <div class="flex items-center gap-1.5 text-[11px] font-semibold text-base-content/50 uppercase tracking-wide">
+                <x-icon name="o-banknotes" class="w-3.5 h-3.5" /> Deal Value
+            </div>
+            <div class="text-2xl font-bold text-base-content mt-2"><x-currency-abbr :value="$nc['realisasi']" /></div>
+            <div class="text-[11px] text-base-content/50 mt-auto pt-3">{{ Carbon::parse($this->selectedDate)->translatedFormat('d M Y') }}</div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <!-- Realization per FO -->
-        <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
-            <h3 class="text-base font-bold text-base-content">Realization per FO — {{ Carbon::parse($this->selectedDate)->translatedFormat('l, d F Y') }}</h3>
-            <p class="text-xs text-base-content/50 mt-1 mb-4">
-                Calculated automatically from stage transitions in the Pipeline for the selected date. Read-only — no manual input.
-            </p>
-            <div class="overflow-x-auto">
-                <table class="table table-zebra w-full text-base-content/70 whitespace-nowrap">
-                    <thead>
-                        <tr class="text-base-content/50 border-b border-base-300">
-                            <th>FO</th>
-                            <th class="text-right">New Leads</th>
-                            <th class="text-right">QL</th>
-                            <th class="text-right">Pitching</th>
-                            <th class="text-right">Follow Up</th>
-                            <th class="text-right">Won</th>
-                            <th class="text-right">Closing</th>
-                            <th class="text-right">Deal Value</th>
-                            <th>Status</th>
+    <!-- Realization per FO (selected day), full width -->
+    <div class="card bg-base-100 border border-base-300 p-5 shadow-sm rounded-2xl transition-opacity" wire:loading.class="opacity-60" wire:target="selectDay">
+        <h3 class="text-base font-bold text-base-content">Realization per FO — {{ Carbon::parse($this->selectedDate)->translatedFormat('l, d F Y') }}</h3>
+        <p class="text-xs text-base-content/50 mt-1 mb-4">
+            Calculated automatically from stage transitions in the Pipeline for the selected date. Read-only — no manual input.
+        </p>
+        <div class="overflow-x-auto rounded-xl border border-base-300">
+            <table class="table table-sm table-zebra w-full text-base-content/70 whitespace-nowrap">
+                <thead class="bg-base-200">
+                    <tr class="text-base-content/50">
+                        <th>FO</th>
+                        <th class="text-right">New Leads</th>
+                        <th class="text-right">QL</th>
+                        <th class="text-right">Pitching</th>
+                        <th class="text-right">Follow Up</th>
+                        <th class="text-right">Won</th>
+                        <th class="text-right">Closing</th>
+                        <th class="text-right">Deal Value</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($this->realisasiPerFo as $row)
+                        <tr class="hover:bg-base-200">
+                            <td class="font-medium text-base-content"><x-short-name :name="$row['name']" /></td>
+                            <td class="text-right">{{ number_format($row['leads']) }}</td>
+                            <td class="text-right">{{ number_format($row['ql']) }}</td>
+                            <td class="text-right">{{ number_format($row['pitching']) }}</td>
+                            <td class="text-right">{{ number_format($row['followup']) }}</td>
+                            <td class="text-right">{{ number_format($row['won']) }}</td>
+                            <td class="text-right">{{ number_format($row['closing']) }}</td>
+                            <td class="text-right font-semibold text-base-content"><x-currency-abbr :value="$row['nilai_closing']" /></td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <span class="h-1.5 w-8 rounded-full {{ $statusBar($row['status']['class'], 'bg') }}"></span>
+                                    <span class="text-xs font-medium text-base-content/70">{{ $row['status']['label'] }}</span>
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($this->realisasiPerFo as $row)
-                            <tr class="border-b border-base-300 hover:bg-base-200">
-                                <td class="font-medium text-base-content"><x-short-name :name="$row['name']" /></td>
-                                <td class="text-right">{{ number_format($row['leads']) }}</td>
-                                <td class="text-right">{{ number_format($row['ql']) }}</td>
-                                <td class="text-right">{{ number_format($row['pitching']) }}</td>
-                                <td class="text-right">{{ number_format($row['followup']) }}</td>
-                                <td class="text-right">{{ number_format($row['won']) }}</td>
-                                <td class="text-right">{{ number_format($row['closing']) }}</td>
-                                <td class="text-right"><x-currency-abbr :value="$row['nilai_closing']" /></td>
-                                <td><span class="badge badge-sm {{ $row['status']['class'] }}">{{ $row['status']['label'] }}</span></td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="9" class="text-center text-base-content/50 py-6">No active FOs yet.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="text-center text-base-content/50 py-6">No active FOs yet.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
-            @php
-                $teamLeadsTarget = $this->todaySummary['leads']['target'];
-                $foCount = count($this->foEmployees);
-                $perFoTarget = $foCount > 0 ? round($teamLeadsTarget / $foCount, 1) : 0;
-            @endphp
-            <p class="text-xs text-base-content/40 mt-3">
+        @php
+            $teamLeadsTarget = $this->todaySummary['leads']['target'];
+            $foCount = count($this->foEmployees);
+            $perFoTarget = $foCount > 0 ? round($teamLeadsTarget / $foCount, 1) : 0;
+        @endphp
+        <p class="flex items-start gap-1.5 text-xs text-base-content/40 mt-3">
+            <x-icon name="o-information-circle" class="w-4 h-4 shrink-0" />
+            <span>
                 Individual target = team target ÷ number of active FOs ({{ number_format($teamLeadsTarget, 1) }} ÷ {{ $foCount }} = {{ $perFoTarget }} New Leads/day).
                 Targets are set per FO per year on the FO Management page.
+            </span>
+        </p>
+    </div>
+
+    <!-- Monthly context: trend + leaderboard -->
+    <div class="grid grid-cols-1 xl:grid-cols-5 gap-4">
+        <!-- Monthly Trend -->
+        <div class="card bg-base-100 border border-base-300 p-5 shadow-sm rounded-2xl xl:col-span-3 min-w-0">
+            <h3 class="text-base font-bold text-base-content">Monthly Trend — {{ $this->activityHeatmap['month_label'] }}</h3>
+            <p class="text-xs text-base-content/50 mt-1 mb-2">
+                Daily total for {{ $viewAsEmployeeId ? 'the selected FO' : 'the entire team' }} per funnel stage, this month.
             </p>
+            <div wire:ignore id="chart-trend-harian" class="w-full min-h-65 md:min-h-75"></div>
         </div>
 
         <!-- FO Leaderboard -->
-        <div class="card bg-base-100 border border-base-300 p-6 shadow-sm rounded-2xl">
+        <div class="card bg-base-100 border border-base-300 p-5 shadow-sm rounded-2xl xl:col-span-2 min-w-0">
             <h3 class="text-base font-bold text-base-content">FO Leaderboard — {{ $this->activityHeatmap['month_label'] }}</h3>
             <p class="text-xs text-base-content/50 mt-1 mb-4">Sorted by highest deal value for the selected month.</p>
             <div class="overflow-x-auto">
-                <table class="table table-zebra w-full text-base-content/70 whitespace-nowrap">
+                <table class="table table-sm w-full text-base-content/70 whitespace-nowrap">
                     <thead>
                         <tr class="text-base-content/50 border-b border-base-300">
-                            <th>#</th>
+                            <th class="w-8">#</th>
                             <th>FO</th>
                             <th class="text-right">Lead</th>
                             <th class="text-right">Won</th>
@@ -476,8 +535,10 @@ $leaderboard = computed(function () {
                     </thead>
                     <tbody>
                         @forelse ($this->leaderboard as $i => $fo)
-                            <tr class="border-b border-base-300">
-                                <td>{{ $i + 1 }}</td>
+                            <tr class="border-b border-base-300 last:border-0">
+                                <td>
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-[11px] font-bold {{ $i < 3 ? 'bg-base-200 text-base-content' : 'text-base-content/50' }}">{{ $i + 1 }}</span>
+                                </td>
                                 <td class="font-medium text-base-content"><x-short-name :name="$fo['name']" /></td>
                                 <td class="text-right">{{ number_format($fo['lead']) }}</td>
                                 <td class="text-right">{{ number_format($fo['won']) }}</td>
@@ -494,8 +555,6 @@ $leaderboard = computed(function () {
             </div>
         </div>
     </div>
-
-
 </div>
 
 @script
@@ -593,6 +652,12 @@ $leaderboard = computed(function () {
 
     $wire.on('dashboard-monthly-trend-ready', (payload) => {
         const d = Array.isArray(payload) ? payload[0]?.trend ?? payload[0] : payload.trend ?? payload;
+
+        // Every render re-sends the trend; picking another day keeps the same month, so skip the costly rebuild.
+        if (chart && JSON.stringify(d) === JSON.stringify(lastData)) {
+            return;
+        }
+
         lastData = d;
         ensureApexChartsThen(() => buildChart(lastData));
     });

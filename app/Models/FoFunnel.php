@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\FoTargetMetrics;
 use Database\Factories\FoFunnelFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,16 @@ class FoFunnel extends Model
 {
     /** @use HasFactory<FoFunnelFactory> */
     use HasFactory, SoftDeletes;
+
+    /**
+     * Any change invalidates the cached month-level FO dashboard data (heatmap, leaderboard).
+     */
+    protected static function booted(): void
+    {
+        static::saved(fn () => FoTargetMetrics::flushMonthlyCache());
+        static::deleted(fn () => FoTargetMetrics::flushMonthlyCache());
+        static::restored(fn () => FoTargetMetrics::flushMonthlyCache());
+    }
 
     /**
      * Stages where the investor's money has actually landed at the company —

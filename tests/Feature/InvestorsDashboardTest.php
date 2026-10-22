@@ -7,8 +7,10 @@ use App\Models\FoFunnel;
 use App\Models\FoFunnelActivity;
 use App\Models\FoTarget;
 use App\Models\User;
+use App\Services\FoTargetMetrics;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Livewire\Volt\Volt;
 use Spatie\Permission\Models\Role;
 
@@ -48,6 +50,16 @@ test('dashboard is rendered for authorized users', function () {
         ->assertSee('Daily Dashboard')
         ->assertSee('Realization per FO')
         ->assertSee('FO Leaderboard');
+});
+
+test('the activity tracker highlights the picked day on the client before calling selectDay', function () {
+    $admin = makeDashboardFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    Volt::test('investors.dashboard-index')
+        ->assertSeeHtml('$wire.selectedDay = day; $wire.selectDay(day);')
+        ->assertSeeHtml('x-on:click="pick(1)"')
+        ->assertDontSeeHtml('wire:click="selectDay(');
 });
 
 test('a plain funding officer is locked to their own data with no masuk sebagai selector', function () {
@@ -409,4 +421,79 @@ test('activity tracker heatmap renders and buckets counts by day of the selected
         ->and($leadsRow['total'])->toBe(4)
         ->and($wonRow['counts'][10])->toBe(1)
         ->and($wonRow['total'])->toBe(1);
+});
+
+test('the grouped day realisasi matches the per-fo realisasiFor numbers for every metric', function () {
+    $foA = makeDashboardFoEmployee('Funding Officer');
+    $foB = makeDashboardFoEmployee('Funding Officer');
+    $today = now()->toDateString();
+
+    foreach ([$foA, $foB] as $i => $fo) {
+        $contact = FoContact::factory()->create(['employee_id' => $fo->id]);
+
+        FoFunnel::factory()->count($i + 1)->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'tgl_leads' => $today]);
+        FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'stage' => 'ql', 'tgl_leads' => $today, 'tgl_qualified' => $today]);
+        FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'stage' => 'won', 'tgl_won' => $today]);
+        FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'stage' => 'closing', 'tgl_closing' => $today, 'nominal_investasi' => 100_000_000 * ($i + 1)]);
+        FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'stage' => 'lost', 'tgl_closing' => $today]);
+
+        $pitching = FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'stage' => 'followup']);
+        FoFunnelActivity::factory()->count(2)->create(['fo_funnel_id' => $pitching->id, 'stage' => 'pitching', 'tanggal' => $today]);
+        FoFunnelActivity::factory()->create(['fo_funnel_id' => $pitching->id, 'stage' => 'followup', 'tanggal' => $today]);
+        FoFunnelActivity::factory()->create(['fo_funnel_id' => $pitching->id, 'stage' => 'followup', 'tanggal' => now()->subDay()->toDateString()]);
+    }
+
+    $metrics = app(FoTargetMetrics::class);
+    $grouped = $metrics->realisasiByEmployeeForDate([$foA->id, $foB->id], $today);
+
+    foreach (['leads', 'ql', 'pitching', 'followup', 'won', 'closing', 'nilai_closing'] as $metricKey) {
+        foreach ([$foA->id, $foB->id] as $employeeId) {
+            expect($grouped[$metricKey][$employeeId])->toBe($metrics->realisasiFor($employeeId, $metricKey, $today), "{$metricKey} for employee {$employeeId}");
+        }
+    }
+});
+
+test('the cached heatmap and leaderboard pick up a pipeline change right away', function () {
+    $admin = makeDashboardFoEmployee('Investor Admin');
+    $fo = makeDashboardFoEmployee('Funding Officer');
+    $contact = FoContact::factory()->create(['employee_id' => $fo->id]);
+    $this->actingAs($admin->user);
+
+    $leadsToday = fn () => collect(Volt::test('investors.dashboard-index')->instance()->activityHeatmap()['rows'])->firstWhere('key', 'leads')['counts'][now()->day];
+    $leaderboardLeads = fn () => collect(Volt::test('investors.dashboard-index')->instance()->leaderboard())->firstWhere('name', $fo->user->name)['lead'];
+
+    expect($leadsToday())->toBe(0)->and($leaderboardLeads())->toBe(0);
+
+    $funnel = FoFunnel::factory()->create(['fo_contact_id' => $contact->id, 'employee_id' => $fo->id, 'tgl_leads' => now()->toDateString()]);
+
+    expect($leadsToday())->toBe(1)->and($leaderboardLeads())->toBe(1);
+
+    $funnel->delete();
+
+    expect($leadsToday())->toBe(0)->and($leaderboardLeads())->toBe(0);
+});
+
+test('picking a day runs the same number of queries no matter how many FOs there are', function () {
+    $admin = makeDashboardFoEmployee('Investor Admin');
+    $this->actingAs($admin->user);
+
+    $queriesForSelectDay = function () {
+        $component = Volt::test('investors.dashboard-index');
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $component->call('selectDay', 1);
+
+        return count(DB::getQueryLog());
+    };
+
+    makeDashboardFoEmployee('Funding Officer');
+    $withOneFo = $queriesForSelectDay();
+
+    foreach (range(1, 5) as $i) {
+        makeDashboardFoEmployee('Funding Officer');
+    }
+    Cache::flush();
+    $withSixFos = $queriesForSelectDay();
+
+    expect($withSixFos)->toBe($withOneFo);
 });
