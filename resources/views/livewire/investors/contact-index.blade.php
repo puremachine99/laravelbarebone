@@ -257,18 +257,7 @@ $statsPic = computed(function () {
 ?>
 
 <div class="space-y-6">
-    @if (session()->has('success'))
-        <div class="alert alert-success shadow-sm">
-            <x-icon name="o-check-circle" class="w-5 h-5 text-white" />
-            <span class="text-white">{{ session('success') }}</span>
-        </div>
-    @endif
-    @if (session()->has('error'))
-        <div class="alert alert-error shadow-sm">
-            <x-icon name="o-exclamation-triangle" class="w-5 h-5 text-white" />
-            <span class="text-white">{{ session('error') }}</span>
-        </div>
-    @endif
+    <x-nakama.flash />
 
     <!-- Mini Dashboard -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -439,10 +428,7 @@ $statsPic = computed(function () {
     </x-modal>
 
     <!-- Confirmation Modal -->
-    <x-modal wire:model="showDeleteModal" title="Delete Contact?" subtitle="The contact will be removed from the active list, but related pipeline history will be kept.">
-        <div class="flex justify-end gap-2 pt-4">
-            <x-button label="Cancel" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
-            <x-button label="Yes, Delete" wire:click="deleteContact" class="btn-error text-white" />
-        </div>
-    </x-modal>
+    <x-nakama.confirm-modal wire:model="showDeleteModal" title="Delete Contact?"
+        subtitle="The contact will be removed from the active list, but related pipeline history will be kept."
+        confirm="deleteContact" confirm-label="Yes, Delete" cancel-label="Cancel" />
 </div>

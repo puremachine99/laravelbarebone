@@ -48,9 +48,8 @@
         </div>
     </div>
 
-    @persist('toast')
-        <x-toast />
-    @endpersist
+    <x-nakama.toaster />
+    <x-nakama.dialog-host />
 </body>
 
 </html>

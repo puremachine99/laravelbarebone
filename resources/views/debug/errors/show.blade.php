@@ -80,7 +80,7 @@
                         x-on:click="toggleResolved()">
                         <span x-text="resolved ? 'Batalkan Resolved' : 'Tandai Resolved'">{{ $error->resolved ? 'Batalkan Resolved' : 'Tandai Resolved' }}</span>
                     </button>
-                    <form method="POST" action="{{ route('dev.errors.destroy', $error->id) }}" onsubmit="return confirm('Hapus log ini?');">
+                    <form method="POST" action="{{ route('dev.errors.destroy', $error->id) }}" x-data x-on:submit.prevent="nakama.confirm({ title: 'Yakin?', text: 'Hapus log ini?', variant: 'danger', confirmLabel: 'Ya, hapus' }).then((ok) => ok && $el.submit())">
                         @csrf
                         @method('DELETE')
                         <input type="hidden" name="to_index" value="1">

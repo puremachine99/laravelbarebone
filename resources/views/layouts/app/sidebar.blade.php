@@ -151,14 +151,14 @@
 
             {{-- Page Content --}}
             <main class="min-w-0 flex-1 p-4 lg:p-6">
-                {{-- Floating chips at the bottom of the canvas (behind the content, so they only show on short pages); only with the Nakama Desk theme (resources/css/themes/desk.css) --}}
-                <div class="desk-decor" aria-hidden="true">
+                {{-- Floating chips at the bottom of the canvas (behind the content, so they only show on short pages); only with the toon themes (resources/css/themes/toon.css) --}}
+                <div class="toon-decor" aria-hidden="true">
                     @foreach ([
                         ['o-user-group', 'Kolaborasi', 'bottom:8%;right:5%;--d:6.5s;rotate:2deg'],
                         ['o-sparkles', 'Kerja Cerdas', 'bottom:5%;left:3%;--d:9s;rotate:-3deg'],
                         ['o-light-bulb', 'Ide Perbaikan', 'bottom:3%;left:42%;--d:7.5s;rotate:3deg'],
                     ] as [$icon, $label, $position])
-                        <span class="desk-decor-chip" style="{{ $position }}">
+                        <span class="toon-decor-chip" style="{{ $position }}">
                             <x-icon :name="$icon" class="w-4 h-4" /> {{ $label }}
                         </span>
                     @endforeach
@@ -748,7 +748,10 @@
         </form>
     @endauth
 
-    <x-toast />
+    {{-- Toasts, alert/confirm popups and session flash messages: resources/js/notify.js --}}
+    <x-nakama.toaster />
+    <x-nakama.dialog-host />
+    <x-nakama.flash />
     <x-csv-download-manager />
 </body>
 

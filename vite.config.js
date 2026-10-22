@@ -18,7 +18,7 @@ export default defineConfig({
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
                 }),
-                // "Nakama Desk" theme (profile → Appearance) and the AI Center Pendampingan tab.
+                // "Espresso" theme (profile → Appearance) and the AI Center Pendampingan tab.
                 bunny('Plus Jakarta Sans', {
                     weights: [400, 500, 600, 700, 800],
                 }),

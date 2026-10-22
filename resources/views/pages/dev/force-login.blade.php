@@ -92,12 +92,7 @@ $loginAs = function () {
 
 ?>
 <div class="space-y-6">
- @if (session()->has('error'))
- <div class="alert alert-error shadow-sm">
- <x-icon name="o-exclamation-triangle" class="w-5 h-5 text-white" />
- <span class="text-white">{{ session('error') }}</span>
- </div>
- @endif
+ <x-nakama.flash />
 
  <div class="card bg-base-100 border border-base-300 p-6 space-y-6 shadow-sm rounded-2xl">
  <div>

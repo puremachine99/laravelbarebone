@@ -10,14 +10,14 @@ namespace App\Enums;
 enum UserTheme: string
 {
     case Default = 'default';
-    case Desk = 'desk';
+    case Espresso = 'espresso';
     case Cinnamoroll = 'cinnamoroll';
 
     public function label(): string
     {
         return match ($this) {
             self::Default => __('Default'),
-            self::Desk => __('Nakama Desk'),
+            self::Espresso => __('Espresso'),
             self::Cinnamoroll => __('Cinnamoroll'),
         };
     }
@@ -26,7 +26,7 @@ enum UserTheme: string
     {
         return match ($this) {
             self::Default => __('Tampilan standar SmartID Dashboard.'),
-            self::Desk => __('Hangat bernuansa kopi, seperti halaman Pendampingan.'),
+            self::Espresso => __('Hangat bernuansa kopi, seperti halaman Pendampingan.'),
             self::Cinnamoroll => __('Biru langit dan awan putih, pipi pink, payung kuning.'),
         };
     }
@@ -51,7 +51,7 @@ enum UserTheme: string
                 'shadow' => 'none',
                 'radius' => '6px',
             ],
-            self::Desk => [
+            self::Espresso => [
                 'frame' => '#1C1210',
                 'canvas' => '#FFF8F2',
                 'panel' => '#FFFFFF',
@@ -86,7 +86,7 @@ enum UserTheme: string
     {
         return match ($this) {
             self::Default => 'default',
-            self::Desk, self::Cinnamoroll => 'toon',
+            self::Espresso, self::Cinnamoroll => 'toon',
         };
     }
 

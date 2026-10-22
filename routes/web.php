@@ -19,6 +19,7 @@ use App\Livewire\Talent\Leaderboard;
 use App\Livewire\Tech\AiMonitor;
 use App\Livewire\Tech\ApiConsumers;
 use App\Livewire\Tech\SsoClients;
+use App\Livewire\Tech\UiKit;
 use App\Services\ErrorTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -145,6 +146,9 @@ Route::middleware('dev.super-admin')->prefix('dev')->group(function () {
     Route::permanentRedirect('/errors', '/tech/sentry');
     Route::permanentRedirect('/login', '/tech/sentry');
     Route::permanentRedirect('/force-login', '/tech/sentry?tab=force-login');
+
+    // Demo of every Nakama notification (toast, popup, confirm), to check the look per theme.
+    Route::get('/ui-kit', UiKit::class)->name('dev.ui-kit');
 });
 
 Route::middleware('dev.super-admin')->prefix('tech/sentry')->name('dev.errors.')->group(function () {

@@ -425,18 +425,7 @@ $restore = function (int $userId) {
 
 ?>
 <div x-data="{ openDrawer: false }" @open-drawer.window="openDrawer = true" @close-drawer.window="openDrawer = false" class="space-y-6">
- @if (session()->has('success'))
- <div class="alert alert-success shadow-sm">
- <x-icon name="o-check-circle" class="w-5 h-5 text-white" />
- <span class="text-white">{{ session('success') }}</span>
- </div>
- @endif
- @if (session()->has('error'))
- <div class="alert alert-error shadow-sm">
- <x-icon name="o-exclamation-triangle" class="w-5 h-5 text-white" />
- <span class="text-white">{{ session('error') }}</span>
- </div>
- @endif
+ <x-nakama.flash />
 
  <!-- Mini Dashboard -->
  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -985,10 +974,7 @@ $restore = function (int $userId) {
  </x-modal>
 
  <!-- Confirmation Modal -->
- <x-modal wire:model="showDeleteModal" title="Hapus Pengguna?" subtitle="Menghapus pengguna ini akan menghilangkan akses login dan profil karyawannya. Data masih bisa dipulihkan dari menu Data Terhapus.">
- <div class="flex justify-end gap-2 pt-4">
- <x-button label="Batal" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
- <x-button label="Ya, Hapus" wire:click="delete" class="btn-error text-white" />
- </div>
- </x-modal>
+ <x-nakama.confirm-modal wire:model="showDeleteModal" title="Hapus Pengguna?"
+     subtitle="Menghapus pengguna ini akan menghilangkan akses login dan profil karyawannya. Data masih bisa dipulihkan dari menu Data Terhapus."
+     confirm="delete" confirm-label="Ya, Hapus" cancel-label="Batal" />
 </div>

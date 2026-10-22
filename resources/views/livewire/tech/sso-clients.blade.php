@@ -4,18 +4,7 @@
 @endphp
 
 <div class="space-y-4">
-    @if (session()->has('success'))
-        <div class="alert alert-success shadow-sm">
-            <x-icon name="o-check-circle" class="w-5 h-5 text-white" />
-            <span class="text-white">{{ session('success') }}</span>
-        </div>
-    @endif
-    @if (session()->has('error'))
-        <div class="alert alert-error shadow-sm">
-            <x-icon name="o-exclamation-triangle" class="w-5 h-5 text-white" />
-            <span class="text-white">{{ session('error') }}</span>
-        </div>
-    @endif
+    <x-nakama.flash />
 
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>

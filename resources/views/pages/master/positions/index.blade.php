@@ -114,18 +114,7 @@ $delete = function () {
 
 ?>
 <div class="space-y-6">
- @if (session()->has('success'))
- <div class="alert alert-success shadow-sm">
- <x-icon name="o-check-circle" class="w-5 h-5 text-white" />
- <span class="text-white">{{ session('success') }}</span>
- </div>
- @endif
- @if (session()->has('error'))
- <div class="alert alert-error shadow-sm">
- <x-icon name="o-exclamation-triangle" class="w-5 h-5 text-white" />
- <span class="text-white">{{ session('error') }}</span>
- </div>
- @endif
+ <x-nakama.flash />
 
  <div class="card bg-base-100 border border-base-300 p-6 space-y-6 shadow-sm rounded-2xl">
  <div class="flex items-center justify-between">
@@ -228,10 +217,7 @@ $delete = function () {
  </x-modal>
 
  <!-- Confirmation Modal -->
- <x-modal wire:model="showDeleteModal" title="Hapus Posisi?" subtitle="Tindakan ini tidak bisa dibatalkan.">
- <div class="flex justify-end gap-2 pt-4">
- <x-button label="Batal" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
- <x-button label="Ya, Hapus" wire:click="delete" class="btn-error text-white" />
- </div>
- </x-modal>
+ <x-nakama.confirm-modal wire:model="showDeleteModal" title="Hapus Posisi?"
+     subtitle="Tindakan ini tidak bisa dibatalkan."
+     confirm="delete" confirm-label="Ya, Hapus" cancel-label="Batal" />
 </div>

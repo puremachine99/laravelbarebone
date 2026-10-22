@@ -1,7 +1,8 @@
 @import "tailwindcss";
 @import "./themes/toon.css";
-@import "./themes/desk.css";
+@import "./themes/espresso.css";
 @import "./themes/cinnamoroll.css";
+@import "./nakama-notify.css";
 @plugin "daisyui";
 
 @plugin "daisyui/theme" {
@@ -14,11 +15,11 @@
   --color-neutral-content: #f4f4f5; /* zinc-100 */
 }
 
-/* "Nakama Desk" theme (profile → Appearance), after report/ai/desk-nakama.html. See the desk section below. */
+/* "Espresso" theme (profile → Appearance), after report/ai/desk-nakama.html. See themes/espresso.css. */
 @plugin "daisyui/theme" {
-  name: "desk";
+  name: "espresso";
   color-scheme: light;
-  /* "Warm Neo-Brutalist Cozy" tokens; see resources/css/themes/desk.css for the full token list */
+  /* "Warm Neo-Brutalist Cozy" tokens; see resources/css/themes/espresso.css for the full token list */
   --color-base-100: #FFF8F2; /* --bg-canvas */
   --color-base-200: #FFFFFF; /* --surface */
   --color-base-300: #F5E8D8; /* --surface-muted */
@@ -49,9 +50,9 @@
   --noise: 0;
 }
 
-/* Dark desk: same frame + canvas structure, dark surfaces, orange solid shadow (see themes/desk.css) */
+/* Dark espresso: same frame + canvas structure, dark surfaces, orange solid shadow (see themes/espresso.css) */
 @plugin "daisyui/theme" {
-  name: "desk-dark";
+  name: "espresso-dark";
   color-scheme: dark;
   --color-base-100: #1C1210;
   --color-base-200: #2B1C15;
@@ -252,7 +253,7 @@
  *   2. Colours: add two `@plugin "daisyui/theme"` blocks above, named "ocean" and "ocean-dark".
  *   3. Look: either
  *      - a "toon" theme (thick outlines, solid shadows, frame + canvas): set its UserTheme::style() to "toon" and
- *        copy resources/css/themes/cinnamoroll.css (or desk.css) to themes/ocean.css with your colours. Tokens only —
+ *        copy resources/css/themes/cinnamoroll.css (or espresso.css) to themes/ocean.css with your colours. Tokens only —
  *        the structure is shared in themes/toon.css. Import the file at the top of this file; or
  *      - a plain theme: style() "default" and, if needed, a themes/ocean.css scoped to [data-theme^="ocean"] that
  *        overrides the tokens below (sidebar, code blocks, charts).

@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
 {{--
-    Theme (Default / Nakama Desk) and appearance (light / dark / system). Logged-in users' choice is stored on their
+    Theme (Default / Espresso) and appearance (light / dark / system). Logged-in users' choice is stored on their
     account (users.theme, users.appearance) and saved through profile.appearance.update; guests keep it in localStorage.
     The `.dark` class (Tailwind `dark:`) is set for both dark variants, so check that class — not data-theme — for
     "is dark".

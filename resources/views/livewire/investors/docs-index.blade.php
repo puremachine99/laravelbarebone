@@ -358,12 +358,9 @@ $openPreview = function ($id) {
         </x-modal>
 
         <!-- Delete Confirmation Modal -->
-        <x-modal wire:model="showDeleteModal" title="Delete Document?" subtitle="The document will be moved to Deleted — it can still be restored later.">
-            <div class="flex justify-end gap-2 pt-4">
-                <x-button label="Cancel" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
-                <x-button label="Yes, Delete" wire:click="deleteDocument" class="btn-error text-white" />
-            </div>
-        </x-modal>
+        <x-nakama.confirm-modal wire:model="showDeleteModal" title="Delete Document?"
+            subtitle="The document will be moved to Deleted — it can still be restored later."
+            confirm="deleteDocument" confirm-label="Yes, Delete" cancel-label="Cancel" />
     @endcanany
 
     <!-- Preview Modal -->

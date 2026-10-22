@@ -15,16 +15,16 @@ test('a new user starts on the default theme following the system appearance', f
 test('the theme and appearance are saved on the account', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)->putJson(route('profile.appearance.update'), ['theme' => 'desk'])
+    $this->actingAs($user)->putJson(route('profile.appearance.update'), ['theme' => 'espresso'])
         ->assertOk()
-        ->assertExactJson(['theme' => 'desk', 'appearance' => 'system']);
+        ->assertExactJson(['theme' => 'espresso', 'appearance' => 'system']);
 
     $this->actingAs($user)->putJson(route('profile.appearance.update'), ['appearance' => 'dark'])
         ->assertOk()
-        ->assertExactJson(['theme' => 'desk', 'appearance' => 'dark']);
+        ->assertExactJson(['theme' => 'espresso', 'appearance' => 'dark']);
 
     expect($user->fresh())
-        ->theme->toBe(UserTheme::Desk)
+        ->theme->toBe(UserTheme::Espresso)
         ->appearance->toBe(UserAppearance::Dark);
 });
 
@@ -39,31 +39,31 @@ test('unknown themes and appearances are rejected', function () {
 });
 
 test('guests cannot save a theme', function () {
-    $this->putJson(route('profile.appearance.update'), ['theme' => 'desk'])->assertUnauthorized();
+    $this->putJson(route('profile.appearance.update'), ['theme' => 'espresso'])->assertUnauthorized();
 });
 
 test('every page starts with the theme saved on the account', function () {
-    $user = User::factory()->create(['theme' => 'desk', 'appearance' => 'dark']);
+    $user = User::factory()->create(['theme' => 'espresso', 'appearance' => 'dark']);
 
     $this->actingAs($user)->get(route('profile.show'))
         ->assertOk()
-        ->assertSee('\u0022theme\u0022:\u0022desk\u0022', false)
+        ->assertSee('\u0022theme\u0022:\u0022espresso\u0022', false)
         ->assertSee('\u0022appearance\u0022:\u0022dark\u0022', false);
 });
 
-test('the profile offers the Default and Nakama Desk themes', function () {
+test('the profile offers the Default and Espresso themes', function () {
     $this->actingAs(User::factory()->create())->get(route('profile.show'))
         ->assertOk()
         ->assertSee('Tema Default')
-        ->assertSee('Tema Nakama Desk')
+        ->assertSee('Tema Espresso')
         ->assertSee('Pilihan tema dan mode tersimpan di akunmu');
 });
 
 test('each theme has a light and a dark variant', function () {
     expect(UserTheme::Default->dataTheme(false))->toBe('light')
         ->and(UserTheme::Default->dataTheme(true))->toBe('dark')
-        ->and(UserTheme::Desk->dataTheme(false))->toBe('desk')
-        ->and(UserTheme::Desk->dataTheme(true))->toBe('desk-dark');
+        ->and(UserTheme::Espresso->dataTheme(false))->toBe('espresso')
+        ->and(UserTheme::Espresso->dataTheme(true))->toBe('espresso-dark');
 });
 
 test('every registered theme gets a card in the profile picker', function () {

@@ -475,14 +475,9 @@
     </x-modal>
 
     {{-- Delete --}}
-    <x-modal wire:model="showDeleteModal" title="{{ __('Hapus Percakapan?') }}"
-        subtitle="{{ __('Percakapan ini akan hilang dari daftar Anda.') }}">
-        <div class="flex justify-end gap-2 pt-4">
-            <x-button label="{{ __('Batal') }}" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
-            <x-button label="{{ __('Ya, Hapus') }}" wire:click="deleteConversation" class="btn-error text-white"
-                spinner="deleteConversation" />
-        </div>
-    </x-modal>
+    <x-nakama.confirm-modal wire:model="showDeleteModal" title="{{ __('Hapus Percakapan?') }}"
+        subtitle="{{ __('Percakapan ini akan hilang dari daftar Anda.') }}"
+        confirm="deleteConversation" confirm-label="{{ __('Ya, Hapus') }}" cancel-label="{{ __('Batal') }}" />
 </div>
 @endif
 </div>

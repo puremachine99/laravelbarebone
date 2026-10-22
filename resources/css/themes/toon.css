@@ -5,7 +5,7 @@
  * "toon": partials/head.blade.php then sets <html data-toon>.
  *
  * This file has NO colours of its own: it only reads the tokens below, which each toon theme defines in its own
- * file (themes/desk.css, themes/cinnamoroll.css). To make a new toon theme, copy one of those token files.
+ * file (themes/espresso.css, themes/cinnamoroll.css). To make a new toon theme, copy one of those token files.
  *
  * Tokens a toon theme defines (scoped to its [data-theme^="name"]):
  *   Surfaces   --bg-frame --bg-canvas --canvas-dots --surface --surface-muted
@@ -140,12 +140,12 @@
     }
 }
 
-/* Floating, slightly tilted chips (.desk-decor in layouts/app/sidebar.blade.php); hidden outside toon themes */
-.desk-decor {
+/* Floating, slightly tilted chips (.toon-decor in layouts/app/sidebar.blade.php); hidden outside toon themes */
+.toon-decor {
     display: none;
 }
 
-[data-toon] .desk-decor {
+[data-toon] .toon-decor {
     display: block;
     position: absolute;
     inset: 0;
@@ -155,12 +155,12 @@
     border-radius: inherit;
 }
 
-[data-toon] .drawer-content > main > :not(.desk-decor, .fixed, .absolute) {
+[data-toon] .drawer-content > main > :not(.toon-decor, .fixed, .absolute) {
     position: relative;
     z-index: 1;
 }
 
-[data-toon] .desk-decor-chip {
+[data-toon] .toon-decor-chip {
     position: absolute;
     display: flex;
     align-items: center;
@@ -176,19 +176,19 @@
     animation: desk-floaty var(--d, 7s) ease-in-out infinite;
 }
 
-[data-toon] .desk-decor-chip:nth-child(even) {
+[data-toon] .toon-decor-chip:nth-child(even) {
     background: var(--accent-soft);
     color: var(--text-on-accent);
 }
 
 @media (max-width: 1023px) {
-    [data-toon] .desk-decor {
+    [data-toon] .toon-decor {
         display: none;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    [data-toon] .desk-decor-chip {
+    [data-toon] .toon-decor-chip {
         animation: none;
     }
 }

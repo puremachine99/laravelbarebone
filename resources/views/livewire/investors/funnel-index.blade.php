@@ -1729,15 +1729,13 @@ $closeActivityLog = function () {
         },
 
         deleteCard(id) {
-            if (confirm('Delete this funnel data?')) {
-                $wire.deleteFunnel(id);
-            }
+            nakama.confirm({ title: 'Delete funnel?', text: 'Delete this funnel data?', variant: 'danger', confirmLabel: 'Yes, delete', cancelLabel: 'Cancel' })
+                .then((confirmed) => confirmed && $wire.deleteFunnel(id));
         },
 
         deleteFollowUp(id) {
-            if (confirm('Delete this follow-up? It can still be restored via the "View Deleted" button.')) {
-                $wire.deleteFollowUp(id);
-            }
+            nakama.confirm({ title: 'Delete follow-up?', text: 'It can still be restored via the "View Deleted" button.', variant: 'danger', confirmLabel: 'Yes, delete', cancelLabel: 'Cancel' })
+                .then((confirmed) => confirmed && $wire.deleteFollowUp(id));
         },
 
         onDragStart(id, stage) {
@@ -1826,7 +1824,7 @@ $closeActivityLog = function () {
             }
 
             if (stage === 'akad' && !this.isAdminFo) {
-                alert('Only Admin FO / Super Admin can move cards to Akad.');
+                nakama.alert({ type: 'warning', title: 'Not allowed', text: 'Only Admin FO / Super Admin can move cards to Akad.' });
                 this.draggingId = null;
                 this.dragOverStage = null;
                 return;

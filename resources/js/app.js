@@ -373,5 +373,6 @@ window.aiCenterChat = function ({ streamUrl, maxChars, uploadUrl, deleteUrl, max
  * allow your team to quickly build robust real-time web applications.
  */
 
+import './notify';
 import './echo';
 import './ai-mentoring';

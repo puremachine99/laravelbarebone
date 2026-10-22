@@ -1,16 +1,5 @@
 <div class="space-y-6">
-    @if (session()->has('success'))
-        <div class="alert alert-success shadow-sm">
-            <x-icon name="o-check-circle" class="w-5 h-5 text-white" />
-            <span class="text-white">{{ session('success') }}</span>
-        </div>
-    @endif
-    @if (session()->has('error'))
-        <div class="alert alert-error shadow-sm">
-            <x-icon name="o-exclamation-triangle" class="w-5 h-5 text-white" />
-            <span class="text-white">{{ session('error') }}</span>
-        </div>
-    @endif
+    <x-nakama.flash />
 
     <div class="card bg-base-100 border border-base-300 p-6 space-y-6 shadow-sm rounded-2xl">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -338,10 +327,7 @@
     </x-modal>
 
     <!-- Confirm Delete Modal -->
-    <x-modal wire:model="showDeleteModal" title="Delete Role?" subtitle="Deleting this role may affect the permissions of users who hold it. This cannot be undone.">
-        <div class="flex justify-end gap-2 pt-4">
-            <x-button label="Cancel" wire:click="$set('showDeleteModal', false)" class="btn-ghost" />
-            <x-button label="Yes, Delete" wire:click="delete" class="btn-error text-white" />
-        </div>
-    </x-modal>
+    <x-nakama.confirm-modal wire:model="showDeleteModal" title="Delete Role?"
+        subtitle="Deleting this role may affect the permissions of users who hold it. This cannot be undone."
+        confirm="delete" confirm-label="Yes, Delete" cancel-label="Cancel" />
 </div>

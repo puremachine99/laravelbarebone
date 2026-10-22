@@ -1,13 +1,13 @@
 /*
- * ─── "Nakama Desk" theme — Warm Neo-Brutalist Cozy ──────────────────────────────────────────────────────────────
+ * ─── "Espresso" theme — Warm Neo-Brutalist Cozy ──────────────────────────────────────────────────────────────
  * Warm cream, thick brown outlines and solid shadows without blur: relaxed and friendly, not a corporate audit.
  * Mix to aim for: 60% cream/white, 30% brown (text and outlines), 10% honey/orange (accents).
  *
- * Tokens only: the structure is the shared toon style (themes/toon.css), the daisyUI colours are the "desk" and
- * "desk-dark" themes in app.css. Registered as App\Enums\UserTheme::Desk.
+ * Tokens only: the structure is the shared toon style (themes/toon.css), the daisyUI colours are the "espresso" and
+ * "espresso-dark" themes in app.css. Registered as App\Enums\UserTheme::Espresso.
  */
 
-[data-theme^="desk"] {
+[data-theme^="espresso"] {
     /* Neutral */
     --bg-frame: #1C1210;
     --bg-canvas: #FFF8F2;
@@ -127,7 +127,7 @@
 }
 
 /* Dark variant: same structure, the canvas and surfaces go dark and the solid shadow turns orange */
-[data-theme="desk-dark"] {
+[data-theme="espresso-dark"] {
     --bg-frame: #0E0907;
     --bg-canvas: #1C1210;
     --canvas-dots: #2A1C16;

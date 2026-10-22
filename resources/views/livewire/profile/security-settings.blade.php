@@ -352,31 +352,17 @@ new #[Title('Security settings')] class extends Component {
     </div>
 
     {{-- @chisel-passkeys --}}
-    <x-modal
+    @php
+        $removePasskeyText = __('Are you sure you want to remove the passkey ":name"? You will no longer be able to use it to sign in.', ['name' => $deletingPasskeyName]);
+    @endphp
+    <x-nakama.confirm-modal
         wire:model="showDeleteModal"
-        class="max-w-md"
-    >
-        <div class="space-y-6">
-            <div class="space-y-2">
-                <h3 class="text-lg font-bold text-base-content">{{ __('Remove passkey') }}</h3>
-                <p class="text-sm text-base-content/50">
-                    {{ __('Are you sure you want to remove the passkey ":name"? You will no longer be able to use it to sign in.', ['name' => $deletingPasskeyName]) }}
-                </p>
-            </div>
-
-            <div class="flex gap-3 justify-end">
-                <x-button
-                    class="btn-ghost"
-                    wire:click="closeDeleteModal"
-                    label="{{ __('Cancel') }}"
-                />
-                <x-button
-                    class="btn-error text-white"
-                    wire:click="deletePasskey"
-                    label="{{ __('Remove passkey') }}"
-                />
-            </div>
-        </div>
-    </x-modal>
+        :title="__('Remove passkey')"
+        :subtitle="$removePasskeyText"
+        confirm="deletePasskey"
+        :confirm-label="__('Remove passkey')"
+        cancel="closeDeleteModal"
+        :cancel-label="__('Cancel')"
+    />
     {{-- @end-chisel-passkeys --}}
 </section>

@@ -19,7 +19,7 @@
                         Force Login untuk dukungan/debug. Hanya Super Admin.</p>
                 </div>
                 @if ($tab === 'errors')
-                    <form method="POST" action="{{ route('dev.errors.purge') }}" onsubmit="return confirm('Hapus semua log error?');">
+                    <form method="POST" action="{{ route('dev.errors.purge') }}" x-data x-on:submit.prevent="nakama.confirm({ title: 'Yakin?', text: 'Hapus semua log error?', variant: 'danger', confirmLabel: 'Ya, hapus' }).then((ok) => ok && $el.submit())">
                         @csrf
                         <button type="submit" class="btn btn-sm btn-error btn-outline">Purge Semua</button>
                     </form>
@@ -144,7 +144,7 @@
                                     </td>
                                     <td class="text-right">
                                         <form method="POST" action="{{ route('dev.errors.destroy', $error->id) }}"
-                                            onsubmit="return confirm('Hapus log ini?');" class="inline">
+                                            x-data x-on:submit.prevent="nakama.confirm({ title: 'Yakin?', text: 'Hapus log ini?', variant: 'danger', confirmLabel: 'Ya, hapus' }).then((ok) => ok && $el.submit())" class="inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-xs btn-ghost text-error">Hapus</button>
