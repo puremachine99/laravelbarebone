@@ -15,8 +15,8 @@
             <div class="card-body p-5 flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div class="min-w-0">
                     <h1 class="text-xl font-bold text-base-content">Sentry</h1>
-                    <p class="text-sm text-base-content/60 mt-0.5">Log error backend &amp; JavaScript aplikasi Nakama, dan
-                        Force Login untuk dukungan/debug. Hanya Super Admin.</p>
+                    <p class="text-sm text-base-content/60 mt-0.5">Log error backend &amp; JavaScript aplikasi Nakama,
+                        Force Login untuk dukungan/debug, dan jurnal development. Hanya Super Admin.</p>
                 </div>
                 @if ($tab === 'errors')
                     <form method="POST" action="{{ route('dev.errors.purge') }}" x-data x-on:submit.prevent="nakama.confirm({ title: 'Yakin?', text: 'Hapus semua log error?', variant: 'danger', confirmLabel: 'Ya, hapus' }).then((ok) => ok && $el.submit())">
@@ -32,10 +32,14 @@
                 @class(['tab', 'tab-active' => $tab === 'errors'])>Error Log</a>
             <a role="tab" href="{{ route('dev.errors.index', ['tab' => 'force-login']) }}" wire:navigate
                 @class(['tab', 'tab-active' => $tab === 'force-login'])>Force Login</a>
+            <a role="tab" href="{{ route('dev.errors.index', ['tab' => 'journal']) }}" wire:navigate
+                @class(['tab', 'tab-active' => $tab === 'journal'])>Jurnal</a>
         </div>
 
         @if ($tab === 'force-login')
             <livewire:dev.force-login />
+        @elseif ($tab === 'journal')
+            @include('debug.errors.journal')
         @else
 
         @if (session('status'))

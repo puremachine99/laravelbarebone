@@ -804,6 +804,45 @@
     @apply text-sidebar-fg/40;
 }
 
+/* ─── Sentry → Jurnal: one day's markdown (resources/views/debug/errors/journal.blade.php) ──── */
+
+.dev-journal-entry {
+    @apply text-sm leading-relaxed wrap-break-word;
+}
+
+.dev-journal-entry > ul {
+    @apply space-y-2;
+}
+
+.dev-journal-entry ul ul,
+.dev-journal-entry ul ol {
+    @apply mt-1 space-y-0.5 ps-5 text-base-content/70;
+}
+
+.dev-journal-entry ul ul {
+    @apply list-disc;
+}
+
+.dev-journal-entry ol {
+    @apply list-decimal;
+}
+
+.dev-journal-entry strong {
+    @apply font-semibold text-base-content;
+}
+
+.dev-journal-entry code {
+    @apply px-1 py-0.5 rounded bg-base-200 font-mono text-[0.8125rem];
+}
+
+.dev-journal-entry pre {
+    @apply mt-2 p-3 rounded-lg bg-base-200 overflow-x-auto text-xs;
+}
+
+.dev-journal-entry pre code {
+    @apply p-0 bg-transparent;
+}
+
 /* ─── AI Center: Markdown answers ──────────── */
 
 .ai-markdown {

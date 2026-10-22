@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Debug;
 
 use App\Http\Controllers\Controller;
 use App\Models\ErrorLog;
+use App\Support\DevJournal;
 use App\Support\PerPage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -14,12 +15,17 @@ use Illuminate\View\View;
 class ErrorLogController extends Controller
 {
     /**
-     * Sentry page: the error log list, or (?tab=force-login) the force login tool.
+     * Sentry page: the error log list, (?tab=force-login) the force login tool, or (?tab=journal) the development
+     * journal rendered from report/*.md.
      */
     public function index(Request $request): View
     {
         if ($request->query('tab') === 'force-login') {
             return view('debug.errors.index', ['tab' => 'force-login']);
+        }
+
+        if ($request->query('tab') === 'journal') {
+            return $this->journal($request);
         }
 
         $this->purgeOldErrorsWeekly();
@@ -55,6 +61,31 @@ class ErrorLogController extends Controller
             'errors' => $errors,
             'stats' => $stats,
             'filters' => $request->only(['type', 'status', 'severity', 'resolved', 'search']),
+        ]);
+    }
+
+    /**
+     * The journal tab: one tab per month of the chosen year, opening on the current month when it has entries,
+     * otherwise on the latest month that does.
+     */
+    private function journal(Request $request): View
+    {
+        $journal = DevJournal::fromReports();
+        $years = $journal->years();
+        $year = in_array($request->integer('year'), $years, true) ? $request->integer('year') : ($years[0] ?? (int) now()->year);
+        $months = $journal->months($year);
+
+        $filled = array_keys(array_filter($months, fn (array $month) => $month['entries'] !== [] || $month['notes'] !== []));
+        $activeMonth = $year === (int) now()->year && in_array((int) now()->month, $filled, true)
+            ? (int) now()->month
+            : (end($filled) ?: 1);
+
+        return view('debug.errors.index', [
+            'tab' => 'journal',
+            'journalYears' => $years,
+            'journalYear' => $year,
+            'journalMonths' => $months,
+            'journalActiveMonth' => $activeMonth,
         ]);
     }
 

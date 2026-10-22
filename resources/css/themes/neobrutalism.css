@@ -140,6 +140,7 @@
 [data-theme^="neobrutalism"] :is(.card, .modal-box, .dropdown-content, .stats, .btn, .input, .select, .textarea, .file-input, .badge, .alert, .tabs-box, .tab, .progress, .toon-decor-chip, .menu li > *, .rounded-sm, .rounded, .rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-box),
 [data-theme^="neobrutalism"] .drawer-content > main,
 [data-theme^="neobrutalism"] .app-sidebar .sidebar-menu :is(.menu-item, .collapse-title, .collapse),
+[data-theme^="neobrutalism"] .app-topbar,
 [data-theme^="neobrutalism"] .app-topbar .rounded-lg.border,
 [data-theme^="neobrutalism"] .table thead :is(th, td):is(:first-child, :last-child) {
     border-radius: 0;

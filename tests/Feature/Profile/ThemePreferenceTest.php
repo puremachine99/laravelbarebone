@@ -115,7 +115,7 @@ test('Neo Brutalism is its own toon theme and leaves Cinnamoroll alone', functio
         ->and(UserTheme::Neobrutalism->dataTheme(true))->toBe('neobrutalism-dark')
         ->and(UserTheme::toonValues())->toContain('neobrutalism', 'cinnamoroll')
         ->and(file_get_contents(resource_path('css/themes/neobrutalism.css')))->not->toContain('cinnamoroll')
-        ->and(file_get_contents(resource_path('css/themes/neobrutalism.css')))->toContain('--radius-box: 0;', 'border-radius: 0;')
+        ->and(file_get_contents(resource_path('css/themes/neobrutalism.css')))->toContain('--radius-box: 0;', 'border-radius: 0;', '[data-theme^="neobrutalism"] .app-topbar,')
         ->and(UserTheme::Neobrutalism->preview()['radius'])->toBe('0');
 });
 
@@ -153,7 +153,7 @@ test('Mono Brutal is a square, monochrome toon theme with crimson accents', func
         ->and(UserTheme::Mono->dataTheme(true))->toBe('mono-dark')
         ->and(UserTheme::toonValues())->toContain('mono')
         ->and(UserTheme::Mono->preview()['accent'])->toBe('#DC143C')
-        ->and($css)->toContain('--chart-1: #DC143C;', '--radius-box: 0;', 'border-radius: 0;')
+        ->and($css)->toContain('--chart-1: #DC143C;', '--radius-box: 0;', 'border-radius: 0;', '[data-theme^="mono"] .app-topbar,')
         ->and($css)->toContain('--tile-1: #FFFFFF;', '--tile-2: #F2F2F2;');
 
     $this->actingAs($user)->get(route('profile.show'))->assertOk()->assertSee('Tema Mono Brutal');
