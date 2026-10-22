@@ -1,0 +1,226 @@
+/*
+ * ─── "Neo Brutalism" theme ────────────────────────────────────────────────────────────────────────────────────────
+ * Neo-brutalism: flat, loud, honest UI. Thick black outlines, hard offset shadows with no blur, saturated flat
+ * colour blocks, near-square corners, no gradients. Think Gumroad / Figma community posters, not a mascot.
+ * Palette: ink #111111 · paper #F7F3E8 · yellow #FFD23F · pink #FF90E8 · electric blue #2546F0 · mint #7DF9C2.
+ * Text is always ink (#111111, ~18:1 on white) on the bright blocks, so the loud colours never hurt readability.
+ *
+ * Tokens only (plus daisyUI shape tokens below): the structure is the shared toon style (themes/toon.css), whose
+ * outlines and solid shadows are exactly the brutalist recipe once they are black. The daisyUI colours are the
+ * "neobrutalism" and "neobrutalism-dark" themes in app.css. Registered as App\Enums\UserTheme::Neobrutalism.
+ */
+
+[data-theme^="neobrutalism"] {
+    /* Neutral: paper canvas, white cards, black everything else */
+    --bg-frame: #FFD23F;
+    --bg-canvas: #F7F3E8;
+    --canvas-dots: #D9D1BC;
+    --surface: #FFFFFF;
+    --surface-muted: #F4F0E4;
+    --border-strong: #111111;
+    --border-dashed: #111111;
+    --toon-ink: #111111;              /* the hard offset shadow */
+
+    /* Text: ink */
+    --text-primary: #111111;
+    --text-secondary: #2B2A26;
+    --text-muted: #57524A;
+
+    /* Accent: hot pink blocks */
+    --accent-soft: #FF90E8;
+    --accent-soft-deep: #FF5ACD;
+    --text-on-accent: #111111;
+    --secondary-shadow: #111111;
+
+    /* Frame (sidebar + top bar): a yellow slab, black type, black active pill */
+    --frame-text: #111111;
+    --frame-text-muted: #3D392F;
+    --frame-hover-bg: #FFFFFF;
+    --frame-hover-text: #111111;
+    --frame-shadow: #111111;
+    --sidebar-active-bg: #111111;
+    --sidebar-active-text: #FFD23F;
+
+    /* Stat tiles: four flat colour blocks */
+    --tile-1: #FFD23F;
+    --tile-2: #FF90E8;
+    --tile-3: #7DF9C2;
+    --tile-4: #8FB8FF;
+    --tile-text: #111111;
+
+    /* Semantic: bright fills, black borders, dark text */
+    --success-bg: #B8F5C8;
+    --success-text: #0B5132;
+    --success-border: #111111;
+    --error: #D61F2C;
+    --error-bg: #FFC9CC;
+    --warning: #F5A300;
+    --warning-text: #5C3D00;
+    --warning-bg: #FFE89A;
+    --info: #2546F0;
+    --info-bg: #C9D3FF;
+
+    /* App tokens (app.css THEMES): sidebar, code blocks, charts */
+    --color-sidebar-fg: #111111;
+    --color-sidebar-accent: #111111;
+    --color-sidebar-accent-soft: #2546F0;
+    --sidebar-background-image:
+        radial-gradient(rgb(17 17 17 / 0.14) 1.2px, transparent 1.4px),
+        linear-gradient(#FFD23F, #FFD23F);
+
+    --color-code-bg: #111111;
+    --color-code-bar: #232323;
+    --color-code-fg: #F7F3E8;
+    --color-code-muted: #9A968C;
+    --color-code-ok: #7DF9C2;
+    --color-code-error: #FF6B7A;
+    --color-code-warn: #FFD23F;
+    --color-code-keyword: #FF90E8;
+    --color-code-number: #8FB8FF;
+    --color-code-highlight: #FFD23F;
+    --color-code-strong: #FFFFFF;
+
+    --chart-text: #111111;
+    --chart-grid: #E8E2D0;
+    --chart-on-bar: #111111;
+    --chart-1: #2546F0;
+    --chart-2: #FF5ACD;
+    --chart-3: #FFC300;
+    --chart-4: #D61F2C;
+    --chart-5: #12B76A;
+    --chart-6: #111111;
+    --chart-7: #FF8A3D;
+    --chart-8: #8FB8FF;
+    --chart-9: #7C3AED;
+    --chart-10: #00B8D9;
+    --chart-11: #A3E635;
+    --chart-12: #FF90E8;
+    --chart-13: #6B4F2A;
+
+    /* Hard-coded indigo/blue → electric blue, gray/zinc/slate/neutral → warm paper greys */
+    --theme-accent-50: #EEF1FF;
+    --theme-accent-100: #DDE3FF;
+    --theme-accent-200: #BCC8FF;
+    --theme-accent-300: #8FA3FF;
+    --theme-accent-400: #6178FF;
+    --theme-accent-500: #3D57FF;
+    --theme-accent-600: #2546F0;
+    --theme-accent-700: #1A35C7;
+    --theme-accent-800: #182EA0;
+    --theme-accent-900: #19297D;
+    --theme-accent-950: #0F1748;
+
+    --theme-neutral-50: #FBF9F3;
+    --theme-neutral-100: #F4F0E4;
+    --theme-neutral-200: #E8E2D0;
+    --theme-neutral-300: #D3CBB4;
+    --theme-neutral-400: #A69F8A;
+    --theme-neutral-500: #77705E;
+    --theme-neutral-600: #575142;
+    --theme-neutral-700: #3D392F;
+    --theme-neutral-800: #26241E;
+    --theme-neutral-900: #171612;
+    --theme-neutral-950: #0A0A08;
+}
+
+/* daisyUI shape tokens: square corners, 2px borders, no depth or noise. :root raises specificity so these win
+   over the theme blocks in app.css regardless of load order. */
+:root[data-theme^="neobrutalism"] {
+    --radius-box: 0;
+    --radius-field: 0;
+    --radius-selector: 0;
+    --border: 2px;
+    --depth: 0;
+    --noise: 0;
+}
+
+/* Truly square: undo the pills and rounded corners that toon.css hard-codes. Each selector matches (or beats) the
+   specificity of its toon.css counterpart and this file loads later, so it wins. rounded-full is left alone, so
+   avatars, status dots and radios stay round. */
+[data-theme^="neobrutalism"] :is(.card, .modal-box, .dropdown-content, .stats, .btn, .input, .select, .textarea, .file-input, .badge, .alert, .tabs-box, .tab, .progress, .toon-decor-chip, .menu li > *, .rounded-sm, .rounded, .rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-box),
+[data-theme^="neobrutalism"] .drawer-content > main,
+[data-theme^="neobrutalism"] .app-sidebar .sidebar-menu :is(.menu-item, .collapse-title, .collapse),
+[data-theme^="neobrutalism"] .app-topbar .rounded-lg.border,
+[data-theme^="neobrutalism"] .table thead :is(th, td):is(:first-child, :last-child) {
+    border-radius: 0;
+}
+
+/* Text and links in the primary colour use the electric blue (~7:1 on white) */
+[data-theme="neobrutalism"] :is(.text-primary, .link-primary, .link-hover.text-primary) {
+    color: #2546F0;
+}
+
+/* The sidebar's dot pattern needs its own tile size */
+[data-theme^="neobrutalism"] .app-sidebar {
+    background-size: 16px 16px, 100% 100%;
+}
+
+/* Brutalist type: heavy headings, chunky table headers */
+[data-theme^="neobrutalism"] :is(h1, h2, h3, .card-title, .stat-value) {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+[data-theme^="neobrutalism"] .table thead :is(th, td) {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-primary);
+}
+
+/* Buttons press into their shadow */
+[data-theme^="neobrutalism"] .btn:not(.btn-ghost, .btn-link) {
+    transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+[data-theme^="neobrutalism"] .btn:not(.btn-ghost, .btn-link):active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--toon-ink);
+}
+
+/* Dark variant: ink canvas, cream outlines, yellow hard shadows */
+[data-theme="neobrutalism-dark"] {
+    --bg-frame: #1A1A1A;
+    --bg-canvas: #111111;
+    --canvas-dots: #2A2A2A;
+    --surface: #1F1F1F;
+    --surface-muted: #2A2A2A;
+    --border-strong: #F2EFE6;
+    --border-dashed: #57524A;
+    --toon-ink: #FFD23F;
+    --secondary-shadow: #FF90E8;
+
+    --text-primary: #F7F3E8;
+    --text-secondary: #DDD8CB;
+    --text-muted: #ADA796;
+
+    --frame-text: #F7F3E8;
+    --frame-text-muted: #ADA796;
+    --frame-hover-bg: #2A2A2A;
+    --frame-hover-text: #FFD23F;
+    --frame-shadow: #FFD23F;
+    --sidebar-active-bg: #FFD23F;
+    --sidebar-active-text: #111111;
+
+    --color-sidebar-fg: #F7F3E8;
+    --color-sidebar-accent: #FFD23F;
+    --color-sidebar-accent-soft: #FF90E8;
+    --sidebar-background-image:
+        radial-gradient(rgb(255 210 63 / 0.10) 1.2px, transparent 1.4px),
+        linear-gradient(#1A1A1A, #1A1A1A);
+
+    --chart-text: #F7F3E8;
+    --chart-grid: #2A2A2A;
+    --chart-6: #F7F3E8;
+
+    --theme-neutral-400: #ADA796;
+    --theme-neutral-500: #A69F8A;
+    --theme-neutral-600: #8A8471;
+    --theme-accent-500: #8FA3FF;
+    --theme-accent-600: #6178FF;
+    --theme-accent-700: #3D57FF;
+}
+
+[data-theme="neobrutalism-dark"] :is(.text-primary, .link-primary, .link-hover.text-primary) {
+    color: #8FA3FF;
+}

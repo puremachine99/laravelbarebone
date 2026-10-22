@@ -375,7 +375,7 @@ new #[Layout('layouts.app')] class extends Component {
             <div class="space-y-3">
                 <h4 class="text-sm font-semibold text-base-content/70">{{ __('Tema') }}</h4>
                 {{-- One card per App\Enums\UserTheme case: a new theme shows up here automatically --}}
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     @foreach (\App\Enums\UserTheme::cases() as $themeOption)
                         @php($preview = $themeOption->preview())
                         <button type="button" wire:key="theme-{{ $themeOption->value }}"

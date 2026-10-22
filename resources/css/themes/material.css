@@ -1,0 +1,527 @@
+/*
+ * ─── "Material Expressive" theme ────────────────────────────────────────────────────────────────────────────────
+ * Google's Material 3 Expressive (2025), brought to a desktop dashboard: tonal surfaces from one seed colour, big
+ * and varied corner shapes, pill buttons that morph to a rounded square when pressed, springy motion, state layers
+ * on hover/press, ink ripples (resources/js/material-ripple.js), a pill-shaped active indicator in the navigation
+ * drawer, and a shape-morphing loading indicator. Type is Roboto Flex.
+ *
+ * Colours: the calm blue scheme M3 generates from a soft blue seed (#769CDF): professional and neutral, with
+ * containers instead of loud fills. Tokens follow the official names (--md-sys-color-*), so the scheme can be
+ * swapped by pasting another one from the Material Theme Builder.
+ *
+ * A plain theme (App\Enums\UserTheme::style() "default"). The daisyUI colours are the "material" and
+ * "material-dark" themes in app.css. Registered as UserTheme::Material.
+ */
+
+[data-theme^="material"] {
+    --md-sys-color-primary: #415F91;
+    --md-sys-color-on-primary: #FFFFFF;
+    --md-sys-color-primary-container: #D6E3FF;
+    --md-sys-color-on-primary-container: #284777;
+    --md-sys-color-secondary: #565F71;
+    --md-sys-color-secondary-container: #DAE2F9;
+    --md-sys-color-on-secondary-container: #3E4759;
+    --md-sys-color-tertiary: #705575;
+    --md-sys-color-tertiary-container: #FAD8FD;
+    --md-sys-color-on-tertiary-container: #573E5C;
+    --md-sys-color-error: #BA1A1A;
+    --md-sys-color-error-container: #FFDAD6;
+    --md-sys-color-on-error-container: #93000A;
+    --md-sys-color-success-container: #C8EFC4;
+    --md-sys-color-on-success-container: #1F5126;
+    --md-sys-color-warning-container: #FFDEA8;
+    --md-sys-color-on-warning-container: #5C4200;
+    --md-sys-color-surface: #F9F9FF;
+    --md-sys-color-on-surface: #191C20;
+    --md-sys-color-on-surface-variant: #44474E;
+    --md-sys-color-outline: #74777F;
+    --md-sys-color-outline-variant: #C4C6D0;
+    --md-sys-color-surface-container-lowest: #FFFFFF;
+    --md-sys-color-surface-container-low: #F3F3FA;
+    --md-sys-color-surface-container: #EDEDF4;
+    --md-sys-color-surface-container-high: #E7E8EE;
+    --md-sys-color-surface-container-highest: #E2E2E9;
+    --md-sys-color-shadow: 0 0 0;
+
+    /* Elevation levels 1–3 */
+    --md-elevation-1: 0 1px 2px rgb(var(--md-sys-color-shadow) / 0.3), 0 1px 3px 1px rgb(var(--md-sys-color-shadow) / 0.15);
+    --md-elevation-2: 0 1px 2px rgb(var(--md-sys-color-shadow) / 0.3), 0 2px 6px 2px rgb(var(--md-sys-color-shadow) / 0.15);
+    --md-elevation-3: 0 4px 8px 3px rgb(var(--md-sys-color-shadow) / 0.15), 0 1px 3px rgb(var(--md-sys-color-shadow) / 0.3);
+
+    /* Expressive shape scale */
+    --md-shape-small: 0.75rem;
+    --md-shape-medium: 1rem;
+    --md-shape-large: 1.5rem;
+    --md-shape-extra-large: 1.75rem;
+
+    /* Expressive motion: spatial springs overshoot a little, effects do not */
+    --md-spring-fast: cubic-bezier(0.42, 1.67, 0.21, 0.9);
+    --md-spring-default: cubic-bezier(0.38, 1.21, 0.22, 1);
+    --md-effects: cubic-bezier(0.31, 0.94, 0.34, 1);
+
+    --font-sans: "Roboto Flex", "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+
+    /* Navigation drawer: a light surface with dark text instead of the navy sidebar */
+    --sidebar-background-color: var(--md-sys-color-surface-container-low);
+    --sidebar-background-image: none;
+    --sidebar-border: transparent;
+    --color-sidebar-fg: var(--md-sys-color-on-surface);
+    --color-sidebar-accent: var(--md-sys-color-primary);
+    --color-sidebar-accent-soft: var(--md-sys-color-primary);
+
+    --chart-text: #44474E;
+    --chart-grid: #E2E2E9;
+    --chart-1: #415F91;
+    --chart-2: #3B8E7A;
+    --chart-3: #C08A2E;
+    --chart-4: #BA1A1A;
+    --chart-5: #4F8FC0;
+    --chart-6: #705575;
+    --chart-7: #B85C8A;
+    --chart-8: #5E8C4A;
+    --chart-9: #D2753A;
+}
+
+[data-theme="material-dark"] {
+    --md-sys-color-primary: #AAC7FF;
+    --md-sys-color-on-primary: #0A305F;
+    --md-sys-color-primary-container: #284777;
+    --md-sys-color-on-primary-container: #D6E3FF;
+    --md-sys-color-secondary: #BEC6DC;
+    --md-sys-color-secondary-container: #3E4759;
+    --md-sys-color-on-secondary-container: #DAE2F9;
+    --md-sys-color-tertiary: #DDBCE0;
+    --md-sys-color-tertiary-container: #573E5C;
+    --md-sys-color-on-tertiary-container: #FAD8FD;
+    --md-sys-color-error: #FFB4AB;
+    --md-sys-color-error-container: #93000A;
+    --md-sys-color-on-error-container: #FFDAD6;
+    --md-sys-color-success-container: #1F5126;
+    --md-sys-color-on-success-container: #C8EFC4;
+    --md-sys-color-warning-container: #5C4200;
+    --md-sys-color-on-warning-container: #FFDEA8;
+    --md-sys-color-surface: #111318;
+    --md-sys-color-on-surface: #E2E2E9;
+    --md-sys-color-on-surface-variant: #C4C6D0;
+    --md-sys-color-outline: #8E9099;
+    --md-sys-color-outline-variant: #44474E;
+    --md-sys-color-surface-container-lowest: #0C0E13;
+    --md-sys-color-surface-container-low: #191C20;
+    --md-sys-color-surface-container: #1D2024;
+    --md-sys-color-surface-container-high: #282A2F;
+    --md-sys-color-surface-container-highest: #33353A;
+
+    --chart-text: #C4C6D0;
+    --chart-grid: #33353A;
+    --chart-1: #AAC7FF;
+    --chart-2: #7FD3BD;
+    --chart-3: #F0C06A;
+    --chart-4: #FFB4AB;
+}
+
+/* ── Canvas and type ────────────────────────────────────────────────────────────────────────────────────────── */
+
+[data-theme^="material"] {
+    background-color: var(--md-sys-color-surface-container-low);
+}
+
+[data-theme^="material"] body {
+    background: transparent;
+    font-family: var(--font-sans);
+}
+
+/* Expressive "emphasized" type: heavier, tighter headlines */
+[data-theme^="material"] :is(h1, h2, h3, .card-title) {
+    font-weight: 650;
+    letter-spacing: -0.01em;
+}
+
+[data-theme^="material"] .stat-value {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+[data-theme^="material"] ::selection {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+}
+
+[data-theme^="material"] :focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+}
+
+/* ── State layers and ripples ───────────────────────────────────────────────────────────────────────────────── */
+
+/* A wash of the element's own text colour: 8% on hover, 10% on focus and press (M3 state layer opacities) */
+[data-theme^="material"] :is(.btn, .menu-item, .collapse-title, .menu li > a, .menu li > button, .tab, .md-ripple-host) {
+    position: relative;
+    isolation: isolate;
+}
+
+[data-theme^="material"] :is(.btn, .menu-item, .collapse-title, .menu li > a, .menu li > button, .tab, .md-ripple-host)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms var(--md-effects);
+}
+
+[data-theme^="material"] :is(.btn, .menu-item, .collapse-title, .menu li > a, .menu li > button, .tab, .md-ripple-host):hover::after {
+    opacity: 0.08;
+}
+
+[data-theme^="material"] :is(.btn, .menu-item, .collapse-title, .menu li > a, .menu li > button, .tab, .md-ripple-host):is(:focus-visible, :active)::after {
+    opacity: 0.1;
+}
+
+[data-theme^="material"] .md-ripple-clip {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+[data-theme^="material"] .md-ripple {
+    position: absolute;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0.12;
+    pointer-events: none;
+    transform: scale(0);
+    animation: md-ripple-grow 450ms var(--md-effects) forwards;
+    transition: opacity 300ms var(--md-effects);
+}
+
+[data-theme^="material"] .md-ripple.md-ripple-out {
+    opacity: 0;
+}
+
+@keyframes md-ripple-grow {
+    to { transform: scale(1); }
+}
+
+/* ── Navigation drawer (sidebar) ────────────────────────────────────────────────────────────────────────────── */
+
+[data-theme^="material"] .app-sidebar .sidebar-menu .menu-label {
+    color: var(--md-sys-color-on-surface-variant);
+    letter-spacing: 0.08em;
+    font-weight: 600;
+}
+
+[data-theme^="material"] .sidebar-menu.sidebar-dark :is(.menu-item, .collapse-title) {
+    min-height: 2.75rem;
+    border-radius: 9999px;
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 500;
+}
+
+[data-theme^="material"] .sidebar-menu.sidebar-dark :is(.menu-item, .collapse-title):hover {
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+}
+
+/* Active indicator: a secondary-container pill that springs in */
+[data-theme^="material"] .sidebar-menu.sidebar-dark .menu-item.active {
+    border: 0;
+    padding-inline-start: 0.625rem;
+    background: var(--md-sys-color-secondary-container);
+    background-image: none;
+    color: var(--md-sys-color-on-secondary-container);
+    font-weight: 700;
+    animation: md-indicator-in 350ms var(--md-spring-fast);
+}
+
+@keyframes md-indicator-in {
+    from { transform: scaleX(0.6); opacity: 0.4; }
+}
+
+[data-theme^="material"] .sidebar-menu.sidebar-dark .collapse-title .arrow-icon {
+    color: var(--md-sys-color-on-surface-variant);
+    transition: transform 350ms var(--md-spring-default);
+}
+
+/* The role badge in the drawer header */
+[data-theme^="material"] .app-sidebar .border-sidebar-accent\/40 {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* ── Top app bar ────────────────────────────────────────────────────────────────────────────────────────────── */
+
+[data-theme^="material"] .app-topbar {
+    background: var(--md-sys-color-surface-container-low);
+    border: 0;
+}
+
+[data-theme^="material"] .app-topbar h1 {
+    font-size: 1.375rem;
+    font-weight: 500;
+}
+
+[data-theme^="material"] .app-topbar .rounded-lg.border {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    border: 0;
+    border-radius: 9999px;
+}
+
+/* ── Containers: cards, dialogs, menus ──────────────────────────────────────────────────────────────────────── */
+
+[data-theme^="material"] :is(.card, .stats),
+[data-theme^="material"] :is(.rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-box).border.bg-base-100 {
+    background-color: var(--md-sys-color-surface-container-lowest);
+    border: 0;
+    border-radius: var(--md-shape-large);
+    box-shadow: var(--md-elevation-1);
+    transition: box-shadow 250ms var(--md-effects);
+}
+
+[data-theme^="material"] .modal-box {
+    background: var(--md-sys-color-surface-container-high);
+    border: 0;
+    border-radius: var(--md-shape-extra-large);
+    box-shadow: var(--md-elevation-3);
+}
+
+[data-theme^="material"] .modal[open] .modal-box,
+[data-theme^="material"] .modal-open .modal-box,
+[data-theme^="material"] .modal:target .modal-box {
+    animation: md-dialog-in 400ms var(--md-spring-default);
+}
+
+@keyframes md-dialog-in {
+    from { transform: scale(0.85); opacity: 0; }
+}
+
+[data-theme^="material"] :is(.modal-backdrop, .modal::backdrop) {
+    background: rgb(0 0 0 / 0.32);
+}
+
+[data-theme^="material"] .dropdown-content {
+    background: var(--md-sys-color-surface-container);
+    border: 0;
+    border-radius: var(--md-shape-medium);
+    box-shadow: var(--md-elevation-2);
+}
+
+/* ── Buttons: pills that morph to a rounded square while pressed ────────────────────────────────────────────── */
+
+[data-theme^="material"] .btn {
+    border-radius: 9999px;
+    font-weight: 500;
+    letter-spacing: 0.006em;
+    text-transform: none;
+    box-shadow: none;
+    transition: border-radius 350ms var(--md-spring-fast), box-shadow 200ms var(--md-effects), background-color 200ms var(--md-effects);
+}
+
+[data-theme^="material"] .btn:not(:disabled, .btn-disabled):active {
+    border-radius: var(--md-shape-small);
+    transform: none;
+}
+
+[data-theme^="material"] .btn-sm:not(:disabled, .btn-disabled):active,
+[data-theme^="material"] .btn-xs:not(:disabled, .btn-disabled):active {
+    border-radius: 0.5rem;
+}
+
+/* Filled buttons lift on hover */
+[data-theme^="material"] :is(.btn-primary, .btn-secondary, .btn-accent, .btn-neutral, .btn-error, .btn-success, .btn-warning, .btn-info):not(.btn-outline, .btn-soft, .btn-ghost):hover {
+    box-shadow: var(--md-elevation-1);
+}
+
+/* A plain button is M3's "tonal" button */
+[data-theme^="material"] .btn:not(.btn-primary, .btn-secondary, .btn-accent, .btn-neutral, .btn-info, .btn-success, .btn-warning, .btn-error, .btn-ghost, .btn-link, .btn-outline, .btn-soft, .btn-dash) {
+    --btn-color: var(--md-sys-color-secondary-container);
+    --btn-fg: var(--md-sys-color-on-secondary-container);
+    border-color: transparent;
+}
+
+[data-theme^="material"] .btn-outline {
+    border-color: var(--md-sys-color-outline);
+}
+
+[data-theme^="material"] .btn-circle,
+[data-theme^="material"] .btn-square {
+    border-radius: 9999px;
+}
+
+/* ── Fields: outlined text fields ──────────────────────────────────────────────────────────────────────────── */
+
+[data-theme^="material"] :is(.input, .select, .textarea, .file-input) {
+    background-color: transparent;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--md-shape-small);
+    box-shadow: none;
+    transition: border-color 150ms var(--md-effects), box-shadow 150ms var(--md-effects);
+}
+
+[data-theme^="material"] :is(.input, .select, .textarea, .file-input):hover {
+    border-color: var(--md-sys-color-on-surface);
+}
+
+[data-theme^="material"] :is(.input, .select, .textarea, .file-input):focus-within,
+[data-theme^="material"] :is(.input, .select, .textarea):focus {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
+    outline: none;
+}
+
+[data-theme^="material"] :is(.fieldset-legend, .label) {
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 500;
+}
+
+[data-theme^="material"] .checkbox {
+    border-radius: 0.125rem;
+    border: 2px solid var(--md-sys-color-on-surface-variant);
+}
+
+/* Switch: a 52 × 32 track whose handle grows when on */
+[data-theme^="material"] .toggle {
+    --toggle-p: 0.3rem;
+    border: 2px solid var(--md-sys-color-outline);
+    background: var(--md-sys-color-surface-container-highest);
+    color: var(--md-sys-color-outline);
+    transition: all 250ms var(--md-spring-default);
+}
+
+[data-theme^="material"] .toggle:checked {
+    --toggle-p: 0.15rem;
+    border-color: var(--md-sys-color-primary);
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+}
+
+/* ── Chips, banners, tabs, progress ────────────────────────────────────────────────────────────────────────── */
+
+[data-theme^="material"] .badge {
+    border-radius: 0.5rem;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 500;
+}
+
+[data-theme^="material"] :is(.badge-primary, .badge-info) { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border-color: transparent; }
+[data-theme^="material"] :is(.badge-secondary, .badge-neutral, .badge-ghost) { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); border-color: transparent; }
+[data-theme^="material"] .badge-accent { background: var(--md-sys-color-tertiary-container); color: var(--md-sys-color-on-tertiary-container); border-color: transparent; }
+[data-theme^="material"] .badge-success { background: var(--md-sys-color-success-container); color: var(--md-sys-color-on-success-container); border-color: transparent; }
+[data-theme^="material"] .badge-warning { background: var(--md-sys-color-warning-container); color: var(--md-sys-color-on-warning-container); border-color: transparent; }
+[data-theme^="material"] .badge-error { background: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container); border-color: transparent; }
+
+[data-theme^="material"] .alert {
+    border: 0;
+    border-radius: var(--md-shape-medium);
+    background: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
+}
+
+[data-theme^="material"] .alert-info { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+[data-theme^="material"] .alert-success { background: var(--md-sys-color-success-container); color: var(--md-sys-color-on-success-container); }
+[data-theme^="material"] .alert-warning { background: var(--md-sys-color-warning-container); color: var(--md-sys-color-on-warning-container); }
+[data-theme^="material"] .alert-error { background: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container); }
+
+/* Boxed tabs become a segmented button; other tabs get the primary underline indicator */
+[data-theme^="material"] .tabs-box {
+    background: transparent;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 9999px;
+    padding: 0;
+    box-shadow: none;
+}
+
+[data-theme^="material"] .tabs-box .tab {
+    border-radius: 0;
+    font-weight: 500;
+}
+
+[data-theme^="material"] .tabs-box .tab:not(:last-child) {
+    border-inline-end: 1px solid var(--md-sys-color-outline);
+}
+
+[data-theme^="material"] .tabs-box :is(.tab-active, .tab[aria-selected="true"]) {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    box-shadow: none;
+}
+
+[data-theme^="material"] .tabs:not(.tabs-box) :is(.tab-active, .tab[aria-selected="true"]) {
+    color: var(--md-sys-color-primary);
+    border-bottom: 3px solid var(--md-sys-color-primary);
+    border-radius: 0;
+}
+
+/* Linear progress: thin, rounded, on a secondary-container track */
+[data-theme^="material"] .progress {
+    height: 0.25rem;
+    border-radius: 9999px;
+    background: var(--md-sys-color-secondary-container);
+}
+
+/* ── Tables ─────────────────────────────────────────────────────────────────────────────────────────────────── */
+
+[data-theme^="material"] .table thead :is(th, td) {
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+}
+
+[data-theme^="material"] .table :is(thead tr, tbody tr:not(:last-child)) {
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+[data-theme^="material"] .table tbody tr {
+    transition: background-color 150ms var(--md-effects);
+}
+
+[data-theme^="material"] .table tbody tr:hover {
+    background: color-mix(in oklab, var(--md-sys-color-on-surface) 8%, transparent);
+}
+
+[data-theme^="material"] .border-dashed {
+    border-style: solid;
+    border-color: var(--md-sys-color-outline-variant);
+}
+
+/* ── Loading indicator: the Expressive shape-morphing blob instead of the spinner ──────────────────────────── */
+
+[data-theme^="material"] .loading {
+    -webkit-mask-image: none;
+    mask-image: none;
+    background: var(--md-sys-color-primary);
+    border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+    animation: md-loading-morph 1.6s var(--md-spring-default) infinite;
+}
+
+@keyframes md-loading-morph {
+    0%   { border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; transform: rotate(0deg) scale(0.9); }
+    25%  { border-radius: 50%; transform: rotate(90deg) scale(0.75); }
+    50%  { border-radius: 30% 70% 35% 65% / 60% 30% 70% 40%; transform: rotate(180deg) scale(0.95); }
+    75%  { border-radius: 22%; transform: rotate(270deg) scale(0.8); }
+    100% { border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; transform: rotate(360deg) scale(0.9); }
+}
+
+/* ── Reduced motion: keep the shapes, drop the springs and ripples ─────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    [data-theme^="material"] :is(.btn, .sidebar-menu .menu-item.active, .modal-box, .toggle, .loading) {
+        transition: none;
+        animation: none;
+    }
+
+    [data-theme^="material"] .md-ripple {
+        display: none;
+    }
+}

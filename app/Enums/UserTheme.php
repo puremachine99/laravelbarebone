@@ -12,6 +12,9 @@ enum UserTheme: string
     case Default = 'default';
     case Espresso = 'espresso';
     case Cinnamoroll = 'cinnamoroll';
+    case Organic = 'organic';
+    case Neobrutalism = 'neobrutalism';
+    case Mono = 'mono';
 
     public function label(): string
     {
@@ -19,6 +22,9 @@ enum UserTheme: string
             self::Default => __('Default'),
             self::Espresso => __('Espresso'),
             self::Cinnamoroll => __('Cinnamoroll'),
+            self::Organic => __('Organic Warm'),
+            self::Neobrutalism => __('Neo Brutalism'),
+            self::Mono => __('Mono Brutal'),
         };
     }
 
@@ -26,8 +32,11 @@ enum UserTheme: string
     {
         return match ($this) {
             self::Default => __('Tampilan standar SmartID Dashboard.'),
-            self::Espresso => __('Hangat bernuansa kopi, seperti halaman Pendampingan.'),
+            self::Espresso => __('Hangat kayak kopi, cokelat tua, krem, dan aksen kuning.'),
             self::Cinnamoroll => __('Biru langit dan awan putih, pipi pink, payung kuning.'),
+            self::Organic => __('Kertas krem bertekstur, terracotta dan olive, judul serif, tombol terasa bisa ditekan.'),
+            self::Neobrutalism => __('Garis hitam tebal, bayangan keras, blok kuning, pink dan biru elektrik.'),
+            self::Mono => __('Neo brutalism hitam-putih: garis tebal, bayangan keras, sudut siku, aksen merah crimson.'),
         };
     }
 
@@ -75,6 +84,42 @@ enum UserTheme: string
                 'shadow' => '2px 2px 0 #F4B6CF',
                 'radius' => '9999px',
             ],
+            self::Organic => [
+                'frame' => 'linear-gradient(to bottom, #3A3029, #2A231D)',
+                'canvas' => '#F4EDE1',
+                'panel' => '#FBF8F2',
+                'line' => '#E4DACB',
+                'muted' => '#E9DFCF',
+                'accent' => '#B5532F',
+                'accent_alt' => '#E0A84E',
+                'outline' => '1px solid #E4DACB',
+                'shadow' => 'inset 0 1px 0 #ffffff, 0 4px 10px -4px rgba(74, 52, 30, 0.3)',
+                'radius' => '10px',
+            ],
+            self::Neobrutalism => [
+                'frame' => '#FFD23F',
+                'canvas' => '#F7F3E8',
+                'panel' => '#FFFFFF',
+                'line' => '#111111',
+                'muted' => '#F4F0E4',
+                'accent' => '#2546F0',
+                'accent_alt' => '#FF90E8',
+                'outline' => '2px solid #111111',
+                'shadow' => '3px 3px 0 #111111',
+                'radius' => '0',
+            ],
+            self::Mono => [
+                'frame' => '#111111',
+                'canvas' => '#FFFFFF',
+                'panel' => '#FFFFFF',
+                'line' => '#111111',
+                'muted' => '#F2F2F2',
+                'accent' => '#DC143C',
+                'accent_alt' => '#FFFFFF',
+                'outline' => '2px solid #111111',
+                'shadow' => '3px 3px 0 #111111',
+                'radius' => '0',
+            ],
         };
     }
 
@@ -85,8 +130,8 @@ enum UserTheme: string
     public function style(): string
     {
         return match ($this) {
-            self::Default => 'default',
-            self::Espresso, self::Cinnamoroll => 'toon',
+            self::Default, self::Organic => 'default',
+            self::Espresso, self::Cinnamoroll, self::Neobrutalism, self::Mono => 'toon',
         };
     }
 

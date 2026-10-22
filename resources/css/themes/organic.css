@@ -1,0 +1,180 @@
+/*
+ * ─── "Organic Warm" theme — tactile ─────────────────────────────────────────────────────────────────────────────
+ * The 2026 answer to flat, cold UI: paper-like grain, warm earth colours (cream, terracotta, olive, mustard), serif
+ * headings and surfaces you can almost touch — cards are gently raised, fields are pressed in, buttons sink on click.
+ * A plain theme (App\Enums\UserTheme::style() "default"): it keeps the default layout and only restyles surfaces.
+ *
+ * Text is warm charcoal (#2A2520, ~14:1 on the cream canvas); terracotta is only for actions and highlights.
+ * The daisyUI colours are the "organic" and "organic-dark" themes in app.css. Registered as UserTheme::Organic.
+ */
+
+[data-theme^="organic"] {
+    --font-serif-display: "Fraunces", ui-serif, Georgia, serif;
+
+    /* Grain: SVG turbulence, tiled; painted under the canvas colour and on the sidebar */
+    --organic-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.22 0 0 0 0 0.15 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+    --organic-surface: #FBF8F2;
+    --organic-line: #E4DACB;
+    --organic-highlight: rgb(255 255 255 / 0.85);
+    --organic-raise:
+        0 1px 0 var(--organic-highlight) inset,
+        0 1px 2px rgb(74 52 30 / 0.08),
+        0 6px 16px -6px rgb(74 52 30 / 0.16);
+    --organic-press: inset 0 2px 4px rgb(74 52 30 / 0.12), inset 0 0 0 1px rgb(74 52 30 / 0.04);
+
+    /* Sidebar: deep umber with grain, mustard accents */
+    --sidebar-background-color: #2F2822;
+    --sidebar-background-image: var(--organic-grain), linear-gradient(to bottom, #3A3029, #2A231D);
+    --sidebar-border: rgb(239 231 218 / 0.08);
+    --color-sidebar-fg: #F3EBDD;
+    --color-sidebar-accent: #E0A84E;
+    --color-sidebar-accent-soft: #EBC27A;
+
+    /* Charts: earthy but distinguishable */
+    --chart-text: #4A4038;
+    --chart-grid: #E4DACB;
+    --chart-1: #B5532F;
+    --chart-2: #6B7A3A;
+    --chart-3: #D9A441;
+    --chart-4: #8C3B2E;
+    --chart-5: #3F6E74;
+    --chart-6: #7A5C8A;
+    --chart-7: #C97B5B;
+    --chart-8: #4F8A6B;
+    --chart-9: #A86A1F;
+}
+
+[data-theme="organic-dark"] {
+    --organic-surface: #27221D;
+    --organic-line: #3A322A;
+    --organic-highlight: rgb(255 240 220 / 0.06);
+    --organic-raise:
+        0 1px 0 var(--organic-highlight) inset,
+        0 1px 2px rgb(0 0 0 / 0.3),
+        0 8px 20px -8px rgb(0 0 0 / 0.5);
+    --organic-press: inset 0 2px 4px rgb(0 0 0 / 0.35);
+
+    --sidebar-background-image: var(--organic-grain), linear-gradient(to bottom, #221C17, #18130F);
+
+    --chart-text: #D8CEBF;
+    --chart-grid: #3A322A;
+    --chart-1: #E08A5F;
+    --chart-2: #A8B86A;
+    --chart-3: #E6B85C;
+}
+
+/* ── Canvas: grain over cream, painted on <html> so the layout can stay transparent ──────────────────────────── */
+
+[data-theme^="organic"] {
+    background-color: var(--color-base-100);
+    background-image: var(--organic-grain);
+}
+
+[data-theme^="organic"] body {
+    background: transparent;
+}
+
+[data-theme^="organic"] ::selection {
+    background: #EBC27A;
+    color: #2A2520;
+}
+
+/* Serif display type for page and card titles; body text stays sans for dense tables */
+[data-theme^="organic"] :is(h1, h2, h3, .card-title, .stat-value) {
+    font-family: var(--font-serif-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* ── Chrome ─────────────────────────────────────────────────────────────────────────────────────────────────── */
+
+[data-theme^="organic"] .app-sidebar {
+    background-size: 160px 160px, 100% 100%;
+}
+
+[data-theme^="organic"] .app-topbar {
+    background: color-mix(in oklab, var(--color-base-100) 88%, transparent);
+    border-bottom: 1px solid var(--organic-line);
+}
+
+[data-theme^="organic"] .app-topbar .rounded-lg.border {
+    background: var(--organic-surface);
+    border-color: var(--organic-line);
+    border-radius: 9999px;
+    box-shadow: var(--organic-raise);
+}
+
+/* Active menu item: a mustard-edged, softly raised tab */
+[data-theme^="organic"] .sidebar-menu.sidebar-dark .menu-item.active {
+    background: rgb(239 231 218 / 0.10);
+    background-image: none;
+    border-inline-start: 3px solid var(--color-sidebar-accent);
+    padding-inline-start: 8px;
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 4px 10px -6px rgb(0 0 0 / 0.6);
+}
+
+/* ── Surfaces: raised cards, pressed-in fields, buttons that sink ───────────────────────────────────────────── */
+
+[data-theme^="organic"] :is(.card, .stats),
+[data-theme^="organic"] :is(.rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-box).border.bg-base-100 {
+    background-color: var(--organic-surface);
+    border: 1px solid var(--organic-line);
+    box-shadow: var(--organic-raise);
+}
+
+[data-theme^="organic"] :is(.dropdown-content, .modal-box) {
+    background-color: var(--organic-surface);
+    border: 1px solid var(--organic-line);
+    box-shadow: var(--organic-raise), 0 24px 48px -24px rgb(74 52 30 / 0.35);
+}
+
+[data-theme^="organic"] :is(.modal-backdrop, .modal::backdrop) {
+    background: rgb(42 37 32 / 0.35);
+}
+
+[data-theme^="organic"] :is(.input, .select, .textarea, .file-input) {
+    background-color: var(--color-base-200);
+    border-color: var(--organic-line);
+    box-shadow: var(--organic-press);
+}
+
+[data-theme^="organic"] .btn:not(.btn-ghost, .btn-link) {
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.25) inset, 0 2px 0 rgb(74 52 30 / 0.18), 0 4px 10px -4px rgb(74 52 30 / 0.25);
+    transition: transform 90ms ease, box-shadow 90ms ease;
+}
+
+[data-theme^="organic"] .btn:not(.btn-ghost, .btn-link, :disabled, .btn-disabled):active {
+    transform: translateY(2px);
+    box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.2);
+}
+
+[data-theme^="organic"] .badge {
+    border-color: var(--organic-line);
+}
+
+[data-theme^="organic"] .table thead :is(th, td) {
+    background: transparent;
+    color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+[data-theme^="organic"] .table tbody tr:not(:last-child) {
+    border-bottom: 1px dashed var(--organic-line);
+}
+
+[data-theme^="organic"] .table tbody tr:hover {
+    background: color-mix(in oklab, #D9A441 10%, transparent);
+}
+
+[data-theme^="organic"] .border-dashed {
+    border-color: var(--organic-line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-theme^="organic"] .btn:not(.btn-ghost, .btn-link) {
+        transition: none;
+    }
+}

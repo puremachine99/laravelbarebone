@@ -22,6 +22,10 @@ export default defineConfig({
                 bunny('Plus Jakarta Sans', {
                     weights: [400, 500, 600, 700, 800],
                 }),
+                // "Organic Warm" theme: serif headings (resources/css/themes/organic.css).
+                bunny('Fraunces', {
+                    weights: [500, 600, 700],
+                }),
             ],
         }),
         tailwindcss(),

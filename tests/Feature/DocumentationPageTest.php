@@ -37,14 +37,30 @@ test('the Technology menu links to the API documentation', function () {
 
     $this->actingAs($user)->get('/tech/documentation')
         ->assertOk()
-        ->assertSee('title="API Documentation"', false)
+        ->assertSee('<span class="grow">API Documentation</span>', false)
         ->assertSee(route('tech.documentation'), false);
+});
+
+test('the Technology links sit inside a collapsible submenu that is open on Technology pages, each with an icon', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('access-technology'), Permission::findOrCreate('tech-documentation.view'));
+
+    $html = $this->actingAs($user)->get('/tech/documentation')->assertOk()->getContent();
+
+    expect($html)
+        ->toMatch('/aria-label="Technology menu toggle" class="peer" type="checkbox"\s+checked>/')
+        ->toMatch('/<svg[^>]*>.*?<\/svg>\s*<span class="grow">API Documentation<\/span>/s');
+
+    $this->actingAs($user)->get(route('dashboard'))
+        ->assertOk()
+        ->assertDontSee('checked>', false)
+        ->assertSee('Technology menu toggle', false);
 });
 
 test('users without the Technology menu do not get the link', function () {
     $this->actingAs(User::factory()->create())->get('/tech/documentation')
         ->assertOk()
-        ->assertDontSee('title="API Documentation"', false);
+        ->assertDontSee('<span class="grow">API Documentation</span>', false);
 });
 
 test('users with Technology access but not the documentation permission do not get the link', function () {
@@ -53,7 +69,7 @@ test('users with Technology access but not the documentation permission do not g
 
     $this->actingAs($user)->get('/tech/documentation')
         ->assertOk()
-        ->assertDontSee('title="API Documentation"', false);
+        ->assertDontSee('<span class="grow">API Documentation</span>', false);
 });
 
 test('the page is split into vertical tabs with only the first section shown before Alpine starts', function () {

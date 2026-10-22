@@ -2,6 +2,9 @@
 @import "./themes/toon.css";
 @import "./themes/espresso.css";
 @import "./themes/cinnamoroll.css";
+@import "./themes/organic.css";
+@import "./themes/mono.css";
+@import "./themes/neobrutalism.css";
 @import "./nakama-notify.css";
 @plugin "daisyui";
 
@@ -144,6 +147,207 @@
   --radius-selector: 1rem;
   --radius-field: 1rem;
   --radius-box: 1.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* "Neo Brutalism" theme: ink on paper with flat yellow, pink and electric-blue blocks (see themes/neobrutalism.css) */
+@plugin "daisyui/theme" {
+  name: "neobrutalism";
+  color-scheme: light;
+  --color-base-100: #F7F3E8;
+  --color-base-200: #FFFFFF;
+  --color-base-300: #F4F0E4;
+  --color-base-content: #111111;
+  --color-primary: #2546F0;
+  --color-primary-content: #FFFFFF;
+  --color-secondary: #FF90E8;
+  --color-secondary-content: #111111;
+  --color-accent: #FFD23F;
+  --color-accent-content: #111111;
+  --color-neutral: #111111;
+  --color-neutral-content: #F7F3E8;
+  --color-info: #2546F0;
+  --color-info-content: #FFFFFF;
+  --color-success: #0B8A4F;
+  --color-success-content: #FFFFFF;
+  --color-warning: #F5A300;
+  --color-warning-content: #111111;
+  --color-error: #D61F2C;
+  --color-error-content: #FFFFFF;
+  --radius-selector: 0;
+  --radius-field: 0;
+  --radius-box: 0;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "neobrutalism-dark";
+  color-scheme: dark;
+  --color-base-100: #111111;
+  --color-base-200: #1F1F1F;
+  --color-base-300: #2A2A2A;
+  --color-base-content: #F7F3E8;
+  --color-primary: #8FA3FF;
+  --color-primary-content: #111111;
+  --color-secondary: #FF90E8;
+  --color-secondary-content: #111111;
+  --color-accent: #FFD23F;
+  --color-accent-content: #111111;
+  --color-neutral: #F7F3E8;
+  --color-neutral-content: #111111;
+  --color-info: #8FB8FF;
+  --color-info-content: #111111;
+  --color-success: #7DF9C2;
+  --color-success-content: #111111;
+  --color-warning: #FFD23F;
+  --color-warning-content: #111111;
+  --color-error: #FF6B7A;
+  --color-error-content: #111111;
+  --radius-selector: 0;
+  --radius-field: 0;
+  --radius-box: 0;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* "Organic Warm" theme: cream paper, warm charcoal text, terracotta / olive / mustard; surfaces in themes/organic.css */
+@plugin "daisyui/theme" {
+  name: "organic";
+  color-scheme: light;
+  --color-base-100: #F4EDE1;
+  --color-base-200: #FBF8F2;
+  --color-base-300: #E9DFCF;
+  --color-base-content: #2A2520;
+  --color-primary: #B5532F;
+  --color-primary-content: #FFFFFF;
+  --color-secondary: #5F6B2F;
+  --color-secondary-content: #FFFFFF;
+  --color-accent: #D9A441;
+  --color-accent-content: #2A2520;
+  --color-neutral: #3B342C;
+  --color-neutral-content: #F4EDE1;
+  --color-info: #3F6E74;
+  --color-info-content: #FFFFFF;
+  --color-success: #4F7A3A;
+  --color-success-content: #FFFFFF;
+  --color-warning: #C98A1E;
+  --color-warning-content: #2A2520;
+  --color-error: #B23A2E;
+  --color-error-content: #FFFFFF;
+  --radius-selector: 0.625rem;
+  --radius-field: 0.625rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "organic-dark";
+  color-scheme: dark;
+  --color-base-100: #1E1A16;
+  --color-base-200: #27221D;
+  --color-base-300: #352E27;
+  --color-base-content: #EFE7DA;
+  --color-primary: #E08A5F;
+  --color-primary-content: #1E1A16;
+  --color-secondary: #A8B86A;
+  --color-secondary-content: #1E1A16;
+  --color-accent: #E6B85C;
+  --color-accent-content: #1E1A16;
+  --color-neutral: #EFE7DA;
+  --color-neutral-content: #1E1A16;
+  --color-info: #7FB3B8;
+  --color-info-content: #1E1A16;
+  --color-success: #9CC584;
+  --color-success-content: #1E1A16;
+  --color-warning: #E6B85C;
+  --color-warning-content: #1E1A16;
+  --color-error: #F08A7C;
+  --color-error-content: #1E1A16;
+  --radius-selector: 0.625rem;
+  --radius-field: 0.625rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+/* "Mono Brutal" theme: black and white, crimson accents only (see themes/mono.css) */
+@plugin "daisyui/theme" {
+  name: "mono";
+  color-scheme: light;
+  --color-base-100: #FFFFFF;
+  --color-base-200: #FFFFFF;
+  --color-base-300: #F2F2F2;
+  --color-base-content: #111111;
+  --color-primary: #C8102E;
+  --color-primary-content: #FFFFFF;
+  --color-secondary: #111111;
+  --color-secondary-content: #FFFFFF;
+  --color-accent: #DC143C;
+  --color-accent-content: #FFFFFF;
+  --color-neutral: #111111;
+  --color-neutral-content: #FFFFFF;
+  --color-info: #333333;
+  --color-info-content: #FFFFFF;
+  --color-success: #1E5B32;
+  --color-success-content: #FFFFFF;
+  --color-warning: #B45309;
+  --color-warning-content: #FFFFFF;
+  --color-error: #C8102E;
+  --color-error-content: #FFFFFF;
+  --radius-selector: 0;
+  --radius-field: 0;
+  --radius-box: 0;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "mono-dark";
+  color-scheme: dark;
+  --color-base-100: #111111;
+  --color-base-200: #1A1A1A;
+  --color-base-300: #262626;
+  --color-base-content: #F2F2F2;
+  --color-primary: #FF4D6A;
+  --color-primary-content: #111111;
+  --color-secondary: #F2F2F2;
+  --color-secondary-content: #111111;
+  --color-accent: #FF4D6A;
+  --color-accent-content: #111111;
+  --color-neutral: #F2F2F2;
+  --color-neutral-content: #111111;
+  --color-info: #D4D4D4;
+  --color-info-content: #111111;
+  --color-success: #9BD8AE;
+  --color-success-content: #111111;
+  --color-warning: #F5A55A;
+  --color-warning-content: #111111;
+  --color-error: #FF6B81;
+  --color-error-content: #111111;
+  --radius-selector: 0;
+  --radius-field: 0;
+  --radius-box: 0;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 2px;

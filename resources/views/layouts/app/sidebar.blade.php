@@ -276,12 +276,12 @@
                                             'active' => request()->routeIs('partnership.dashboard'),
                                         ]) href="{{ route('partnership.dashboard') }}"
                                             wire:navigate>
-                                            <span class="grow">Dashboard</span>
+                                            <x-icon name="o-squares-2x2" class="size-4" /><span class="grow">Dashboard</span>
                                         </a>
                                         @endcan
                                         @can('partnership-contacts.view')
                                         <a @class(['menu-item', 'active' => request()->routeIs('contact.*')]) href="{{ route('contact.index') }}" wire:navigate>
-                                            <span class="grow">Contact</span>
+                                            <x-icon name="o-identification" class="size-4" /><span class="grow">Contact</span>
                                         </a>
                                         @endcan
                                         @can('partnership-pitching.view')
@@ -290,7 +290,7 @@
                                             'active' => request()->routeIs('partnership.pitching'),
                                         ]) href="{{ route('partnership.pitching') }}"
                                             wire:navigate>
-                                            <span class="grow">Pitching</span>
+                                            <x-icon name="o-presentation-chart-bar" class="size-4" /><span class="grow">Pitching</span>
                                         </a>
                                         @endcan
                                         @can('partnership-realisasi.view')
@@ -299,7 +299,7 @@
                                             'active' => request()->routeIs('partnership.realisasi'),
                                         ]) href="{{ route('partnership.realisasi') }}"
                                             wire:navigate>
-                                            <span class="grow">Realisasi</span>
+                                            <x-icon name="o-check-badge" class="size-4" /><span class="grow">Realisasi</span>
                                         </a>
                                         @endcan
                                         @can('partnership-pmo.view')
@@ -308,7 +308,7 @@
                                             'active' => request()->routeIs('partnership-employees.*'),
                                         ]) href="{{ route('partnership-employees.index') }}"
                                             wire:navigate>
-                                            <span class="grow">Management PMO</span>
+                                            <x-icon name="o-user-group" class="size-4" /><span class="grow">Management PMO</span>
                                         </a>
                                         @endcan
                                         @can('partnership-data-coverage.view')
@@ -317,7 +317,7 @@
                                             'active' => request()->routeIs('partnership.data-coverage'),
                                         ]) href="{{ route('partnership.data-coverage') }}"
                                             wire:navigate>
-                                            <span class="grow">Data Coverage</span>
+                                            <x-icon name="o-map" class="size-4" /><span class="grow">Data Coverage</span>
                                         </a>
                                         @endcan
                                         @can('partnership-activity-log.view')
@@ -326,7 +326,7 @@
                                             'active' => request()->routeIs('partnership.activity-log'),
                                         ]) href="{{ route('partnership.activity-log') }}"
                                             wire:navigate>
-                                            <span class="grow">Activity Log</span>
+                                            <x-icon name="o-clock" class="size-4" /><span class="grow">Activity Log</span>
                                         </a>
                                         @endcan
                                     </div>
@@ -363,7 +363,7 @@
                                             'active' => request()->routeIs('finance.intake'),
                                         ]) href="{{ route('finance.intake') }}"
                                             wire:navigate>
-                                            <span class="grow">Intake Queue</span>
+                                            <x-icon name="o-inbox-arrow-down" class="size-4" /><span class="grow">Intake Queue</span>
                                         </a>
                                         @endcan
                                         @can('finance-reconciliation.view')
@@ -372,7 +372,7 @@
                                             'active' => request()->routeIs('finance.reconciliation'),
                                         ]) href="{{ route('finance.reconciliation') }}"
                                             wire:navigate>
-                                            <span class="grow">Reconciliation</span>
+                                            <x-icon name="o-arrows-right-left" class="size-4" /><span class="grow">Reconciliation</span>
                                         </a>
                                         @endcan
                                         @can('finance-disbursements.view')
@@ -381,7 +381,7 @@
                                             'active' => request()->routeIs('finance.disbursements'),
                                         ]) href="{{ route('finance.disbursements') }}"
                                             wire:navigate>
-                                            <span class="grow">Disbursements</span>
+                                            <x-icon name="o-banknotes" class="size-4" /><span class="grow">Disbursements</span>
                                         </a>
                                         @endcan
                                         @can('finance-clearance-archive.view')
@@ -390,7 +390,7 @@
                                             'active' => request()->routeIs('finance.clearance-archive'),
                                         ]) href="{{ route('finance.clearance-archive') }}"
                                             wire:navigate>
-                                            <span class="grow">Clearance Archive</span>
+                                            <x-icon name="o-archive-box" class="size-4" /><span class="grow">Clearance Archive</span>
                                         </a>
                                         @endcan
                                     </div>
@@ -427,7 +427,7 @@
                                             'active' => request()->routeIs('investors.index'),
                                         ]) href="{{ route('investors.index') }}"
                                             wire:navigate>
-                                            <span class="grow">Dashboard</span>
+                                            <x-icon name="o-squares-2x2" class="size-4" /><span class="grow">Dashboard</span>
                                         </a>
                                         @endcan
                                         @can('investors-monthly.view')
@@ -436,7 +436,7 @@
                                             'active' => request()->routeIs('investors.monthly'),
                                         ]) href="{{ route('investors.monthly') }}"
                                             wire:navigate>
-                                            <span class="grow">Monthly Achievement</span>
+                                            <x-icon name="o-trophy" class="size-4" /><span class="grow">Monthly Achievement</span>
                                         </a>
                                         @endcan
                                         @can('investors-conversion.view')
@@ -445,7 +445,7 @@
                                             'active' => request()->routeIs('investors.conversion'),
                                         ]) href="{{ route('investors.conversion') }}"
                                             wire:navigate>
-                                            <span class="grow">Monthly Conversion</span>
+                                            <x-icon name="o-arrow-trending-up" class="size-4" /><span class="grow">Monthly Conversion</span>
                                         </a>
                                         @endcan
                                         @can('fo-funnel.view')
@@ -454,7 +454,7 @@
                                             'active' => request()->routeIs('investors.funnel'),
                                         ]) href="{{ route('investors.funnel') }}"
                                             wire:navigate>
-                                            <span class="grow">Funnel</span>
+                                            <x-icon name="o-funnel" class="size-4" /><span class="grow">Funnel</span>
                                         </a>
                                         @endcan
                                         @can('fo-contacts.view')
@@ -463,7 +463,7 @@
                                             'active' => request()->routeIs('investors.contacts'),
                                         ]) href="{{ route('investors.contacts') }}"
                                             wire:navigate>
-                                            <span class="grow">Contacts</span>
+                                            <x-icon name="o-identification" class="size-4" /><span class="grow">Contacts</span>
                                         </a>
                                         @endcan
                                         @can('fo-targets.view')
@@ -472,7 +472,7 @@
                                                 'active' => request()->routeIs('investors.management-fo'),
                                             ]) href="{{ route('investors.management-fo') }}"
                                                 wire:navigate>
-                                                <span class="grow">Management FO</span>
+                                                <x-icon name="o-user-group" class="size-4" /><span class="grow">Management FO</span>
                                             </a>
                                         @endcan
                                         @hasanyrole('Investor Admin|Super Admin|Funding Officer')
@@ -482,7 +482,7 @@
                                                 'active' => request()->routeIs('investors.activity-log'),
                                             ]) href="{{ route('investors.activity-log') }}"
                                                 wire:navigate>
-                                                <span class="grow">Activity Log</span>
+                                                <x-icon name="o-clock" class="size-4" /><span class="grow">Activity Log</span>
                                                 {{-- <span class="badge badge-warning badge-xs">Beta</span> --}}
                                             </a>
                                             @endcan
@@ -493,7 +493,7 @@
                                             'active' => request()->routeIs('investors.docs'),
                                         ]) href="{{ route('investors.docs') }}"
                                             wire:navigate>
-                                            <span class="grow">Master Document</span>
+                                            <x-icon name="o-document-text" class="size-4" /><span class="grow">Master Document</span>
                                         </a>
                                         @endcan
                                     </div>
@@ -506,75 +506,54 @@
                     @can('access-technology')
                         <p class="menu-label px-2.5 pt-4 pb-1.5">Technology</p>
                         <div class="space-y-0.5">
-                            @can('tech-timeline-calc.view')
-                            <a @class(['menu-item', 'active' => request()->routeIs('tech.timeline-calc')]) href="{{ route('tech.timeline-calc') }}"
-                                wire:navigate title="Timeline Calculator">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 7h6m0 10v-3m-3 3v-6m-3 6v-1m5-16H8a2 2 0 00-2 2v18a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2z" />
-                                </svg>
-                                <span class="grow">Timeline Calculator</span>
-                            </a>
-                            @endcan
-                            @can('tech-sentry.view')
-                            <a @class(['menu-item', 'active' => request()->routeIs('dev.errors.*')]) href="{{ route('dev.errors.index') }}"
-                                wire:navigate title="Sentry">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                                </svg>
-                                <span class="grow">Sentry</span>
-                            </a>
-                            @endcan
-                            @can('tech-ai-monitor.view')
-                            <a @class(['menu-item', 'active' => request()->routeIs('tech.ai-monitor')]) href="{{ route('tech.ai-monitor') }}"
-                                wire:navigate title="AI Monitor">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <span class="grow">AI Monitor</span>
-                            </a>
-                            @endcan
-                            @can('tech-sso.view')
-                            <a @class(['menu-item', 'active' => request()->routeIs('tech.sso')]) href="{{ route('tech.sso') }}"
-                                wire:navigate title="SSO / Connected Apps">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                                </svg>
-                                <span class="grow">SSO / Connected Apps</span>
-                            </a>
-                            @endcan
-                            @can('tech-api-keys.view')
-                            <a @class(['menu-item', 'active' => request()->routeIs('tech.api-keys')]) href="{{ route('tech.api-keys') }}"
-                                wire:navigate title="API Keys">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                </svg>
-                                <span class="grow">API Keys</span>
-                            </a>
-                            @endcan
-                            {{-- The page itself stays public (external devs read it without an account); this only controls the menu link. --}}
-                            @can('tech-documentation.view')
-                            <a @class(['menu-item', 'active' => request()->routeIs('tech.documentation')]) href="{{ route('tech.documentation') }}"
-                                wire:navigate title="API Documentation">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                                </svg>
-                                <span class="grow">API Documentation</span>
-                            </a>
-                            @endcan
+                            <div class="group collapse">
+                                <input aria-label="Technology menu toggle" class="peer" type="checkbox"
+                                    {{ request()->routeIs('tech.*', 'dev.errors.*') ? 'checked' : '' }}>
+                                <div class="collapse-title px-2.5 py-2" title="Technology">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                                    </svg>
+                                    <span class="grow">Technology</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="arrow-icon size-3.5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                                <div class="collapse-content ms-6.5 !p-0">
+                                    <div class="mt-0.5 space-y-0.5">
+                                        @can('tech-timeline-calc.view')
+                                        <a @class(['menu-item', 'active' => request()->routeIs('tech.timeline-calc')]) href="{{ route('tech.timeline-calc') }}"
+                                            wire:navigate><x-icon name="o-calculator" class="size-4" /><span class="grow">Timeline Calculator</span></a>
+                                        @endcan
+                                        @can('tech-sentry.view')
+                                        <a @class(['menu-item', 'active' => request()->routeIs('dev.errors.*')]) href="{{ route('dev.errors.index') }}"
+                                            wire:navigate><x-icon name="o-exclamation-triangle" class="size-4" /><span class="grow">Sentry</span></a>
+                                        @endcan
+                                        @can('tech-ai-monitor.view')
+                                        <a @class(['menu-item', 'active' => request()->routeIs('tech.ai-monitor')]) href="{{ route('tech.ai-monitor') }}"
+                                            wire:navigate><x-icon name="o-command-line" class="size-4" /><span class="grow">AI Monitor</span></a>
+                                        @endcan
+                                        @can('tech-sso.view')
+                                        <a @class(['menu-item', 'active' => request()->routeIs('tech.sso')]) href="{{ route('tech.sso') }}"
+                                            wire:navigate><x-icon name="o-key" class="size-4" /><span class="grow">SSO / Connected Apps</span></a>
+                                        @endcan
+                                        @can('tech-api-keys.view')
+                                        <a @class(['menu-item', 'active' => request()->routeIs('tech.api-keys')]) href="{{ route('tech.api-keys') }}"
+                                            wire:navigate><x-icon name="o-lock-closed" class="size-4" /><span class="grow">API Keys</span></a>
+                                        @endcan
+                                        {{-- The page itself stays public (external devs read it without an account); this only controls the menu link. --}}
+                                        @can('tech-documentation.view')
+                                        <a @class(['menu-item', 'active' => request()->routeIs('tech.documentation')]) href="{{ route('tech.documentation') }}"
+                                            wire:navigate><x-icon name="o-code-bracket" class="size-4" /><span class="grow">API Documentation</span></a>
+                                        @endcan
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    @endhasanyrole
+                    @endcan
 
                     {{-- Nakama Hub --}}
                     @if (auth()->check() && (auth()->user()->can('manage-chat') || auth()->user()->can('manage-ai-center')))
@@ -598,7 +577,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            d="M12 2.5c0 5.25 4.25 9.5 9.5 9.5-5.25 0-9.5 4.25-9.5 9.5 0-5.25-4.25-9.5-9.5-9.5 5.25 0 9.5-4.25 9.5-9.5z" />
                                     </svg>
                                     <span class="grow">AI Center</span>
                                 </a>
@@ -635,18 +614,18 @@
                                         <div class="mt-0.5 space-y-0.5">
                                             @can('departments.view')
                                             <a @class(['menu-item', 'active' => request()->routeIs('departments.*')]) href="{{ route('departments.index') }}"
-                                                wire:navigate><span class="grow">Departments</span></a>
+                                                wire:navigate><x-icon name="o-building-office-2" class="size-4" /><span class="grow">Departments</span></a>
                                             @endcan
                                             @can('positions.view')
                                             <a @class(['menu-item', 'active' => request()->routeIs('positions.*')]) href="{{ route('positions.index') }}"
-                                                wire:navigate><span class="grow">Positions</span></a>
+                                                wire:navigate><x-icon name="o-briefcase" class="size-4" /><span class="grow">Positions</span></a>
                                             @endcan
                                             @can('employees.view')
                                             <a @class(['menu-item', 'active' => request()->routeIs('employees.*')]) href="{{ route('employees.index') }}"
-                                                wire:navigate><span class="grow">Employees</span></a>
+                                                wire:navigate><x-icon name="o-users" class="size-4" /><span class="grow">Employees</span></a>
                                             @endcan
                                             <a @class(['menu-item', 'active' => request()->routeIs('admin.roles')]) href="{{ route('admin.roles') }}"
-                                                wire:navigate><span class="grow">Manage Roles</span></a>
+                                                wire:navigate><x-icon name="o-shield-check" class="size-4" /><span class="grow">Manage Roles</span></a>
                                         </div>
                                     </div>
                                 </div>
@@ -673,22 +652,22 @@
                                         <div class="mt-0.5 space-y-0.5">
                                             @can('region.view')
                                             <a @class(['menu-item', 'active' => request()->routeIs('region.*')]) href="{{ route('region.index') }}"
-                                                wire:navigate><span class="grow">Region</span></a>
+                                                wire:navigate><x-icon name="o-map-pin" class="size-4" /><span class="grow">Region</span></a>
                                             @endcan
                                             @can('opd.view')
                                             <a @class(['menu-item', 'active' => request()->routeIs('opd.*')]) href="{{ route('opd.index') }}"
-                                                wire:navigate><span class="grow">OPD</span></a>
+                                                wire:navigate><x-icon name="o-building-library" class="size-4" /><span class="grow">OPD</span></a>
                                             @endcan
                                             @can('contact-positions.view')
                                             <a @class([
                                                 'menu-item',
                                                 'active' => request()->routeIs('contact-positions.*'),
                                             ]) href="{{ route('contact-positions.index') }}"
-                                                wire:navigate><span class="grow">Contact Positions</span></a>
+                                                wire:navigate><x-icon name="o-identification" class="size-4" /><span class="grow">Contact Positions</span></a>
                                             @endcan
                                             @can('urusan.view')
                                             <a @class(['menu-item', 'active' => request()->routeIs('urusan.*')]) href="{{ route('urusan.index') }}"
-                                                wire:navigate><span class="grow">Urusan</span></a>
+                                                wire:navigate><x-icon name="o-tag" class="size-4" /><span class="grow">Urusan</span></a>
                                             @endcan
                                         </div>
                                     </div>

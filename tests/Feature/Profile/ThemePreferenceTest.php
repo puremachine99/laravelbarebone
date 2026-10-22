@@ -85,6 +85,40 @@ test('a theme other than the default uses its own name for the daisyUI themes', 
     }
 });
 
+test('Organic Warm can be chosen and is a plain theme, not a toon one', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->putJson(route('profile.appearance.update'), ['theme' => 'organic'])
+        ->assertOk()
+        ->assertExactJson(['theme' => 'organic', 'appearance' => 'system']);
+
+    expect($user->fresh()->theme)->toBe(UserTheme::Organic)
+        ->and(UserTheme::Organic->dataTheme(false))->toBe('organic')
+        ->and(UserTheme::Organic->dataTheme(true))->toBe('organic-dark')
+        ->and(UserTheme::Organic->style())->toBe('default')
+        ->and(UserTheme::toonValues())->not->toContain('organic');
+
+    $this->actingAs($user)->get(route('profile.show'))
+        ->assertOk()
+        ->assertSee('Tema Organic Warm')
+        ->assertSee('\u0022theme\u0022:\u0022organic\u0022', false);
+});
+
+test('Neo Brutalism is its own toon theme and leaves Cinnamoroll alone', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->putJson(route('profile.appearance.update'), ['theme' => 'neobrutalism'])
+        ->assertOk()
+        ->assertExactJson(['theme' => 'neobrutalism', 'appearance' => 'system']);
+
+    expect($user->fresh()->theme)->toBe(UserTheme::Neobrutalism)
+        ->and(UserTheme::Neobrutalism->dataTheme(true))->toBe('neobrutalism-dark')
+        ->and(UserTheme::toonValues())->toContain('neobrutalism', 'cinnamoroll')
+        ->and(file_get_contents(resource_path('css/themes/neobrutalism.css')))->not->toContain('cinnamoroll')
+        ->and(file_get_contents(resource_path('css/themes/neobrutalism.css')))->toContain('--radius-box: 0;', 'border-radius: 0;')
+        ->and(UserTheme::Neobrutalism->preview()['radius'])->toBe('0');
+});
+
 test('accounts on the former "candy" theme move to Cinnamoroll', function () {
     $user = User::factory()->create();
     DB::table('users')->where('id', $user->id)->update(['theme' => 'candy']);
@@ -94,4 +128,51 @@ test('accounts on the former "candy" theme move to Cinnamoroll', function () {
     expect($user->fresh()->theme)->toBe(UserTheme::Cinnamoroll)
         ->and(UserTheme::Cinnamoroll->dataTheme(false))->toBe('cinnamoroll')
         ->and(UserTheme::Cinnamoroll->style())->toBe('toon');
+});
+
+test('accounts on the former "glass" theme move to Organic Warm', function () {
+    $user = User::factory()->create();
+    DB::table('users')->where('id', $user->id)->update(['theme' => 'glass']);
+
+    (require database_path('migrations/2026_10_23_003515_rename_glass_theme_to_organic.php'))->up();
+
+    expect($user->fresh()->theme)->toBe(UserTheme::Organic)
+        ->and(UserTheme::tryFrom('glass'))->toBeNull();
+});
+
+test('Mono Brutal is a square, monochrome toon theme with crimson accents', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->putJson(route('profile.appearance.update'), ['theme' => 'mono'])
+        ->assertOk()
+        ->assertExactJson(['theme' => 'mono', 'appearance' => 'system']);
+
+    $css = file_get_contents(resource_path('css/themes/mono.css'));
+
+    expect($user->fresh()->theme)->toBe(UserTheme::Mono)
+        ->and(UserTheme::Mono->dataTheme(true))->toBe('mono-dark')
+        ->and(UserTheme::toonValues())->toContain('mono')
+        ->and(UserTheme::Mono->preview()['accent'])->toBe('#DC143C')
+        ->and($css)->toContain('--chart-1: #DC143C;', '--radius-box: 0;', 'border-radius: 0;')
+        ->and($css)->toContain('--tile-1: #FFFFFF;', '--tile-2: #F2F2F2;');
+
+    $this->actingAs($user)->get(route('profile.show'))->assertOk()->assertSee('Tema Mono Brutal');
+});
+
+test('accounts on the retired material, cyber or ledger themes move to Mono Brutal', function () {
+    $users = collect(['material', 'cyber', 'ledger'])->map(function (string $theme) {
+        $user = User::factory()->create();
+        DB::table('users')->where('id', $user->id)->update(['theme' => $theme]);
+
+        return $user;
+    });
+
+    (require database_path('migrations/2026_10_23_005019_move_retired_themes_to_mono.php'))->up();
+
+    foreach ($users as $user) {
+        expect($user->fresh()->theme)->toBe(UserTheme::Mono);
+    }
+
+    expect(UserTheme::tryFrom('ledger'))->toBeNull()
+        ->and(file_get_contents(base_path('vite.config.js')))->not->toContain('Newsreader');
 });
