@@ -90,6 +90,17 @@ test('the page lists connected apps after the password is confirmed', function (
         ->assertSee('title="SSO / Connected Apps"', false);
 });
 
+test('the row action menu is teleported out of the scrollable table', function () {
+    ssoClient();
+
+    $this->actingAs(ssoAdmin())
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('tech.sso'))
+        ->assertOk()
+        ->assertSee('x-teleport="body"', false)
+        ->assertSee('Hapus');
+});
+
 test('the component refuses users without the permission even when mounted directly', function () {
     $this->actingAs(User::factory()->create());
 

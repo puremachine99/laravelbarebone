@@ -81,10 +81,16 @@
                             <td class="text-right whitespace-nowrap">
                                 <x-button label="Kredensial" wire:click="openGuide('{{ $client->getKey() }}')" class="btn-xs btn-primary btn-outline" />
                                 <x-button label="Simulasi" icon="o-beaker" wire:click="openSimulation('{{ $client->getKey() }}')" class="btn-xs btn-ghost" />
-                                <x-dropdown right>
-                                    <x-slot:trigger>
-                                        <x-button icon="o-ellipsis-vertical" class="btn-xs btn-ghost" />
-                                    </x-slot:trigger>
+                                {{-- Teleported to <body> so the menu isn't clipped by the table's overflow-x-auto wrapper --}}
+                                <div x-data="{ open: false }" class="inline-block">
+                                    <x-button icon="o-ellipsis-vertical" class="btn-xs btn-ghost" x-ref="trigger" x-on:click="open = ! open" />
+                                    <template x-teleport="body">
+                                        <ul x-show="open" x-cloak x-transition.opacity
+                                            x-anchor.bottom-end.offset.4="$refs.trigger"
+                                            x-on:click.outside="if (! $refs.trigger.contains($event.target)) open = false"
+                                            x-on:keydown.escape.window="open = false"
+                                            x-on:click="open = false"
+                                            class="menu p-2 shadow z-50 border-(length:--border) border-base-content/10 bg-base-100 rounded-box w-auto min-w-max">
                                     <x-menu-item title="Edit" icon="o-pencil" wire:click="edit('{{ $client->getKey() }}')" />
                                     <x-menu-item title="Cabut semua sesi" icon="o-arrow-right-start-on-rectangle"
                                         wire:click="revokeTokens('{{ $client->getKey() }}')"
@@ -95,7 +101,9 @@
                                     <x-menu-item title="Hapus" icon="o-trash" class="text-error"
                                         wire:click="delete('{{ $client->getKey() }}')"
                                         wire:confirm="Hapus {{ $client->name }} permanen? Tidak bisa dibatalkan." />
-                                </x-dropdown>
+                                        </ul>
+                                    </template>
+                                </div>
                             </td>
                         </tr>
                     @empty
