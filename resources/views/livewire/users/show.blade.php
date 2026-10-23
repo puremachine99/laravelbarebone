@@ -25,7 +25,7 @@ new #[Layout('layouts.app')] class extends Component {
     {
         return $this->user
             ->employee()
-            ->with(['department', 'region', 'positionStruktural', 'positionFungsional'])
+            ->with(['department', 'positionStruktural', 'positionFungsional'])
             ->first();
     }
 
@@ -75,20 +75,11 @@ new #[Layout('layouts.app')] class extends Component {
                         @endforeach
                     </div>
                 @endif
-
-                @can('manage-chat')
-                    <x-button label="{{ __('Kirim Pesan') }}" tag="a" href="{{ route('chat') }}" wire:navigate
-                        icon="o-chat-bubble-left-right" class="btn-primary btn-sm w-full" />
-                @endcan
             </div>
         </div>
 
         {{-- Employment info --}}
         <div class="lg:col-span-2 space-y-6">
-            @if ($this->employee && ! $this->employee->hide_kpi_heatmap && $this->employee->department?->hasModule('investors'))
-                <livewire:kpi.employee-target-heatmap :employee="$this->employee" :key="'kpi-'.$this->employee->id" />
-            @endif
-
             <div class="card bg-base-200 border border-base-300 shadow-sm rounded-2xl">
                 <div class="card-body p-6 space-y-4">
                     <h3 class="text-lg font-medium text-base-content">{{ __('Informasi Kepegawaian') }}</h3>
@@ -112,18 +103,6 @@ new #[Layout('layouts.app')] class extends Component {
                             <div class="flex justify-between items-center border-b border-base-300 pb-2">
                                 <span class="font-semibold text-base-content/70">{{ __('Departemen') }}</span>
                                 <span class="font-medium text-base-content">{{ $this->employee->department->name ?? '-' }}</span>
-                            </div>
-
-                            <div class="flex justify-between items-center border-b border-base-300 pb-2">
-                                <span class="font-semibold text-base-content/70">{{ __('Wilayah Tangani') }}</span>
-                                <span class="font-medium">
-                                    @if ($this->employee->region)
-                                        <span class="badge badge-accent text-xs font-semibold px-2.5 py-1">{{ $this->employee->region->name }}
-                                            ({{ $this->employee->region->code ?? '-' }})</span>
-                                    @else
-                                        <span class="text-base-content/40">-</span>
-                                    @endif
-                                </span>
                             </div>
 
                             <div class="flex justify-between items-center border-b border-base-300 pb-2">

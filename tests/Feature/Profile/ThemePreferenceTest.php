@@ -3,7 +3,6 @@
 use App\Enums\UserAppearance;
 use App\Enums\UserTheme;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 
 test('a new user starts on the default theme following the system appearance', function () {
     $user = User::factory()->create()->fresh();
@@ -119,27 +118,6 @@ test('Neo Brutalism is its own toon theme and leaves Cinnamoroll alone', functio
         ->and(UserTheme::Neobrutalism->preview()['radius'])->toBe('0');
 });
 
-test('accounts on the former "candy" theme move to Cinnamoroll', function () {
-    $user = User::factory()->create();
-    DB::table('users')->where('id', $user->id)->update(['theme' => 'candy']);
-
-    (require database_path('migrations/2026_10_21_134836_rename_candy_theme_to_cinnamoroll.php'))->up();
-
-    expect($user->fresh()->theme)->toBe(UserTheme::Cinnamoroll)
-        ->and(UserTheme::Cinnamoroll->dataTheme(false))->toBe('cinnamoroll')
-        ->and(UserTheme::Cinnamoroll->style())->toBe('toon');
-});
-
-test('accounts on the former "glass" theme move to Organic Warm', function () {
-    $user = User::factory()->create();
-    DB::table('users')->where('id', $user->id)->update(['theme' => 'glass']);
-
-    (require database_path('migrations/2026_10_23_003515_rename_glass_theme_to_organic.php'))->up();
-
-    expect($user->fresh()->theme)->toBe(UserTheme::Organic)
-        ->and(UserTheme::tryFrom('glass'))->toBeNull();
-});
-
 test('Mono Brutal is a square, monochrome toon theme with crimson accents', function () {
     $user = User::factory()->create();
 
@@ -157,22 +135,4 @@ test('Mono Brutal is a square, monochrome toon theme with crimson accents', func
         ->and($css)->toContain('--tile-1: #FFFFFF;', '--tile-2: #F2F2F2;');
 
     $this->actingAs($user)->get(route('profile.show'))->assertOk()->assertSee('Tema Mono Brutal');
-});
-
-test('accounts on the retired material, cyber or ledger themes move to Mono Brutal', function () {
-    $users = collect(['material', 'cyber', 'ledger'])->map(function (string $theme) {
-        $user = User::factory()->create();
-        DB::table('users')->where('id', $user->id)->update(['theme' => $theme]);
-
-        return $user;
-    });
-
-    (require database_path('migrations/2026_10_23_005019_move_retired_themes_to_mono.php'))->up();
-
-    foreach ($users as $user) {
-        expect($user->fresh()->theme)->toBe(UserTheme::Mono);
-    }
-
-    expect(UserTheme::tryFrom('ledger'))->toBeNull()
-        ->and(file_get_contents(base_path('vite.config.js')))->not->toContain('Newsreader');
 });

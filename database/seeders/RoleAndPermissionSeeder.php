@@ -24,12 +24,7 @@ class RoleAndPermissionSeeder extends Seeder
 
         // Cross-cutting permissions not tied to a single department/module
         $otherPermissions = [
-            'view-executive-dashboard',
-            'manage-talent-okr',
-            'manage-chat',
-            'manage-ai-center',
             'modify-master-data',
-            'verify-manager',
         ];
 
         foreach ([...$modulePermissions, ...$otherPermissions] as $permission) {
@@ -42,40 +37,17 @@ class RoleAndPermissionSeeder extends Seeder
         $superAdminRole = Role::findOrCreate('Super Admin');
         $superAdminRole->givePermissionTo(Permission::all());
 
-        // Direksi/BOD: full visibility into business dashboards, enforced read-only in the UI layer.
-        $direksiRole = Role::findOrCreate('Direksi');
-        $direksiRole->givePermissionTo([
-            'access-finance',
-            'access-partnership',
-            'access-products',
-            'access-investors',
-            'view-executive-dashboard',
-            'manage-talent-okr',
-        ]);
-
         $internalOrgAdminRole = Role::findOrCreate('Internal Org Admin');
         $internalOrgAdminRole->givePermissionTo('access-internal-org');
-
-        $partnershipAdminRole = Role::findOrCreate('Partnership Admin');
-        $partnershipAdminRole->givePermissionTo('access-partnership');
-
-        $pmoRole = Role::findOrCreate('PMO');
-        $pmoRole->givePermissionTo('access-partnership');
-
-        $productAdminRole = Role::findOrCreate('Product Admin');
-        $productAdminRole->givePermissionTo('access-products');
-
-        $investorAdminRole = Role::findOrCreate('Investor Admin');
-        $investorAdminRole->givePermissionTo('access-investors');
 
         $technologyRole = Role::findOrCreate('Technology');
         $technologyRole->givePermissionTo('access-technology');
 
-        // Default roles get every action of the modules they can enter (Direksi: view only).
+        // Default roles get every action of the modules they can enter.
         ResourcePermissions::grantLegacyAccess();
 
         // Assign Super Admin role to the default admin user
-        $superAdmin = User::where('email', 'supernakama@smartid.co.id')->first();
+        $superAdmin = User::where('email', 'admin@example.com')->first();
         if ($superAdmin) {
             $superAdmin->assignRole($superAdminRole);
         }

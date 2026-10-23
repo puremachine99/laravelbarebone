@@ -2,7 +2,6 @@
 
 use App\Livewire\Admin\RoleManagement;
 use App\Models\Employee;
-use App\Models\FoContact;
 use App\Models\User;
 use App\Support\ResourcePermissions;
 use Database\Seeders\RoleAndPermissionSeeder;
@@ -29,27 +28,28 @@ test('saving a role auto-adds view and the module permission for any ticked acti
     $this->actingAs($admin);
 
     Livewire::test(RoleManagement::class)
-        ->set('roleName', 'Contact Editor')
-        ->set('rolePermissions', ['fo-contacts.update'])
+        ->set('roleName', 'Employee Editor')
+        ->set('rolePermissions', ['employees.update'])
         ->call('saveRole')
         ->assertHasNoErrors();
 
-    $role = Role::findByName('Contact Editor');
+    $role = Role::findByName('Employee Editor');
 
     expect($role->permissions->pluck('name')->sort()->values()->all())
-        ->toBe(['access-investors', 'fo-contacts.update', 'fo-contacts.view']);
+        ->toBe(['access-internal-org', 'employees.update', 'employees.view']);
 });
 
 test('unknown resource permissions are dropped when saving a role', function () {
     $admin = userWithPermissions(['access-internal-org']);
+    Permission::findOrCreate('access-technology');
     $this->actingAs($admin);
 
     Livewire::test(RoleManagement::class)
         ->set('roleName', 'Sneaky')
-        ->set('rolePermissions', ['access-partnership', 'fo-contacts.explode'])
+        ->set('rolePermissions', ['access-technology', 'employees.explode'])
         ->call('saveRole');
 
-    expect(Role::findByName('Sneaky')->permissions->pluck('name')->all())->toBe(['access-partnership']);
+    expect(Role::findByName('Sneaky')->permissions->pluck('name')->all())->toBe(['access-technology']);
 });
 
 test('the role modal shows every module card with its own sub-menus and actions', function () {
@@ -59,21 +59,21 @@ test('the role modal shows every module card with its own sub-menus and actions'
     Livewire::test(RoleManagement::class)
         ->assertSee('Application Modules')
         ->assertSee('Data Master')
-        ->assertSee('Other Features')
-        ->assertSee('Clearance Archive')
-        ->assertSee('Timeline Calculator')
-        ->assertSee('Master Document')
-        ->assertSee('Contact Positions')
+        ->assertSee('Sentry')
+        ->assertSee('Departments')
+        ->assertSee('Positions')
+        ->assertSee('Employees')
         ->assertSee('Export CSV')
         ->assertSee('page access only');
 });
 
-test('the other features section is rendered after every module and data master section', function () {
+test('the other features section stays hidden while no standalone feature is registered', function () {
     $admin = userWithPermissions(['access-internal-org']);
     $this->actingAs($admin);
 
     Livewire::test(RoleManagement::class)
-        ->assertSeeInOrder(['Application Modules', 'Data Master', 'Other Features', 'Executive Dashboard']);
+        ->assertSeeInOrder(['Application Modules', 'Data Master'])
+        ->assertDontSee('Standalone features that are not part of a module');
 });
 
 test('every catalog resource is rendered inside a card whose module permission is a real assignable permission', function () {
@@ -87,7 +87,7 @@ test('every catalog resource is rendered inside a card whose module permission i
     expect($assignable)->toContain(...ResourcePermissions::names());
 });
 
-test('sub-menu pages that only have view access are gated per page', function (string $module, string $resource, string $routeName) {
+test('sub-menu pages are gated per page', function (string $module, string $resource, string $routeName) {
     $user = userWithPermissions([$module]);
 
     $this->actingAs($user)->get(route($routeName))->assertForbidden();
@@ -96,56 +96,19 @@ test('sub-menu pages that only have view access are gated per page', function (s
 
     expect($this->actingAs($user->fresh())->get(route($routeName))->status())->not->toBe(403);
 })->with([
-    ['access-finance', 'finance-intake', 'finance.intake'],
-    ['access-finance', 'finance-clearance-archive', 'finance.clearance-archive'],
-    ['access-partnership', 'partnership-pitching', 'partnership.pitching'],
-    ['access-partnership', 'region', 'region.index'],
-    ['access-investors', 'investors-monthly', 'investors.monthly'],
-    ['access-products', 'products', 'products.index'],
-    ['access-technology', 'tech-timeline-calc', 'tech.timeline-calc'],
+    ['access-internal-org', 'departments', 'departments.index'],
+    ['access-internal-org', 'positions', 'positions.index'],
+    ['access-internal-org', 'employees', 'employees.index'],
 ]);
 
 test('a role without the view permission cannot open a page even with module access', function () {
-    $user = userWithPermissions(['access-investors']);
+    $user = userWithPermissions(['access-internal-org']);
 
-    $this->actingAs($user)->get(route('investors.contacts'))->assertForbidden();
+    $this->actingAs($user)->get(route('employees.index'))->assertForbidden();
 
-    $user->givePermissionTo('fo-contacts.view');
+    $user->givePermissionTo('employees.view');
 
-    $this->actingAs($user->fresh())->get(route('investors.contacts'))->assertOk();
-});
-
-test('view-only users cannot create update or delete fo contacts', function () {
-    $user = userWithPermissions(['access-investors', 'fo-contacts.view']);
-    $contact = FoContact::factory()->create();
-    $this->actingAs($user);
-
-    Volt::test('investors.contact-index')
-        ->call('showCreate')->assertForbidden();
-
-    Volt::test('investors.contact-index')
-        ->call('editContact', $contact->id)->assertForbidden();
-
-    Volt::test('investors.contact-index')
-        ->call('deleteContact', $contact->id)->assertForbidden();
-
-    expect($contact->fresh())->not->toBeNull();
-});
-
-test('create permission alone allows adding a contact but not deleting it', function () {
-    $user = userWithPermissions(['access-investors', 'fo-contacts.view', 'fo-contacts.create']);
-    $this->actingAs($user);
-
-    Volt::test('investors.contact-index')
-        ->call('showCreate')
-        ->set('nama', 'Kontak Baru')
-        ->call('saveContact')
-        ->assertHasNoErrors();
-
-    $contact = FoContact::where('nama', 'Kontak Baru')->firstOrFail();
-
-    Volt::test('investors.contact-index')
-        ->call('deleteContact', $contact->id)->assertForbidden();
+    $this->actingAs($user->fresh())->get(route('employees.index'))->assertOk();
 });
 
 test('employees actions are gated per permission', function () {
@@ -176,28 +139,25 @@ test('employee csv export requires the export permission', function () {
     $this->actingAs($exporter)->get(route('csv-export.download', 'employees'))->assertOk();
 });
 
-test('legacy migration keeps existing access: full for roles, view only for Direksi, departments write stays gated', function () {
-    Permission::findOrCreate('access-investors');
+test('legacy grant gives roles full access, Direksi view only, and keeps departments write gated', function () {
     Permission::findOrCreate('access-internal-org');
     Permission::findOrCreate('modify-master-data');
 
-    $investorAdmin = Role::findOrCreate('Investor Admin')->givePermissionTo('access-investors');
-    $direksi = Role::findOrCreate('Direksi')->givePermissionTo('access-investors');
     $orgAdmin = Role::findOrCreate('Internal Org Admin')->givePermissionTo('access-internal-org');
+    $direksi = Role::findOrCreate('Direksi')->givePermissionTo('access-internal-org');
     $masterEditor = Role::findOrCreate('Master Editor')->givePermissionTo(['access-internal-org', 'modify-master-data']);
     $directUser = User::factory()->create();
-    $directUser->givePermissionTo('access-investors');
+    $directUser->givePermissionTo('access-internal-org');
 
     ResourcePermissions::grantLegacyAccess();
 
-    expect($investorAdmin->fresh()->hasPermissionTo('fo-funnel.delete'))->toBeTrue()
-        ->and($direksi->fresh()->hasPermissionTo('fo-funnel.view'))->toBeTrue()
-        ->and($direksi->fresh()->hasPermissionTo('fo-funnel.update'))->toBeFalse()
-        ->and($orgAdmin->fresh()->hasPermissionTo('employees.delete'))->toBeTrue()
+    expect($orgAdmin->fresh()->hasPermissionTo('employees.delete'))->toBeTrue()
         ->and($orgAdmin->fresh()->hasPermissionTo('departments.view'))->toBeTrue()
         ->and($orgAdmin->fresh()->hasPermissionTo('departments.update'))->toBeFalse()
+        ->and($direksi->fresh()->hasPermissionTo('employees.view'))->toBeTrue()
+        ->and($direksi->fresh()->hasPermissionTo('employees.update'))->toBeFalse()
         ->and($masterEditor->fresh()->hasPermissionTo('departments.update'))->toBeTrue()
-        ->and($directUser->fresh()->hasPermissionTo('investor-documents.restore'))->toBeTrue();
+        ->and($directUser->fresh()->hasPermissionTo('employees.restore'))->toBeTrue();
 });
 
 test('the seeder creates every catalog permission and Super Admin holds them all', function () {
@@ -207,26 +167,21 @@ test('the seeder creates every catalog permission and Super Admin holds them all
         expect(Permission::where('name', $name)->exists())->toBeTrue();
     }
 
-    expect(Role::findByName('Super Admin'
-    )->hasPermissionTo('employees.restore'))->toBeTrue();
+    expect(Role::findByName('Super Admin')->hasPermissionTo('employees.restore'))->toBeTrue();
 });
 
 test('the roles list shows user counts and a readable per-module breakdown instead of badges', function () {
     $admin = userWithPermissions(['access-internal-org']);
     $this->actingAs($admin);
 
-    ResourcePermissions::ensureExist();
-    Permission::findOrCreate('access-investors');
-
-    $editor = Role::findOrCreate('Contact Editor')->givePermissionTo(['access-investors', 'fo-contacts.view', 'fo-contacts.update', 'investors-monthly.view']);
+    $editor = Role::findOrCreate('Employee Editor')->givePermissionTo(['access-internal-org', 'employees.view', 'employees.update', 'departments.view']);
     User::factory()->count(2)->create()->each->assignRole($editor);
 
     Livewire::test(RoleManagement::class)
-        ->assertSee('Contact Editor')
+        ->assertSee('Employee Editor')
         ->assertSee('1 module')
-        ->assertSee('2 / 8 sub-menus')
+        ->assertSee('2 / 3 sub-menus')
         ->assertSee('View · Update')
-        ->assertSee('No access')
         ->assertSee('Edit');
 });
 
@@ -234,11 +189,10 @@ test('a role with only view permissions is labelled read-only and Super Admin as
     $admin = userWithPermissions(['access-internal-org']);
     $this->actingAs($admin);
 
-    ResourcePermissions::ensureExist();
-    Permission::findOrCreate('access-finance');
+    Permission::findOrCreate('access-technology');
 
     Role::findOrCreate('Super Admin');
-    Role::findOrCreate('Auditor')->givePermissionTo(['access-finance', 'finance-intake.view']);
+    Role::findOrCreate('Auditor')->givePermissionTo(['access-technology', 'tech-sentry.view']);
 
     $component = new RoleManagement;
 

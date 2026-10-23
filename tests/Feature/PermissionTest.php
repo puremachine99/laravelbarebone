@@ -13,48 +13,36 @@ test('super admin can access everything', function () {
     $this->actingAs($superAdmin);
 
     $this->get(route('departments.index'))->assertOk();
-    $this->get(route('opd.index'))->assertOk();
-    $this->get(route('products.index'))->assertOk();
-    $this->get(route('executive-dashboard'))->assertOk();
-    $this->get(route('leaderboard'))->assertOk();
-    $this->get(route('partnership.pitching'))->assertOk();
-    $this->get(route('partnership.realisasi'))->assertOk();
-    $this->get(route('finance.intake'))->assertOk();
-    $this->get(route('finance.reconciliation'))->assertOk();
-    $this->get(route('finance.disbursements'))->assertOk();
-    $this->get(route('finance.clearance-archive'))->assertOk();
-    $this->get(route('chat'))->assertOk();
-    $this->get(route('ai-center'))->assertOk();
+    $this->get(route('positions.index'))->assertOk();
+    $this->get(route('employees.index'))->assertOk();
+    $this->get(route('admin.roles'))->assertOk();
+    $this->get(route('dev.errors.index'))->assertOk();
 });
 
-test('user without proper role cannot access internal organization or new modules', function () {
+test('user without proper role cannot access internal organization', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
 
     $this->get(route('departments.index'))->assertStatus(403);
-    $this->get(route('executive-dashboard'))->assertStatus(403);
-    $this->get(route('leaderboard'))->assertStatus(403);
-    $this->get(route('partnership.pitching'))->assertStatus(403);
-    $this->get(route('partnership.realisasi'))->assertStatus(403);
-    $this->get(route('finance.intake'))->assertStatus(403);
-    $this->get(route('chat'))->assertStatus(403);
+    $this->get(route('employees.index'))->assertStatus(403);
+    $this->get(route('admin.roles'))->assertStatus(403);
+    $this->get(route('dev.errors.index'))->assertNotFound();
 });
 
-test('internal org admin can access internal org but not partnership or finance', function () {
+test('internal org admin can access internal org but not sentry', function () {
     $user = User::factory()->create();
     $user->assignRole('Internal Org Admin');
     $this->actingAs($user);
 
     $this->get(route('departments.index'))->assertOk();
-    $this->get(route('opd.index'))->assertStatus(403);
-    $this->get(route('finance.intake'))->assertStatus(403);
+    $this->get(route('employees.index'))->assertOk();
+    $this->get(route('dev.errors.index'))->assertNotFound();
 });
 
-test('partnership admin can access partnership but not internal org', function () {
+test('technology role cannot access internal org', function () {
     $user = User::factory()->create();
-    $user->assignRole('Partnership Admin');
+    $user->assignRole('Technology');
     $this->actingAs($user);
 
-    $this->get(route('opd.index'))->assertOk();
     $this->get(route('departments.index'))->assertStatus(403);
 });

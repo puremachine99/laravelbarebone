@@ -290,7 +290,8 @@
                     </section>
                 @endforeach
 
-                {{-- Other features: always last --}}
+                {{-- Other features: always last (hidden until RoleManagement::otherPermissions() lists any) --}}
+                @if (count($otherPermissions) > 0)
                 <section class="rounded-2xl border-2 border-base-300 overflow-hidden">
                     <header class="flex items-center gap-3 px-4 py-3 border-b-2 bg-base-200 border-base-300">
                         <span class="flex size-7 items-center justify-center rounded-full text-sm font-bold text-white bg-base-content/60">3</span>
@@ -314,6 +315,7 @@
                         @endforeach
                     </div>
                 </section>
+                @endif
             </div>
 
             <div class="flex items-center justify-between gap-2 pt-4 border-t border-base-300">

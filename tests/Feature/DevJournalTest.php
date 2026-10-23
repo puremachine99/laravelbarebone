@@ -73,12 +73,10 @@ test('Sentry has a Jurnal tab after Force Login that renders the monthly reports
         ->assertOk()
         ->assertSeeInOrder(['Error Log', 'Force Login', 'Jurnal']);
 
-    $this->actingAs($superAdmin)->get(route('dev.errors.index', ['tab' => 'journal', 'year' => 2026]))
+    // report/ ships empty in the base app, so every month shows the empty state.
+    $this->actingAs($superAdmin)->get(route('dev.errors.index', ['tab' => 'journal']))
         ->assertOk()
-        ->assertSee('Oktober 2026')
-        ->assertSee('dev-journal-entry', false)
-        ->assertSee('aria-label="Tahun jurnal"', false)
-        ->assertSee('<option value="2026" selected>2026</option>', false)
+        ->assertSee('Belum ada jurnal untuk bulan ini.')
         ->assertSeeInOrder(['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']);
 });
 

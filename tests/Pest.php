@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\ApiConsumer;
 use App\Support\ResourcePermissions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
@@ -77,19 +76,4 @@ function moduleViewAccess(string $modulePermission): array
         ...array_slice(moduleAccess($modulePermission), 0, 1),
         ...array_filter(ResourcePermissions::names($modulePermission), fn (string $name) => str_ends_with($name, '.view')),
     ];
-}
-
-/**
- * Creates an API consumer and returns its plain token for the X-API-Key header of the public lookup API.
- * Server-to-server by default, so requests without an Origin header are accepted.
- *
- * @param  array<string, mixed>  $attributes
- */
-function publicApiToken(array $attributes = []): string
-{
-    $consumer = ApiConsumer::factory()->serverToServer()->create($attributes);
-    $token = $consumer->issueToken();
-    $consumer->save();
-
-    return $token;
 }

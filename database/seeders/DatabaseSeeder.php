@@ -14,12 +14,11 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-
         $superAdmin = User::updateOrCreate(
-            ['email' => 'supernakama@smartid.co.id'],
+            ['email' => 'admin@example.com'],
             [
-                'name' => 'Super Admin Nakama',
-                'password' => Hash::make('qQ123123'),
+                'name' => 'Super Admin',
+                'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
         );
@@ -30,20 +29,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             RoleAndPermissionSeeder::class,
-            RegionProvinceRegencySeeder::class,
-            EmployeesSeeder::class,
-            DepartmentCodeSeeder::class,
-            UrusanSeeder::class,
-            OpdSeeder::class,
-            PartnershipMasterDataSeeder::class,
-            ProductSeeder::class,
-            ContactPositionSeeder::class,
-            PipelineSeeder::class,
-            ContactSeeder::class,
-            PrediksiCardSeeder::class,
-            RencanaPitchingCardSeeder::class,
-            FundingOfficerSeeder::class,
-            FoFunnelDataSeeder::class,
+            DepartmentSeeder::class,
         ]);
     }
 }

@@ -44,7 +44,7 @@ class RoleManagement extends Component
      *
      * @var array<int, string>
      */
-    protected const DATA_MASTER_MODULE_PERMISSIONS = ['access-internal-org', 'access-products'];
+    protected const DATA_MASTER_MODULE_PERMISSIONS = ['access-internal-org'];
 
     /**
      * Permissions tied 1:1 to a business module (department-scoped access).
@@ -72,18 +72,12 @@ class RoleManagement extends Component
      */
     public function otherPermissions(): array
     {
-        return [
-            'view-executive-dashboard' => ['label' => 'Executive Dashboard', 'description' => 'Company performance summary.', 'icon' => 'presentation-chart-line'],
-            'manage-talent-okr' => ['label' => 'Talent Leaderboard', 'description' => 'OKR and talent leaderboard.', 'icon' => 'trophy'],
-            'manage-chat' => ['label' => 'Nakama Chat', 'description' => 'Internal team chat.', 'icon' => 'chat-bubble-left-right'],
-            'manage-ai-center' => ['label' => 'AI Center', 'description' => 'Internal AI features.', 'icon' => 'sparkles'],
-        ];
+        return [];
     }
 
     /**
      * Data Master menu access. Mirrors the sidebar's "Data Master" gates,
-     * which reuse the same permissions as their related business module
-     * (access-internal-org, access-partnership, access-products).
+     * which reuse the same permissions as their related business module.
      *
      * @return array<string, array{label: string, description: string, icon: string}>
      */
@@ -91,8 +85,6 @@ class RoleManagement extends Component
     {
         return [
             'access-internal-org' => ['label' => 'Internal', 'description' => 'Departments, positions, employees, and role management.', 'icon' => 'building-office'],
-            'access-partnership' => ['label' => 'Pipeline', 'description' => 'Regions, OPD, contact positions, and urusan.', 'icon' => 'queue-list'],
-            'access-products' => ['label' => 'Products', 'description' => 'Product master data.', 'icon' => 'cube'],
         ];
     }
 

@@ -73,14 +73,6 @@ test('the sidebar pattern is calmer and the active item has no gradient', functi
         ->not->toContain('color-mix(in oklab, var(--color-sidebar-accent) 18%, transparent), transparent)');
 });
 
-test('the investors activity heatmap scales in the theme primary colour', function () {
-    $view = file_get_contents(resource_path('views/livewire/investors/dashboard-index.blade.php'));
-
-    expect($view)
-        ->toContain("'bg-primary'", "'bg-primary/60'", "'bg-primary/25'", 'rounded-sm bg-primary/25')
-        ->not->toContain("'bg-success/60'");
-});
-
 test('the active sidebar item is a binder tab in the content colour, joined to the page', function () {
     expect(appCss())
         ->toContain('--sidebar-border: transparent;', 'border-inline-end-width: 0;', 'scrollbar-width: none;')

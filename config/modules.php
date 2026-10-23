@@ -3,38 +3,12 @@
 /**
  * Canonical registry of business modules that a Department can be mapped to.
  *
+ * Add an entry here (plus a matching group in config/resource_permissions.php) when you build a new module.
+ *
  * @return array<string, array{label: string, description: string, permission: string, icon: string, admin_only: bool}>
  */
 return [
     'list' => [
-        'finance' => [
-            'label' => 'Finance',
-            'description' => 'Intake, rekonsiliasi, disbursement, dan clearance archive.',
-            'permission' => 'access-finance',
-            'icon' => 'banknotes',
-            'admin_only' => false,
-        ],
-        'partnership' => [
-            'label' => 'Partnership',
-            'description' => 'Sales pipeline, kontak, pitching, dan realisasi partnership.',
-            'permission' => 'access-partnership',
-            'icon' => 'user-group',
-            'admin_only' => false,
-        ],
-        'products' => [
-            'label' => 'Products',
-            'description' => 'Master data produk.',
-            'permission' => 'access-products',
-            'icon' => 'cube',
-            'admin_only' => false,
-        ],
-        'investors' => [
-            'label' => 'Investors / Funding',
-            'description' => 'Data investor dan funding.',
-            'permission' => 'access-investors',
-            'icon' => 'chart-bar',
-            'admin_only' => false,
-        ],
         'internal-org' => [
             'label' => 'Internal Org',
             'description' => 'Departments, positions, employees, serta user & role management.',
@@ -44,7 +18,7 @@ return [
         ],
         'technology' => [
             'label' => 'Technology',
-            'description' => 'Tools internal tim Technology, mis. Timeline Calculator.',
+            'description' => 'Tools internal tim Technology, mis. Sentry.',
             'permission' => 'access-technology',
             'icon' => 'cpu-chip',
             'admin_only' => false,

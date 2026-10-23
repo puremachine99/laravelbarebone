@@ -40,31 +40,30 @@ test('role management component CRUD operations', function () {
     $this->actingAs($admin);
 
     // Create permissions to assign
-    $perm1 = Permission::findOrCreate('access-partnership');
-    $perm2 = Permission::findOrCreate('access-products');
+    Permission::findOrCreate('access-technology');
 
     // 1. Create a new Role
     Livewire::test(RoleManagement::class)
-        ->set('roleName', 'Partnership Staff')
-        ->set('rolePermissions', ['access-partnership'])
+        ->set('roleName', 'Technology Staff')
+        ->set('rolePermissions', ['access-technology'])
         ->call('saveRole')
         ->assertHasNoErrors();
 
-    $newRole = Role::findByName('Partnership Staff');
+    $newRole = Role::findByName('Technology Staff');
     expect($newRole)->not->toBeNull()
-        ->and($newRole->hasPermissionTo('access-partnership'))->toBeTrue()
-        ->and($newRole->hasPermissionTo('access-products'))->toBeFalse();
+        ->and($newRole->hasPermissionTo('access-technology'))->toBeTrue()
+        ->and($newRole->hasPermissionTo('access-internal-org'))->toBeFalse();
 
     // 2. Edit the Role permissions
     Livewire::test(RoleManagement::class)
         ->call('edit', $newRole->id)
-        ->assertSet('roleName', 'Partnership Staff')
-        ->set('rolePermissions', ['access-partnership', 'access-products'])
+        ->assertSet('roleName', 'Technology Staff')
+        ->set('rolePermissions', ['access-technology', 'access-internal-org'])
         ->call('saveRole')
         ->assertHasNoErrors();
 
     $newRole->refresh();
-    expect($newRole->hasPermissionTo('access-products'))->toBeTrue();
+    expect($newRole->hasPermissionTo('access-internal-org'))->toBeTrue();
 
     // 3. Delete the Role
     Livewire::test(RoleManagement::class)
@@ -73,5 +72,5 @@ test('role management component CRUD operations', function () {
         ->call('delete')
         ->assertHasNoErrors();
 
-    expect(Role::where('name', 'Partnership Staff')->exists())->toBeFalse();
+    expect(Role::where('name', 'Technology Staff')->exists())->toBeFalse();
 });

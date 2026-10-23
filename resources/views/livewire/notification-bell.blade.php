@@ -1,31 +1,39 @@
 <?php
 
-use function Livewire\Volt\{state, computed};
+use Livewire\Attributes\Computed;
+use Livewire\Component;
 
-$notifications = computed(fn () => auth()->user()->notifications()->latest()->limit(8)->get());
+new class extends Component {
+    #[Computed]
+    public function notifications()
+    {
+        return auth()->user()->notifications()->latest()->limit(8)->get();
+    }
 
-$unreadCount = computed(fn () => auth()->user()->unreadNotifications()->count());
+    #[Computed]
+    public function unreadCount(): int
+    {
+        return auth()->user()->unreadNotifications()->count();
+    }
 
-$open = function (string $id) {
-    $notification = auth()->user()->notifications()->findOrFail($id);
-    $notification->markAsRead();
+    public function open(string $id)
+    {
+        $notification = auth()->user()->notifications()->findOrFail($id);
+        $notification->markAsRead();
 
-    return redirect()->to($notification->data['url'] ?? route('dashboard'));
-};
+        return redirect()->to($notification->data['url'] ?? route('dashboard'));
+    }
 
-$markAllAsRead = function () {
-    auth()->user()->unreadNotifications->markAsRead();
-};
-
-$receiveBroadcast = function () {
-    unset($this->notifications, $this->unreadCount);
+    public function markAllAsRead(): void
+    {
+        auth()->user()->unreadNotifications->markAsRead();
+    }
 };
 
 ?>
 
-<div class="dropdown dropdown-end"
-    x-data
-    x-init="Echo.private('App.Models.User.{{ auth()->id() }}').notification(() => $wire.receiveBroadcast())">
+{{-- No websocket server in the base app: poll for new notifications instead. --}}
+<div class="dropdown dropdown-end" wire:poll.60s>
     <div tabindex="0" role="button" aria-label="{{ __('Notifikasi') }}" aria-haspopup="true" class="btn btn-ghost btn-circle btn-sm relative cursor-pointer">
         <x-icon name="o-bell" class="w-4 h-4" />
         @if ($this->unreadCount > 0)

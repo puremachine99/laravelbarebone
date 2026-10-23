@@ -3,7 +3,6 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Enums\ChatPresenceStatus;
 use App\Enums\UserAppearance;
 use App\Enums\UserStatus;
 use App\Enums\UserTheme;
@@ -11,7 +10,6 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -20,16 +18,14 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Laravel\Passport\Contracts\OAuthenticatable;
-use Laravel\Passport\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'secondary_email', 'username', 'password', 'department_id', 'avatar_path', 'status', 'invited_by', 'invited_at', 'presence_status', 'theme', 'appearance'])]
+#[Fillable(['name', 'email', 'secondary_email', 'username', 'password', 'department_id', 'avatar_path', 'status', 'invited_by', 'invited_at', 'theme', 'appearance'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable implements OAuthenticatable, PasskeyUser
+class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, PasskeyAuthenticatable, SoftDeletes, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, PasskeyAuthenticatable, SoftDeletes, TwoFactorAuthenticatable;
 
     use HasRoles {
         hasPermissionTo as protected hasPermissionToIgnoringStatus;
@@ -55,7 +51,6 @@ class User extends Authenticatable implements OAuthenticatable, PasskeyUser
             'password' => 'hashed',
             'status' => UserStatus::class,
             'invited_at' => 'datetime',
-            'presence_status' => ChatPresenceStatus::class,
             'theme' => UserTheme::class,
             'appearance' => UserAppearance::class,
         ];
@@ -76,8 +71,7 @@ class User extends Authenticatable implements OAuthenticatable, PasskeyUser
     /**
      * Get a temporary, signed URL for the user's avatar, if one has been uploaded.
      *
-     * The "nakama-dashboard" bucket is private, so a plain public URL 403s —
-     * mirrors FoFunnel::dokumenAkadUrl()'s presigned-URL approach.
+     * The bucket is private, so a plain public URL 403s; hand out a short-lived presigned one instead.
      */
     public function avatarUrl(): ?string
     {
@@ -90,24 +84,6 @@ class User extends Authenticatable implements OAuthenticatable, PasskeyUser
     public function employee()
     {
         return $this->hasOne(Employee::class);
-    }
-
-    /**
-     * The user's own AI Center chats — the only way AI conversations should be looked up (owner-only privacy).
-     */
-    public function aiConversations(): HasMany
-    {
-        return $this->hasMany(AiConversation::class);
-    }
-
-    public function aiFiles(): HasMany
-    {
-        return $this->hasMany(AiFile::class);
-    }
-
-    public function aiMentoringCancellations(): HasMany
-    {
-        return $this->hasMany(AiMentoringCancellation::class);
     }
 
     /**
@@ -143,29 +119,11 @@ class User extends Authenticatable implements OAuthenticatable, PasskeyUser
     }
 
     /**
-     * Direksi/BOD: full visibility into business modules but read-only.
-     */
-    public function isReadOnlyViewer(): bool
-    {
-        return $this->hasRole('Direksi');
-    }
-
-    /**
      * Get the admin who invited this user, if the account originated from an invite.
      */
     public function invitedBy()
     {
         return $this->belongsTo(User::class, 'invited_by');
-    }
-
-    /**
-     * Conversations (chat threads) this user participates in.
-     */
-    public function conversations()
-    {
-        return $this->belongsToMany(Conversation::class, 'conversation_participants')
-            ->withPivot('last_read_at')
-            ->withTimestamps();
     }
 
     /**

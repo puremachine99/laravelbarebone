@@ -14,13 +14,11 @@ class Employee extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'pipeline_permissions' => 'array',
         'contract_start_date' => 'date',
         'contract_end_date' => 'date',
         'birth_date' => 'date',
         'status_date' => 'date',
         'is_cltp' => 'boolean',
-        'hide_kpi_heatmap' => 'boolean',
         'status' => EmployeeStatus::class,
     ];
 
@@ -37,19 +35,6 @@ class Employee extends Model
     public function scopeActive(Builder $query): void
     {
         $query->where('status', EmployeeStatus::Active);
-    }
-
-    /**
-     * Funding Officers (and Admin FO) of the Finance department. Resigned/ex-employees are left out
-     * unless asked for, so pickers and team totals don't carry people who no longer work here.
-     *
-     * @param  Builder<Employee>  $query
-     */
-    public function scopeFundingOfficers(Builder $query, bool $includeResigned = false): void
-    {
-        $query->whereHas('department', fn ($q) => $q->where('name', 'Departemen Finance'))
-            ->whereHas('user.roles', fn ($q) => $q->whereIn('name', ['Funding Officer', 'Investor Admin']))
-            ->unless($includeResigned, fn ($q) => $q->active());
     }
 
     /**
@@ -70,11 +55,6 @@ class Employee extends Model
     public function department()
     {
         return $this->belongsTo(Department::class);
-    }
-
-    public function region()
-    {
-        return $this->belongsTo(Region::class);
     }
 
     public function positionStruktural()
